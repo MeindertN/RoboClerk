@@ -7,7 +7,6 @@ namespace RoboClerk
         protected string id = "";
         protected string type = "";
         public abstract string ToMarkDown();
-        public abstract void FromMarkDown();
         
         public string ID 
         {
