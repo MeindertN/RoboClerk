@@ -9,11 +9,5 @@ namespace RoboClerk
             title = "Software Requirements Specification";
 
         }
-
-        public override string ToMarkDown()
-        {
-            throw new System.NotImplementedException();
-        }
-
     }
 }
