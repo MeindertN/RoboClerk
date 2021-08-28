@@ -4,9 +4,10 @@ using RoboClerk;
 
 namespace RoboClerk
 {
-    class SoftwareRequirementItem : Item
+    public class RequirementItem : TraceItem
     {
         private string requirementType;
+        private string requirementCategory;
         private string requirementState;
         private string requirementID;
         private Uri requirementLink;
@@ -14,9 +15,9 @@ namespace RoboClerk
         private Uri requirementParentLink;
         private string requirementTitle;
         private string requirementDescription;
-        public SoftwareRequirementItem()
+        public RequirementItem()
         {
-            type = "SoftwareRequirementItem";
+            type = "RequirementItem";
             id = Guid.NewGuid().ToString();
         }
         
@@ -62,22 +63,22 @@ namespace RoboClerk
         public override string ToMarkDown()
         {
             StringBuilder sb = new StringBuilder();
-            int[] columnWidths = new int[2] { 20, 80 };
+            int[] columnWidths = new int[2] { 22, 80 };
             string separator = generateTableSeparator(columnWidths);
             sb.AppendLine(separator);
-            sb.Append(generateLeftMostTableCell(20,"Requirement ID:"));
+            sb.Append(generateLeftMostTableCell(22,"Requirement ID:"));
             sb.Append(generateRightMostTableCell(columnWidths,requirementID));
             sb.AppendLine(separator);
-            sb.Append(generateLeftMostTableCell(20,"Requirement Type:"));
-            sb.Append(generateRightMostTableCell(columnWidths,requirementType));
+            sb.Append(generateLeftMostTableCell(22,"Requirement Category:"));
+            sb.Append(generateRightMostTableCell(columnWidths,requirementCategory));
             sb.AppendLine(separator);
-            sb.Append(generateLeftMostTableCell(20,"Parent ID:"));
+            sb.Append(generateLeftMostTableCell(22,"Parent ID:"));
             sb.Append(generateRightMostTableCell(columnWidths,requirementParentID));
             sb.AppendLine(separator);
-            sb.Append(generateLeftMostTableCell(20,"Title:"));
+            sb.Append(generateLeftMostTableCell(22,"Title:"));
             sb.Append(generateRightMostTableCell(columnWidths,requirementTitle));
             sb.AppendLine(separator);
-            sb.Append(generateLeftMostTableCell(20,"Description:"));
+            sb.Append(generateLeftMostTableCell(22,"Description:"));
             sb.Append(generateRightMostTableCell(columnWidths,requirementDescription));
             return sb.ToString();
         }

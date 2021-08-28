@@ -7,7 +7,9 @@ namespace RoboClerk
     {
         static void Main(string[] args)
         {
-            foreach(var arg in args)
+            RoboClerkCore core = new RoboClerkCore();
+
+/*            foreach (var arg in args)
             {
                 var mdFile = File.ReadAllText(args[0]);
                 SoftwareRequirementsSpecification srs = new SoftwareRequirementsSpecification();
@@ -20,7 +22,7 @@ namespace RoboClerk
                 }
                 string output = srs.ToMarkDown();
                 Console.Write(output);
-            }
+            }*/
         }
     }
 }
