@@ -7,6 +7,8 @@ namespace RoboClerk
         public RoboClerkCore()
         {
             LoadPlugins();
+            SLMSPlugin.Initialize("meindert", "RoboClerk", "");
+            SLMSPlugin.RefreshItems();
         }
 
         private void LoadPlugins()

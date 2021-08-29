@@ -9,9 +9,10 @@ namespace RoboClerk
         string Name { get; }
         string Description { get; }
         void Initialize(string organizationName, string projectName, string accessToken);
-        List<TraceItem> GetProductRequirements();
+        void RefreshItems();
+        IEnumerable<Item> GetProductRequirements();
         List<TraceItem> GetSoftwareRequirements();
         List<Item> GetBugs();
-        List<Item> GetTestPlans();
+        List<TraceItem> GetTestCases();
     }
 }

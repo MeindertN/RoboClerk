@@ -9,13 +9,13 @@ namespace RoboClerk
 
         public abstract string ToMarkDown();
         
-        public string ID 
+        public string ItemID 
         {
             get => id;
             set => id = value;
         }   
 
-        public string Type
+        public string ItemType
         {
             get => type;
         } 

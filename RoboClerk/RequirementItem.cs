@@ -4,9 +4,14 @@ using RoboClerk;
 
 namespace RoboClerk
 {
+    public enum RequirementType
+    {
+        ProductRequirement,
+        SoftwareRequirement
+    };
     public class RequirementItem : TraceItem
     {
-        private string requirementType;
+        private RequirementType requirementType;
         private string requirementCategory;
         private string requirementState;
         private string requirementID;
@@ -15,6 +20,7 @@ namespace RoboClerk
         private Uri requirementParentLink;
         private string requirementTitle;
         private string requirementDescription;
+        private string requirementRevision;
         public RequirementItem()
         {
             type = "RequirementItem";
@@ -83,7 +89,7 @@ namespace RoboClerk
             return sb.ToString();
         }
 
-        public string RequirementType
+        public RequirementType TypeOfRequirement
         {
             get => requirementType;
             set => requirementType = value;
@@ -129,6 +135,18 @@ namespace RoboClerk
         {
             get => requirementDescription;
             set => requirementDescription = value;
+        }
+
+        public string RequirementRevision
+        {
+            get => requirementRevision;
+            set => requirementRevision = value;
+        }
+
+        public string RequirementCategory
+        {
+            get => requirementCategory;
+            set => requirementCategory = value;
         }
     }
 }
