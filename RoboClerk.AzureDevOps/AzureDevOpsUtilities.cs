@@ -11,13 +11,6 @@ namespace RoboClerk.AzureDevOps
 {
     internal static class AzureDevOpsUtilities
     {
-        internal static VssConnection GetConnection(string orgName, string accessToken)
-        {
-            Uri orgURL = new Uri($"https://dev.azure.com/{orgName}");
-            
-            return new VssConnection(orgURL, new VssBasicCredential(string.Empty, accessToken));            
-        }
-
         internal static WorkItemTrackingHttpClient GetWorkItemTrackingHttpClient(string orgName, string accessToken)
         {
             Uri orgURL = new Uri($"https://dev.azure.com/{orgName}");
@@ -27,21 +20,21 @@ namespace RoboClerk.AzureDevOps
         internal static IEnumerable<WorkItem> PerformWorkItemQuery(WorkItemTrackingHttpClient witClient, Wiql wiql)
         {
             var result = witClient.QueryByWiqlAsync(wiql).Result;
-            var ids = result.WorkItems.Select(item => item.Id).ToArray();
-
+            int[] ids = result.WorkItems.Select(item => item.Id).ToArray();
+                        
             List<WorkItem> items = new List<WorkItem>();
             foreach (var id in ids)
             {
                 // Get the specified work item
-                WorkItem workitem = witClient.GetWorkItemAsync(id).Result;
+                WorkItem workitem = witClient.GetWorkItemAsync(id, expand:WorkItemExpand.All).Result;
                 items.Add(workitem);
             }
             return items;
         }
 
-        /*internal static List<Item> GetProductWorkItemsFromQueryResult()
+        internal static string GetWorkItemIDFromURL(string URL)
         {
-
-        }*/
+            return URL.Substring(URL.LastIndexOf('/') + 1, URL.Length - (URL.LastIndexOf('/') + 1));
+        }
     }
 }

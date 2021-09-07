@@ -1,9 +1,11 @@
 ﻿using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-using Microsoft.VisualStudio.Services.WebApi;
+using Tomlyn;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Reflection;
+using System.IO;
+
 
 namespace RoboClerk.AzureDevOps
 {
@@ -13,8 +15,8 @@ namespace RoboClerk.AzureDevOps
         private string description;
         private string organizationName;
         private string projectName;
-        List<Item> productRequirements = new List<Item>();
-        List<Item> softwareRequirements = new List<Item>();
+        List<RequirementItem> productRequirements = new List<RequirementItem>();
+        List<RequirementItem> softwareRequirements = new List<RequirementItem>();
         private WorkItemTrackingHttpClient witClient;
 
         public AzureDevOpsSLMSPlugin()
@@ -32,14 +34,14 @@ namespace RoboClerk.AzureDevOps
             throw new NotImplementedException();
         }
 
-        public IEnumerable<Item> GetProductRequirements()
+        public List<RequirementItem> GetProductRequirements()
         {
-            throw new NotImplementedException();
+            return productRequirements;
         }
 
-        public List<TraceItem> GetSoftwareRequirements()
+        public List<RequirementItem> GetSoftwareRequirements()
         {
-            throw new NotImplementedException();
+            return softwareRequirements;
         }
 
         public List<TraceItem> GetTestCases()
@@ -47,12 +49,57 @@ namespace RoboClerk.AzureDevOps
             throw new NotImplementedException();
         }
 
-        public void Initialize(string orgName, string proName, string accessToken)
+        public void Initialize()
         {
-            organizationName = orgName;
-            projectName = proName;
-            witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, accessToken);
-            RefreshItems();
+            LoadConfiguration();
+        }
+
+        private void LoadConfiguration()
+        {
+            var assembly = Assembly.GetAssembly(this.GetType());
+            var configFileLocation = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/AzureDevOpsPlugin.toml";
+            var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
+            organizationName = (string)config["organizationName"];
+            projectName = (string)config["projectName"];
+            witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, (string)config["accessToken"]);
+        }
+
+        private void AddLinksToWorkItems(IList<WorkItemRelation> links, RequirementItem item)
+        {
+            if (links != null) //check for links
+            {
+                foreach (var rel in links)
+                {
+                    if (rel.Rel == "System.LinkTypes.Hierarchy-Forward")
+                    {
+                        //this is a child link
+                        var id = AzureDevOpsUtilities.GetWorkItemIDFromURL(rel.Url);
+                        item.AddChild(id);
+                        continue;
+                    }
+                    if (rel.Rel == "System.LinkTypes.Hierarchy-Reverse")
+                    {
+                        //this is a parent link
+                        var id = AzureDevOpsUtilities.GetWorkItemIDFromURL(rel.Url);
+                        item.AddParent(id);
+                        item.RequirementParentID = id;
+                        item.RequirementParentLink = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{id}/");
+                        continue;
+                    }
+                }
+            }
+        }
+
+        private string GetWorkItemField(WorkItem workitem, string field)
+        {
+            if(workitem.Fields.ContainsKey(field))
+            {
+                return workitem.Fields[field].ToString();
+            }
+            else
+            {
+                return String.Empty;
+            }
         }
 
         private RequirementItem ConvertToRequirementItem(WorkItem workitem)
@@ -61,11 +108,11 @@ namespace RoboClerk.AzureDevOps
             item.RequirementID = workitem.Id.ToString();
             item.RequirementLink = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
             item.RequirementRevision = workitem.Rev.ToString();
-            //check out relations to see what they are
-            item.RequirementState = workitem.Fields["System.State"].ToString();
-            item.RequirementDescription = workitem.Fields["System.Description"].ToString();
-            item.RequirementTitle = workitem.Fields["System.Title"].ToString();
-            item.RequirementCategory = workitem.Fields["System.WorkItemType"].ToString();
+            item.RequirementState = GetWorkItemField(workitem,"System.State");
+            item.RequirementDescription = GetWorkItemField(workitem, "System.Description");
+            item.RequirementTitle = GetWorkItemField(workitem, "System.Title");
+            item.RequirementCategory = GetWorkItemField(workitem, "System.WorkItemType");
+            AddLinksToWorkItems(workitem.Relations, item);
             return item;
         }
 
@@ -73,7 +120,7 @@ namespace RoboClerk.AzureDevOps
         {
             var productRequirementQuery = new Wiql()
             {
-                Query = $"Select [Id] From WorkItems Where [Work Item Type] = 'Epic' And [System.TeamProject] = '{projectName}'",
+                Query = $"SELECT [Id] FROM WorkItems WHERE [Work Item Type] = 'Epic' AND [System.TeamProject] = '{projectName}'",
             };
 
             foreach( var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient,productRequirementQuery))
@@ -95,37 +142,24 @@ namespace RoboClerk.AzureDevOps
                 softwareRequirements.Add(item);
             }
 
-            var productRequirementLinksQuery = new Wiql()
+            /*var productRequirementLinksQuery = new Wiql()
             {
-                Query = $"SELECT [System.Id] FROM WorkItemLinks " +
+                Query = $"SELECT * FROM WorkItemLinks " +
                 $"WHERE ([Source].[System.WorkItemType] = 'Epic' " +
                 $"       AND [Source].[System.TeamProject] = '{projectName}' ) " +
                 $"AND   ([System.Links.LinkType] = 'System.LinkTypes.Hierarchy-Forward') " +
                 $"AND   ([Target].[System.WorkItemType] = 'User Story' " +
                 $"       AND [Target].[System.State] != 'Removed' " +
                 $"       AND [Target].[System.TeamProject] = '{projectName}' ) " +
-                $"MODE (Recursive)",
+                $"MODE (MustContain)",
             };
 
-            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, softwareRequirementQuery))
+            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, productRequirementLinksQuery))
             {
                 var item = ConvertToRequirementItem(workitem);
                 item.TypeOfRequirement = RequirementType.SoftwareRequirement;
                 softwareRequirements.Add(item);
-            }
-
-
-            /*
-            var softwareRequirementLinksQuery = new Wiql()
-            {
-                Query = $"SELECT [System.Id] FROM WorkItemLinks " +
-                $"WHERE ([Source].[System.WorkItemType] = 'User Story') " +
-                $"AND   ([System.Links.LinkType] = 'Parent') " +
-                $"AND   ([Target].[System.State] != 'Removed') " +
-                $"MODE (MustContain)",
-            };*/
-
-
+            }*/
         }
     }
 }

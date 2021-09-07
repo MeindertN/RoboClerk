@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace RoboClerk
 {
-    abstract class Document
+    public class Document
     {
         protected string title = "";
 
@@ -13,6 +13,11 @@ namespace RoboClerk
 
         protected List<RoboClerkTag> roboclerkTags = new List<RoboClerkTag>();
                 
+        public Document(string t)
+        {
+            title = t;
+        }
+
         public void FromMarkDown(string markdown)
         {
             //normalize the line endings in the string

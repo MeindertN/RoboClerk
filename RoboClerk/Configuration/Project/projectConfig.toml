@@ -1,0 +1,14 @@
+﻿# This configuration file contains the configuration for the project that RoboClerk
+# is running on. It also contains key value pairs for items that are needed in the 
+# documentation such are the name of the software and the version etc.
+# DO NOT CHANGE THE TEXT BETWEEN THE SQUARE BRACKETS
+
+# Title and location of the documents
+[DocumentLocations]
+ProductRequirementsSpecification = ["Product Requirements Specification", "I:/temp/ProductRequirementSpecification.md"]
+SoftwareRequirementsSpecification = ["Software Requirements Specification", "I:/temp/SoftwareRequirementSpecification.md"]
+
+[ConfigValues]
+CompanyName = "Acme Inc."
+SoftwareName = "RoboClerk"
+SoftwareVersion = "0.1"

@@ -4,14 +4,11 @@ using System.Text;
 
 namespace RoboClerk
 {
-    public interface ISLMSPlugin
+    public interface ISLMSPlugin : IPlugin
     {
-        string Name { get; }
-        string Description { get; }
-        void Initialize(string organizationName, string projectName, string accessToken);
         void RefreshItems();
-        IEnumerable<Item> GetProductRequirements();
-        List<TraceItem> GetSoftwareRequirements();
+        List<RequirementItem> GetProductRequirements();
+        List<RequirementItem> GetSoftwareRequirements();
         List<Item> GetBugs();
         List<TraceItem> GetTestCases();
     }

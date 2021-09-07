@@ -8,43 +8,37 @@ namespace RoboClerk
 {
     public static class PluginLoader
     {
-        public static IEnumerable<ISLMSPlugin> LoadPlugins(string pluginDir)
+        public static T LoadPlugin<T>(string name, string pluginDir) where T : class
         {
-            string[] pluginPaths = new string[1] { pluginDir };
-                
-            IEnumerable<ISLMSPlugin> plugins = pluginPaths.SelectMany(pluginPath =>
+            //get all the potential plugin dlls
+            foreach(string file in Directory.GetFiles(pluginDir,"RoboClerk.*.dll",SearchOption.AllDirectories))
             {
-                Assembly pluginAssembly = LoadPlugin(pluginPath);
-                return CreateSLMSPlugins(pluginAssembly);
-            }).ToList();
-            return plugins;
+                //go over all the plugins and try to load them as the appropriate type
+                Console.WriteLine($"Loading from: {file}");
+                PluginLoadContext loadContext = new PluginLoadContext(file);
+                var assembly = loadContext.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(file)));
+                //check the name of the plugin and return if found
+                foreach( var plugin in CreatePlugins<T>(assembly))
+                {
+                    if( (plugin as IPlugin).Name == name )
+                    {
+                        //found the plugin we were looking for
+                        return plugin;
+                    }
+                }
+            }
+            return null;
         }
 
-        private static Assembly LoadPlugin(string relativePath)
-        {
-            // Navigate up to the solution root
-            string root = Path.GetFullPath(Path.Combine(
-                Path.GetDirectoryName(
-                    Path.GetDirectoryName(
-                        Path.GetDirectoryName(
-                            Path.GetDirectoryName(
-                                Path.GetDirectoryName(typeof(Program).Assembly.Location)))))));
-
-            string pluginLocation = Path.GetFullPath(Path.Combine(root, relativePath.Replace('\\', Path.DirectorySeparatorChar)));
-            Console.WriteLine($"Loading from: {pluginLocation}");
-            PluginLoadContext loadContext = new PluginLoadContext(pluginLocation);
-            return loadContext.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(pluginLocation)));
-        }
-
-        private static IEnumerable<ISLMSPlugin> CreateSLMSPlugins(Assembly assembly)
+        private static IEnumerable<T> CreatePlugins<T>(Assembly assembly) where T : class
         {
             int count = 0;
 
             foreach (Type type in assembly.GetTypes())
             {
-                if (typeof(ISLMSPlugin).IsAssignableFrom(type))
+                if (typeof(T).IsAssignableFrom(type))
                 {
-                    ISLMSPlugin result = Activator.CreateInstance(type) as ISLMSPlugin;
+                    T result = Activator.CreateInstance(type) as T;
                     if (result != null)
                     {
                         count++;

@@ -12,15 +12,15 @@ namespace RoboClerk
     public class RequirementItem : TraceItem
     {
         private RequirementType requirementType;
-        private string requirementCategory;
-        private string requirementState;
-        private string requirementID;
+        private string requirementCategory = "";
+        private string requirementState = "";
+        private string requirementID = "";
         private Uri requirementLink;
-        private string requirementParentID;
+        private string requirementParentID = "";
         private Uri requirementParentLink;
-        private string requirementTitle;
-        private string requirementDescription;
-        private string requirementRevision;
+        private string requirementTitle = "";
+        private string requirementDescription = "";
+        private string requirementRevision = "";
         public RequirementItem()
         {
             type = "RequirementItem";
@@ -74,6 +74,9 @@ namespace RoboClerk
             sb.AppendLine(separator);
             sb.Append(generateLeftMostTableCell(22,"Requirement ID:"));
             sb.Append(generateRightMostTableCell(columnWidths,requirementID));
+            sb.AppendLine(separator);
+            sb.Append(generateLeftMostTableCell(22, "Requirement Revision:"));
+            sb.Append(generateRightMostTableCell(columnWidths, requirementRevision));
             sb.AppendLine(separator);
             sb.Append(generateLeftMostTableCell(22,"Requirement Category:"));
             sb.Append(generateRightMostTableCell(columnWidths,requirementCategory));
