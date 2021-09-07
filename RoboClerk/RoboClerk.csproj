@@ -1,12 +1,21 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.25.0" />
+    <PackageReference Include="Tomlyn" Version="0.1.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Markdig.Extensions.RoboClerk\Markdig.Extensions.RoboClerk.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Configuration\Project\projectConfig.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Configuration\RoboClerk\RoboClerk.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

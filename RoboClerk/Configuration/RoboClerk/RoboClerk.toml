@@ -1,0 +1,8 @@
+﻿# This is the RoboClerk configuration file
+
+# Provide the names of the SLMS plugin(s)
+SLMSPlugin = [ "AzureDevOpsSLMSPlugin" ]
+
+# These plugin directories are relative to the executing assembly. RoboClerk will
+# search for plugins in the subdirectories of the relative plugin dirs.
+RelativePluginDirs = [ "../../../../RoboClerk.AzureDevOps/bin/Debug" ]

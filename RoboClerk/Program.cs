@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 
 namespace RoboClerk
 {
@@ -7,7 +8,15 @@ namespace RoboClerk
     {
         static void Main(string[] args)
         {
-            foreach(var arg in args)
+            var assembly = Assembly.GetExecutingAssembly();
+            var projectConfigFile = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/Project/projectConfig.toml";
+            var roboClerkConfigFile = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/RoboClerk/RoboClerk.toml";
+            
+            RoboClerkCore core = new RoboClerkCore(roboClerkConfigFile,projectConfigFile);
+            core.GenerateDocs();
+            core.SaveDocumentsToDisk();
+
+/*            foreach (var arg in args)
             {
                 var mdFile = File.ReadAllText(args[0]);
                 SoftwareRequirementsSpecification srs = new SoftwareRequirementsSpecification();
@@ -20,7 +29,7 @@ namespace RoboClerk
                 }
                 string output = srs.ToMarkDown();
                 Console.Write(output);
-            }
+            }*/
         }
     }
 }

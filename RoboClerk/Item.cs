@@ -2,19 +2,20 @@ using System;
 
 namespace RoboClerk
 {
-    abstract class Item
+    public abstract class Item
     {
         protected string id = "";
         protected string type = "";
+
         public abstract string ToMarkDown();
         
-        public string ID 
+        public string ItemID 
         {
             get => id;
             set => id = value;
         }   
 
-        public string Type
+        public string ItemType
         {
             get => type;
         } 
