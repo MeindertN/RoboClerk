@@ -10,6 +10,12 @@ using System.Linq;
 
 namespace RoboClerk
 {
+    public enum DocumentFormat
+    {
+        Markdown,
+        HTML
+    };
+
     public class RoboClerkCore
     {
         private DataSources dataSources = null;
@@ -69,11 +75,21 @@ namespace RoboClerk
             documents = tempDic;
         }
 
-        public void SaveDocumentsToDisk()
+        public void SaveMarkdownDocumentsToDisk(DocumentFormat format)
         {
-            foreach(var doc in documents)
+            if (format == DocumentFormat.Markdown)
             {
-                File.WriteAllText(doc.Value.Item1, doc.Value.Item2);
+                foreach (var doc in documents)
+                {
+                    File.WriteAllText(doc.Value.Item1, doc.Value.Item2);
+                }
+            }
+            else if (format == DocumentFormat.HTML)
+            {
+                foreach (var doc in documents)
+                {
+                    File.WriteAllText(Path.ChangeExtension(doc.Value.Item1, ".html"), RoboClerkMarkdown.ConvertMarkdownToHTML(doc.Value.Item2));
+                }
             }
         }
 

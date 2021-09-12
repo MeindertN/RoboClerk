@@ -33,20 +33,20 @@ There is some text @@inline(inline:Foo)@@ in this line.
         [Test]
         public void Valid_Text_Can_Be_Parsed()
         {
-            Assert.DoesNotThrow( () => { RoboClerkTagMarkdown.ExtractRoboClerkTags(validText); });
+            Assert.DoesNotThrow( () => { RoboClerkMarkdown.ExtractRoboClerkTags(validText); });
         }
 
         [Test]
         public void The_Correct_Nr_Of_Tags_Is_Extracted()
         {
-            var tags = RoboClerkTagMarkdown.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
             Assert.AreEqual(6, tags.Count);
         }
 
         [Test]
         public void The_Correct_Info_Fields_Are_Extracted()
         {
-            var tags = RoboClerkTagMarkdown.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
             Assert.AreEqual("TheFirstInfo", tags[0].ID);
             Assert.AreEqual("testinfo", tags[1].ID);
             Assert.AreEqual("testinfo2", tags[2].ID);
@@ -58,7 +58,7 @@ There is some text @@inline(inline:Foo)@@ in this line.
         [Test]
         public void The_Correct_Source_Fields_Are_Extracted()
         {
-            var tags = RoboClerkTagMarkdown.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
             Assert.AreEqual(DataSource.SLMS, tags[0].Source);
             Assert.AreEqual(DataSource.Source, tags[1].Source);
             Assert.AreEqual(DataSource.Config, tags[2].Source);
@@ -70,7 +70,7 @@ There is some text @@inline(inline:Foo)@@ in this line.
         [Test]
         public void Content_Is_Inserted_In_The_Correct_Place()
         {
-            var tags = RoboClerkTagMarkdown.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
             tags[0].Contents = "item1";
             tags[1].Contents = "item2";
             tags[2].Contents = "item3";
@@ -93,7 +93,7 @@ There is some text @@item6(inline:Foo)@@ in this line.
  ";
             expectedResult = Regex.Replace(expectedResult, @"\r\n", "\n");
 
-            string finalResult = RoboClerkTagMarkdown.ReInsertRoboClerkTags(validText,tags);
+            string finalResult = RoboClerkMarkdown.ReInsertRoboClerkTags(validText,tags);
             Assert.AreEqual(expectedResult, finalResult);
         }
     }

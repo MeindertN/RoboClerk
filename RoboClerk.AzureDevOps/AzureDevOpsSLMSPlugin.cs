@@ -17,6 +17,8 @@ namespace RoboClerk.AzureDevOps
         private string projectName;
         List<RequirementItem> productRequirements = new List<RequirementItem>();
         List<RequirementItem> softwareRequirements = new List<RequirementItem>();
+        List<TestCaseItem> testCases = new List<TestCaseItem>();
+
         private WorkItemTrackingHttpClient witClient;
 
         public AzureDevOpsSLMSPlugin()

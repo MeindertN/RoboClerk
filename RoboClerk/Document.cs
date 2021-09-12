@@ -23,7 +23,7 @@ namespace RoboClerk
             //normalize the line endings in the string
             string normalized = Regex.Replace(markdown, @"\r\n", "\n");
             rawMarkdown = normalized;
-            roboclerkTags = RoboClerkTagMarkdown.ExtractRoboClerkTags(rawMarkdown);
+            roboclerkTags = RoboClerkMarkdown.ExtractRoboClerkTags(rawMarkdown);
         }
 
         public string ToMarkDown()
@@ -31,7 +31,7 @@ namespace RoboClerk
             //this function can be called at any time, it will reconstruct the markdown document
             //based on the tag contents that could have been updated since the document was parsed. 
             //The document can be updated by replacing the individual tag contents.
-            return RoboClerkTagMarkdown.ReInsertRoboClerkTags(rawMarkdown,roboclerkTags);
+            return RoboClerkMarkdown.ReInsertRoboClerkTags(rawMarkdown,roboclerkTags);
         }
 
         public IEnumerable<RoboClerkTag> RoboClerkTags
