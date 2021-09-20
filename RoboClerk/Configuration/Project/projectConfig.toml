@@ -5,8 +5,8 @@
 
 # Title and location of the documents
 [DocumentLocations]
-ProductRequirementsSpecification = ["Product Requirements Specification", "D:/temp/ProductRequirementSpecification.md"]
-SoftwareRequirementsSpecification = ["Software Requirements Specification", "D:/temp/SoftwareRequirementSpecification.md"]
+ProductRequirementsSpecification = ["Product Requirements Specification", "I:/temp/ProductRequirementSpecification.md"]
+SoftwareRequirementsSpecification = ["Software Requirements Specification", "I:/temp/SoftwareRequirementSpecification.md"]
 
 [ConfigValues]
 CompanyName = "Acme Inc."

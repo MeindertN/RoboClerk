@@ -17,6 +17,8 @@ namespace RoboClerk
         private string requirementState = "";
         private string requirementID = "";
         private Uri requirementLink;
+        private string requirementParentID = "";
+        private Uri requirementParentLink;
         private string requirementTitle = "";
         private string requirementDescription = "";
         private string requirementRevision = "";
@@ -107,7 +109,7 @@ namespace RoboClerk
             sb.Append(generateRightMostTableCell(columnWidths,requirementCategory));
             sb.AppendLine(separator);
             sb.Append(generateLeftMostTableCell(columnWidths[0], "Parent ID:"));
-            sb.Append(generateRightMostTableCell(columnWidths,parents.Count == 0? "": parents[0].Item1));
+            sb.Append(generateRightMostTableCell(columnWidths,requirementParentID));
             sb.AppendLine(separator);
             sb.Append(generateLeftMostTableCell(columnWidths[0], "Title:"));
             sb.Append(generateRightMostTableCell(columnWidths,requirementTitle));
@@ -139,6 +141,18 @@ namespace RoboClerk
         {
             get => requirementLink;
             set => requirementLink = value;
+        }
+
+        public string RequirementParentID 
+        {
+            get => requirementParentID;
+            set => requirementParentID = value;
+        }
+
+        public Uri RequirementParentLink 
+        {
+            get => requirementParentLink;
+            set => requirementParentLink = value;
         }
 
         public string RequirementTitle 

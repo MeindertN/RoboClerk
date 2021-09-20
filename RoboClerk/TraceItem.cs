@@ -6,27 +6,27 @@ namespace RoboClerk
 {
     public abstract class TraceItem : Item
     {
-        protected List<(string,Uri)> parents = new List<(string, Uri)>();
-        protected List<(string,Uri)> children = new List<(string, Uri)>();
+        protected List<string> parents = new List<string>();
+        protected List<string> children = new List<string>();
 
-        public IEnumerable<(string,Uri)> Parents
+        public IEnumerable<string> Parents
         {
             get => parents;
         }
 
-        public IEnumerable<(string,Uri)> Children
+        public IEnumerable<string> Children
         {
             get => children;
         }
 
-        public void AddChild(string child, Uri link)
+        public void AddChild(string child)
         {
-            children.Add((child,link));
+            children.Add(child);
         }
 
-        public void AddParent(string parent, Uri link)
+        public void AddParent(string parent)
         {
-            parents.Add((parent,link));
+            parents.Add(parent);
         }
     }
 }
