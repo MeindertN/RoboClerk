@@ -1,5 +1,5 @@
 ﻿# This is the RoboClerk AzureDevOps plugin configuration
 
-accessToken = ""
+accessToken = "icj6ieoxgrlizjlo4pnlthpj6l3sn3jtidt3ujqadegpucjegkda"
 organizationName = "meindert"
 projectName = "RoboClerk"
