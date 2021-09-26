@@ -85,9 +85,10 @@ namespace RoboClerk
         {
             var pipelineBuilder = new MarkdownPipelineBuilder();
             pipelineBuilder.PreciseSourceLocation = true;
-            pipelineBuilder.UseAdvancedExtensions();
+            pipelineBuilder = pipelineBuilder.UsePipeTables();
+            pipelineBuilder = pipelineBuilder.UseGridTables();
             pipelineBuilder.Extensions.AddIfNotAlready<RoboClerkContainerExtension>();
-
+            
             var pipeline = pipelineBuilder.Build();
             return Markdown.ToHtml(markdown, pipeline);
         }

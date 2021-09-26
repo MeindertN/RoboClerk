@@ -48,9 +48,9 @@ namespace RoboClerk.AzureDevOps
             return softwareRequirements;
         }
 
-        public List<TraceItem> GetTestCases()
+        public List<TestCaseItem> GetTestCases()
         {
-            throw new NotImplementedException();
+            return testCases;
         }
 
         public void Initialize()
@@ -157,6 +157,7 @@ namespace RoboClerk.AzureDevOps
                                 if (index == stepData.Length)
                                 {
                                     result.Add(stepData);
+                                    stepData = new string[2];
                                 }
                             }
                             break;
@@ -176,13 +177,18 @@ namespace RoboClerk.AzureDevOps
             item.TestCaseTitle = GetWorkItemField(workitem, "System.Title");
             item.TestCaseDescription = GetWorkItemField(workitem, "System.Description");
             item.TestCaseSteps = GetTestSteps(GetWorkItemField(workitem, "Microsoft.VSTS.TCM.Steps"));
-            item.TestCaseAutomation = GetWorkItemField(workitem, "Microsoft.VSTS.TCM.AutomationStatus") != "Not Automated";
+            item.TestCaseAutomated = GetWorkItemField(workitem, "Microsoft.VSTS.TCM.AutomationStatus") != "Not Automated";
             AddLinksToWorkItems(workitem.Relations, item);
             return item;
         }
 
         public void RefreshItems()
         {
+            //re-initialize 
+            productRequirements.Clear();
+            softwareRequirements.Clear();
+            testCases.Clear();
+
             var productRequirementQuery = new Wiql()
             {
                 Query = $"SELECT [Id] FROM WorkItems WHERE [Work Item Type] = 'Epic' AND [System.TeamProject] = '{projectName}'",

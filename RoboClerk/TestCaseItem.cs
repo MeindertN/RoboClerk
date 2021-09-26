@@ -12,7 +12,7 @@ namespace RoboClerk
         private string testCaseTitle = "";
         private string testCaseDescription = "";
         private string testCaseRevision = "";
-        private bool testCaseAutomation = false;
+        private bool testCaseAutomated = false;
         private List<string[]> testCaseSteps = new List<string[]>();
         public TestCaseItem()
         {
@@ -38,10 +38,10 @@ namespace RoboClerk
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(22, "Title:"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, testCaseTitle));
             sb.AppendLine(separator);
-            sb.AppendLine($"*Test Steps for testcase: {testCaseID}*");
+            //sb.AppendLine($"*Test Steps for testcase: {testCaseID}*");
             int maxDescriptionLength = getMaxTestStepElementLength(0);
             int maxResultLength = getMaxTestStepElementLength(1);
-            int[] testStepColumnWidth = new int[4] { 5, Math.Max(maxDescriptionLength,5), Math.Max(maxResultLength, 5), 10 };
+            int[] testStepColumnWidth = new int[4] { 6, Math.Max(maxDescriptionLength+2,5), Math.Max(maxResultLength+2, 5), 10 };
             sb.Append(MarkdownTableUtils.GenerateTestCaseStepsHeader(testStepColumnWidth));
             int stepNr = 0;
             foreach (var step in testCaseSteps)
@@ -105,10 +105,10 @@ namespace RoboClerk
             set => testCaseSteps = value;
         }
 
-        public bool TestCaseAutomation
+        public bool TestCaseAutomated
         {
-            get => testCaseAutomation;
-            set => testCaseAutomation = value;
+            get => testCaseAutomated;
+            set => testCaseAutomated = value;
         }
 
     }

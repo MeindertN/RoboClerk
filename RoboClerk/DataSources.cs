@@ -35,30 +35,39 @@ namespace RoboClerk
                     if (plugin != null)
                     {
                         plugin.Initialize();
+                        plugin.RefreshItems();
                         slmsPlugins.Add(plugin);
                     }
                 }
             }
         }
 
-        public List<RequirementItem> getAllSoftwareRequirements()
+        public List<RequirementItem> GetAllSoftwareRequirements()
         {
             List<RequirementItem> items = new List<RequirementItem>();
             foreach(var plugin in slmsPlugins)
             {
-                plugin.RefreshItems();
                 items.AddRange(plugin.GetSoftwareRequirements());
             }
             return items;
         }
 
-        public List<RequirementItem> getAllProductRequirements()
+        public List<RequirementItem> GetAllProductRequirements()
         {
             List<RequirementItem> items = new List<RequirementItem>();
             foreach (var plugin in slmsPlugins)
             {
-                plugin.RefreshItems();
                 items.AddRange(plugin.GetProductRequirements());
+            }
+            return items;
+        }
+
+        public List<TestCaseItem> GetAllSystemLevelTests()
+        {
+            List<TestCaseItem> items = new List<TestCaseItem>();
+            foreach (var plugin in slmsPlugins)
+            {
+                items.AddRange(plugin.GetTestCases());
             }
             return items;
         }

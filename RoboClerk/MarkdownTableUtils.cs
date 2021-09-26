@@ -58,19 +58,20 @@ namespace RoboClerk
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[0], "Nr."));
+            sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[0], "Step"));
             sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[1], "Action"));
             sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[2], "Expected Result"));
             sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[3], "Pass"));
             sb.AppendLine("|");
-            sb.Append('-', testStepColumnWidth[0]);
-            sb.Append("|");
-            sb.Append('-', testStepColumnWidth[1]);
-            sb.Append("|");
-            sb.Append('-', testStepColumnWidth[2]);
-            sb.Append("|");
-            sb.Append('-', testStepColumnWidth[3]);
-            sb.AppendLine("|");
+            sb.Append("| ");
+            sb.Append('-', testStepColumnWidth[0]-2);
+            sb.Append(" | ");
+            sb.Append('-', testStepColumnWidth[1]-2);
+            sb.Append(" | ");
+            sb.Append('-', testStepColumnWidth[2]-2);
+            sb.Append(" | ");
+            sb.Append('-', testStepColumnWidth[3]-2);
+            sb.AppendLine(" |");
 
             return sb.ToString();
         }
@@ -86,7 +87,7 @@ namespace RoboClerk
             sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[0], stepNr.ToString()));
             sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[1], step[0].Replace("\n", "").Replace("\r", "")));
             sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[2], step[1].Replace("\n", "").Replace("\r", "")));
-            sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[3], " "));
+            sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[3], "  "));
             sb.AppendLine("|");
             return sb.ToString();
         }
