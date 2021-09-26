@@ -7,13 +7,14 @@ using System.Linq;
 
 namespace RoboClerk
 {
-    public static class RoboClerkTagMarkdown 
+    public static class RoboClerkMarkdown 
     {
         public static List<RoboClerkTag> ExtractRoboClerkTags(string markdownText)
         {
             var pipelineBuilder = new MarkdownPipelineBuilder();
             pipelineBuilder.PreciseSourceLocation = true;
             pipelineBuilder.Extensions.AddIfNotAlready<RoboClerkContainerExtension>();
+            
             var pipeline = pipelineBuilder.Build();
             var markdownDocument = Markdown.Parse(markdownText, pipeline, null);
 
@@ -78,6 +79,18 @@ namespace RoboClerk
 
             //we join the string back together and return
             return string.Join("",parts);
+        }
+
+        public static string ConvertMarkdownToHTML(string markdown)
+        {
+            var pipelineBuilder = new MarkdownPipelineBuilder();
+            pipelineBuilder.PreciseSourceLocation = true;
+            pipelineBuilder = pipelineBuilder.UsePipeTables();
+            pipelineBuilder = pipelineBuilder.UseGridTables();
+            pipelineBuilder.Extensions.AddIfNotAlready<RoboClerkContainerExtension>();
+            
+            var pipeline = pipelineBuilder.Build();
+            return Markdown.ToHtml(markdown, pipeline);
         }
     }
 }

@@ -10,6 +10,6 @@ namespace RoboClerk
         List<RequirementItem> GetProductRequirements();
         List<RequirementItem> GetSoftwareRequirements();
         List<Item> GetBugs();
-        List<TraceItem> GetTestCases();
+        List<TestCaseItem> GetTestCases();
     }
 }

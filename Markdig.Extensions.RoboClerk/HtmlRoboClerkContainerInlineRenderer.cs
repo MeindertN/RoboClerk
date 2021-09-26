@@ -4,6 +4,7 @@
 
 using Markdig.Renderers;
 using Markdig.Renderers.Html;
+using System.IO;
 
 namespace Markdig.Extensions.RoboClerk
 {
@@ -12,7 +13,8 @@ namespace Markdig.Extensions.RoboClerk
         protected override void Write(HtmlRenderer renderer, RoboClerkContainerInline obj)
         {
             renderer.Write("<span").WriteAttributes(obj).Write('>');
-            renderer.WriteChildren(obj);
+            var stringValue = obj.FirstChild.ToString();
+            renderer.Write(stringValue.Substring(0,stringValue.IndexOf('(')));
             renderer.Write("</span>");
         }
     }

@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.IO;
-
+using System.Xml;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace RoboClerk.AzureDevOps
 {
@@ -17,6 +19,8 @@ namespace RoboClerk.AzureDevOps
         private string projectName;
         List<RequirementItem> productRequirements = new List<RequirementItem>();
         List<RequirementItem> softwareRequirements = new List<RequirementItem>();
+        List<TestCaseItem> testCases = new List<TestCaseItem>();
+
         private WorkItemTrackingHttpClient witClient;
 
         public AzureDevOpsSLMSPlugin()
@@ -44,9 +48,9 @@ namespace RoboClerk.AzureDevOps
             return softwareRequirements;
         }
 
-        public List<TraceItem> GetTestCases()
+        public List<TestCaseItem> GetTestCases()
         {
-            throw new NotImplementedException();
+            return testCases;
         }
 
         public void Initialize()
@@ -64,26 +68,24 @@ namespace RoboClerk.AzureDevOps
             witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, (string)config["accessToken"]);
         }
 
-        private void AddLinksToWorkItems(IList<WorkItemRelation> links, RequirementItem item)
+        private void AddLinksToWorkItems(IList<WorkItemRelation> links, TraceItem item)
         {
             if (links != null) //check for links
             {
                 foreach (var rel in links)
                 {
-                    if (rel.Rel == "System.LinkTypes.Hierarchy-Forward")
+                    if (rel.Rel.Contains("Hierarchy-Forward"))
                     {
                         //this is a child link
                         var id = AzureDevOpsUtilities.GetWorkItemIDFromURL(rel.Url);
-                        item.AddChild(id);
+                        item.AddChild(id, new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{id}/"));
                         continue;
                     }
-                    if (rel.Rel == "System.LinkTypes.Hierarchy-Reverse")
+                    if (rel.Rel.Contains("Hierarchy-Reverse") || rel.Rel.Contains("TestedBy-Reverse"))
                     {
                         //this is a parent link
                         var id = AzureDevOpsUtilities.GetWorkItemIDFromURL(rel.Url);
-                        item.AddParent(id);
-                        item.RequirementParentID = id;
-                        item.RequirementParentLink = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{id}/");
+                        item.AddParent(id, new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{id}/"));
                         continue;
                     }
                 }
@@ -116,14 +118,83 @@ namespace RoboClerk.AzureDevOps
             return item;
         }
 
+        private List<string[]> GetTestSteps(string xml)
+        {
+            var result = new List<string[]>();
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.IgnoreWhitespace = true;
+
+            using (var memStream = new MemoryStream(Encoding.Unicode.GetBytes(xml)))
+            using (XmlReader reader = XmlReader.Create(memStream, settings))
+            {
+                var stepData = new string[2];
+                int index = 0;
+                while (reader.Read())
+                {
+                    switch (reader.NodeType)
+                    {
+                        case XmlNodeType.Element:
+                            if (reader.Name == "step")
+                            {
+                                index = 0;
+                            }
+                            if (reader.HasAttributes)
+                            {
+                                if (reader.Name == "compref")
+                                {
+                                    WorkItem workitem = witClient.GetWorkItemAsync(int.Parse(reader.GetAttribute("ref")), expand: WorkItemExpand.All).Result;
+                                    var steps = GetTestSteps(GetWorkItemField(workitem, "Microsoft.VSTS.TCM.Steps"));
+                                    result.AddRange(steps);
+                                }
+                            }
+                            break;
+                        case XmlNodeType.Text:
+                            if (index < 2)
+                            {
+                                var noHTML = Regex.Replace(reader.Value, "<[a-zA-Z/].*?>", String.Empty);
+                                stepData[index] = noHTML;
+                                index++;
+                                if (index == stepData.Length)
+                                {
+                                    result.Add(stepData);
+                                    stepData = new string[2];
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
+            return result;
+        }
+
+        private TestCaseItem ConvertToTestCaseItem(WorkItem workitem)
+        {
+            TestCaseItem item = new TestCaseItem();
+            item.TestCaseID = workitem.Id.ToString();
+            item.TestCaseLink = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
+            item.TestCaseRevision = workitem.Rev.ToString();
+            item.TestCaseState = GetWorkItemField(workitem, "System.State");
+            item.TestCaseTitle = GetWorkItemField(workitem, "System.Title");
+            item.TestCaseDescription = GetWorkItemField(workitem, "System.Description");
+            item.TestCaseSteps = GetTestSteps(GetWorkItemField(workitem, "Microsoft.VSTS.TCM.Steps"));
+            item.TestCaseAutomated = GetWorkItemField(workitem, "Microsoft.VSTS.TCM.AutomationStatus") != "Not Automated";
+            AddLinksToWorkItems(workitem.Relations, item);
+            return item;
+        }
+
         public void RefreshItems()
         {
+            //re-initialize 
+            productRequirements.Clear();
+            softwareRequirements.Clear();
+            testCases.Clear();
+
             var productRequirementQuery = new Wiql()
             {
                 Query = $"SELECT [Id] FROM WorkItems WHERE [Work Item Type] = 'Epic' AND [System.TeamProject] = '{projectName}'",
             };
 
-            foreach( var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient,productRequirementQuery))
+            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, productRequirementQuery))
             {
                 var item = ConvertToRequirementItem(workitem);
                 item.TypeOfRequirement = RequirementType.ProductRequirement;
@@ -140,6 +211,17 @@ namespace RoboClerk.AzureDevOps
                 var item = ConvertToRequirementItem(workitem);
                 item.TypeOfRequirement = RequirementType.SoftwareRequirement;
                 softwareRequirements.Add(item);
+            }
+
+            var testCaseQuery = new Wiql()
+            {
+                Query = $"Select [Id] From WorkItems Where [Work Item Type] = 'Test Case' And [System.TeamProject] = '{projectName}'",
+            };
+
+            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, testCaseQuery))
+            {
+                var item = ConvertToTestCaseItem(workitem);
+                testCases.Add(item);
             }
 
             /*var productRequirementLinksQuery = new Wiql()
@@ -161,5 +243,7 @@ namespace RoboClerk.AzureDevOps
                 softwareRequirements.Add(item);
             }*/
         }
+
+
     }
 }

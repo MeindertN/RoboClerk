@@ -13,7 +13,7 @@ namespace RoboClerk.ContentCreators
 
         public string GetContent(DataSources sources)
         {
-            var requirements = sources.getAllSoftwareRequirements();
+            var requirements = sources.GetAllSoftwareRequirements();
             //No selection needed, we return everything
             StringBuilder output = new StringBuilder();
             foreach(var requirement in requirements)
