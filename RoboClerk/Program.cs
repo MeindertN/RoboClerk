@@ -14,7 +14,7 @@ namespace RoboClerk
             
             RoboClerkCore core = new RoboClerkCore(roboClerkConfigFile,projectConfigFile);
             core.GenerateDocs();
-            core.SaveMarkdownDocumentsToDisk(DocumentFormat.HTML);
+            core.SaveMarkdownDocumentsToDisk(DocumentFormat.Markdown);
 
 
 /*            foreach (var arg in args)

@@ -11,7 +11,7 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        public string GetContent(DataSources sources)
+        public string GetContent(DataSources sources, TraceabilityAnalysis analysis, string docTitle)
         {
             var requirements = sources.GetAllProductRequirements();
             //No selection needed, we return everything
@@ -19,6 +19,7 @@ namespace RoboClerk.ContentCreators
             foreach (var requirement in requirements)
             {
                 output.AppendLine(requirement.ToMarkDown());
+                analysis.AddTrace(docTitle, new TraceLink(requirement.RequirementID, TraceLinkType.ProductRequirementTrace));
             }
             return output.ToString();
         }

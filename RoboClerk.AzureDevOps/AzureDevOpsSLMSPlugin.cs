@@ -113,7 +113,6 @@ namespace RoboClerk.AzureDevOps
             item.RequirementState = GetWorkItemField(workitem,"System.State");
             item.RequirementDescription = GetWorkItemField(workitem, "System.Description");
             item.RequirementTitle = GetWorkItemField(workitem, "System.Title");
-            item.RequirementCategory = GetWorkItemField(workitem, "System.WorkItemType");
             AddLinksToWorkItems(workitem.Relations, item);
             return item;
         }
@@ -198,6 +197,11 @@ namespace RoboClerk.AzureDevOps
             {
                 var item = ConvertToRequirementItem(workitem);
                 item.TypeOfRequirement = RequirementType.ProductRequirement;
+                item.RequirementCategory = GetWorkItemField(workitem, "Custom.TypeofProductRequirement");
+                if(item.RequirementCategory == String.Empty) //default sometimes comes back as empty
+                {
+                    item.RequirementCategory = "Product Requirement";
+                }
                 productRequirements.Add(item);
             }
 
@@ -210,6 +214,11 @@ namespace RoboClerk.AzureDevOps
             {
                 var item = ConvertToRequirementItem(workitem);
                 item.TypeOfRequirement = RequirementType.SoftwareRequirement;
+                item.RequirementCategory = GetWorkItemField(workitem, "Custom.SoftwareRequirementType");
+                if (item.RequirementCategory == String.Empty) //default sometimes comes back as empty
+                {
+                    item.RequirementCategory = "General Software Requirement";
+                }
                 softwareRequirements.Add(item);
             }
 

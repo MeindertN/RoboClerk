@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace RoboClerk
@@ -27,6 +28,18 @@ namespace RoboClerk
         public void AddParent(string parent, Uri link)
         {
             parents.Add((parent,link));
+        }
+
+        public bool IsParentOf(TraceItem item)
+        {
+            var result = from s in children where s.Item1 == item.ItemID select s;
+            return result.Count() > 0;
+        }
+
+        public bool IsChildOf(TraceItem item)
+        {
+            var result = from s in parents where s.Item1 == item.ItemID select s;
+            return result.Count() > 0;
         }
     }
 }

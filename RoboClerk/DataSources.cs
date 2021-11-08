@@ -20,9 +20,8 @@ namespace RoboClerk
             Configure(configFile);
         }
 
-        private void Configure(string configFile)
+        private void Configure(string config)
         {
-            string config = File.ReadAllText(configFile);
             var toml = Toml.Parse(config).ToModel();
 
             foreach (var val in (TomlArray)toml["SLMSPlugin"])

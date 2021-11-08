@@ -11,19 +11,29 @@ namespace RoboClerk
     public class ConfigurationValues
     {
         private Dictionary<string, string> keyValues = new Dictionary<string, string>();
+        private Dictionary<string, string> docToTitle = new Dictionary<string, string>();
         public ConfigurationValues()
         {
 
         }
 
-        public void FromToml(string configFile)
+        public void FromToml(string config)
         {
-            string config = File.ReadAllText(configFile);
             var toml = Toml.Parse(config).ToModel();
             foreach(var val in (TomlTable)toml["ConfigValues"])
             {
                 keyValues[val.Key] = (string)val.Value;
             }
+
+            foreach (var docloc in (TomlTable)toml["DocumentLocations"])
+            {
+                TomlArray arr = (TomlArray)docloc.Value;
+                if ((string)arr[0] != "") //if empty the assumption is that there is no such document
+                {
+                    docToTitle[docloc.Key] = (string)arr[0];
+                }
+            }
+
         }
 
         public bool HasKey(string key)
@@ -38,6 +48,15 @@ namespace RoboClerk
                 return "NOT FOUND";
             }
             return keyValues[key];
+        }
+
+        public string GetDocumentTitle(string docID)
+        {
+            if (docToTitle.ContainsKey(docID))
+            {
+                return docToTitle[docID];
+            }
+            return string.Empty;
         }
     }
 }

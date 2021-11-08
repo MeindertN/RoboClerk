@@ -21,21 +21,49 @@ namespace RoboClerk
         private DataSources dataSources = null;
         private Dictionary<string, (string, string)> documents = //key identifies the document
             new Dictionary<string, (string, string)>(); //first string in value is the filename and second is file content
-        
+        private TraceabilityAnalysis traceAnalysis = null;
+
         public RoboClerkCore(string configFile, string projectConfigFile)
         {
+            (configFile,projectConfigFile) = LoadConfigFiles(configFile, projectConfigFile);
             dataSources = new DataSources(configFile, projectConfigFile);
+            traceAnalysis = new TraceabilityAnalysis(projectConfigFile);
             ProcessConfig(projectConfigFile);
         }
-        
-        private void ProcessConfig(string configFile)
+
+        private (string, string) LoadConfigFiles(string configFile, string projectConfigFile)
         {
-            string config = File.ReadAllText(configFile);
+            string config;
+            string projectConfig;
+            try
+            {
+                config = File.ReadAllText(configFile);
+            }
+            catch(IOException e)
+            {
+                throw new Exception("Unable to read config file");
+            }
+            try
+            {
+                projectConfig = File.ReadAllText(projectConfigFile);
+            }
+            catch(IOException e)
+            {
+                throw new Exception("Unable to read project config file");
+            }
+            return (config, projectConfig);
+        }
+
+        private void ProcessConfig(string config)
+        {
             var toml = Toml.Parse(config).ToModel();
             foreach (var docloc in (TomlTable)toml["DocumentLocations"])
             {
                 TomlArray arr = (TomlArray)docloc.Value;
-                documents[(string)arr[0]] = ((string)arr[1],File.ReadAllText((string)arr[1]));
+                if ((string)arr[0] != string.Empty)
+                {
+                    documents[(string)arr[0]] = ((string)arr[1], File.ReadAllText((string)arr[1]));
+                }
             }
         }
 
@@ -50,7 +78,13 @@ namespace RoboClerk
                 //go over the tag list to determine what information should be collected from where
                 foreach(var tag in document.RoboClerkTags)
                 {
-                    if(tag.Source != DataSource.Info && tag.Source != DataSource.Unknown)
+                    if(tag.Source == DataSource.Trace)
+                    {
+                        //grab all trace tags and add them to the trace analysis
+                        traceAnalysis.AddTraceTag(document.Title, tag);
+                        continue;
+                    }
+                    if (tag.Source != DataSource.Info && tag.Source != DataSource.Unknown)
                     {
                         if (tag.Source == DataSource.Config)
                         {
@@ -61,7 +95,7 @@ namespace RoboClerk
                             IContentCreator contentCreator = GetContentObject(tag);
                             if (contentCreator != null)
                             {
-                                tag.Contents = contentCreator.GetContent(dataSources);
+                                tag.Contents = contentCreator.GetContent(dataSources,traceAnalysis,document.Title);
                             }
                             else
                             {

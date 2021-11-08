@@ -132,7 +132,11 @@ namespace RoboClerk
         public string RequirementID 
         {
             get => requirementID;
-            set => requirementID = value;
+            set
+            {
+                ItemID = value; //we set the itemID to the same value as the requirement ID
+                requirementID = value;
+            }
         }
 
         public Uri RequirementLink 

@@ -50,14 +50,14 @@ namespace RoboClerk
             foreach(var tag in sortedTags)
             {
                 parts.Add(markdownDoc.Substring(lastEnd + 1,tag.Start - (lastEnd + 1)));
-                if (tag.Start == tag.End)
-                {
-                    lastEnd = tag.End-1; //need to correct for the fact there is nothing in this tag
-                }
-                else
-                {
+                //if (tag.Start == tag.End)
+                //{
+                //    lastEnd = tag.End;// -1; //need to correct for the fact there is nothing in this tag
+                //}
+                //else
+                //{
                     lastEnd = tag.End;
-                }
+                //}
                 
             }
             parts.Add(markdownDoc.Substring(lastEnd + 1,markdownDoc.Length-(lastEnd + 1)));

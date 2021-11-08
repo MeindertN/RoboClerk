@@ -19,11 +19,11 @@ namespace RoboClerk
 
         internal static string GenerateLeftMostTableCell(int cellWidth, string content)
         {
-            if(content.Length > cellWidth)
+            if (content.Length > cellWidth)
             {
                 throw new ArgumentException($"Content \"{content}\" is too large for cell of size {cellWidth}.");
             }
-            
+
             StringBuilder sb = new StringBuilder("|");
             sb.Append(' ', 1);
             sb.Append(content);
@@ -52,7 +52,7 @@ namespace RoboClerk
 
         internal static string GenerateTestCaseStepsHeader(int[] testStepColumnWidth)
         {
-            if(testStepColumnWidth.Length < 4)
+            if (testStepColumnWidth.Length < 4)
             {
                 throw new ArgumentException("Not enough columnwidths available to create test case steps header.");
             }
@@ -64,13 +64,13 @@ namespace RoboClerk
             sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[3], "Pass"));
             sb.AppendLine("|");
             sb.Append("| ");
-            sb.Append('-', testStepColumnWidth[0]-2);
+            sb.Append('-', testStepColumnWidth[0] - 2);
             sb.Append(" | ");
-            sb.Append('-', testStepColumnWidth[1]-2);
+            sb.Append('-', testStepColumnWidth[1] - 2);
             sb.Append(" | ");
-            sb.Append('-', testStepColumnWidth[2]-2);
+            sb.Append('-', testStepColumnWidth[2] - 2);
             sb.Append(" | ");
-            sb.Append('-', testStepColumnWidth[3]-2);
+            sb.Append('-', testStepColumnWidth[3] - 2);
             sb.AppendLine(" |");
 
             return sb.ToString();
@@ -78,7 +78,7 @@ namespace RoboClerk
 
         internal static string GenerateTestCaseStepLine(int[] testStepColumnWidth, string[] step, int stepNr)
         {
-            if(step.Length < 2)
+            if (step.Length < 2)
             {
                 throw new ArgumentException("Not enough information to build step line.");
             }
@@ -92,6 +92,35 @@ namespace RoboClerk
             return sb.ToString();
         }
 
+        internal static string GenerateTraceMatrixHeader(List<string> headers)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (string title in headers)
+            {
+                sb.Append(GenerateLeftMostTableCell(title.Length + 2, title));
+            }
+            sb.AppendLine("|");
+            sb.Append("| ");
+            foreach (string title in headers)
+            {
+                sb.Append('-', title.Length);
+                sb.Append(" | ");
+            }
+            sb.AppendLine("");
+
+            return sb.ToString();
+        }
+
+        internal static string GenerateTraceMatrixLine(List<string> items)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach(var item in items)
+            {
+                sb.Append(GenerateLeftMostTableCell(item.Length + 2, item));
+            }
+            sb.AppendLine(" |");
+            return sb.ToString();
+        }
 
     }
 }

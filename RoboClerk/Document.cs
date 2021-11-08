@@ -38,5 +38,11 @@ namespace RoboClerk
         {
             get => roboclerkTags;   
         }
+
+        public string Title
+        {
+            get => title;
+            set => title = value;
+        }
     }
 }
