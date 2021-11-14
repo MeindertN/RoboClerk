@@ -17,6 +17,7 @@ namespace RoboClerk.AzureDevOps
         private string description;
         private string organizationName;
         private string projectName;
+        private bool ignoreNewProductReqs = false;
         List<RequirementItem> productRequirements = new List<RequirementItem>();
         List<RequirementItem> softwareRequirements = new List<RequirementItem>();
         List<TestCaseItem> testCases = new List<TestCaseItem>();
@@ -66,6 +67,7 @@ namespace RoboClerk.AzureDevOps
             organizationName = (string)config["organizationName"];
             projectName = (string)config["projectName"];
             witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, (string)config["accessToken"]);
+            ignoreNewProductReqs = (bool)config["ignoreNewProductRequirements"];
         }
 
         private void AddLinksToWorkItems(IList<WorkItemRelation> links, TraceItem item)
@@ -195,6 +197,11 @@ namespace RoboClerk.AzureDevOps
 
             foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, productRequirementQuery))
             {
+                string state = GetWorkItemField(workitem, "System.State").ToUpper();
+                if ( (ignoreNewProductReqs &&  state == "NEW") || state == "REMOVED" )
+                {
+                    continue;
+                }
                 var item = ConvertToRequirementItem(workitem);
                 item.TypeOfRequirement = RequirementType.ProductRequirement;
                 item.RequirementCategory = GetWorkItemField(workitem, "Custom.TypeofProductRequirement");

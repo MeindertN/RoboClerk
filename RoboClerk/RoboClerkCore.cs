@@ -22,13 +22,14 @@ namespace RoboClerk
         private Dictionary<string, (string, string)> documents = //key identifies the document
             new Dictionary<string, (string, string)>(); //first string in value is the filename and second is file content
         private TraceabilityAnalysis traceAnalysis = null;
+        private DocumentFormat outputFormat = DocumentFormat.Markdown;
 
         public RoboClerkCore(string configFile, string projectConfigFile)
         {
             (configFile,projectConfigFile) = LoadConfigFiles(configFile, projectConfigFile);
             dataSources = new DataSources(configFile, projectConfigFile);
             traceAnalysis = new TraceabilityAnalysis(projectConfigFile);
-            ProcessConfig(projectConfigFile);
+            ProcessConfigs(configFile,projectConfigFile);
         }
 
         private (string, string) LoadConfigFiles(string configFile, string projectConfigFile)
@@ -54,9 +55,9 @@ namespace RoboClerk
             return (config, projectConfig);
         }
 
-        private void ProcessConfig(string config)
+        private void ProcessConfigs(string config, string projectConfig)
         {
-            var toml = Toml.Parse(config).ToModel();
+            var toml = Toml.Parse(projectConfig).ToModel();
             foreach (var docloc in (TomlTable)toml["DocumentLocations"])
             {
                 TomlArray arr = (TomlArray)docloc.Value;
@@ -64,6 +65,11 @@ namespace RoboClerk
                 {
                     documents[(string)arr[0]] = ((string)arr[1], File.ReadAllText((string)arr[1]));
                 }
+            }
+            toml = Toml.Parse(config).ToModel();
+            if(((string)toml["OutputFormat"]).ToUpper() == "HTML")
+            {
+                outputFormat = DocumentFormat.HTML;
             }
         }
 
@@ -109,16 +115,16 @@ namespace RoboClerk
             documents = tempDic;
         }
 
-        public void SaveMarkdownDocumentsToDisk(DocumentFormat format)
+        public void SaveDocumentsToDisk()
         {
-            if (format == DocumentFormat.Markdown)
+            if (outputFormat == DocumentFormat.Markdown)
             {
                 foreach (var doc in documents)
                 {
                     File.WriteAllText(doc.Value.Item1, doc.Value.Item2);
                 }
             }
-            else if (format == DocumentFormat.HTML)
+            else if (outputFormat == DocumentFormat.HTML)
             {
                 foreach (var doc in documents)
                 {

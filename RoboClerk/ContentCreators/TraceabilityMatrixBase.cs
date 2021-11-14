@@ -33,10 +33,12 @@ namespace RoboClerk.ContentCreators
                 matrix.Append(MarkdownTableUtils.GenerateTraceMatrixLine(traceMatrix[i]));
             }
             matrix.AppendLine("\nTrace issues:");
+            bool traceIssuesFound = false;
             //now visualize the trace issues, first the truth
             var truthIssues = analysis.GetTraceIssuesForTruth(targetTruthEntity);
             foreach (var issue in truthIssues)
             {
+                traceIssuesFound = true;
                 matrix.AppendLine($"* {truthSource} requirement {issue.TraceID} is potentially missing a corresponding {truthTarget} requirement.");
             }
 
@@ -50,6 +52,7 @@ namespace RoboClerk.ContentCreators
                 var traceIssues = analysis.GetTraceIssuesForDocument(tet);
                 foreach (var issue in traceIssues)
                 {
+                    traceIssuesFound = true;
                     string sourceTitle = analysis.GetTitleForTraceEntity(issue.Source);
                     string targetTitle = analysis.GetTitleForTraceEntity(issue.Target);
                     if (issue.IssueType == TraceIssueType.Extra)
@@ -70,7 +73,10 @@ namespace RoboClerk.ContentCreators
                     }
                 }
             }
-
+            if(!traceIssuesFound)
+            {
+                matrix.AppendLine($"* No {truthSource} level trace problems detected!");
+            }
             return matrix.ToString();
         }
     }
