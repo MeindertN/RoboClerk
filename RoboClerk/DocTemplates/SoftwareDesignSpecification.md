@@ -29,8 +29,16 @@ levels, can be called software items. (See IEC62304.)
 Here we will test a variety of in document trace tags referring to software requirements.
 
 @@9(SR:Trace)@@ The text that has the trace link
+@@(SR:Trace)@@ an empty trace link
 @@10(SR:Trace)@@ And the second trace linke
 Just a line of text.
 @@11(SR:Trace)@@ @@12(SR:Trace)@@ Two more trace links
 
-@@7(PR:Trace)@@ An a random product requirement trace link
+@@7(PR:Trace)@@ An a random product requirement trace link, is not supposed to show up in the document
+
+@@89(SR:Trace)@@ non existent software trace
+
+@@@7:ProductRequirement:SLMS
+
+@@@
+The above just tests to see if we can include a single product requirement

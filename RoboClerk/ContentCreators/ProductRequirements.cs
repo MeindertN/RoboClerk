@@ -4,24 +4,19 @@ using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
-    public class ProductRequirements : IContentCreator
+    public class ProductRequirements : RequirementBase
     {
         public ProductRequirements()
         {
-
+            requirementCategory = "Product Requirement";
+            requirementName = "Product Requirement";
+            linkType = TraceLinkType.ProductRequirementTrace;
         }
 
-        public string GetContent(DataSources sources, TraceabilityAnalysis analysis, string docTitle)
+        public override string GetContent(RoboClerkTag tag, DataSources sources, TraceabilityAnalysis analysis, string docTitle)
         {
-            var requirements = sources.GetAllProductRequirements();
-            //No selection needed, we return everything
-            StringBuilder output = new StringBuilder();
-            foreach (var requirement in requirements)
-            {
-                output.AppendLine(requirement.ToMarkDown());
-                analysis.AddTrace(docTitle, new TraceLink(requirement.RequirementID, TraceLinkType.ProductRequirementTrace));
-            }
-            return output.ToString();
+            requirements = sources.GetAllProductRequirements();
+            return base.GetContent(tag, sources, analysis, docTitle);
         }
     }
 }

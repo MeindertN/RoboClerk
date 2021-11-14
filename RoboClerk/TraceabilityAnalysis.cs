@@ -30,7 +30,8 @@ namespace RoboClerk
         SystemBaselineRecord,
         TraceabilityAnalysisRecord,
         DocumentationReport,
-        ProductValidationPlan
+        ProductValidationPlan,
+        Unknown
     }
     public class TraceabilityAnalysis
     {

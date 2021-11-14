@@ -217,7 +217,7 @@ namespace RoboClerk.AzureDevOps
                 item.RequirementCategory = GetWorkItemField(workitem, "Custom.SoftwareRequirementType");
                 if (item.RequirementCategory == String.Empty) //default sometimes comes back as empty
                 {
-                    item.RequirementCategory = "General Software Requirement";
+                    item.RequirementCategory = "Software Requirement";
                 }
                 softwareRequirements.Add(item);
             }

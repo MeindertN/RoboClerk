@@ -95,7 +95,7 @@ namespace RoboClerk
                             IContentCreator contentCreator = GetContentObject(tag);
                             if (contentCreator != null)
                             {
-                                tag.Contents = contentCreator.GetContent(dataSources,traceAnalysis,document.Title);
+                                tag.Contents = contentCreator.GetContent(tag,dataSources,traceAnalysis,document.Title);
                             }
                             else
                             {

@@ -19,8 +19,9 @@ namespace RoboClerk
     {
         private int start = -1; //stores the start location in the *original* markdown string
         private int end = -1; //stores the end location similar to the start location
-        private string contents = ""; //what is inside the tag in the document
-        private string id = ""; //the identifier of this tag 
+        private string contents = string.Empty; //what is inside the tag in the document
+        private string id = string.Empty; //the identifier of this tag 
+        private string traceReference = string.Empty; //the trace reference for this tag
         private bool inline; //true if this tag was found inline
         private DataSource source = DataSource.Unknown;
         public RoboClerkTag(RoboClerkContainer tag, string rawDocument)
@@ -43,6 +44,11 @@ namespace RoboClerk
         public string ID
         {
             get => id;
+        }
+
+        public string TraceReference
+        {
+            get => traceReference;
         }
 
         public DataSource Source
@@ -87,12 +93,21 @@ namespace RoboClerk
         {
             //parse the tagInfo, items are separated by :
             var items = container.Info.Split(':');
-            if(items.Length != 2)
+            if(items.Length != 2 && items.Length != 3)
             {
-                throw new System.Exception($"Error parsing RoboClerkContainer tag: {container.Info}. Two elements separated by : expected but not found.");
+                throw new System.Exception($"Error parsing RoboClerkContainer tag: {container.Info}. Two or three elements separated by : expected but not found.");
             }
-            id = items[0];
-            source = GetSource(items[1]);
+            if (items.Length == 3)
+            {
+                traceReference = items[0];
+                id = items[1];
+                source = GetSource(items[2]);
+            }
+            else
+            {
+                id = items[0];
+                source = GetSource(items[1]);
+            }            
 
             var prelimTagContents = rawDocument.Substring(container.Span.Start, container.Span.End - container.Span.Start + 1);
             start = container.Span.Start + prelimTagContents.IndexOf('\n') + 1; //ensure to skip linebreak
