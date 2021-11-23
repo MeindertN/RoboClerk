@@ -68,7 +68,16 @@ namespace RoboClerk
         {
             documentTraceIssues[documentTitle] = new List<TraceIssue>();
             
-            var tls = documentTraceLinks[documentTitle];
+            List<TraceLink> tls = null;
+            if (!documentTraceLinks.ContainsKey(documentTitle))
+            {
+                tls = new List<TraceLink>();
+            }
+            else
+            {
+                tls = documentTraceLinks[documentTitle];
+            }
+
             int index = 0;
             foreach (var req in truthItems)
             {
@@ -346,15 +355,15 @@ namespace RoboClerk
             }
 
             TraceLinkType tlt = TraceLinkType.Unknown;
-            if (tag.ID.ToUpper() == "SR")
+            if (tag.ContentCreatorID.ToUpper() == "SoftwareRequirements")
             {
                 tlt = TraceLinkType.SoftwareRequirementTrace;
             }
-            else if (tag.ID.ToUpper() == "PR")
+            else if (tag.ContentCreatorID.ToUpper() == "ProductRequirements")
             {
                 tlt = TraceLinkType.ProductRequirementTrace;
             }
-            else if (tag.ID.ToUpper() == "TC")
+            else if (tag.ContentCreatorID.ToUpper() == "TestCases")
             {
                 tlt = TraceLinkType.TestCaseTrace;
             }

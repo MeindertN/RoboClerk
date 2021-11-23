@@ -20,8 +20,9 @@ namespace RoboClerk
         private int start = -1; //stores the start location in the *original* markdown string
         private int end = -1; //stores the end location similar to the start location
         private string contents = string.Empty; //what is inside the tag in the document
-        private string id = string.Empty; //the identifier of this tag 
+        private string contentCreatorID = string.Empty; //the identifier of this tag 
         private string traceReference = string.Empty; //the trace reference for this tag
+        private string target = "ALL"; //the target category for this tag, ALL returns all which is the default
         private bool inline; //true if this tag was found inline
         private DataSource source = DataSource.Unknown;
         public RoboClerkTag(RoboClerkContainer tag, string rawDocument)
@@ -41,14 +42,19 @@ namespace RoboClerk
             get => inline;
         }
 
-        public string ID
+        public string ContentCreatorID
         {
-            get => id;
+            get => contentCreatorID;
         }
 
         public string TraceReference
         {
             get => traceReference;
+        }
+
+        public string Target
+        {
+            get => target;
         }
 
         public DataSource Source
@@ -84,7 +90,7 @@ namespace RoboClerk
             {
                 throw new System.Exception($"Error parsing RoboClerkInlineContainer tag: {infostring}. Two elements separated by : expected but not found.");
             }
-            id = items[0];
+            contentCreatorID = GetContentCreatorID(items[0]);
             source = GetSource(items[1]);
             contents = rawDocument.Substring(start,end - start + 1);
         }
@@ -93,19 +99,26 @@ namespace RoboClerk
         {
             //parse the tagInfo, items are separated by :
             var items = container.Info.Split(':');
-            if(items.Length != 2 && items.Length != 3)
+            if(items.Length < 2 && items.Length > 4)
             {
-                throw new System.Exception($"Error parsing RoboClerkContainer tag: {container.Info}. Two or three elements separated by : expected but not found.");
+                throw new System.Exception($"Error parsing RoboClerkContainer tag: {container.Info}. Two to four elements separated by : expected but not found.");
+            }
+            if(items.Length == 4)
+            {
+                traceReference = items[0];
+                target = items[1].Replace('_', ' ');
+                contentCreatorID = GetContentCreatorID(items[2]);
+                source = GetSource(items[3]);
             }
             if (items.Length == 3)
             {
-                traceReference = items[0];
-                id = items[1];
+                target = items[0].Replace('_',' ');
+                contentCreatorID = GetContentCreatorID(items[1]);
                 source = GetSource(items[2]);
             }
             else
             {
-                id = items[0];
+                contentCreatorID = GetContentCreatorID(items[0]);
                 source = GetSource(items[1]);
             }            
 
@@ -137,5 +150,23 @@ namespace RoboClerk
             }
             return DataSource.Unknown;
         }
+
+        private string GetContentCreatorID(string et)
+        {
+            if(et.ToUpper() == "PR")
+            {
+                return "ProductRequirements";
+            }
+            if(et.ToUpper() == "SR")
+            {
+                return "SoftwareRequirements";
+            }
+            if(et.ToUpper() == "TC")
+            {
+                return "TestCases";
+            }
+            return et;
+        }
+            
     }
 }

@@ -94,7 +94,7 @@ namespace RoboClerk
                     {
                         if (tag.Source == DataSource.Config)
                         {
-                            tag.Contents = dataSources.GetConfigValue(tag.ID);
+                            tag.Contents = dataSources.GetConfigValue(tag.ContentCreatorID);
                         }
                         else
                         {
@@ -143,7 +143,7 @@ namespace RoboClerk
 
             foreach (Type contentType in contentTypes)
             {
-                if (contentType.Name == tag.ID)
+                if (contentType.Name == tag.ContentCreatorID)
                 {
                     return Activator.CreateInstance(contentType) as IContentCreator;
                 }
