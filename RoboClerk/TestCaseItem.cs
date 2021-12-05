@@ -41,7 +41,7 @@ namespace RoboClerk
             //sb.AppendLine($"*Test Steps for testcase: {testCaseID}*");
             int maxDescriptionLength = getMaxTestStepElementLength(0);
             int maxResultLength = getMaxTestStepElementLength(1);
-            int[] testStepColumnWidth = new int[4] { 6, Math.Max(maxDescriptionLength+2,5), Math.Max(maxResultLength+2, 5), 10 };
+            int[] testStepColumnWidth = new int[4] { 6, Math.Max(maxDescriptionLength+2,8), Math.Max(maxResultLength+2, 17), 10 };
             sb.Append(MarkdownTableUtils.GenerateTestCaseStepsHeader(testStepColumnWidth));
             int stepNr = 0;
             foreach (var step in testCaseSteps)

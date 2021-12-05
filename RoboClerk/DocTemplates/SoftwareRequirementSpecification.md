@@ -26,18 +26,18 @@ This document is intended for the software developers at @@TBD(CompanyName:Confi
 # Requirements
 
 ## Functional Software Requirements
-@@@SoftwareRequirements:SLMS
+@@@SoftwareRequirements:SR:SLMS
 
 @@@
 ## Risk Control Software Requirements
-@@@RiskControlSoftwareReq:SLMS
+@@@RiskControlSoftwareReq:SR:SLMS
 
 @@@
 ## Transfer to Production Software Requirements
-@@@TransferToProductionSoftwareReq:SLMS
+@@@TransferToProductionSoftwareReq:SR:SLMS
 
 @@@
 ## Documentation Software Requirements
-@@@DocumentationSoftwareReq:SLMS
+@@@DocumentationSoftwareReq:SR:SLMS
 
 @@@

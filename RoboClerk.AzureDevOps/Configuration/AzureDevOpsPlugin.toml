@@ -1,9 +1,9 @@
 ﻿# This is the RoboClerk AzureDevOps plugin configuration
 
-accessToken = "23mjpcjx25pawsssadv4wrubtfrlmhfy2fprc3b6dftkqujyyvoq"
-organizationName = "meindert"
-projectName = "RoboClerk"
+AccessToken = "fvidg2myu4hhkqkdpy7onx3foqauel4krfykpwaq5sld5wnodzea"
+OrganizationName = "meindert"
+ProjectName = "RoboClerk"
 
 # if you want RoboClerk to ignore new Epics (for instance, in your backlog)
 # set this to true
-ignoreNewProductRequirements = true
+IgnoreNewProductRequirements = true

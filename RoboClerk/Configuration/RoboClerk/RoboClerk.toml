@@ -11,4 +11,5 @@ RelativePluginDirs = [ "../../../../RoboClerk.RedmineCSV/bin/Debug" ]
 
 # The output format specified here determines what type of files will be saved by 
 # RoboClerk. The options are "HTML" or "Markdown".
-OutputFormat = "HTML"
+OutputFormat = "Markdown"
+OutputDirectory = "C:/temp"

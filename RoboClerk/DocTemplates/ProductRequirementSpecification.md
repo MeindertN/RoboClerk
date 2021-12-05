@@ -27,22 +27,22 @@ This document is intended for the software developers at @@TBD(CompanyName:Confi
 # Requirements
 
 ## Functional Product Requirements
-@@@ProductRequirements:SLMS
+@@@ProductRequirements:PR:SLMS
 
 @@@
 ## Risk Control Product Requirements
-@@@RiskControlProductReq:SLMS
+@@@RiskControlProductReq:PR:SLMS
 
 @@@
 ## Transfer to Production Product Requirements
-@@@TransferToProductionProductReq:SLMS
+@@@TransferToProductionProductReq:PR:SLMS
 
 @@@
 ## Documentation Product Requirements
-@@@DocumentationProductReq:SLMS
+@@@DocumentationProductReq:PR:SLMS
 
 @@@
 ## Product Usability Requirements
-@@@UsabilityProductReq:SLMS
+@@@UsabilityProductReq:PR:SLMS
 
 @@@

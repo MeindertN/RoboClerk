@@ -21,6 +21,7 @@ namespace RoboClerk.AzureDevOps
         List<RequirementItem> productRequirements = new List<RequirementItem>();
         List<RequirementItem> softwareRequirements = new List<RequirementItem>();
         List<TestCaseItem> testCases = new List<TestCaseItem>();
+        List<BugItem> bugs = new List<BugItem>();
 
         private WorkItemTrackingHttpClient witClient;
 
@@ -34,9 +35,9 @@ namespace RoboClerk.AzureDevOps
 
         public string Description => description;
 
-        public List<Item> GetBugs()
+        public List<BugItem> GetBugs()
         {
-            throw new NotImplementedException();
+            return bugs;
         }
 
         public List<RequirementItem> GetProductRequirements()
@@ -64,10 +65,10 @@ namespace RoboClerk.AzureDevOps
             var assembly = Assembly.GetAssembly(this.GetType());
             var configFileLocation = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/AzureDevOpsPlugin.toml";
             var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
-            organizationName = (string)config["organizationName"];
-            projectName = (string)config["projectName"];
-            witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, (string)config["accessToken"]);
-            ignoreNewProductReqs = (bool)config["ignoreNewProductRequirements"];
+            organizationName = (string)config["OrganizationName"];
+            projectName = (string)config["ProjectName"];
+            witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, (string)config["AccessToken"]);
+            ignoreNewProductReqs = (bool)config["IgnoreNewProductRequirements"];
         }
 
         private void AddLinksToWorkItems(IList<WorkItemRelation> links, TraceItem item)
@@ -98,7 +99,15 @@ namespace RoboClerk.AzureDevOps
         {
             if(workitem.Fields.ContainsKey(field))
             {
-                return workitem.Fields[field].ToString();
+                var ident = workitem.Fields[field] as Microsoft.VisualStudio.Services.WebApi.IdentityRef;
+                if (ident != null)
+                {
+                    return ident.DisplayName;
+                }
+                else
+                {
+                    return workitem.Fields[field].ToString();
+                }
             }
             else
             {
@@ -183,6 +192,20 @@ namespace RoboClerk.AzureDevOps
             return item;
         }
 
+        private BugItem ConvertToBugItem(WorkItem workitem)
+        {
+            BugItem item = new BugItem();
+            item.BugID = workitem.Id.ToString();
+            item.BugLink = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
+            item.BugRevision = workitem.Rev.ToString();
+            item.BugState = GetWorkItemField(workitem, "System.State");
+            item.BugJustification = GetWorkItemField(workitem, "Microsoft.VSTS.CMMI.Justification");
+            item.BugAssignee = GetWorkItemField(workitem, "System.AssignedTo");
+            item.BugPriority = GetWorkItemField(workitem, "Microsoft.VSTS.Common.Priority");
+            item.BugTitle = GetWorkItemField(workitem, "System.Title");
+            return item;
+        }
+
         public void RefreshItems()
         {
             //re-initialize 
@@ -240,6 +263,17 @@ namespace RoboClerk.AzureDevOps
                 testCases.Add(item);
             }
 
+            var bugQuery = new Wiql()
+            {
+                Query = $"Select [Id] From WorkItems Where ( [Work Item Type] = 'Issue' Or [Work Item Type] = 'Bug' ) And [System.TeamProject] = '{projectName}'",
+            };
+
+            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, bugQuery))
+            {
+                var item = ConvertToBugItem(workitem);
+                bugs.Add(item);
+            }
+
             /*var productRequirementLinksQuery = new Wiql()
             {
                 Query = $"SELECT * FROM WorkItemLinks " +
@@ -260,6 +294,6 @@ namespace RoboClerk.AzureDevOps
             }*/
         }
 
-
+        
     }
 }

@@ -165,6 +165,10 @@ namespace RoboClerk
             {
                 return "TestCases";
             }
+            if(et.ToUpper() == "BG")
+            {
+                return "Bugs";
+            }
             return et;
         }
             

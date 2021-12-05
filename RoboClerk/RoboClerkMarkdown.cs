@@ -4,6 +4,8 @@ using Markdig.Extensions.RoboClerk;
 using RoboClerk;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using Markdig.Renderers.Roundtrip;
 
 namespace RoboClerk
 {
