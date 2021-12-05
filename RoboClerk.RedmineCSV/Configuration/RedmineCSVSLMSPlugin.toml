@@ -1,0 +1,16 @@
+﻿# This is the RoboClerk Redmine CSV plugin configuration
+
+ImportFilename = "I:/temp/Arcturus issues (70).csv"
+
+# The following allows you to indicate the redmine tracker that maps
+# to various entities in the RoboClerk software
+
+ProductLevelRequirement = "Specification"
+SoftwareLevelRequirement = "Feature"
+TestCase = "Validation"
+Bug = "Bug"
+
+# certain items in redmine should be ignored because they are no longer
+# relevant. Indicate which item statuses should be ignored.
+
+Ignore = [ "Rejected" ]

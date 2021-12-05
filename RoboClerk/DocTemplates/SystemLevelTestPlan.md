@@ -19,11 +19,11 @@ This document contains two test plans, one for automated tests and one for manua
 This document is intended for the software developers at @@TBD(CompanyName:Config)@@. It is also prepared as a record of the planning of the system level tests. This document is also intended to be reviewed by regulatory agencies and auditors.
 
 ## Manual Tests
-@@@ManualSystemLevelTests:SLMS
+@@@ManualSystemLevelTests:TC:SLMS
 
 @@@
 
 ## Automated Tests
-@@@AutomatedSystemLevelTests:SLMS
+@@@AutomatedSystemLevelTests:TC:SLMS
 
 @@@

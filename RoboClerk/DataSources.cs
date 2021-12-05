@@ -71,6 +71,16 @@ namespace RoboClerk
             return items;
         }
 
+        public List<BugItem> GetAllBugs()
+        {
+            List<BugItem> items = new List<BugItem>();
+            foreach(var plugin in slmsPlugins)
+            {
+                items.AddRange(plugin.GetBugs());
+            }
+            return items;
+        }
+
         public string GetConfigValue(string key)
         {
             return configVals.GetValue(key);

@@ -23,6 +23,7 @@ namespace RoboClerk
             new Dictionary<string, (string, string)>(); //first string in value is the filename and second is file content
         private TraceabilityAnalysis traceAnalysis = null;
         private DocumentFormat outputFormat = DocumentFormat.Markdown;
+        private string outputDir = string.Empty;
 
         public RoboClerkCore(string configFile, string projectConfigFile)
         {
@@ -71,6 +72,7 @@ namespace RoboClerk
             {
                 outputFormat = DocumentFormat.HTML;
             }
+            outputDir = (string)toml["OutputDirectory"];
         }
 
         public void GenerateDocs()
@@ -94,7 +96,7 @@ namespace RoboClerk
                     {
                         if (tag.Source == DataSource.Config)
                         {
-                            tag.Contents = dataSources.GetConfigValue(tag.ID);
+                            tag.Contents = dataSources.GetConfigValue(tag.ContentCreatorID);
                         }
                         else
                         {
@@ -121,14 +123,15 @@ namespace RoboClerk
             {
                 foreach (var doc in documents)
                 {
-                    File.WriteAllText(doc.Value.Item1, doc.Value.Item2);
+                    File.WriteAllText(Path.Combine(outputDir,Path.GetFileName(doc.Value.Item1)), doc.Value.Item2);
                 }
             }
             else if (outputFormat == DocumentFormat.HTML)
             {
                 foreach (var doc in documents)
                 {
-                    File.WriteAllText(Path.ChangeExtension(doc.Value.Item1, ".html"), RoboClerkMarkdown.ConvertMarkdownToHTML(doc.Value.Item2));
+                    string htmlFile = Path.GetFileName(Path.ChangeExtension(doc.Value.Item1, ".html"));
+                    File.WriteAllText(Path.Combine(outputDir,htmlFile), RoboClerkMarkdown.ConvertMarkdownToHTML(doc.Value.Item2));
                 }
             }
         }
@@ -143,7 +146,7 @@ namespace RoboClerk
 
             foreach (Type contentType in contentTypes)
             {
-                if (contentType.Name == tag.ID)
+                if (contentType.Name == tag.ContentCreatorID)
                 {
                     return Activator.CreateInstance(contentType) as IContentCreator;
                 }

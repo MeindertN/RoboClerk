@@ -36,8 +36,34 @@ namespace RoboClerk
             //determine how many lines we will need to store this content
             StringBuilder sb = new StringBuilder();
             string[] lines = content.Split('\n');
-            bool first = true;
+            List<string> finalLines = new List<string>();
             foreach (var line in lines)
+            {
+                if (line.Length <= cellWidth[1])
+                {
+                    finalLines.Add(line);
+                }
+                else
+                {
+                    string[] words = line.Split(' ');
+                    StringBuilder builder = new StringBuilder();
+                    foreach (var word in words)
+                    {
+                        if (builder.Length + word.Length + 1 > cellWidth[1])
+                        {
+                            finalLines.Add(builder.ToString());
+                            builder.Clear();
+                        }
+                        builder.Append($" {word}");
+                    }
+                    if (builder.Length > 0)
+                    {
+                        finalLines.Add(builder.ToString());
+                    }
+                }
+            }
+            bool first = true;
+            foreach (var line in finalLines)
             {
                 if (!first)
                 {

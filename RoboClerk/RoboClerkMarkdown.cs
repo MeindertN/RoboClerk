@@ -4,6 +4,8 @@ using Markdig.Extensions.RoboClerk;
 using RoboClerk;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using Markdig.Renderers.Roundtrip;
 
 namespace RoboClerk
 {
@@ -50,15 +52,7 @@ namespace RoboClerk
             foreach(var tag in sortedTags)
             {
                 parts.Add(markdownDoc.Substring(lastEnd + 1,tag.Start - (lastEnd + 1)));
-                //if (tag.Start == tag.End)
-                //{
-                //    lastEnd = tag.End;// -1; //need to correct for the fact there is nothing in this tag
-                //}
-                //else
-                //{
-                    lastEnd = tag.End;
-                //}
-                
+                lastEnd = tag.End;                
             }
             parts.Add(markdownDoc.Substring(lastEnd + 1,markdownDoc.Length-(lastEnd + 1)));
             

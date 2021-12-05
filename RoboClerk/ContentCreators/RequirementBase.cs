@@ -23,14 +23,14 @@ namespace RoboClerk.ContentCreators
             StringBuilder output = new StringBuilder();
             foreach (var requirement in requirements)
             {
-                if (tag.TraceReference != string.Empty && tag.TraceReference != requirement.RequirementID)
-                {
-                    continue; //if a particular requirement was indicated, we ignore those that do not match
-                }
-                if(requirement.RequirementCategory != requirementCategory)
+                if (requirement.RequirementCategory != requirementCategory && requirementCategory != "ALL")
                 {
                     continue; //ignore items if they are of the wrong category
                 }
+                if (tag.TraceReference != string.Empty && tag.TraceReference != requirement.RequirementID)
+                {
+                    continue; //if a particular requirement was indicated, we ignore those that do not match
+                }                
                 foundRequirement = true;
                 output.AppendLine(requirement.ToMarkDown());
                 analysis.AddTrace(docTitle, new TraceLink(requirement.RequirementID, linkType));

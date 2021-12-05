@@ -8,13 +8,13 @@ namespace RoboClerk.ContentCreators
     {
         public ProductRequirements()
         {
-            requirementCategory = "Product Requirement";
             requirementName = "Product Requirement";
             linkType = TraceLinkType.ProductRequirementTrace;
         }
 
         public override string GetContent(RoboClerkTag tag, DataSources sources, TraceabilityAnalysis analysis, string docTitle)
         {
+            requirementCategory = tag.Target;
             requirements = sources.GetAllProductRequirements();
             return base.GetContent(tag, sources, analysis, docTitle);
         }
