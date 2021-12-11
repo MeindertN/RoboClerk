@@ -31,7 +31,7 @@ namespace RoboClerk
             //this function can be called at any time, it will reconstruct the markdown document
             //based on the tag contents that could have been updated since the document was parsed. 
             //The document can be updated by replacing the individual tag contents.
-            return RoboClerkMarkdown.ReInsertRoboClerkTags(rawMarkdown,roboclerkTags);
+            return RoboClerkMarkdown.ReInsertRoboClerkTags(rawMarkdown,roboclerkTags,false);
         }
 
         public IEnumerable<RoboClerkTag> RoboClerkTags

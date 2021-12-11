@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk.AzureDevOps", "Ro
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk.RedmineCSV", "RoboClerk.RedmineCSV\RoboClerk.RedmineCSV.csproj", "{6AB99159-5710-4F3E-A63E-79D84076BEC5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Markdig.Extensions.RoboClerk", "Markdig.Extensions.RoboClerk\Markdig.Extensions.RoboClerk.csproj", "{BBDFD4E5-DA9A-48D7-BB0E-359D303EE537}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,18 +69,6 @@ Global
 		{6AB99159-5710-4F3E-A63E-79D84076BEC5}.Release|x64.Build.0 = Release|Any CPU
 		{6AB99159-5710-4F3E-A63E-79D84076BEC5}.Release|x86.ActiveCfg = Release|Any CPU
 		{6AB99159-5710-4F3E-A63E-79D84076BEC5}.Release|x86.Build.0 = Release|Any CPU
-		{BBDFD4E5-DA9A-48D7-BB0E-359D303EE537}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BBDFD4E5-DA9A-48D7-BB0E-359D303EE537}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BBDFD4E5-DA9A-48D7-BB0E-359D303EE537}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{BBDFD4E5-DA9A-48D7-BB0E-359D303EE537}.Debug|x64.Build.0 = Debug|Any CPU
-		{BBDFD4E5-DA9A-48D7-BB0E-359D303EE537}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{BBDFD4E5-DA9A-48D7-BB0E-359D303EE537}.Debug|x86.Build.0 = Debug|Any CPU
-		{BBDFD4E5-DA9A-48D7-BB0E-359D303EE537}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BBDFD4E5-DA9A-48D7-BB0E-359D303EE537}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BBDFD4E5-DA9A-48D7-BB0E-359D303EE537}.Release|x64.ActiveCfg = Release|Any CPU
-		{BBDFD4E5-DA9A-48D7-BB0E-359D303EE537}.Release|x64.Build.0 = Release|Any CPU
-		{BBDFD4E5-DA9A-48D7-BB0E-359D303EE537}.Release|x86.ActiveCfg = Release|Any CPU
-		{BBDFD4E5-DA9A-48D7-BB0E-359D303EE537}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,11 +1,8 @@
-using Markdig;
-using Markdig.Syntax;
-using Markdig.Extensions.RoboClerk;
 using RoboClerk;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using Markdig.Renderers.Roundtrip;
+using System;
 
 namespace RoboClerk
 {
@@ -13,30 +10,60 @@ namespace RoboClerk
     {
         public static List<RoboClerkTag> ExtractRoboClerkTags(string markdownText)
         {
-            var pipelineBuilder = new MarkdownPipelineBuilder();
-            pipelineBuilder.PreciseSourceLocation = true;
-            pipelineBuilder.Extensions.AddIfNotAlready<RoboClerkContainerExtension>();
-            
-            var pipeline = pipelineBuilder.Build();
-            var markdownDocument = Markdown.Parse(markdownText, pipeline, null);
-
-            List<RoboClerkTag> tags = new List<RoboClerkTag>();
-            
-            foreach(var obj in markdownDocument.Descendants())
+            int index = 0;
+            List<int> containerIndices = new List<int>();
+            List<int> inlineIndices = new List<int>();
+            while ((index = markdownText.IndexOf("@@",index)) >= 0)
             {
-                if(obj is RoboClerkContainer cc)
+                if(index + 1 == markdownText.Length-1)
                 {
-                    tags.Add(new RoboClerkTag(cc,markdownText));             
+                    inlineIndices.Add(index);
                 }
-                if(obj is RoboClerkContainerInline cci)
+                if(markdownText[index+2] != '@')
                 {
-                    tags.Add(new RoboClerkTag(cci,markdownText));             
+                    inlineIndices.Add(index);
+                    index += 2;
+                }
+                else
+                {
+                    containerIndices.Add(index);
+                    index += 3;
                 }
             }
+
+            if(containerIndices.Count % 2 != 0)
+            {
+                throw new Exception("Number of @@@ container indices is not even. Template file is invalid.");
+            }
+            if (inlineIndices.Count % 2 != 0)
+            {
+                throw new Exception("Number of @@ inline container indices is not even. Template file is invalid.");
+            }
+
+            List<RoboClerkTag> tags = new List<RoboClerkTag>();
+
+            for( int i = 0; i < containerIndices.Count; i += 2)
+            {
+                tags.Add(new RoboClerkTag(containerIndices[i], containerIndices[i + 1], markdownText, false)); 
+            }
+
+            for (int i = 0; i < inlineIndices.Count; i += 2)
+            {
+                //check for newlines in tag which is illegal
+                int idx = markdownText.IndexOf('\n', inlineIndices[i], inlineIndices[i + 1] - inlineIndices[i]);
+                if(idx >= 0 && idx <=inlineIndices[i + 1])
+                {
+                    throw new Exception($"Inline Roboclerk containers cannot have newline characters in them. Newline found in tag at {inlineIndices[i]}.");
+                }
+                tags.Add(new RoboClerkTag(inlineIndices[i], inlineIndices[i + 1], markdownText, true));
+            }
+
             return tags;
         }
 
-        public static string ReInsertRoboClerkTags(string markdownDoc, List<RoboClerkTag> tags)
+        //The following function can re-insert the tags back into the markdown while retaining the original roboclerk
+        //tags or while removing them to get plain markdown.
+        public static string ReInsertRoboClerkTags(string markdownDoc, List<RoboClerkTag> tags, bool includeTags = true)
         {
             if(tags.Count == 0)
             {
@@ -45,16 +72,19 @@ namespace RoboClerk
             //first we break apart the original markdownDoc using the original tag locations
             //determine the break points by sorting the tags by the start value and
             //iterating over them
-            List<RoboClerkTag> sortedTags = tags.OrderBy(o => o.Start).ToList();
+            List<RoboClerkTag> sortedTags = tags.OrderBy(o => o.ContentStart).ToList();
             
-            List<string> parts = new List<string>();//[sortedTags.Count+1];
+            List<string> parts = new List<string>();
             int lastEnd = -1;
             foreach(var tag in sortedTags)
             {
-                parts.Add(markdownDoc.Substring(lastEnd + 1,tag.Start - (lastEnd + 1)));
-                lastEnd = tag.End;                
+                parts.Add(markdownDoc.Substring(lastEnd + 1,(includeTags?tag.ContentStart:tag.TagStart) - (lastEnd + 1)));
+                lastEnd = includeTags?tag.ContentEnd:tag.TagEnd;                
             }
-            parts.Add(markdownDoc.Substring(lastEnd + 1,markdownDoc.Length-(lastEnd + 1)));
+            if (lastEnd + 1 < markdownDoc.Length)
+            {
+                parts.Add(markdownDoc.Substring(lastEnd + 1, markdownDoc.Length - (lastEnd + 1)));
+            }
             
             //then we insert the potentially updated tag contents
             int index = 1;
@@ -73,18 +103,6 @@ namespace RoboClerk
 
             //we join the string back together and return
             return string.Join("",parts);
-        }
-
-        public static string ConvertMarkdownToHTML(string markdown)
-        {
-            var pipelineBuilder = new MarkdownPipelineBuilder();
-            pipelineBuilder.PreciseSourceLocation = true;
-            pipelineBuilder = pipelineBuilder.UsePipeTables();
-            pipelineBuilder = pipelineBuilder.UseGridTables();
-            pipelineBuilder.Extensions.AddIfNotAlready<RoboClerkContainerExtension>();
-            
-            var pipeline = pipelineBuilder.Build();
-            return Markdown.ToHtml(markdown, pipeline);
         }
     }
 }
