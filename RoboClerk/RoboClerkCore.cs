@@ -126,14 +126,14 @@ namespace RoboClerk
                     File.WriteAllText(Path.Combine(outputDir,Path.GetFileName(doc.Value.Item1)), doc.Value.Item2);
                 }
             }
-            else if (outputFormat == DocumentFormat.HTML)
+            /*else if (outputFormat == DocumentFormat.HTML)
             {
                 foreach (var doc in documents)
                 {
                     string htmlFile = Path.GetFileName(Path.ChangeExtension(doc.Value.Item1, ".html"));
                     File.WriteAllText(Path.Combine(outputDir,htmlFile), RoboClerkMarkdown.ConvertMarkdownToHTML(doc.Value.Item2));
                 }
-            }
+            }*/
         }
 
         private IContentCreator GetContentObject(RoboClerkTag tag)

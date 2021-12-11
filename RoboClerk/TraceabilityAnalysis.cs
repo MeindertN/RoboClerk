@@ -56,7 +56,7 @@ namespace RoboClerk
                     }
                     catch(ArgumentException e)
                     {
-                        throw new Exception($"Unknown trace entity encountered in configuraiton file: {docloc.Key}");
+                        throw new Exception($"Unknown trace entity encountered in configuration file: {docloc.Key}");
                     }
                     docToTitle[tet] = (string)arr[0];
                 }
@@ -152,23 +152,10 @@ namespace RoboClerk
         {
             var srss = data.GetAllSoftwareRequirements();
             List<string> header = new List<string>() { "Software Requirement" };
+            
             foreach (var req in srss)
             {
-                if (header.IndexOf(req.RequirementCategory) < 0)
-                {
-                    header.Add(req.RequirementCategory);
-                }
-            }
-            List<string> emptyRow = new List<string>();
-            foreach (var val in header) emptyRow.Add(" ");
-
-            foreach (var req in srss)
-            {
-                List<string> row = new List<string>(emptyRow);
-
-                int index = header.IndexOf(req.RequirementCategory);
-                row[index] = req.RequirementID;
-                traceData.Add(row);
+                traceData.Add(new List<string>() { req.RequirementID });
             }
 
             for (int i = 1; i < columns.Count; ++i)
@@ -238,23 +225,10 @@ namespace RoboClerk
         {
             var prss = data.GetAllProductRequirements();
             List<string> header = new List<string>() { "Product Requirement" };
-            foreach (var req in prss)
-            {
-                if (header.IndexOf(req.RequirementCategory) < 0)
-                {
-                    header.Add(req.RequirementCategory);
-                }
-            }
-            List<string> emptyRow = new List<string>();
-            foreach (var val in header) emptyRow.Add(" ");
 
             foreach (var req in prss)
             {
-                List<string> row = new List<string>(emptyRow);
-
-                int index = header.IndexOf(req.RequirementCategory);
-                row[index] = req.RequirementID;
-                traceData.Add(row);
+                traceData.Add(new List<string>() { req.RequirementID });
             }
             //go over the rest of the columns, look up the titles for the header, 
             for (int i = 1; i < columns.Count; ++i)

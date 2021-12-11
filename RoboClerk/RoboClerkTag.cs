@@ -1,6 +1,4 @@
-using Markdig;
-using Markdig.Syntax;
-using Markdig.Extensions.RoboClerk;
+
 
 namespace RoboClerk
 {
@@ -17,24 +15,27 @@ namespace RoboClerk
 
     public class RoboClerkTag
     {
-        private int start = -1; //stores the start location in the *original* markdown string
-        private int end = -1; //stores the end location similar to the start location
+        private int contentStart = -1; //stores the start location of the content in the *original* markdown string
+        private int contentEnd = -1; //stores the end location of the content similar to the content start location
+        private int tagStart = -1;
+        private int tagEnd = -1;
         private string contents = string.Empty; //what is inside the tag in the document
         private string contentCreatorID = string.Empty; //the identifier of this tag 
         private string traceReference = string.Empty; //the trace reference for this tag
         private string target = "ALL"; //the target category for this tag, ALL returns all which is the default
         private bool inline; //true if this tag was found inline
         private DataSource source = DataSource.Unknown;
-        public RoboClerkTag(RoboClerkContainer tag, string rawDocument)
+        public RoboClerkTag(int startIndex, int endIndex, string rawDocument, bool inline)
         {
-            inline = false;
-            ProcessRoboClerkContainerTag(tag, rawDocument);
-        }
-
-        public RoboClerkTag(RoboClerkContainerInline tag, string rawDocument)
-        {
-            inline = true;
-            ProcessRoboClerkContainerInlineTag(tag, rawDocument);
+            this.inline = inline;
+            if(inline)
+            {
+                ProcessRoboClerkContainerInlineTag(startIndex, endIndex, rawDocument);
+            }
+            else
+            {
+                ProcessRoboClerkContainerTag(startIndex, endIndex, rawDocument);
+            }
         }
 
         public bool Inline
@@ -68,22 +69,35 @@ namespace RoboClerk
             set => contents = value;
         }
 
-        public int Start 
+        public int ContentStart 
         {
-            get => start;
+            get => contentStart;
         }
 
-        public int End 
+        public int ContentEnd 
         {
-            get => end;
+            get => contentEnd;
         }
 
-        private void ProcessRoboClerkContainerInlineTag(RoboClerkContainerInline tag, string rawDocument)
+        public int TagStart
         {
-            start = tag.Span.Start+2; //remove starting tag
-            end = tag.Span.End-2; //remove ending tag
-            var tagContents = rawDocument.Substring(start,end-start+1);
-            end = start + tagContents.IndexOf('(') - 1; //do not include ( itself 
+            get => tagStart;
+        }
+
+        public int TagEnd
+        {
+            get => tagEnd;
+        }
+
+
+        private void ProcessRoboClerkContainerInlineTag(int startIndex, int endIndex, string rawDocument)
+        {
+            tagStart = startIndex;
+            tagEnd = endIndex + 1;
+            contentStart = startIndex + 2; //remove starting tag
+            contentEnd = endIndex; //remove ending tag
+            var tagContents = rawDocument.Substring(contentStart,contentEnd-contentStart+1);
+            contentEnd = contentStart + tagContents.IndexOf('(') - 1; //do not include ( itself 
             string infostring = tagContents.Split('(')[1].Split(')')[0];
             var items = infostring.Split(':');
             if(items.Length != 2)
@@ -92,16 +106,19 @@ namespace RoboClerk
             }
             contentCreatorID = GetContentCreatorID(items[0]);
             source = GetSource(items[1]);
-            contents = rawDocument.Substring(start,end - start + 1);
+            contents = rawDocument.Substring(contentStart,contentEnd - contentStart + 1);
         }
 
-        private void ProcessRoboClerkContainerTag(RoboClerkContainer container, string rawDocument)
+        private void ProcessRoboClerkContainerTag(int startIndex, int endIndex, string rawDocument)
         {
+            tagStart = startIndex;
+            tagEnd = endIndex + 3;
             //parse the tagInfo, items are separated by :
-            var items = container.Info.Split(':');
+            string info = rawDocument.Substring(startIndex + 3, endIndex - startIndex).Split('\n')[0];
+            var items = info.Split(':');
             if(items.Length < 2 && items.Length > 4)
             {
-                throw new System.Exception($"Error parsing RoboClerkContainer tag: {container.Info}. Two to four elements separated by : expected but not found.");
+                throw new System.Exception($"Error parsing RoboClerkContainer tag: {info}. Two to four elements separated by : expected but not found.");
             }
             if(items.Length == 4)
             {
@@ -122,18 +139,18 @@ namespace RoboClerk
                 source = GetSource(items[1]);
             }            
 
-            var prelimTagContents = rawDocument.Substring(container.Span.Start, container.Span.End - container.Span.Start + 1);
-            start = container.Span.Start + prelimTagContents.IndexOf('\n') + 1; //ensure to skip linebreak
+            var prelimTagContents = rawDocument.Substring(startIndex, endIndex - startIndex + 1);
+            contentStart = startIndex + prelimTagContents.IndexOf('\n') + 1; //ensure to skip linebreak
             if (prelimTagContents.IndexOf('\n') == prelimTagContents.LastIndexOf('\n'))
             {
                 //this tag is empty
-                end = start-1;
+                contentEnd = contentStart-1;
                 contents = "";
             }
             else
             {
-                end = container.Span.Start + prelimTagContents.LastIndexOf('\n');
-                contents = rawDocument.Substring(start, end - start + 1);
+                contentEnd = startIndex + prelimTagContents.LastIndexOf('\n');
+                contents = rawDocument.Substring(contentStart, contentEnd - contentStart + 1);
             }            
         }
 
