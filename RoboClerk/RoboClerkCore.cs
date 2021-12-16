@@ -62,9 +62,9 @@ namespace RoboClerk
             foreach (var docloc in (TomlTable)toml["DocumentLocations"])
             {
                 TomlArray arr = (TomlArray)docloc.Value;
-                if ((string)arr[0] != string.Empty)
+                if ((string)arr[2] != string.Empty)
                 {
-                    documents[(string)arr[0]] = ((string)arr[1], File.ReadAllText((string)arr[1]));
+                    documents[(string)arr[0]] = ((string)arr[2], File.ReadAllText((string)arr[2]));
                 }
             }
             toml = Toml.Parse(config).ToModel();

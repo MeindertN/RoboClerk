@@ -12,6 +12,7 @@ namespace RoboClerk
         ProductRequirement,
         SoftwareRequirement,
         TestCase,
+        Bug,
         ProductRequirementsSpecification,
         SoftwareRequirementsSpecification,
         SystemLevelTestPlan,
@@ -39,9 +40,17 @@ namespace RoboClerk
         private Dictionary<TraceEntityType, List<TraceLink>> truthTraceLinks = new Dictionary<TraceEntityType, List<TraceLink>>();
         private Dictionary<string, List<TraceIssue>> documentTraceIssues = new Dictionary<string, List<TraceIssue>>();
         private Dictionary<TraceEntityType, List<TraceIssue>> truthTraceIssues = new Dictionary<TraceEntityType, List<TraceIssue>>();
-        private Dictionary<TraceEntityType, string> docToTitle = new Dictionary<TraceEntityType, string>();
+        private readonly Dictionary<TraceEntityType, string> entityToName = new Dictionary<TraceEntityType, string>();
+        private readonly Dictionary<TraceEntityType, string> entityToAbbreviation = new Dictionary<TraceEntityType, string>();
+        private readonly List<DocTrace> productRequirementTraces = new List<DocTrace>();
+        private readonly List<DocTrace> softwareRequirementTraces = new List<DocTrace>();
 
         public TraceabilityAnalysis(string config)
+        {
+            ParseConfigFile(config);
+        }
+
+        private void ParseConfigFile(string config)
         {
             var toml = Toml.Parse(config).ToModel();
             foreach (var docloc in (TomlTable)toml["DocumentLocations"])
@@ -54,12 +63,59 @@ namespace RoboClerk
                     {
                         tet = (TraceEntityType)Enum.Parse(typeof(TraceEntityType), docloc.Key, true);
                     }
-                    catch(ArgumentException e)
+                    catch (ArgumentException e)
                     {
-                        throw new Exception($"Unknown trace entity encountered in configuration file: {docloc.Key}");
+                        throw new Exception($"Unknown document trace entity encountered in config [DocumentLocations]: {docloc.Key}");
                     }
-                    docToTitle[tet] = (string)arr[0];
+                    entityToName[tet] = (string)arr[0];
+                    entityToAbbreviation[tet] = (string)arr[1];
                 }
+            }
+            foreach (var entityName in (TomlTable)toml["EntityNames"])
+            {
+                TraceEntityType tet;
+                try
+                {
+                    tet = (TraceEntityType)Enum.Parse(typeof(TraceEntityType), entityName.Key, true);
+                }
+                catch (ArgumentException e)
+                {
+                    throw new Exception($"Unknown entity name encountered in config [EntityNames]: {entityName.Key}");
+                }
+                entityToName[tet] = (string)entityName.Value;
+            }
+            foreach (var table in (TomlTable)toml["TraceConfig"])
+            {
+                TraceEntityType tet;
+                if ( (string)table.Key == "ProductRequirement" )
+                {
+                    foreach( var doc in (TomlTable)table.Value)
+                    {
+                        tet = (TraceEntityType)Enum.Parse(typeof(TraceEntityType), doc.Key, true);
+                        var arr = (TomlArray)doc.Value;
+                        bool completeTrace = false; 
+                        if(arr.Count == 0 || ((string)arr[0]).ToUpper() == "ALL")
+                        {
+                            completeTrace = true;
+                        }
+                        DocTrace dt = new DocTrace(tet, completeTrace);
+                        if (!completeTrace && ((string)arr[0]).ToUpper() != "OPTIONAL")
+                        {
+                            dt.SelectedCatagories = arr.Cast<string>().ToList();
+                        }
+                        productRequirementTraces.Add(dt);
+                    }
+                }
+                else if ((string)table.Key == "SoftwareRequirement")
+                {
+
+                }
+                else
+                {
+                    throw new Exception("Root trace must be from either ProductRequirement or Software Requirement");
+                }
+                    //var test2 = (string)table.Value;
+                //TraceEntityType
             }
         }
 
@@ -151,7 +207,7 @@ namespace RoboClerk
         private List<List<string>> AnalyzeSoftwareRequirements(DataSources data, List<TraceEntityType> columns, List<List<string>> traceData)
         {
             var srss = data.GetAllSoftwareRequirements();
-            List<string> header = new List<string>() { "Software Requirement" };
+            List<string> header = new List<string>() { entityToName[TraceEntityType.SoftwareRequirement] };
             
             foreach (var req in srss)
             {
@@ -163,26 +219,26 @@ namespace RoboClerk
                 if (columns[i] == TraceEntityType.ProductRequirement)
                 {
                     //pull product requirements, match the product requirements with the software requirements
-                    header.Add("Product Requirements");
+                    header.Add($"{entityToName[TraceEntityType.ProductRequirement]}s");
                     var prss = data.GetAllProductRequirements();
                     int index = 0;
                     foreach (var req in srss)
                     {
                         //find all software requirements parents
                         var parents = prss.FindAll((x => x.IsParentOf(req)));
-                        traceData[index].Add(GetReqFamilyString(parents, "NO PR"));
+                        traceData[index].Add(GetReqFamilyString(parents, "MISSING"));
                         AnalyzeTruthReqTrace(req, parents, TraceEntityType.SoftwareRequirement, TraceEntityType.SoftwareRequirement);
                         ++index;
                     }
                     continue;
                 }
-                else if (!docToTitle.ContainsKey(columns[i]))
+                else if (!entityToName.ContainsKey(columns[i]))
                 {
                     header.Add(columns[i].ToString());
                     int index = 0;
                     foreach (var req in srss)
                     {
-                        traceData[index].Add("document not found");
+                        traceData[index].Add("N/A");
                         ++index;
                     }
                     continue;
@@ -212,8 +268,8 @@ namespace RoboClerk
                 {
                     throw new Exception($"Invalid trace entity type encountered: {columns[i].ToString()}");
                 }
-                var documentTitle = docToTitle[columns[i]];
-                header.Add(documentTitle);
+                var documentTitle = entityToName[columns[i]];
+                header.Add(entityToAbbreviation[columns[i]]);
                 CheckDocumentTrace(srss, traceData, documentTitle, TraceLinkType.SoftwareRequirementTrace,
                     TraceEntityType.SoftwareRequirement, columns[i], forwardComplete);
             }
@@ -224,7 +280,7 @@ namespace RoboClerk
         private List<List<string>> AnalyzeProductRequirements(DataSources data, List<TraceEntityType> columns, List<List<string>> traceData)
         {
             var prss = data.GetAllProductRequirements();
-            List<string> header = new List<string>() { "Product Requirement" };
+            List<string> header = new List<string>() { entityToName[TraceEntityType.ProductRequirement] };
 
             foreach (var req in prss)
             {
@@ -236,27 +292,27 @@ namespace RoboClerk
                 if (columns[i] == TraceEntityType.SoftwareRequirement)
                 {
                     //pull software requirements, match the software requirements with the product requirements
-                    header.Add("Software Requirements");
+                    header.Add($"{entityToName[TraceEntityType.SoftwareRequirement]}s");
                     var srss = data.GetAllSoftwareRequirements();
                     int index = 0;
                     foreach (var req in prss)
                     {
                         //find all software requirements children
                         var children = srss.FindAll((x => x.IsChildOf(req)));
-                        traceData[index].Add(GetReqFamilyString(children,"NO SR"));
+                        traceData[index].Add(GetReqFamilyString(children,"MISSING"));
                         AnalyzeTruthReqTrace(req,children,TraceEntityType.ProductRequirement,TraceEntityType.SoftwareRequirement);
                         ++index;
                     }
                     continue;
                 }
                 //we are not expecting to find a truth column once we've checked for software requirement
-                else if (!docToTitle.ContainsKey(columns[i]))
+                else if (!entityToName.ContainsKey(columns[i]))
                 {
                     header.Add(columns[i].ToString());
                     int index = 0;
                     foreach (var req in prss)
                     {
-                        traceData[index].Add("document not found");
+                        traceData[index].Add("N/A");
                         ++index;
                     }
                     continue;
@@ -278,8 +334,8 @@ namespace RoboClerk
                 {
                     throw new Exception($"Invalid trace entity type encountered: {columns[i]}");
                 }
-                var documentTitle = docToTitle[columns[i]];
-                header.Add(documentTitle);
+                var documentTitle = entityToName[columns[i]];
+                header.Add(entityToAbbreviation[columns[i]]);
                 CheckDocumentTrace(prss, traceData, documentTitle, TraceLinkType.ProductRequirementTrace,
                     TraceEntityType.ProductRequirement, columns[i], forwardComplete);
             }
@@ -357,23 +413,11 @@ namespace RoboClerk
 
         public string GetTitleForTraceEntity(TraceEntityType tet)
         {
-            if(tet == TraceEntityType.ProductRequirement)
-            {
-                return "Product Requirement";
-            }
-            if(tet == TraceEntityType.SoftwareRequirement)
-            {
-                return "Software Requirement";
-            }
-            if(tet == TraceEntityType.TestCase)
-            {
-                return "Test Case";
-            }
-            if(!docToTitle.ContainsKey(tet))
+            if(!entityToName.ContainsKey(tet))
             {
                 return $"{tet.ToString()}: No doc title";
             }
-            return docToTitle[tet];
+            return entityToName[tet];
         }
 
         public IEnumerable<TraceLink> GetTraceLinksForDocument(string docTitle)
@@ -396,11 +440,11 @@ namespace RoboClerk
 
         public IEnumerable<TraceIssue> GetTraceIssuesForDocument(TraceEntityType tet)
         {
-            if(!docToTitle.ContainsKey(tet))
+            if(!entityToName.ContainsKey(tet))
             {
                 return new List<TraceIssue>();
             }
-            return GetTraceIssuesForDocument(docToTitle[tet]);
+            return GetTraceIssuesForDocument(entityToName[tet]);
         }
 
         public IEnumerable<TraceIssue> GetTraceIssuesForTruth(TraceEntityType tet)
