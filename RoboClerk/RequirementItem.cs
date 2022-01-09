@@ -10,7 +10,7 @@ namespace RoboClerk
         ProductRequirement,
         SoftwareRequirement
     };
-    public class RequirementItem : TraceItem
+    public class RequirementItem : LinkedItem
     {
         private RequirementType requirementType;
         private string requirementCategory = string.Empty;

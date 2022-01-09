@@ -12,34 +12,15 @@ namespace RoboClerk
         PossiblyMissing
     }; 
 
-    public class TraceIssue
+    public class TraceIssue : TraceLink
     {
-        private TraceEntityType source;
-        private TraceEntityType target;
-        private string traceID;
         private TraceIssueType issueType;
 
-        public TraceIssue(TraceEntityType src, TraceEntityType tgt, string id, TraceIssueType it)
+        public TraceIssue(TraceEntityType source, TraceEntityType target, string id, TraceIssueType it)
+            : base(source, target, id)
         {
-            source = src;
-            target = tgt;
-            traceID = id;
             issueType = it;
-        }
-
-        public TraceEntityType Source
-        {
-            get => source;
-        }
-
-        public TraceEntityType Target
-        {
-            get => target;
-        }
-
-        public string TraceID
-        {
-            get => traceID;
+            base.valid = false;
         }
 
         public TraceIssueType IssueType

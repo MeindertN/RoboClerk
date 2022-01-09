@@ -9,7 +9,7 @@ namespace RoboClerk.ContentCreators
         public SoftwareRequirements()
         {
             requirementName = "Software Requirement";
-            linkType = TraceLinkType.SoftwareRequirementTrace;
+            sourceType = TraceEntityType.SoftwareRequirement;
         }
 
         public override string GetContent(RoboClerkTag tag, DataSources sources, TraceabilityAnalysis analysis, string docTitle)

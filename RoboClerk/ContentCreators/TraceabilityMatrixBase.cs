@@ -6,10 +6,8 @@ namespace RoboClerk.ContentCreators
 {
     abstract class TraceabilityMatrixBase : IContentCreator
     {
-        protected List<TraceEntityType> columns = new List<TraceEntityType>();
-        protected string truthSource = string.Empty;
-        protected string truthTarget = string.Empty;
-        protected TraceEntityType targetTruthEntity = TraceEntityType.Unknown;
+        protected TraceEntityType truthSource = TraceEntityType.Unknown;
+        protected TraceEntityType truthTarget = TraceEntityType.Unknown;
 
         public TraceabilityMatrixBase()
         {
@@ -18,28 +16,60 @@ namespace RoboClerk.ContentCreators
 
         public virtual string GetContent(RoboClerkTag tag, DataSources data, TraceabilityAnalysis analysis, string docTitle)
         {
-            var traceMatrix = analysis.PerformAnalysis(data, columns);
-
+            var traceMatrix = analysis.PerformAnalysis(data, truthSource);
+             
             if (traceMatrix.Count == 0)
             {
                 throw new Exception($"{truthSource} level trace matrix is empty.");
             }
 
-            StringBuilder matrix = new StringBuilder();
-            matrix.Append(MarkdownTableUtils.GenerateTraceMatrixHeader(traceMatrix[0]));
-
-            for (int i = 1; i < traceMatrix.Count; ++i)
+            //determine the columns
+            TraceEntityType baseDoc = (truthSource == TraceEntityType.SoftwareRequirement ? 
+                TraceEntityType.SoftwareRequirementsSpecification : TraceEntityType.ProductRequirementsSpecification);
+            List<TraceEntityType> columns = new List<TraceEntityType>() { truthSource, baseDoc };
+            
+            foreach(KeyValuePair<TraceEntityType,List<List<string>>> entry in traceMatrix)
             {
-                matrix.Append(MarkdownTableUtils.GenerateTraceMatrixLine(traceMatrix[i]));
+                if(!columns.Contains(entry.Key))
+                {
+                    columns.Add(entry.Key);
+                }
             }
+
+            List<string> columnHeaders = new List<string>();
+            foreach(var entry in columns)
+            {
+                if (entry == TraceEntityType.ProductRequirement || entry == TraceEntityType.SoftwareRequirement)
+                {
+                    columnHeaders.Add(analysis.GetTitleForTraceEntity(entry));
+                }
+                else
+                {
+                    columnHeaders.Add(analysis.GetAbreviationForTraceEntity(entry));
+                }
+            }
+
+            StringBuilder matrix = new StringBuilder();
+            matrix.Append(MarkdownTableUtils.GenerateTraceMatrixHeader(columnHeaders));
+
+            for( int index = 0; index<traceMatrix[truthSource].Count; ++index)
+            {
+                List<string> line = new List<string>();
+                foreach(var entry in columns)
+                {
+                    line.Add(String.Join(',', traceMatrix[entry][index]));
+                }
+                matrix.Append(MarkdownTableUtils.GenerateTraceMatrixLine(line));
+            }
+
             matrix.AppendLine("\nTrace issues:");
             bool traceIssuesFound = false;
             //now visualize the trace issues, first the truth
-            var truthIssues = analysis.GetTraceIssuesForTruth(targetTruthEntity);
+            var truthIssues = analysis.GetTraceIssuesForTruth(truthSource);
             foreach (var issue in truthIssues)
             {
                 traceIssuesFound = true;
-                matrix.AppendLine($"* {truthSource} requirement {issue.TraceID} is potentially missing a corresponding {truthTarget} requirement.");
+                matrix.AppendLine($"* {analysis.GetTitleForTraceEntity(truthSource)} {issue.TraceID} is potentially missing a corresponding {analysis.GetTitleForTraceEntity(truthTarget)}.");
             }
 
             foreach (var tet in columns)

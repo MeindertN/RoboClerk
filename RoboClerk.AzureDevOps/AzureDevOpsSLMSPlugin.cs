@@ -71,7 +71,7 @@ namespace RoboClerk.AzureDevOps
             ignoreNewProductReqs = (bool)config["IgnoreNewProductRequirements"];
         }
 
-        private void AddLinksToWorkItems(IList<WorkItemRelation> links, TraceItem item)
+        private void AddLinksToWorkItems(IList<WorkItemRelation> links, LinkedItem item)
         {
             if (links != null) //check for links
             {

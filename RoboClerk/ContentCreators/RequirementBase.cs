@@ -9,7 +9,7 @@ namespace RoboClerk.ContentCreators
         protected string requirementCategory = string.Empty;
         protected List<RequirementItem> requirements = null;
         protected string requirementName = string.Empty;
-        protected TraceLinkType linkType = TraceLinkType.Unknown;
+        protected TraceEntityType sourceType = TraceEntityType.Unknown;
 
         public RequirementBase()
         {
@@ -33,7 +33,7 @@ namespace RoboClerk.ContentCreators
                 }                
                 foundRequirement = true;
                 output.AppendLine(requirement.ToMarkDown());
-                analysis.AddTrace(docTitle, new TraceLink(requirement.RequirementID, linkType));
+                analysis.AddTrace(docTitle, new TraceLink(sourceType, analysis.GetTraceEntityForTitle(docTitle),requirement.RequirementID));
             }
             if (!foundRequirement)
             {

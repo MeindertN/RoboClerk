@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RoboClerk
 {
-    public class TestCaseItem : TraceItem
+    public class TestCaseItem : LinkedItem
     {
         private string testCaseState = "";
         private string testCaseID = "";

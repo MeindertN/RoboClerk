@@ -4,33 +4,25 @@ using System.Text;
 
 namespace RoboClerk
 {
-    public enum TraceLinkType
+    public class TraceLink : TraceBase
     {
-        SoftwareRequirementTrace,
-        ProductRequirementTrace,
-        TestCaseTrace,
-        Unknown
-    };
+        protected string id = string.Empty;
+        protected bool valid = true;
 
-
-    public class TraceLink
-    {
-        private string traceID;
-        private TraceLinkType traceLinkType;
-        public TraceLink(string id, TraceLinkType tlt)
+        public TraceLink(TraceEntityType source, TraceEntityType target, string id) 
+            : base(source, target)
         {
-            traceID = id;
-            traceLinkType = tlt;
+            this.id = id;
         }
 
         public string TraceID
         {
-            get => traceID;
+            get => id;
         }
 
-        public TraceLinkType TraceType
+        public bool Valid
         {
-            get => traceLinkType;
+            get => valid;
         }
     }
 }

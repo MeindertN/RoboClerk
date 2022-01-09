@@ -38,9 +38,9 @@ Bug = "Bug"
 # these levels are represented as tables. In each table all trace documents are listed in the order in which
 # they will be traced. Each of them is assigned a list indicating how the trace should be validated and what
 # requirements should trace to the target doc. It is possible to indicate that only a subset of requirements
-# (based on the catagory of the requirements) must trace. Multiple catagories can be indicated. To indicate
+# (based on the category of the requirements) must trace. Multiple categories can be indicated. To indicate
 # that the trace should be complete (all requirements must trace to the target) use the ALL keyword. To 
-# indicate that incomplete trace is allowed, use the OPTIONAL keyword.
+# indicate that incomplete trace is allowed, use the OPTIONAL keyword. 
 
 [TraceConfig]
 	

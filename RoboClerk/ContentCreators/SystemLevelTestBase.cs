@@ -28,10 +28,10 @@ namespace RoboClerk.ContentCreators
                     }
                     testCaseFound = true;
                     output.AppendLine(test.ToMarkDown());
-                    analysis.AddTrace(docTitle, new TraceLink(test.TestCaseID, TraceLinkType.TestCaseTrace));
+                    analysis.AddTrace(docTitle, new TraceLink(TraceEntityType.TestCase, analysis.GetTraceEntityForTitle(docTitle), test.TestCaseID));
                     foreach (var parent in test.Parents)
                     {
-                        analysis.AddTrace(docTitle, new TraceLink(parent.Item1, TraceLinkType.SoftwareRequirementTrace));
+                        analysis.AddTrace(docTitle, new TraceLink(TraceEntityType.SoftwareRequirement,analysis.GetTraceEntityForTitle(docTitle), parent.Item1));
                     }
                 }
             }
