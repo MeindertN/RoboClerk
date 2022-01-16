@@ -183,7 +183,8 @@ namespace RoboClerk
         public Dictionary<TraceEntityType,List<List<string>>> PerformAnalysis(DataSources data, TraceEntityType truth)
         {
             Dictionary<TraceEntityType, List<List<string>>> result = new Dictionary<TraceEntityType, List<List<string>>>();
-            if (truth != TraceEntityType.ProductRequirement && truth != TraceEntityType.SoftwareRequirement)
+            if (truth != TraceEntityType.ProductRequirement && 
+                truth != TraceEntityType.SoftwareRequirement)
             {
                 throw new Exception($"Traceability analysis must start with {GetTitleForTraceEntity(TraceEntityType.ProductRequirement)}" +
                     $" or {GetTitleForTraceEntity(TraceEntityType.SoftwareRequirement)}");

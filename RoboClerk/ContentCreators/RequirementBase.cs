@@ -32,7 +32,7 @@ namespace RoboClerk.ContentCreators
                     continue; //if a particular requirement was indicated, we ignore those that do not match
                 }                
                 foundRequirement = true;
-                output.AppendLine(requirement.ToMarkDown());
+                output.AppendLine(requirement.ToText());
                 analysis.AddTrace(docTitle, new TraceLink(sourceType, analysis.GetTraceEntityForTitle(docTitle),requirement.RequirementID));
             }
             if (!foundRequirement)

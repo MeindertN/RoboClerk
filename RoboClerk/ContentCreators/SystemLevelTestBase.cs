@@ -27,7 +27,7 @@ namespace RoboClerk.ContentCreators
                         continue; //if a particular testcase was indicated, we ignore those that do not match
                     }
                     testCaseFound = true;
-                    output.AppendLine(test.ToMarkDown());
+                    output.AppendLine(test.ToText());
                     analysis.AddTrace(docTitle, new TraceLink(TraceEntityType.TestCase, analysis.GetTraceEntityForTitle(docTitle), test.TestCaseID));
                     foreach (var parent in test.Parents)
                     {

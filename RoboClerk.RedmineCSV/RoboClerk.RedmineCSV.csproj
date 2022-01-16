@@ -6,11 +6,11 @@
     <OutputType>Library</OutputType>
     <StartupObject />
     <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Authors>Meindert Niemeijer</Authors>
+    <Company>RoboClerk Project</Company>
+    <Product>Redmine CSV plugin</Product>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="Tomlyn" Version="0.1.2" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\RoboClerk\RoboClerk.csproj">
@@ -22,6 +22,10 @@
   <ItemGroup>
     <None Update="Configuration\RedmineCSVSLMSPlugin.toml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
     </None>
   </ItemGroup>
 

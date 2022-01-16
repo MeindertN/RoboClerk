@@ -81,6 +81,32 @@ namespace RoboClerk
             return items;
         }
 
+        public Item GetItem(string ID)
+        {
+            var sreq = GetAllSoftwareRequirements();
+            int idx = -1;
+            if( (idx = sreq.FindIndex(o => o.RequirementID == ID)) >= 0)
+            {
+                return sreq[idx];
+            }
+            sreq = GetAllProductRequirements();
+            if ((idx = sreq.FindIndex(o => o.RequirementID == ID)) >= 0)
+            {
+                return sreq[idx];
+            }
+            var tcase = GetAllSystemLevelTests();
+            if ((idx = tcase.FindIndex(o => o.TestCaseID == ID)) >= 0)
+            {
+                return tcase[idx];
+            }
+            var bugs = GetAllBugs();
+            if ((idx = bugs.FindIndex(o => o.BugID == ID)) >= 0)
+            {
+                return bugs[idx];
+            }
+            return null;
+        }
+
         public string GetConfigValue(string key)
         {
             return configVals.GetValue(key);

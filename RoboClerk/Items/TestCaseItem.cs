@@ -8,7 +8,6 @@ namespace RoboClerk
     {
         private string testCaseState = "";
         private string testCaseID = "";
-        private Uri testCaseLink;
         private string testCaseTitle = "";
         private string testCaseDescription = "";
         private string testCaseRevision = "";
@@ -20,20 +19,32 @@ namespace RoboClerk
             id = Guid.NewGuid().ToString();
         }
 
-        public override string ToMarkDown()
+        public override string ToText()
         {
             StringBuilder sb = new StringBuilder();
             int[] columnWidths = new int[2] { 22, 80 };
             string separator = MarkdownTableUtils.GenerateTableSeparator(columnWidths);
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(22, "testCase ID:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, testCaseID));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, HasLink? $"[{testCaseID}]({link})":testCaseID));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(22, "testCase Revision:"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, testCaseRevision));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(22, "Parent ID:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, parents.Count == 0 ? "" : parents[0].Item1));
+            string parentField = "N/A";
+            if (parents.Count > 0)
+            {
+                if (parents[0].Item2 != null)
+                {
+                    parentField = $"[{parents[0].Item1}]({parents[0].Item2})";
+                }
+                else
+                {
+                    parentField = parents[0].Item1;
+                }
+            }
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, parentField));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(22, "Title:"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, testCaseTitle));
@@ -73,12 +84,6 @@ namespace RoboClerk
         {
             get => testCaseID;
             set => testCaseID = value;
-        }
-
-        public Uri TestCaseLink
-        {
-            get => testCaseLink;
-            set => testCaseLink = value;
         }
 
         public string TestCaseTitle

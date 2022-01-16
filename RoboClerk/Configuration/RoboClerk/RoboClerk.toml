@@ -9,7 +9,10 @@ SLMSPlugin = [ "RedmineCSVSLMSPlugin" ]
 # RelativePluginDirs = [ "../../../../RoboClerk.AzureDevOps/bin/Debug" ]
 RelativePluginDirs = [ "../../../../RoboClerk.RedmineCSV/bin/Debug" ]
 
-# The output format specified here determines what type of files will be saved by 
-# RoboClerk. The options are "HTML" or "Markdown".
-OutputFormat = "Markdown"
+# The output directory is where the output files and logs are placed
 OutputDirectory = "C:/temp"
+
+# Logging level (DEBUG or INFO)
+LogLevel = "DEBUG"
+
+

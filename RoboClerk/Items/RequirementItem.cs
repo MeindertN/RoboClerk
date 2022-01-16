@@ -16,7 +16,6 @@ namespace RoboClerk
         private string requirementCategory = string.Empty;
         private string requirementState = string.Empty;
         private string requirementID = string.Empty;
-        private Uri requirementLink;
         private string requirementTitle = string.Empty;
         private string requirementDescription = string.Empty;
         private string requirementRevision = string.Empty;
@@ -26,14 +25,14 @@ namespace RoboClerk
             id = Guid.NewGuid().ToString();
         }
 
-        public override string ToMarkDown()
+        public override string ToText()
         {
             StringBuilder sb = new StringBuilder();
             int[] columnWidths = new int[2] { 44, 160 };
             string separator = MarkdownTableUtils.GenerateTableSeparator(columnWidths);
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0],"Requirement ID:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths,requirementID));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, HasLink ? $"[{requirementID}]({link})" : requirementID));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Requirement Revision:"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, requirementRevision));
@@ -42,7 +41,19 @@ namespace RoboClerk
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths,requirementCategory));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Parent ID:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths,parents.Count == 0? "N/A": parents[0].Item1));
+            string parentField = "N/A";
+            if (parents.Count > 0)
+            {
+                if (parents[0].Item2 != null)
+                {
+                    parentField = $"[{parents[0].Item1}]({parents[0].Item2})";
+                }
+                else
+                {
+                    parentField = parents[0].Item1;
+                }
+            }
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths,parentField));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Title:"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths,requirementTitle));
@@ -72,12 +83,6 @@ namespace RoboClerk
                 ItemID = value; //we set the itemID to the same value as the requirement ID
                 requirementID = value;
             }
-        }
-
-        public Uri RequirementLink 
-        {
-            get => requirementLink;
-            set => requirementLink = value;
         }
 
         public string RequirementTitle 

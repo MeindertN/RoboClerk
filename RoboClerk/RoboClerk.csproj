@@ -4,7 +4,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Tomlyn" Version="0.1.2" />
+    <PackageReference Include="NLog" Version="4.7.13" />
+    <PackageReference Include="Tomlyn" Version="0.3.1" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Configuration\Project\projectConfig.toml">
@@ -12,6 +13,24 @@
     </None>
     <None Update="Configuration\RoboClerk\RoboClerk.toml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="DocTemplates\OutstandingBugsRecord.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DocTemplates\ProductRequirementSpecification.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DocTemplates\SoftwareDesignSpecification.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DocTemplates\SoftwareRequirementSpecification.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DocTemplates\SystemLevelTestPlan.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DocTemplates\TraceabilityAnalysisRecord.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 </Project>

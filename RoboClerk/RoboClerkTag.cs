@@ -25,15 +25,19 @@ namespace RoboClerk
         private string target = "ALL"; //the target category for this tag, ALL returns all which is the default
         private bool inline; //true if this tag was found inline
         private DataSource source = DataSource.Unknown;
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
         public RoboClerkTag(int startIndex, int endIndex, string rawDocument, bool inline)
         {
             this.inline = inline;
             if(inline)
             {
+                logger.Debug("Processing inline RoboClerk tag.");
                 ProcessRoboClerkContainerInlineTag(startIndex, endIndex, rawDocument);
             }
             else
             {
+                logger.Debug("Processing RoboClerk container tag.");
                 ProcessRoboClerkContainerTag(startIndex, endIndex, rawDocument);
             }
         }

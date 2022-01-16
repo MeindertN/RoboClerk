@@ -6,8 +6,9 @@ namespace RoboClerk
     {
         protected string id = "";
         protected string type = "";
+        protected Uri link = null;
 
-        public abstract string ToMarkDown();
+        public abstract string ToText();
         
         public string ItemID 
         {
@@ -19,5 +20,16 @@ namespace RoboClerk
         {
             get => type;
         } 
+
+        public bool HasLink
+        {
+            get => link != null;
+        }
+
+        public Uri Link
+        {
+            get => link;
+            set => link = value;
+        }
     }
 }

@@ -22,7 +22,7 @@ namespace RoboClerk.ContentCreators
                 {
                     continue; //skip closed bugs as they are no longer outstanding
                 }
-                output.AppendLine(bug.ToMarkDown());
+                output.AppendLine(bug.ToText());
             }
             if (bugs.Count == 0)
             {

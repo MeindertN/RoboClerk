@@ -23,10 +23,13 @@ namespace RoboClerk.RedmineCSV
         private string srsTrackerName = string.Empty;
         private string tcTrackerName = string.Empty;
         private string bugTrackerName = string.Empty;
-        private TomlArray ignoreList = null; 
+        private string baseURL = string.Empty;
+        private TomlArray ignoreList = null;
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public RedmineCSVSLMSPlugin()
         {
+            logger.Debug("Redmine CSV SLMS plugin created");
             name = "RedmineCSVSLMSPlugin";
             description = "A plugin that can load CSV files as exported by Redmine to retrieve information needed by RoboClerk to create documentation.";
         }
@@ -63,16 +66,31 @@ namespace RoboClerk.RedmineCSV
 
         public void Initialize()
         {
+            logger.Info("Initializing the Redmine CSV SLMS Plugin");
             var assembly = Assembly.GetAssembly(this.GetType());
-            var configFileLocation = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/RedmineCSVSLMSPlugin.toml";
-            var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
-            csvFileName = (string)config["ImportFilename"];
-            prsTrackerName = (string)config["ProductLevelRequirement"];
-            srsTrackerName = (string)config["SoftwareLevelRequirement"];
-            tcTrackerName = (string)config["TestCase"];
-            bugTrackerName = (string)config["Bug"];
-
-            ignoreList = (TomlArray)config["Ignore"];
+            try
+            {
+                var configFileLocation = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/RedmineCSVSLMSPlugin.toml";
+                var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
+                csvFileName = (string)config["ImportFilename"];
+                prsTrackerName = (string)config["ProductLevelRequirement"];
+                srsTrackerName = (string)config["SoftwareLevelRequirement"];
+                tcTrackerName = (string)config["TestCase"];
+                bugTrackerName = (string)config["Bug"];
+                
+                if(config.ContainsKey("RedmineBaseURL"))
+                {
+                    baseURL = (string)config["RedmineBaseURL"];
+                }
+                
+                ignoreList = (TomlArray)config["Ignore"];
+            }
+            catch(Exception e)
+            {
+                logger.Error("Error reading configuration file for Redmine CSV SLMS plugin.");
+                logger.Error(e);
+                throw new Exception("The redmine CSV SLMS plugin could not read its configuration. Aborting...");
+            }
         }
 
         private List<string[]> GetTestSteps(string testDescription)
@@ -105,65 +123,101 @@ namespace RoboClerk.RedmineCSV
 
         private TestCaseItem CreateTestCase(RedmineItem rmItem)
         {
-            TestCaseItem item = new TestCaseItem();
+            logger.Debug($"Creating test case item: {rmItem.Id}");
+            TestCaseItem resultItem = new TestCaseItem();
 
-            item.TestCaseID = rmItem.Id;
-            item.TestCaseRevision = rmItem.Updated;
-            item.TestCaseState = rmItem.Status;
-            item.TestCaseTitle = rmItem.Subject;
-            item.TestCaseSteps = GetTestSteps(rmItem.Description);
-            item.TestCaseAutomated = false;
-
-            item.AddParent(rmItem.ParentTask, null);
-
-            return item;
-        }
-
-        private BugItem CreateBug(RedmineItem item)
-        {
-            BugItem resultItem = new BugItem();
-
-            resultItem.BugAssignee = item.Assignee;
-            resultItem.BugID = item.Id;
-            resultItem.BugJustification = string.Empty;
-            resultItem.BugPriority = string.Empty;
-            resultItem.BugRevision = item.Updated;
-            resultItem.BugState = item.Status;
-            resultItem.BugTitle = item.Subject;
+            resultItem.TestCaseID = rmItem.Id;
+            resultItem.TestCaseRevision = rmItem.Updated;
+            resultItem.TestCaseState = rmItem.Status;
+            resultItem.TestCaseTitle = rmItem.Subject;
+            if (baseURL != "")
+            {
+                resultItem.Link = new Uri($"{baseURL}{resultItem.TestCaseID}");
+            }
+            logger.Debug($"Getting test steps for item: {rmItem.Id}");
+            resultItem.TestCaseSteps = GetTestSteps(rmItem.Description);
+            resultItem.TestCaseAutomated = false;
+            if (baseURL != "")
+            {
+                resultItem.AddParent(rmItem.ParentTask, new Uri($"{baseURL}{rmItem.ParentTask}"));
+            }
+            else
+            {
+                resultItem.AddParent(rmItem.ParentTask, null);
+            }
 
             return resultItem;
         }
 
-        private RequirementItem CreateRequirement(List<RedmineItem> items, RedmineItem item, RequirementType typeOfRequirement)
+        private BugItem CreateBug(RedmineItem rmItem)
         {
+            logger.Debug($"Creating bug item: {rmItem.Id}");
+            BugItem resultItem = new BugItem();
+
+            resultItem.BugAssignee = rmItem.Assignee;
+            resultItem.BugID = rmItem.Id;
+            resultItem.BugJustification = string.Empty;
+            resultItem.BugPriority = string.Empty;
+            resultItem.BugRevision = rmItem.Updated;
+            resultItem.BugState = rmItem.Status;
+            resultItem.BugTitle = rmItem.Subject;
+            if(baseURL != "")
+            {
+                resultItem.Link = new Uri($"{baseURL}{resultItem.BugID}");
+            }
+
+            return resultItem;
+        }
+
+        private RequirementItem CreateRequirement(List<RedmineItem> items, RedmineItem rmItem, RequirementType typeOfRequirement)
+        {
+            logger.Debug($"Creating requirement item: {rmItem.Id}");
             RequirementItem resultItem = new RequirementItem();
 
-            if (item.FunctionalArea != "")
+            if (rmItem.FunctionalArea != "")
             {
-                resultItem.RequirementCategory = item.FunctionalArea;
+                resultItem.RequirementCategory = rmItem.FunctionalArea;
             }
             else
             {
-                resultItem.RequirementCategory = "Product Requirement";
+                resultItem.RequirementCategory = "Unknown";
             }
-            resultItem.RequirementDescription = item.Description;
-            resultItem.RequirementID = item.Id;
-            resultItem.RequirementRevision = item.Updated;
-            resultItem.RequirementState = item.Status;
-            resultItem.RequirementTitle = item.Subject;
+            resultItem.RequirementDescription = rmItem.Description;
+            resultItem.RequirementID = rmItem.Id;
+            resultItem.RequirementRevision = rmItem.Updated;
+            resultItem.RequirementState = rmItem.Status;
+            resultItem.RequirementTitle = rmItem.Subject;
             resultItem.TypeOfRequirement = typeOfRequirement;
-
-            foreach(var redmineItem in items)
+            if(baseURL != "")
             {
-                if(redmineItem.ParentTask == item.Id)
+                resultItem.Link = new Uri($"{baseURL}{resultItem.RequirementID}");
+            }
+
+            foreach (var redmineItem in items)
+            {
+                if(redmineItem.ParentTask == rmItem.Id)
                 {
-                    resultItem.AddChild(redmineItem.Id, null);
+                    if (baseURL != "")
+                    {
+                        resultItem.AddChild(redmineItem.Id, new Uri($"{baseURL}{redmineItem.Id}")); 
+                    }
+                    else
+                    {
+                        resultItem.AddChild(redmineItem.Id, null);
+                    }
                 }
             }
 
-            if(item.ParentTask != string.Empty)
+            if(rmItem.ParentTask != string.Empty)
             {
-                resultItem.AddParent(item.ParentTask, null);
+                if (baseURL != "")
+                {
+                    resultItem.AddParent(rmItem.ParentTask, new Uri($"{baseURL}{rmItem.ParentTask}"));
+                }
+                else
+                {
+                    resultItem.AddParent(rmItem.ParentTask, null);
+                }
             }
             return resultItem;
         }
@@ -175,27 +229,33 @@ namespace RoboClerk.RedmineCSV
                 throw new Exception("CSV filename empty. Could not read csv file.");
             }
 
+            logger.Debug($"Parsing CSV file");
             var records = parseCSVFile();
             foreach(var redmineItem in records)
             {
                 if(ignoreList.Contains(redmineItem.Status))
                 {
+                    logger.Debug($"Ignoring item {redmineItem.Id}");
                     continue; //ignore anything that is to be ignored
                 }
                 if(redmineItem.Tracker == prsTrackerName)
                 {
+                    logger.Debug($"Product level requirement found: {redmineItem.Id}");
                     productRequirements.Add(CreateRequirement(records, redmineItem, RequirementType.ProductRequirement));
                 }
                 else if(redmineItem.Tracker == srsTrackerName)
                 {
+                    logger.Debug($"Software level requirement found: {redmineItem.Id}");
                     softwareRequirements.Add(CreateRequirement(records, redmineItem, RequirementType.SoftwareRequirement));
                 }
                 else if(redmineItem.Tracker == tcTrackerName)
                 {
+                    logger.Debug($"Testcase found: {redmineItem.Id}");
                     testCases.Add(CreateTestCase(redmineItem));
                 }
                 else if(redmineItem.Tracker == bugTrackerName)
                 {
+                    logger.Debug($"Bug item found: {redmineItem.Id}");
                     bugs.Add(CreateBug(redmineItem));
                 }
             }

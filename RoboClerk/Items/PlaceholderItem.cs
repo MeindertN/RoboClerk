@@ -13,7 +13,7 @@ namespace RoboClerk
             type = "PlaceholderItem";
             id = Guid.NewGuid().ToString();
         }
-        public override string ToMarkDown()
+        public override string ToText()
         {
             return stringContent;
         }
