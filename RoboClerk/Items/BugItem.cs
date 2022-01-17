@@ -58,7 +58,11 @@ namespace RoboClerk
         public string BugID
         {
             get => bugID;
-            set => bugID = value;
+            set
+            {
+                id = value;
+                bugID = value;
+            }
         }
 
         public string BugTitle

@@ -118,7 +118,7 @@ namespace RoboClerk
             }
         }
 
-        private void CheckDocumentTrace(List<RequirementItem> truthItems, List<List<string>> traceData, TraceEntityType tet, TraceSpecification ts)
+        private void CheckDocumentTrace(List<RequirementItem> truthItems, List<List<Item>> traceData, TraceEntityType tet, TraceSpecification ts)
         {
             var documentTitle = entityToName[ts.Target];
             documentTraceIssues[documentTitle] = new List<TraceIssue>();
@@ -138,13 +138,13 @@ namespace RoboClerk
                 var foundLinks = from t in tls where (t.TraceID == req.RequirementID && t.Source == tet) select t;
                 if (foundLinks.Count() > 0)
                 {
-                    traceData.Add(new List<string>() { "OK" }); //TODO: need to add support for exclusive traces where only traces of a certain type are allowed to trace (e.g. only Risk Controls can trace to RAR)
+                    traceData.Add(new List<Item>() { req }); //TODO: need to add support for exclusive traces where only traces of a certain type are allowed to trace (e.g. only Risk Controls can trace to RAR)
                 }
                 else
                 {
                     if (ts.CompleteTrace)
                     {
-                        traceData.Add(new List<string> { "NO TRACE" });
+                        traceData.Add(new List<Item> { null });
                         documentTraceIssues[documentTitle].Add(new TraceIssue(tet,
                                                                     ts.Target,
                                                                     req.RequirementID,
@@ -152,7 +152,7 @@ namespace RoboClerk
                     }
                     else if(ts.SelectedCategories.Contains(req.RequirementCategory))
                     {
-                        traceData.Add(new List<string> { "NO TRACE" });
+                        traceData.Add(new List<Item> { null });
                         documentTraceIssues[documentTitle].Add(new TraceIssue(tet,
                                                                     ts.Target,
                                                                     req.RequirementID,
@@ -160,7 +160,7 @@ namespace RoboClerk
                     }
                     else
                     {
-                        traceData.Add(new List<string> { " " });
+                        traceData.Add(new List<Item>());
                     }
                 }
             }
@@ -180,9 +180,9 @@ namespace RoboClerk
             }
         }
 
-        public Dictionary<TraceEntityType,List<List<string>>> PerformAnalysis(DataSources data, TraceEntityType truth)
+        public Dictionary<TraceEntityType,List<List<Item>>> PerformAnalysis(DataSources data, TraceEntityType truth)
         {
-            Dictionary<TraceEntityType, List<List<string>>> result = new Dictionary<TraceEntityType, List<List<string>>>();
+            Dictionary<TraceEntityType, List<List<Item>>> result = new Dictionary<TraceEntityType, List<List<Item>>>();
             if (truth != TraceEntityType.ProductRequirement && 
                 truth != TraceEntityType.SoftwareRequirement)
             {
@@ -203,15 +203,15 @@ namespace RoboClerk
                 truthItems = data.GetAllSoftwareRequirements();
             }
 
-            result[truth] = new List<List<string>>();
+            result[truth] = new List<List<Item>>();
             foreach (var req in truthItems)
             {
-                result[truth].Add(new List<string> { req.RequirementID });
+                result[truth].Add(new List<Item> { req });
             }
 
             foreach(var ts in requirementTraces)
             {
-                result[ts.Target] = new List<List<string>>();
+                result[ts.Target] = new List<List<Item>>();
                 if (ts.Target == TraceEntityType.SoftwareRequirement)
                 {
                     //pull software requirements, match the software requirements with the product requirements
@@ -220,7 +220,7 @@ namespace RoboClerk
                     {
                         //find all software requirements children
                         var children = srss.FindAll((x => x.IsChildOf(req)));
-                        result[ts.Target].Add(GetReqFamilyStrings(children, "MISSING"));
+                        result[ts.Target].Add(GetReqFamilyStrings(children));
                         AnalyzeTruthReqTrace(req, children, truth, ts.Target);
                     }
                     continue;
@@ -233,7 +233,7 @@ namespace RoboClerk
                     {
                         //find all product requirement parents
                         var parent = prss.FindAll((x => x.IsParentOf(req)));
-                        result[ts.Target].Add(GetReqFamilyStrings(parent, "MISSING"));
+                        result[ts.Target].Add(GetReqFamilyStrings(parent));
                         AnalyzeTruthReqTrace(req, parent, truth, ts.Target);
                     }
                     continue;
@@ -242,7 +242,7 @@ namespace RoboClerk
                 {
                     foreach (var req in truthItems)
                     {
-                        result[ts.Target].Add(new List<string> { "N/A" });
+                        result[ts.Target].Add(new List<Item> { null });
                     }
                     continue;
                 }
@@ -251,17 +251,17 @@ namespace RoboClerk
             return result;
         }
 
-        private List<string> GetReqFamilyStrings(List<RequirementItem> family, string missing)
+        private List<Item> GetReqFamilyStrings(List<RequirementItem> family)
         {
-            List<string> result = new List<string>();
+            List<Item> result = new List<Item>();
             if (family.Count == 0)
             {
-                result.Add(missing);
+                result.Add(null);
                 return result;
             }
             foreach (var item in family)
             {
-                result.Add(item.RequirementID);
+                result.Add(item);
             }
             return result;
         }

@@ -83,7 +83,11 @@ namespace RoboClerk
         public string TestCaseID
         {
             get => testCaseID;
-            set => testCaseID = value;
+            set
+            {
+                id = value;
+                testCaseID = value;
+            }
         }
 
         public string TestCaseTitle

@@ -28,7 +28,7 @@ namespace RoboClerk.ContentCreators
                 TraceEntityType.SoftwareRequirementsSpecification : TraceEntityType.ProductRequirementsSpecification);
             List<TraceEntityType> columns = new List<TraceEntityType>() { truthSource, baseDoc };
             
-            foreach(KeyValuePair<TraceEntityType,List<List<string>>> entry in traceMatrix)
+            foreach(KeyValuePair<TraceEntityType,List<List<Item>>> entry in traceMatrix)
             {
                 if(!columns.Contains(entry.Key))
                 {
@@ -57,7 +57,28 @@ namespace RoboClerk.ContentCreators
                 List<string> line = new List<string>();
                 foreach(var entry in columns)
                 {
-                    line.Add(String.Join(',', traceMatrix[entry][index]));
+                    if (traceMatrix[entry][index].Count == 0)
+                    {
+                        line.Add("N/A");
+                    }
+                    else
+                    {
+                        StringBuilder combinedString = new StringBuilder();
+                        foreach (Item item in traceMatrix[entry][index])
+                        {
+                            if (item == null)
+                            {
+                                combinedString.Append("MISSING");
+                            }
+                            else
+                            {
+                                combinedString.Append(item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID);
+                            }
+                            combinedString.Append(',');
+                        }
+                        combinedString.Remove(combinedString.Length - 1, 1); //remove extra comma
+                        line.Add(combinedString.ToString());
+                    }
                 }
                 matrix.Append(MarkdownTableUtils.GenerateTraceMatrixLine(line));
             }
@@ -69,7 +90,8 @@ namespace RoboClerk.ContentCreators
             foreach (var issue in truthIssues)
             {
                 traceIssuesFound = true;
-                matrix.AppendLine($"* {analysis.GetTitleForTraceEntity(truthSource)} {issue.TraceID} is potentially missing a corresponding {analysis.GetTitleForTraceEntity(truthTarget)}.");
+                Item item = data.GetItem(issue.TraceID);
+                matrix.AppendLine($"* {analysis.GetTitleForTraceEntity(truthSource)} {(item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID)} is potentially missing a corresponding {analysis.GetTitleForTraceEntity(truthTarget)}.");
             }
 
             foreach (var tet in columns)
@@ -85,21 +107,27 @@ namespace RoboClerk.ContentCreators
                     traceIssuesFound = true;
                     string sourceTitle = analysis.GetTitleForTraceEntity(issue.Source);
                     string targetTitle = analysis.GetTitleForTraceEntity(issue.Target);
+                    Item item = data.GetItem(issue.TraceID);
+                    string identifierText = issue.TraceID;
+                    if(item != null)
+                    {
+                        identifierText = (item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID);
+                    }
                     if (issue.IssueType == TraceIssueType.Extra)
                     {
-                        matrix.AppendLine($"* An extra item with identifier \"{issue.TraceID}\" appeared in \"{sourceTitle}\" without appearing in \"{targetTitle}\".");
+                        matrix.AppendLine($"* An extra item with identifier {identifierText} appeared in {sourceTitle} without appearing in {targetTitle}.");
                     }
                     else if (issue.IssueType == TraceIssueType.Missing)
                     {
-                        matrix.AppendLine($"* An expected trace from \"{issue.TraceID}\" in \"{sourceTitle}\" to \"{targetTitle}\" is missing.");
+                        matrix.AppendLine($"* An expected trace from {identifierText} in {sourceTitle} to {targetTitle} is missing.");
                     }
                     else if (issue.IssueType == TraceIssueType.PossiblyExtra)
                     {
-                        matrix.AppendLine($"* A possibly extra item with identifier \"{issue.TraceID}\" appeared in \"{sourceTitle}\" without appearing in {targetTitle}.");
+                        matrix.AppendLine($"* A possibly extra item with identifier {identifierText} appeared in {sourceTitle} without appearing in {targetTitle}.");
                     }
                     else if (issue.IssueType == TraceIssueType.PossiblyMissing)
                     {
-                        matrix.AppendLine($"* A possibly expected trace from \"{issue.TraceID}\" in \"{sourceTitle}\" to \"{targetTitle}\" is missing.");
+                        matrix.AppendLine($"* A possibly expected trace from {identifierText} in {sourceTitle} to {targetTitle} is missing.");
                     }
                 }
             }
