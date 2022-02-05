@@ -15,7 +15,7 @@ namespace RoboClerk.RedmineCSV
         private string name = string.Empty;
         private string description = string.Empty;
         private string csvFileName = string.Empty;
-        private List<RequirementItem> productRequirements = new List<RequirementItem>();
+        private List<RequirementItem> systemRequirements = new List<RequirementItem>();
         private List<RequirementItem> softwareRequirements = new List<RequirementItem>();
         private List<TestCaseItem> testCases = new List<TestCaseItem>();
         private List<BugItem> bugs = new List<BugItem>();
@@ -49,9 +49,9 @@ namespace RoboClerk.RedmineCSV
             return bugs;
         }
 
-        public List<RequirementItem> GetProductRequirements()
+        public List<RequirementItem> GetSystemRequirements()
         {
-            return productRequirements;
+            return systemRequirements;
         }
 
         public List<RequirementItem> GetSoftwareRequirements()
@@ -59,7 +59,7 @@ namespace RoboClerk.RedmineCSV
             return softwareRequirements;
         }
 
-        public List<TestCaseItem> GetTestCases()
+        public List<TestCaseItem> GetSoftwareSystemTests()
         {
             return testCases;
         }
@@ -136,7 +136,7 @@ namespace RoboClerk.RedmineCSV
             }
             logger.Debug($"Getting test steps for item: {rmItem.Id}");
             resultItem.TestCaseSteps = GetTestSteps(rmItem.Description);
-            resultItem.TestCaseAutomated = false;
+            resultItem.TestCaseAutomated = rmItem.TestMethod == "Automated";
             if (baseURL != "")
             {
                 resultItem.AddParent(rmItem.ParentTask, new Uri($"{baseURL}{rmItem.ParentTask}"));
@@ -241,7 +241,7 @@ namespace RoboClerk.RedmineCSV
                 if(redmineItem.Tracker == prsTrackerName)
                 {
                     logger.Debug($"Product level requirement found: {redmineItem.Id}");
-                    productRequirements.Add(CreateRequirement(records, redmineItem, RequirementType.ProductRequirement));
+                    systemRequirements.Add(CreateRequirement(records, redmineItem, RequirementType.SystemRequirement));
                 }
                 else if(redmineItem.Tracker == srsTrackerName)
                 {

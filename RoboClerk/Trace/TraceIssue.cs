@@ -27,5 +27,13 @@ namespace RoboClerk
         {
             get => issueType;
         }
+
+        public override bool Equals(object obj)
+        {
+            var comp = obj as TraceIssue;
+            return (comp.Source == source) &&
+                (comp.Target == target) &&
+                (comp.TraceID == TraceID);
+        }
     }
 }

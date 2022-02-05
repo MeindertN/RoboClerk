@@ -4,7 +4,7 @@
 
 # Title, abbreviation and location of the document templates
 [DocumentLocations]
-ProductRequirementsSpecification = ["Software Requirements Specification", "SRS", "I:/temp/ProductRequirementSpecification.md"]
+SystemRequirementsSpecification = ["Software Requirements Specification", "SRS", "I:/temp/SystemRequirementSpecification.md"]
 SoftwareRequirementsSpecification = ["Software Design Specification", "SDS", "I:/temp/SoftwareRequirementSpecification.md"]
 SoftwareDevelopmentPlan = ["Software Design and Development Plan", "SDDP", ""]
 SoftwareDesignSpecification = ["Software Architecture Design", "SAD", "I:/temp/SoftwareDesignSpecification.md"]
@@ -15,8 +15,8 @@ UnitLevelTestPlan = ["", "", ""]
 DetailedSoftwareDesignSpecification = ["", "", ""]
 TransferToProductionPlan = ["Software Design Transfer", "SDP", ""]
 CodeCoverageRecord = ["", "", ""]
-OutStandingBugsAndIssues = ["Unresolved Anomalies List", "UAL", "I:/temp/OutstandingBugsRecord.md"]
-RunTimeErrorDetectionPlanAndReport = ["", "", ""]
+ResidualAnomaliesRecord = ["Unresolved Anomalies List", "UAL", "I:/temp/OutstandingBugsRecord.md"]
+RunTimeErrorDetectionRecord = ["", "", ""]
 WorkOrder = ["", "", ""]
 RevisionLevelHistory = ["Software Revision History", "SRH", ""]
 SystemBaseline = ["", "", ""]
@@ -28,10 +28,11 @@ DocumentationReport = ["", "", ""]
 # makes sense in your context.
 
 [EntityNames]
-ProductRequirement = "Requirement"
+SystemRequirement = "Requirement"
 SoftwareRequirement = "Specification"
-TestCase = "Test Case"
-Bug = "Bug"
+SoftwareSystemTest = "Test Case"
+SoftwareUnitTest = "Unit Test"
+Anomaly = "Bug"
 
 # Use the trace config to configure what documents shall be traced and what in those documents must trace.
 # Two levels of requirements are distinguished, product and software requirements. In the table below, both
@@ -44,14 +45,14 @@ Bug = "Bug"
 
 [TraceConfig]
 	
-	[TraceConfig.ProductRequirement]
-		ProductRequirementsSpecification = ["ALL"]
+	[TraceConfig.SystemRequirement]
+		SystemRequirementsSpecification = ["ALL"]
 		SoftwareRequirement = ["ALL"]
 		RiskAssessmentRecord = ["Risk Control Measure"]
 
 	[TraceConfig.SoftwareRequirement]
 		SoftwareRequirementsSpecification = ["ALL"]
-		ProductRequirement = ["ALL"]
+		SystemRequirement = ["ALL"]
 		RiskAssessmentRecord = ["Risk Control Measure"]
 		SystemLevelTestPlan = ["ALL"]
 

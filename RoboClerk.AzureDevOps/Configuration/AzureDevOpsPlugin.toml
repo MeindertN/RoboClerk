@@ -6,4 +6,4 @@ projectName = "RoboClerk"
 
 # if you want RoboClerk to ignore new Epics (for instance, in your backlog)
 # set this to true
-IgnoreNewProductRequirements = true
+IgnoreNewSystemRequirements = true

@@ -9,7 +9,7 @@ namespace RoboClerk.ContentCreators
     {
         public ProductLevelTraceabilityMatrix()
         {
-            truthSource = TraceEntityType.ProductRequirement;
+            truthSource = TraceEntityType.SystemRequirement;
             truthTarget = TraceEntityType.SoftwareRequirement;
         }
     }

@@ -21,15 +21,23 @@ namespace RoboClerk
             //normalize the line endings in the string
             string normalized = Regex.Replace(textFile, @"\r\n", "\n");
             rawText = normalized;
-            roboclerkTags = RoboClerkMarkdown.ExtractRoboClerkTags(rawText);
+            try
+            {
+                roboclerkTags = RoboClerkMarkdown.ExtractRoboClerkTags(rawText);
+            }
+            catch(TagInvalidException e)
+            {
+                e.DocumentTitle = title;
+                throw e;
+            }
         }
 
         public string ToText()
         {
-            //this function can be called at any time, it will reconstruct the markdown document
-            //based on the tag contents that could have been updated since the document was parsed. 
+            //this function can be called at any time, remove the tags and relace them with 
+            //the tag contents that could have been updated since the document was parsed. 
             //The document can be updated by replacing the individual tag contents.
-            return RoboClerkMarkdown.ReInsertRoboClerkTags(rawText,roboclerkTags,false);
+            return RoboClerkMarkdown.ReInsertRoboClerkTags(rawText,roboclerkTags);
         }
 
         public IEnumerable<RoboClerkTag> RoboClerkTags

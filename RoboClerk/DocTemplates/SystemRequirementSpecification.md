@@ -1,17 +1,17 @@
-@@@title:Info
+@@@Info:title()
 # Product Requirements Specification
 @@@
 for
-@@TBD(SoftwareName:Config)@@ @@TBD(SoftwareVersion:Config)@@  
+@@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
   
 Authors:
-@@@authors:Config
+@@@Config:authors()
 NOT FOUND
 @@@
 
 # Introduction
 ## Purpose
-The purpose of this document is to **specify** the product requirements of @@TBD(SoftwareName:Config)@@ @@TBD(SoftwareVersion:Config)@@ developed by @@TBD(CompanyName:Config)@@. 
+The purpose of this document is to **specify** the product requirements of @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. 
 
 ## Document Conventions
 This document contains the following types of requirements:
@@ -22,27 +22,27 @@ This document contains the following types of requirements:
 - Usability Product Requirements - requirements specifying what a user has to be able to accomplish with the software. These are used in the product usability validation. 
  
 ## Intended Audience
-This document is intended for the software developers at @@TBD(CompanyName:Config)@@. It is also prepared as a record of the product level requirements. This document is also intended to be reviewed by regulatory agencies and auditors.
+This document is intended for the software developers at @@Config:CompanyName()@@. It is also prepared as a record of the product level requirements. This document is also intended to be reviewed by regulatory agencies and auditors.
 
 # Requirements
 
 ## Functional Product Requirements
-@@@ProductRequirements:PR:SLMS
+@@@SLMS:SYS(requirementCategory=Functional)
 
 @@@
 ## Risk Control Product Requirements
-@@@RiskControlProductReq:PR:SLMS
+@@@SLMS:SYS(requirementCategory=Risk Control)
 
 @@@
 ## Transfer to Production Product Requirements
-@@@TransferToProductionProductReq:PR:SLMS
+@@@SLMS:SYS(requirementCategory=Transfer to Production)
 
 @@@
 ## Documentation Product Requirements
-@@@DocumentationProductReq:PR:SLMS
+@@@SLMS:SYS(requirementCategory=Documentation)
 
 @@@
 ## Product Usability Requirements
-@@@UsabilityProductReq:PR:SLMS
+@@@SLMS:SYS(requirementCategory=Usability)
 
 @@@

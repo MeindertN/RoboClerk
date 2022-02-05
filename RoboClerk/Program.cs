@@ -17,7 +17,8 @@ namespace RoboClerk
             var config = new NLog.Config.LoggingConfiguration();
 
             // Targets where to log to
-            var logFile = new NLog.Targets.FileTarget("logfile") { FileName = $"{outputDir}{Path.DirectorySeparatorChar}RoboClerkLog.txt" };
+            var logFile = new NLog.Targets.FileTarget("logfile") { FileName = 
+                $"{outputDir}{Path.DirectorySeparatorChar}RoboClerkLog.txt", DeleteOldFileOnStartup = true };
             Console.WriteLine(logFile.FileName);
             if (logLevel.ToUpper() == "DEBUG")
             {

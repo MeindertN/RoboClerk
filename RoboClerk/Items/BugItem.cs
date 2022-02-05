@@ -24,7 +24,7 @@ namespace RoboClerk
         {
             StringBuilder sb = new StringBuilder();
             int[] columnWidths = new int[2] { 44, 160 };
-            string separator = MarkdownTableUtils.GenerateTableSeparator(columnWidths);
+            string separator = MarkdownTableUtils.GenerateGridTableSeparator(columnWidths);
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Bug ID:"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, HasLink ? $"[{bugID}]({link})" : bugID));

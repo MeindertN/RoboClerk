@@ -17,7 +17,7 @@
     <None Update="DocTemplates\OutstandingBugsRecord.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DocTemplates\ProductRequirementSpecification.md">
+    <None Update="DocTemplates\SystemRequirementSpecification.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DocTemplates\SoftwareDesignSpecification.md">
@@ -32,5 +32,8 @@
     <None Update="DocTemplates\TraceabilityAnalysisRecord.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
 </Project>

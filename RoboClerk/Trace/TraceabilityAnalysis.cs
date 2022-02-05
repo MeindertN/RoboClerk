@@ -9,11 +9,12 @@ namespace RoboClerk
 {
     public enum TraceEntityType
     {
-        ProductRequirement,
+        SystemRequirement,
         SoftwareRequirement,
-        TestCase,
-        Bug,
-        ProductRequirementsSpecification,
+        SoftwareSystemTest,
+        Anomaly,
+        SoftwareUnitTest,
+        SystemRequirementsSpecification,
         SoftwareRequirementsSpecification,
         SystemLevelTestPlan,
         SoftwareDevelopmentPlan,
@@ -24,8 +25,8 @@ namespace RoboClerk
         DetailedSoftwareDesignSpecification,
         TransferToProductionPlan,
         CodeCoverageRecord,
-        OutStandingBugsAndIssues,
-        RunTimeErrorDetectionPlanAndReport,
+        ResidualAnomaliesRecord,
+        RunTimeErrorDetectionRecord,
         WorkOrder,
         RevisionLevelHistory,
         SystemBaselineRecord,
@@ -42,7 +43,7 @@ namespace RoboClerk
         private Dictionary<TraceEntityType, List<TraceIssue>> truthTraceIssues = new Dictionary<TraceEntityType, List<TraceIssue>>();
         private readonly Dictionary<TraceEntityType, string> entityToName = new Dictionary<TraceEntityType, string>();
         private readonly Dictionary<TraceEntityType, string> entityToAbbreviation = new Dictionary<TraceEntityType, string>();
-        private readonly List<TraceSpecification> productRequirementTraces = new List<TraceSpecification>();
+        private readonly List<TraceSpecification> systemRequirementTraces = new List<TraceSpecification>();
         private readonly List<TraceSpecification> softwareRequirementTraces = new List<TraceSpecification>();
 
         public TraceabilityAnalysis(string config)
@@ -102,9 +103,9 @@ namespace RoboClerk
                     {
                         dt.SelectedCategories = arr.Cast<string>().ToList();
                     }
-                    if ((string)table.Key == "ProductRequirement")
+                    if ((string)table.Key == "SystemRequirement")
                     {
-                        productRequirementTraces.Add(dt);
+                        systemRequirementTraces.Add(dt);
                     }
                     else if ((string)table.Key == "SoftwareRequirement")
                     {
@@ -112,7 +113,7 @@ namespace RoboClerk
                     }
                     else
                     {
-                        throw new Exception("Root trace must be from either ProductRequirement or Software Requirement");
+                        throw new Exception("Root trace must be from either System Requirement or Software Requirement");
                     }
                 }
             }
@@ -145,18 +146,20 @@ namespace RoboClerk
                     if (ts.CompleteTrace)
                     {
                         traceData.Add(new List<Item> { null });
-                        documentTraceIssues[documentTitle].Add(new TraceIssue(tet,
-                                                                    ts.Target,
-                                                                    req.RequirementID,
-                                                                    TraceIssueType.Missing));
+                        var ti = new TraceIssue(tet, ts.Target, req.RequirementID, TraceIssueType.Missing);
+                        if (!documentTraceIssues[documentTitle].Contains(ti))
+                        {
+                            documentTraceIssues[documentTitle].Add(ti);
+                        }
                     }
                     else if(ts.SelectedCategories.Contains(req.RequirementCategory))
                     {
                         traceData.Add(new List<Item> { null });
-                        documentTraceIssues[documentTitle].Add(new TraceIssue(tet,
-                                                                    ts.Target,
-                                                                    req.RequirementID,
-                                                                    TraceIssueType.Missing));
+                        var ti = new TraceIssue(tet, ts.Target, req.RequirementID, TraceIssueType.Missing);
+                        if (!documentTraceIssues[documentTitle].Contains(ti))
+                        {
+                            documentTraceIssues[documentTitle].Add(ti);
+                        }
                     }
                     else
                     {
@@ -171,10 +174,11 @@ namespace RoboClerk
                     var foundLinks = from t in truthItems where (t.RequirementID == tl.TraceID) select t;
                     if (foundLinks.Count() == 0)
                     {
-                        documentTraceIssues[documentTitle].Add(new TraceIssue(ts.Target,
-                                                                        tet,
-                                                                        tl.TraceID,
-                                                                        TraceIssueType.Extra));
+                        var ti = new TraceIssue(ts.Target, tet, tl.TraceID, TraceIssueType.Extra);
+                        if (!documentTraceIssues[documentTitle].Contains(ti))
+                        {
+                            documentTraceIssues[documentTitle].Add(ti);
+                        }
                     }
                 }
             }
@@ -183,19 +187,19 @@ namespace RoboClerk
         public Dictionary<TraceEntityType,List<List<Item>>> PerformAnalysis(DataSources data, TraceEntityType truth)
         {
             Dictionary<TraceEntityType, List<List<Item>>> result = new Dictionary<TraceEntityType, List<List<Item>>>();
-            if (truth != TraceEntityType.ProductRequirement && 
+            if (truth != TraceEntityType.SystemRequirement && 
                 truth != TraceEntityType.SoftwareRequirement)
             {
-                throw new Exception($"Traceability analysis must start with {GetTitleForTraceEntity(TraceEntityType.ProductRequirement)}" +
+                throw new Exception($"Traceability analysis must start with {GetTitleForTraceEntity(TraceEntityType.SystemRequirement)}" +
                     $" or {GetTitleForTraceEntity(TraceEntityType.SoftwareRequirement)}");
             }
 
             List<TraceSpecification> requirementTraces = null;
             List<RequirementItem> truthItems = null;
-            if (truth == TraceEntityType.ProductRequirement)
+            if (truth == TraceEntityType.SystemRequirement)
             {
-                requirementTraces = productRequirementTraces;
-                truthItems = data.GetAllProductRequirements();
+                requirementTraces = systemRequirementTraces;
+                truthItems = data.GetAllSystemRequirements();
             }
             else
             {
@@ -225,10 +229,10 @@ namespace RoboClerk
                     }
                     continue;
                 }
-                if(ts.Target == TraceEntityType.ProductRequirement)
+                if(ts.Target == TraceEntityType.SystemRequirement)
                 {
                     //pull product requirements, match the product requirements with the software requirements
-                    var prss = data.GetAllProductRequirements();
+                    var prss = data.GetAllSystemRequirements();
                     foreach (var req in truthItems)
                     {
                         //find all product requirement parents
@@ -281,26 +285,32 @@ namespace RoboClerk
 
         public void AddTraceTag(string docTitle, RoboClerkTag tag)
         {
+            if(!tag.Parameters.ContainsKey("ID"))
+            {
+                var ex = new TagInvalidException(tag.Contents, "Trace tag is missing \"ID\" parameter");
+                ex.DocumentTitle = docTitle;
+                throw ex;
+            }
             if (!documentTraceLinks.ContainsKey(docTitle))
             {
                 documentTraceLinks[docTitle] = new List<TraceLink>();
             }
 
             TraceEntityType tlt = TraceEntityType.Unknown;
-            if (tag.ContentCreatorID.ToUpper() == "SoftwareRequirements")
+            if (tag.ContentCreatorID.ToUpper() == "SOFTWAREREQUIREMENTS")
             {
                 tlt = TraceEntityType.SoftwareRequirement;
             }
-            else if (tag.ContentCreatorID.ToUpper() == "ProductRequirements")
+            else if (tag.ContentCreatorID.ToUpper() == "SYSTEMREQUIREMENTS")
             {
-                tlt = TraceEntityType.ProductRequirement;
+                tlt = TraceEntityType.SystemRequirement;
             }
-            else if (tag.ContentCreatorID.ToUpper() == "TestCases")
+            else if (tag.ContentCreatorID.ToUpper() == "SOFTWARESYSTEMTEST")
             {
-                tlt = TraceEntityType.TestCase;
+                tlt = TraceEntityType.SoftwareSystemTest;
             }
 
-            TraceLink link = new TraceLink(tlt,GetTraceEntityForTitle(docTitle),tag.Contents);
+            TraceLink link = new TraceLink(tlt,GetTraceEntityForTitle(docTitle),tag.Parameters["ID"]);
             documentTraceLinks[docTitle].Add(link);
         }    
 

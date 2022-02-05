@@ -7,7 +7,7 @@ namespace RoboClerk
 {
     public enum RequirementType
     {
-        ProductRequirement,
+        SystemRequirement,
         SoftwareRequirement
     };
     public class RequirementItem : LinkedItem
@@ -29,7 +29,7 @@ namespace RoboClerk
         {
             StringBuilder sb = new StringBuilder();
             int[] columnWidths = new int[2] { 44, 160 };
-            string separator = MarkdownTableUtils.GenerateTableSeparator(columnWidths);
+            string separator = MarkdownTableUtils.GenerateGridTableSeparator(columnWidths);
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0],"Requirement ID:"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, HasLink ? $"[{requirementID}]({link})" : requirementID));

@@ -4,18 +4,17 @@ using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
-    public class ProductRequirements : RequirementBase
+    public class SystemRequirements : RequirementBase
     {
-        public ProductRequirements()
+        public SystemRequirements()
         {
             requirementName = "Product Requirement";
-            sourceType = TraceEntityType.ProductRequirement;
+            sourceType = TraceEntityType.SystemRequirement;
         }
 
         public override string GetContent(RoboClerkTag tag, DataSources sources, TraceabilityAnalysis analysis, string docTitle)
         {
-            requirementCategory = tag.Target;
-            requirements = sources.GetAllProductRequirements();
+            requirements = sources.GetAllSystemRequirements();
             return base.GetContent(tag, sources, analysis, docTitle);
         }
     }

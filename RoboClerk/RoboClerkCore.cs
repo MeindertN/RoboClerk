@@ -99,9 +99,10 @@ namespace RoboClerk
                 {
                     if(tag.Source == DataSource.Trace)
                     {
-                        logger.Debug($"Trace tag found and added to traceability: {tag.TraceReference}");
-                        //grab all trace tags and add them to the trace analysis
-                        traceAnalysis.AddTraceTag(document.Title, tag);
+                        logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID","ERROR")}");
+                        //grab trace tag and add to the trace analysis
+                        IContentCreator contentCreator = new Trace();
+                        tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, document.Title);
                         continue;
                     }
                     if (tag.Source != DataSource.Info && tag.Source != DataSource.Unknown)
@@ -122,7 +123,7 @@ namespace RoboClerk
                             }
                             else
                             {
-                                logger.Debug($"Content creator {tag.ContentCreatorID} not found.");
+                                logger.Warn($"Content creator {tag.ContentCreatorID} not found.");
                                 tag.Contents = "UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS IS KNOWN TO ROBOCLERK.\n";
                             }
                         }

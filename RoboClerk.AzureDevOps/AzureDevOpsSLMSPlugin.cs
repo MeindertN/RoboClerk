@@ -18,7 +18,7 @@ namespace RoboClerk.AzureDevOps
         private string organizationName;
         private string projectName;
         private bool ignoreNewProductReqs = false;
-        private List<RequirementItem> productRequirements = new List<RequirementItem>();
+        private List<RequirementItem> systemRequirements = new List<RequirementItem>();
         private List<RequirementItem> softwareRequirements = new List<RequirementItem>();
         private List<TestCaseItem> testCases = new List<TestCaseItem>();
         private List<BugItem> bugs = new List<BugItem>();
@@ -42,9 +42,9 @@ namespace RoboClerk.AzureDevOps
             return bugs;
         }
 
-        public List<RequirementItem> GetProductRequirements()
+        public List<RequirementItem> GetSystemRequirements()
         {
-            return productRequirements;
+            return systemRequirements;
         }
 
         public List<RequirementItem> GetSoftwareRequirements()
@@ -52,7 +52,7 @@ namespace RoboClerk.AzureDevOps
             return softwareRequirements;
         }
 
-        public List<TestCaseItem> GetTestCases()
+        public List<TestCaseItem> GetSoftwareSystemTests()
         {
             return testCases;
         }
@@ -68,7 +68,7 @@ namespace RoboClerk.AzureDevOps
                 organizationName = (string)config["OrganizationName"];
                 projectName = (string)config["ProjectName"];
                 witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, (string)config["AccessToken"]);
-                ignoreNewProductReqs = (bool)config["IgnoreNewProductRequirements"];
+                ignoreNewProductReqs = (bool)config["IgnoreNewSystemRequirements"];
             }
             catch(Exception e)
             {
@@ -222,17 +222,17 @@ namespace RoboClerk.AzureDevOps
         public void RefreshItems()
         {
             //re-initialize 
-            productRequirements.Clear();
+            systemRequirements.Clear();
             softwareRequirements.Clear();
             testCases.Clear();
 
             logger.Info("Retrieving and processing product level requirements.");
-            var productRequirementQuery = new Wiql()
+            var systemRequirementQuery = new Wiql()
             {
                 Query = $"SELECT [Id] FROM WorkItems WHERE [Work Item Type] = 'Epic' AND [System.TeamProject] = '{projectName}'",
             };
 
-            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, productRequirementQuery))
+            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, systemRequirementQuery))
             {
                 string state = GetWorkItemField(workitem, "System.State").ToUpper();
                 if ( (ignoreNewProductReqs &&  state == "NEW") || state == "REMOVED" )
@@ -240,13 +240,13 @@ namespace RoboClerk.AzureDevOps
                     continue;
                 }
                 var item = ConvertToRequirementItem(workitem);
-                item.TypeOfRequirement = RequirementType.ProductRequirement;
-                item.RequirementCategory = GetWorkItemField(workitem, "Custom.TypeofProductRequirement");
+                item.TypeOfRequirement = RequirementType.SystemRequirement;
+                item.RequirementCategory = GetWorkItemField(workitem, "Custom.TypeofSystemRequirement");
                 if(item.RequirementCategory == String.Empty) //default sometimes comes back as empty
                 {
                     item.RequirementCategory = "Product Requirement";
                 }
-                productRequirements.Add(item);
+                systemRequirements.Add(item);
             }
 
             logger.Info("Retrieving and processing software level requirements.");

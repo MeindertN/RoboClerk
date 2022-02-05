@@ -21,7 +21,7 @@ namespace RoboClerk.RedmineCSV
 
     class RedmineItem
     {
-        [Name("Id")]
+        [Name("#")]
         public string Id { get; set; }
 
         [Name("Project")]
@@ -119,5 +119,8 @@ namespace RoboClerk.RedmineCSV
 
         [Name("Last notes")]
         public string LastNotes { get; set; }
+
+        [Name("Test Method")]
+        public string TestMethod { get; set; }
     }
 }

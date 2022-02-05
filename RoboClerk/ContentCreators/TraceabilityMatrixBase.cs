@@ -25,7 +25,7 @@ namespace RoboClerk.ContentCreators
 
             //determine the columns
             TraceEntityType baseDoc = (truthSource == TraceEntityType.SoftwareRequirement ? 
-                TraceEntityType.SoftwareRequirementsSpecification : TraceEntityType.ProductRequirementsSpecification);
+                TraceEntityType.SoftwareRequirementsSpecification : TraceEntityType.SystemRequirementsSpecification);
             List<TraceEntityType> columns = new List<TraceEntityType>() { truthSource, baseDoc };
             
             foreach(KeyValuePair<TraceEntityType,List<List<Item>>> entry in traceMatrix)
@@ -39,7 +39,7 @@ namespace RoboClerk.ContentCreators
             List<string> columnHeaders = new List<string>();
             foreach(var entry in columns)
             {
-                if (entry == TraceEntityType.ProductRequirement || entry == TraceEntityType.SoftwareRequirement)
+                if (entry == TraceEntityType.SystemRequirement || entry == TraceEntityType.SoftwareRequirement)
                 {
                     columnHeaders.Add(analysis.GetTitleForTraceEntity(entry));
                 }
@@ -74,16 +74,16 @@ namespace RoboClerk.ContentCreators
                             {
                                 combinedString.Append(item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID);
                             }
-                            combinedString.Append(',');
+                            combinedString.Append(", ");
                         }
-                        combinedString.Remove(combinedString.Length - 1, 1); //remove extra comma
+                        combinedString.Remove(combinedString.Length - 2, 2); //remove extra comma and space
                         line.Add(combinedString.ToString());
                     }
                 }
                 matrix.Append(MarkdownTableUtils.GenerateTraceMatrixLine(line));
             }
 
-            matrix.AppendLine("\nTrace issues:");
+            matrix.AppendLine("\nTrace issues:\n");
             bool traceIssuesFound = false;
             //now visualize the trace issues, first the truth
             var truthIssues = analysis.GetTraceIssuesForTruth(truthSource);
@@ -96,7 +96,7 @@ namespace RoboClerk.ContentCreators
 
             foreach (var tet in columns)
             {
-                if (tet == TraceEntityType.ProductRequirement || tet == TraceEntityType.SoftwareRequirement || tet == TraceEntityType.TestCase) //skip the truth entity types
+                if (tet == TraceEntityType.SystemRequirement || tet == TraceEntityType.SoftwareRequirement || tet == TraceEntityType.SoftwareSystemTest) //skip the truth entity types
                 {
                     continue;
                 }
