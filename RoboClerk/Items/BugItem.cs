@@ -8,7 +8,6 @@ namespace RoboClerk
     {
         private string bugState = string.Empty;
         private string bugID = string.Empty;
-        private Uri bugLink;
         private string bugTitle = string.Empty;
         private string bugRevision = string.Empty;
         private string bugAssignee = string.Empty;
@@ -21,14 +20,14 @@ namespace RoboClerk
             id = Guid.NewGuid().ToString();
         }
 
-        public override string ToMarkDown()
+        public override string ToText()
         {
             StringBuilder sb = new StringBuilder();
             int[] columnWidths = new int[2] { 44, 160 };
-            string separator = MarkdownTableUtils.GenerateTableSeparator(columnWidths);
+            string separator = MarkdownTableUtils.GenerateGridTableSeparator(columnWidths);
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Bug ID:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, bugID == string.Empty ? "MISSING": bugID));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, HasLink ? $"[{bugID}]({link})" : bugID));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Bug Revision:"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, bugRevision == string.Empty ? "N/A": bugRevision));
@@ -59,13 +58,11 @@ namespace RoboClerk
         public string BugID
         {
             get => bugID;
-            set => bugID = value;
-        }
-
-        public Uri BugLink
-        {
-            get => bugLink;
-            set => bugLink = value;
+            set
+            {
+                id = value;
+                bugID = value;
+            }
         }
 
         public string BugTitle

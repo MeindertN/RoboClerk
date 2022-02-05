@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RoboClerk
 {
-    public abstract class TraceItem : Item
+    public abstract class LinkedItem : Item
     {
         protected List<(string,Uri)> parents = new List<(string, Uri)>();
         protected List<(string,Uri)> children = new List<(string, Uri)>();
@@ -30,13 +30,13 @@ namespace RoboClerk
             parents.Add((parent,link));
         }
 
-        public bool IsParentOf(TraceItem item)
+        public bool IsParentOf(LinkedItem item)
         {
             var result = from s in children where s.Item1 == item.ItemID select s;
             return result.Count() > 0;
         }
 
-        public bool IsChildOf(TraceItem item)
+        public bool IsChildOf(LinkedItem item)
         {
             var result = from s in parents where s.Item1 == item.ItemID select s;
             return result.Count() > 0;

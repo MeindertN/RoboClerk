@@ -24,7 +24,7 @@ namespace RoboClerk
         {
             var toml = Toml.Parse(config).ToModel();
 
-            foreach (var val in (TomlArray)toml["SLMSPlugin"])
+            foreach (var val in (TomlArray)toml["DataSourcePlugin"])
             {
                 foreach (var dir in (TomlArray)toml["RelativePluginDirs"])
                 {
@@ -51,14 +51,26 @@ namespace RoboClerk
             return items;
         }
 
-        public List<RequirementItem> GetAllProductRequirements()
+        public RequirementItem GetSoftwareRequirement(string id)
+        {
+            var reqs = GetAllSoftwareRequirements();
+            return reqs.Find(f => (f.RequirementID == id));
+        }
+
+        public List<RequirementItem> GetAllSystemRequirements()
         {
             List<RequirementItem> items = new List<RequirementItem>();
             foreach (var plugin in slmsPlugins)
             {
-                items.AddRange(plugin.GetProductRequirements());
+                items.AddRange(plugin.GetSystemRequirements());
             }
             return items;
+        }
+
+        public RequirementItem GetSystemRequirement(string id)
+        {
+            var reqs = GetAllSystemRequirements();
+            return reqs.Find(f => (f.RequirementID == id));
         }
 
         public List<TestCaseItem> GetAllSystemLevelTests()
@@ -66,9 +78,15 @@ namespace RoboClerk
             List<TestCaseItem> items = new List<TestCaseItem>();
             foreach (var plugin in slmsPlugins)
             {
-                items.AddRange(plugin.GetTestCases());
+                items.AddRange(plugin.GetSoftwareSystemTests());
             }
             return items;
+        }
+
+        public TestCaseItem GetSystemLevelTest(string id)
+        {
+            var items = GetAllSystemLevelTests();
+            return items.Find(f => (f.TestCaseID == id));
         }
 
         public List<BugItem> GetAllBugs()
@@ -79,6 +97,38 @@ namespace RoboClerk
                 items.AddRange(plugin.GetBugs());
             }
             return items;
+        }
+
+        public BugItem GetBug(string id)
+        {
+            var items = GetAllBugs();
+            return items.Find(f => (f.BugID == id));
+        }
+
+        public Item GetItem(string id)
+        {
+            var sreq = GetAllSoftwareRequirements();
+            int idx = -1;
+            if( (idx = sreq.FindIndex(o => o.RequirementID == id)) >= 0)
+            {
+                return sreq[idx];
+            }
+            sreq = GetAllSystemRequirements();
+            if ((idx = sreq.FindIndex(o => o.RequirementID == id)) >= 0)
+            {
+                return sreq[idx];
+            }
+            var tcase = GetAllSystemLevelTests();
+            if ((idx = tcase.FindIndex(o => o.TestCaseID == id)) >= 0)
+            {
+                return tcase[idx];
+            }
+            var bugs = GetAllBugs();
+            if ((idx = bugs.FindIndex(o => o.BugID == id)) >= 0)
+            {
+                return bugs[idx];
+            }
+            return null;
         }
 
         public string GetConfigValue(string key)

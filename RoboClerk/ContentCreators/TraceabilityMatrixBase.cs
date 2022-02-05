@@ -6,10 +6,8 @@ namespace RoboClerk.ContentCreators
 {
     abstract class TraceabilityMatrixBase : IContentCreator
     {
-        protected List<TraceEntityType> columns = new List<TraceEntityType>();
-        protected string truthSource = string.Empty;
-        protected string truthTarget = string.Empty;
-        protected TraceEntityType targetTruthEntity = TraceEntityType.Unknown;
+        protected TraceEntityType truthSource = TraceEntityType.Unknown;
+        protected TraceEntityType truthTarget = TraceEntityType.Unknown;
 
         public TraceabilityMatrixBase()
         {
@@ -18,33 +16,87 @@ namespace RoboClerk.ContentCreators
 
         public virtual string GetContent(RoboClerkTag tag, DataSources data, TraceabilityAnalysis analysis, string docTitle)
         {
-            var traceMatrix = analysis.PerformAnalysis(data, columns);
-
+            var traceMatrix = analysis.PerformAnalysis(data, truthSource);
+             
             if (traceMatrix.Count == 0)
             {
                 throw new Exception($"{truthSource} level trace matrix is empty.");
             }
 
-            StringBuilder matrix = new StringBuilder();
-            matrix.Append(MarkdownTableUtils.GenerateTraceMatrixHeader(traceMatrix[0]));
-
-            for (int i = 1; i < traceMatrix.Count; ++i)
+            //determine the columns
+            TraceEntityType baseDoc = (truthSource == TraceEntityType.SoftwareRequirement ? 
+                TraceEntityType.SoftwareRequirementsSpecification : TraceEntityType.SystemRequirementsSpecification);
+            List<TraceEntityType> columns = new List<TraceEntityType>() { truthSource, baseDoc };
+            
+            foreach(KeyValuePair<TraceEntityType,List<List<Item>>> entry in traceMatrix)
             {
-                matrix.Append(MarkdownTableUtils.GenerateTraceMatrixLine(traceMatrix[i]));
+                if(!columns.Contains(entry.Key))
+                {
+                    columns.Add(entry.Key);
+                }
             }
-            matrix.AppendLine("\nTrace issues:");
+
+            List<string> columnHeaders = new List<string>();
+            foreach(var entry in columns)
+            {
+                if (entry == TraceEntityType.SystemRequirement || entry == TraceEntityType.SoftwareRequirement)
+                {
+                    columnHeaders.Add(analysis.GetTitleForTraceEntity(entry));
+                }
+                else
+                {
+                    columnHeaders.Add(analysis.GetAbreviationForTraceEntity(entry));
+                }
+            }
+
+            StringBuilder matrix = new StringBuilder();
+            matrix.Append(MarkdownTableUtils.GenerateTraceMatrixHeader(columnHeaders));
+
+            for( int index = 0; index<traceMatrix[truthSource].Count; ++index)
+            {
+                List<string> line = new List<string>();
+                foreach(var entry in columns)
+                {
+                    if (traceMatrix[entry][index].Count == 0)
+                    {
+                        line.Add("N/A");
+                    }
+                    else
+                    {
+                        StringBuilder combinedString = new StringBuilder();
+                        foreach (Item item in traceMatrix[entry][index])
+                        {
+                            if (item == null)
+                            {
+                                combinedString.Append("MISSING");
+                            }
+                            else
+                            {
+                                combinedString.Append(item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID);
+                            }
+                            combinedString.Append(", ");
+                        }
+                        combinedString.Remove(combinedString.Length - 2, 2); //remove extra comma and space
+                        line.Add(combinedString.ToString());
+                    }
+                }
+                matrix.Append(MarkdownTableUtils.GenerateTraceMatrixLine(line));
+            }
+
+            matrix.AppendLine("\nTrace issues:\n");
             bool traceIssuesFound = false;
             //now visualize the trace issues, first the truth
-            var truthIssues = analysis.GetTraceIssuesForTruth(targetTruthEntity);
+            var truthIssues = analysis.GetTraceIssuesForTruth(truthSource);
             foreach (var issue in truthIssues)
             {
                 traceIssuesFound = true;
-                matrix.AppendLine($"* {truthSource} requirement {issue.TraceID} is potentially missing a corresponding {truthTarget} requirement.");
+                Item item = data.GetItem(issue.TraceID);
+                matrix.AppendLine($"* {analysis.GetTitleForTraceEntity(truthSource)} {(item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID)} is potentially missing a corresponding {analysis.GetTitleForTraceEntity(truthTarget)}.");
             }
 
             foreach (var tet in columns)
             {
-                if (tet == TraceEntityType.ProductRequirement || tet == TraceEntityType.SoftwareRequirement || tet == TraceEntityType.TestCase) //skip the truth entity types
+                if (tet == TraceEntityType.SystemRequirement || tet == TraceEntityType.SoftwareRequirement || tet == TraceEntityType.SoftwareSystemTest) //skip the truth entity types
                 {
                     continue;
                 }
@@ -55,21 +107,27 @@ namespace RoboClerk.ContentCreators
                     traceIssuesFound = true;
                     string sourceTitle = analysis.GetTitleForTraceEntity(issue.Source);
                     string targetTitle = analysis.GetTitleForTraceEntity(issue.Target);
+                    Item item = data.GetItem(issue.TraceID);
+                    string identifierText = issue.TraceID;
+                    if(item != null)
+                    {
+                        identifierText = (item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID);
+                    }
                     if (issue.IssueType == TraceIssueType.Extra)
                     {
-                        matrix.AppendLine($"* An extra item with identifier \"{issue.TraceID}\" appeared in \"{sourceTitle}\" without appearing in \"{targetTitle}\".");
+                        matrix.AppendLine($"* An extra item with identifier {identifierText} appeared in {sourceTitle} without appearing in {targetTitle}.");
                     }
                     else if (issue.IssueType == TraceIssueType.Missing)
                     {
-                        matrix.AppendLine($"* An expected trace from \"{issue.TraceID}\" in \"{sourceTitle}\" to \"{targetTitle}\" is missing.");
+                        matrix.AppendLine($"* An expected trace from {identifierText} in {sourceTitle} to {targetTitle} is missing.");
                     }
                     else if (issue.IssueType == TraceIssueType.PossiblyExtra)
                     {
-                        matrix.AppendLine($"* A possibly extra item with identifier \"{issue.TraceID}\" appeared in \"{sourceTitle}\" without appearing in {targetTitle}.");
+                        matrix.AppendLine($"* A possibly extra item with identifier {identifierText} appeared in {sourceTitle} without appearing in {targetTitle}.");
                     }
                     else if (issue.IssueType == TraceIssueType.PossiblyMissing)
                     {
-                        matrix.AppendLine($"* A possibly expected trace from \"{issue.TraceID}\" in \"{sourceTitle}\" to \"{targetTitle}\" is missing.");
+                        matrix.AppendLine($"* A possibly expected trace from {identifierText} in {sourceTitle} to {targetTitle} is missing.");
                     }
                 }
             }

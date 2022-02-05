@@ -9,16 +9,8 @@ namespace RoboClerk.ContentCreators
     {
         public ProductLevelTraceabilityMatrix()
         {
-            columns = new List<TraceEntityType>()
-            {   TraceEntityType.ProductRequirement,
-                TraceEntityType.ProductRequirementsSpecification,
-                TraceEntityType.SoftwareRequirement,
-                TraceEntityType.RiskAssessmentRecord,
-                TraceEntityType.ProductValidationPlan
-            };
-            truthSource = "Product";
-            truthTarget = "Software";
-            targetTruthEntity = TraceEntityType.SoftwareRequirement;
+            truthSource = TraceEntityType.SystemRequirement;
+            truthTarget = TraceEntityType.SoftwareRequirement;
         }
     }
 }

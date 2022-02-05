@@ -1,17 +1,17 @@
-@@@title:Info
+@@@Info:title()
 # Software Requirements Specification
 @@@
 for
-@@TBD(SoftwareName:Config)@@ @@TBD(SoftwareVersion:Config)@@  
+@@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
   
 Authors:
-@@@authors:Config
+@@@Config:authors()
 NOT FOUND
 @@@
 
 # Introduction
 ## Purpose
-The purpose of this document is to specify the software requirements of @@TBD(SoftwareName:Config)@@ @@TBD(SoftwareVersion:Config)@@ developed by @@TBD(CompanyName:Config)@@. 
+The purpose of this document is to specify the software requirements of @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. 
 
 ## Document Conventions
 This document contains the following types of requirements:
@@ -21,23 +21,23 @@ This document contains the following types of requirements:
 - Documentation Requirements - requirements specifying contents of "external" documentation (e.g. user manual, transfer to production work order etc.)
  
 ## Intended Audience
-This document is intended for the software developers at @@TBD(CompanyName:Config)@@. It is also prepared as a record of the breakdown of system level requirements into lower level (software) requirements according to the SDLC. This document is also intended to be reviewed by regulatory agencies and auditors.
+This document is intended for the software developers at @@Config:CompanyName()@@. It is also prepared as a record of the breakdown of system level requirements into lower level (software) requirements according to the SDLC. This document is also intended to be reviewed by regulatory agencies and auditors.
 
 # Requirements
 
 ## Functional Software Requirements
-@@@SoftwareRequirements:SR:SLMS
+@@@SLMS:SWR(requirementCategory=Functional Requirement)
 
 @@@
 ## Risk Control Software Requirements
-@@@RiskControlSoftwareReq:SR:SLMS
+@@@SLMS:SWR(requirementCategory=Risk Control)
 
 @@@
 ## Transfer to Production Software Requirements
-@@@TransferToProductionSoftwareReq:SR:SLMS
+@@@SLMS:SWR(requirementCategory=Transfer to Production)
 
 @@@
 ## Documentation Software Requirements
-@@@DocumentationSoftwareReq:SR:SLMS
+@@@SLMS:SWR(requirementCategory=Documentation)
 
 @@@

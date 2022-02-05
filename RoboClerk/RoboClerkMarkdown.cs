@@ -61,9 +61,7 @@ namespace RoboClerk
             return tags;
         }
 
-        //The following function can re-insert the tags back into the markdown while retaining the original roboclerk
-        //tags or while removing them to get plain markdown.
-        public static string ReInsertRoboClerkTags(string markdownDoc, List<RoboClerkTag> tags, bool includeTags = true)
+        public static string ReInsertRoboClerkTags(string markdownDoc, List<RoboClerkTag> tags)
         {
             if(tags.Count == 0)
             {
@@ -78,8 +76,8 @@ namespace RoboClerk
             int lastEnd = -1;
             foreach(var tag in sortedTags)
             {
-                parts.Add(markdownDoc.Substring(lastEnd + 1,(includeTags?tag.ContentStart:tag.TagStart) - (lastEnd + 1)));
-                lastEnd = includeTags?tag.ContentEnd:tag.TagEnd;                
+                parts.Add(markdownDoc.Substring(lastEnd + 1,tag.TagStart - (lastEnd + 1)));
+                lastEnd = tag.TagEnd;                
             }
             if (lastEnd + 1 < markdownDoc.Length)
             {

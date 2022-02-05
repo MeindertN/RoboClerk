@@ -1,15 +1,18 @@
 ﻿# This is the RoboClerk configuration file
 
-# Provide the names of the SLMS plugin(s)
-# SLMSPlugin = [ "AzureDevOpsSLMSPlugin" ]
-SLMSPlugin = [ "RedmineCSVSLMSPlugin" ]
+# Provide the names of the DataSource plugin(s) in a comma seperated list
+# For example: DataSourcePlugin = [ "AzureDevOpsSLMSPlugin", "RedmineCSVSLMSPlugin" ]
+DataSourcePlugin = [ "RedmineCSVSLMSPlugin" ]
 
 # These plugin directories are relative to the executing assembly. RoboClerk will
 # search for plugins in the subdirectories of the relative plugin dirs.
-# RelativePluginDirs = [ "../../../../RoboClerk.AzureDevOps/bin/Debug" ]
+# For example: RelativePluginDirs = [ "plugins" ]
 RelativePluginDirs = [ "../../../../RoboClerk.RedmineCSV/bin/Debug" ]
 
-# The output format specified here determines what type of files will be saved by 
-# RoboClerk. The options are "HTML" or "Markdown".
-OutputFormat = "Markdown"
-OutputDirectory = "C:/temp"
+# The output directory is where the output files and logs are placed
+OutputDirectory = "C:/temp/roboclerk"
+
+# Logging level (DEBUG or INFO)
+LogLevel = "INFO"
+
+

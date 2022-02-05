@@ -18,15 +18,17 @@ namespace RoboClerk.AzureDevOps
         private string organizationName;
         private string projectName;
         private bool ignoreNewProductReqs = false;
-        List<RequirementItem> productRequirements = new List<RequirementItem>();
-        List<RequirementItem> softwareRequirements = new List<RequirementItem>();
-        List<TestCaseItem> testCases = new List<TestCaseItem>();
-        List<BugItem> bugs = new List<BugItem>();
+        private List<RequirementItem> systemRequirements = new List<RequirementItem>();
+        private List<RequirementItem> softwareRequirements = new List<RequirementItem>();
+        private List<TestCaseItem> testCases = new List<TestCaseItem>();
+        private List<BugItem> bugs = new List<BugItem>();
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         private WorkItemTrackingHttpClient witClient;
 
         public AzureDevOpsSLMSPlugin()
         {
+            logger.Debug("Azure DevOps SLMS plugin created");
             name = "AzureDevOpsSLMSPlugin";
             description = "A plugin that interfaces with azure devops to retrieve information needed by RoboClerk to create documentation.";
         }
@@ -40,9 +42,9 @@ namespace RoboClerk.AzureDevOps
             return bugs;
         }
 
-        public List<RequirementItem> GetProductRequirements()
+        public List<RequirementItem> GetSystemRequirements()
         {
-            return productRequirements;
+            return systemRequirements;
         }
 
         public List<RequirementItem> GetSoftwareRequirements()
@@ -50,29 +52,35 @@ namespace RoboClerk.AzureDevOps
             return softwareRequirements;
         }
 
-        public List<TestCaseItem> GetTestCases()
+        public List<TestCaseItem> GetSoftwareSystemTests()
         {
             return testCases;
         }
 
         public void Initialize()
         {
-            LoadConfiguration();
-        }
-
-        private void LoadConfiguration()
-        {
+            logger.Info("Initializing the Azure DevOps SLMS Plugin");
             var assembly = Assembly.GetAssembly(this.GetType());
-            var configFileLocation = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/AzureDevOpsPlugin.toml";
-            var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
-            organizationName = (string)config["OrganizationName"];
-            projectName = (string)config["ProjectName"];
-            witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, (string)config["AccessToken"]);
-            ignoreNewProductReqs = (bool)config["IgnoreNewProductRequirements"];
+            try
+            {
+                var configFileLocation = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/AzureDevOpsPlugin.toml";
+                var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
+                organizationName = (string)config["OrganizationName"];
+                projectName = (string)config["ProjectName"];
+                witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, (string)config["AccessToken"]);
+                ignoreNewProductReqs = (bool)config["IgnoreNewSystemRequirements"];
+            }
+            catch(Exception e)
+            {
+                logger.Error("Error reading configuration file for Azure DevOps SLMS plugin.");
+                logger.Error(e);
+                throw new Exception("The Azure DevOps SLMS plugin could not read its configuration. Aborting...");
+            }
         }
 
-        private void AddLinksToWorkItems(IList<WorkItemRelation> links, TraceItem item)
+        private void AddLinksToWorkItems(IList<WorkItemRelation> links, LinkedItem item)
         {
+            logger.Debug($"Adding links to workitem {item.ItemID}");
             if (links != null) //check for links
             {
                 foreach (var rel in links)
@@ -81,6 +89,7 @@ namespace RoboClerk.AzureDevOps
                     {
                         //this is a child link
                         var id = AzureDevOpsUtilities.GetWorkItemIDFromURL(rel.Url);
+                        logger.Debug($"Child link found: {id}");
                         item.AddChild(id, new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{id}/"));
                         continue;
                     }
@@ -88,6 +97,7 @@ namespace RoboClerk.AzureDevOps
                     {
                         //this is a parent link
                         var id = AzureDevOpsUtilities.GetWorkItemIDFromURL(rel.Url);
+                        logger.Debug($"Parent link found: {id}");
                         item.AddParent(id, new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{id}/"));
                         continue;
                     }
@@ -117,9 +127,10 @@ namespace RoboClerk.AzureDevOps
 
         private RequirementItem ConvertToRequirementItem(WorkItem workitem)
         {
+            logger.Debug($"Creating requirement item for: {workitem.Id.ToString()}");
             RequirementItem item = new RequirementItem();
             item.RequirementID = workitem.Id.ToString();
-            item.RequirementLink = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
+            item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
             item.RequirementRevision = workitem.Rev.ToString();
             item.RequirementState = GetWorkItemField(workitem,"System.State");
             item.RequirementDescription = GetWorkItemField(workitem, "System.Description");
@@ -179,9 +190,10 @@ namespace RoboClerk.AzureDevOps
 
         private TestCaseItem ConvertToTestCaseItem(WorkItem workitem)
         {
+            logger.Debug($"Creating testcase item for: {workitem.Id.ToString()}");
             TestCaseItem item = new TestCaseItem();
             item.TestCaseID = workitem.Id.ToString();
-            item.TestCaseLink = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
+            item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
             item.TestCaseRevision = workitem.Rev.ToString();
             item.TestCaseState = GetWorkItemField(workitem, "System.State");
             item.TestCaseTitle = GetWorkItemField(workitem, "System.Title");
@@ -194,9 +206,10 @@ namespace RoboClerk.AzureDevOps
 
         private BugItem ConvertToBugItem(WorkItem workitem)
         {
+            logger.Debug($"Creating bug item for: {workitem.Id.ToString()}");
             BugItem item = new BugItem();
             item.BugID = workitem.Id.ToString();
-            item.BugLink = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
+            item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
             item.BugRevision = workitem.Rev.ToString();
             item.BugState = GetWorkItemField(workitem, "System.State");
             item.BugJustification = GetWorkItemField(workitem, "Microsoft.VSTS.CMMI.Justification");
@@ -209,16 +222,17 @@ namespace RoboClerk.AzureDevOps
         public void RefreshItems()
         {
             //re-initialize 
-            productRequirements.Clear();
+            systemRequirements.Clear();
             softwareRequirements.Clear();
             testCases.Clear();
 
-            var productRequirementQuery = new Wiql()
+            logger.Info("Retrieving and processing product level requirements.");
+            var systemRequirementQuery = new Wiql()
             {
                 Query = $"SELECT [Id] FROM WorkItems WHERE [Work Item Type] = 'Epic' AND [System.TeamProject] = '{projectName}'",
             };
 
-            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, productRequirementQuery))
+            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, systemRequirementQuery))
             {
                 string state = GetWorkItemField(workitem, "System.State").ToUpper();
                 if ( (ignoreNewProductReqs &&  state == "NEW") || state == "REMOVED" )
@@ -226,15 +240,16 @@ namespace RoboClerk.AzureDevOps
                     continue;
                 }
                 var item = ConvertToRequirementItem(workitem);
-                item.TypeOfRequirement = RequirementType.ProductRequirement;
-                item.RequirementCategory = GetWorkItemField(workitem, "Custom.TypeofProductRequirement");
+                item.TypeOfRequirement = RequirementType.SystemRequirement;
+                item.RequirementCategory = GetWorkItemField(workitem, "Custom.TypeofSystemRequirement");
                 if(item.RequirementCategory == String.Empty) //default sometimes comes back as empty
                 {
                     item.RequirementCategory = "Product Requirement";
                 }
-                productRequirements.Add(item);
+                systemRequirements.Add(item);
             }
 
+            logger.Info("Retrieving and processing software level requirements.");
             var softwareRequirementQuery = new Wiql()
             {
                 Query = $"Select [Id] From WorkItems Where [Work Item Type] = 'User Story' And [System.TeamProject] = '{projectName}'",
@@ -252,6 +267,7 @@ namespace RoboClerk.AzureDevOps
                 softwareRequirements.Add(item);
             }
 
+            logger.Info("Retrieving and processing testcases.");
             var testCaseQuery = new Wiql()
             {
                 Query = $"Select [Id] From WorkItems Where [Work Item Type] = 'Test Case' And [System.TeamProject] = '{projectName}'",
@@ -263,6 +279,7 @@ namespace RoboClerk.AzureDevOps
                 testCases.Add(item);
             }
 
+            logger.Info("Retrieving and processing bugs and issues.");
             var bugQuery = new Wiql()
             {
                 Query = $"Select [Id] From WorkItems Where ( [Work Item Type] = 'Issue' Or [Work Item Type] = 'Bug' ) And [System.TeamProject] = '{projectName}'",

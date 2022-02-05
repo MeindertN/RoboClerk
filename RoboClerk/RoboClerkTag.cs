@@ -1,7 +1,78 @@
 
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+
 namespace RoboClerk
 {
+    public class TagInvalidException : Exception
+    {
+        private int line = -1;
+        private int character = -1;
+        private string tagContents = string.Empty;
+        private string documentTitle = string.Empty;
+        private string reason = string.Empty;
+
+        public TagInvalidException(string tagContents, string reason)
+        {
+            this.tagContents = tagContents;
+            this.reason = reason;
+        }
+
+        public string TagContents
+        {
+            get => tagContents;
+        }
+
+        public string Reason
+        {
+            get => reason;
+        }
+
+        public string DocumentTitle
+        {
+            set => documentTitle = value;
+        }
+
+        public override string Message
+        {
+            get
+            {
+                if(documentTitle == string.Empty )
+                {
+                    if(line == -1 || character == -1)
+                    {
+                        return $"{reason}. Tag contents: {tagContents}";
+                    }
+                    else
+                    {
+                        return $"{reason} at ({line}:{character}). Tag contents: {tagContents}";
+                    }
+                }
+                else
+                {
+                    if (line == -1 || character == -1)
+                    {
+                        return $"{reason} in {documentTitle} template. Tag contents: {tagContents}";
+                    }
+                    else
+                    {
+                        return $"{reason} in {documentTitle} template at ({line}:{character}). Tag contents: {tagContents}";
+                    }
+                }
+            }
+        }
+
+        public void SetLocation(int tagStart, string doc)
+        {
+            string relevantPart = doc.Substring(0, tagStart);
+            line = relevantPart.Count(f => (f == '\n'))+1;
+            character = tagStart - relevantPart.LastIndexOf('\n');
+        }
+    }
+
     public enum DataSource
     {
         SLMS, //the software lifecycle management system
@@ -21,19 +92,24 @@ namespace RoboClerk
         private int tagEnd = -1;
         private string contents = string.Empty; //what is inside the tag in the document
         private string contentCreatorID = string.Empty; //the identifier of this tag 
-        private string traceReference = string.Empty; //the trace reference for this tag
-        private string target = "ALL"; //the target category for this tag, ALL returns all which is the default
+        //private string traceReference = string.Empty; //the trace reference for this tag
+        //private string target = "ALL"; //the target category for this tag, ALL returns all which is the default
+        private Dictionary<string, string> parameters = new Dictionary<string, string>();
         private bool inline; //true if this tag was found inline
         private DataSource source = DataSource.Unknown;
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
         public RoboClerkTag(int startIndex, int endIndex, string rawDocument, bool inline)
         {
             this.inline = inline;
             if(inline)
             {
+                logger.Debug("Processing inline RoboClerk tag.");
                 ProcessRoboClerkContainerInlineTag(startIndex, endIndex, rawDocument);
             }
             else
             {
+                logger.Debug("Processing RoboClerk container tag.");
                 ProcessRoboClerkContainerTag(startIndex, endIndex, rawDocument);
             }
         }
@@ -48,14 +124,9 @@ namespace RoboClerk
             get => contentCreatorID;
         }
 
-        public string TraceReference
+        public Dictionary<string,string> Parameters
         {
-            get => traceReference;
-        }
-
-        public string Target
-        {
-            get => target;
+            get => parameters;
         }
 
         public DataSource Source
@@ -96,17 +167,65 @@ namespace RoboClerk
             tagEnd = endIndex + 1;
             contentStart = startIndex + 2; //remove starting tag
             contentEnd = endIndex; //remove ending tag
-            var tagContents = rawDocument.Substring(contentStart,contentEnd-contentStart+1);
-            contentEnd = contentStart + tagContents.IndexOf('(') - 1; //do not include ( itself 
-            string infostring = tagContents.Split('(')[1].Split(')')[0];
-            var items = infostring.Split(':');
-            if(items.Length != 2)
+            contents = rawDocument.Substring(contentStart,contentEnd - contentStart );
+            //contentEnd = contentStart + tagContents.IndexOf('(') - 1; //do not include ( itself 
+            try
             {
-                throw new System.Exception($"Error parsing RoboClerkInlineContainer tag: {infostring}. Two elements separated by : expected but not found.");
+                ValidateTagContents(contents);
             }
-            contentCreatorID = GetContentCreatorID(items[0]);
-            source = GetSource(items[1]);
-            contents = rawDocument.Substring(contentStart,contentEnd - contentStart + 1);
+            catch(TagInvalidException e)
+            {
+                e.SetLocation(tagStart, rawDocument);
+                throw e;
+            }
+            ExtractParameters(contents);
+            var items = contents.Split('(')[0].Split(':');
+            contentCreatorID = GetContentCreatorID(items[1]).Trim();
+            source = GetSource(items[0].Trim());
+            //contents = rawDocument.Substring(contentStart,contentEnd - contentStart + 1);
+        }
+
+        private void ValidateTagContents(string tagContents)
+        {
+            //verify required elements are present and in the right order
+            if( tagContents.Count(f => (f == '(')) != 1 ||
+                tagContents.Count(f => (f == ')')) != 1 ||
+                tagContents.Count(f => (f == ':')) != 1 ||
+                tagContents.IndexOf(')') < tagContents.IndexOf('(') ||
+                tagContents.IndexOf(':') > tagContents.IndexOf('(') )
+            {
+                throw new TagInvalidException(tagContents, "RoboClerk tag is not formatted correctly");
+            }
+            //verify the preamble
+            string temp = Regex.Replace(tagContents, @"\s+", ""); //remove whitespace
+            string[] preamble = temp.Split('(')[0].Split(':');
+            if(preamble.Length != 2)
+            {
+                throw new TagInvalidException(tagContents, "Preamble section in RoboClerk tag not formatted correctly");
+            }
+            //verify the parameter string
+            if( temp.IndexOf(')') - temp.IndexOf('(') > 1 )
+            {
+                if( temp.Count(f => (f == '=')) - temp.Count(f => (f == ',')) != 1 )
+                {
+                    throw new TagInvalidException(tagContents, "Parameter section in RoboClerk tag not formatted correctly");
+                }
+                //isolate the parameter string and check each individual element
+                string contents = temp.Split('(')[1].Split(')')[0];
+                string[] elements = contents.Split(',');
+                foreach(var element in elements)
+                {
+                    if( element.Count( f=> (f == '=')) != 1)
+                    {
+                        throw new TagInvalidException(tagContents, "Malformed element in parameter section of RoboClerk tag");
+                    }
+                    string[] variables = element.Split('=');
+                    if( variables.Length != 2)
+                    {
+                        throw new TagInvalidException(tagContents, "Malformed element in parameter section of RoboClerk tag");
+                    }
+                }
+            }
         }
 
         private void ProcessRoboClerkContainerTag(int startIndex, int endIndex, string rawDocument)
@@ -114,44 +233,52 @@ namespace RoboClerk
             tagStart = startIndex;
             tagEnd = endIndex + 3;
             //parse the tagInfo, items are separated by :
-            string info = rawDocument.Substring(startIndex + 3, endIndex - startIndex).Split('\n')[0];
-            var items = info.Split(':');
-            if(items.Length < 2 && items.Length > 4)
+            string tagContents = rawDocument.Substring(startIndex + 3, endIndex - startIndex).Split('\n')[0];
+            try
             {
-                throw new System.Exception($"Error parsing RoboClerkContainer tag: {info}. Two to four elements separated by : expected but not found.");
+                ValidateTagContents(tagContents);
             }
-            if(items.Length == 4)
+            catch (TagInvalidException e)
             {
-                traceReference = items[0];
-                target = items[1].Replace('_', ' ');
-                contentCreatorID = GetContentCreatorID(items[2]);
-                source = GetSource(items[3]);
+                e.SetLocation(tagStart, rawDocument);
+                throw e;
             }
-            if (items.Length == 3)
-            {
-                target = items[0].Replace('_',' ');
-                contentCreatorID = GetContentCreatorID(items[1]);
-                source = GetSource(items[2]);
-            }
-            else
-            {
-                contentCreatorID = GetContentCreatorID(items[0]);
-                source = GetSource(items[1]);
-            }            
-
+            var items = tagContents.Split(':');
+            source = GetSource(items[0].Trim());
+            contentCreatorID = GetContentCreatorID(items[1].Split('(')[0].Trim());
+            ExtractParameters(tagContents);
             var prelimTagContents = rawDocument.Substring(startIndex, endIndex - startIndex + 1);
             contentStart = startIndex + prelimTagContents.IndexOf('\n') + 1; //ensure to skip linebreak
             if (prelimTagContents.IndexOf('\n') == prelimTagContents.LastIndexOf('\n'))
             {
                 //this tag is empty
-                contentEnd = contentStart-1;
+                contentEnd = contentStart - 1;
                 contents = "";
             }
             else
             {
                 contentEnd = startIndex + prelimTagContents.LastIndexOf('\n');
                 contents = rawDocument.Substring(contentStart, contentEnd - contentStart + 1);
-            }            
+            }
+        }
+
+        private void ExtractParameters(string parameterString)
+        {
+            int paramStart = parameterString.IndexOf('(');
+            int paramEnd = parameterString.IndexOf(')');
+            if(paramEnd - paramStart == 1)
+            {
+                return; //there are no parameters
+            }
+            string param = parameterString.Substring(paramStart + 1, paramEnd - paramStart - 1);
+            var items = param.Split(',');
+            if (items.Length > 0)
+            {
+                foreach (var item in items)
+                {
+                    parameters[item.Split('=')[0].Trim().ToUpper()] = item.Split('=')[1].Trim();
+                }
+            }
         }
 
         private DataSource GetSource(string name)
@@ -170,24 +297,32 @@ namespace RoboClerk
 
         private string GetContentCreatorID(string et)
         {
-            if(et.ToUpper() == "PR")
+            if(et.ToUpper() == "SYS")
             {
-                return "ProductRequirements";
+                return "SystemRequirements";
             }
-            if(et.ToUpper() == "SR")
+            if(et.ToUpper() == "SWR")
             {
                 return "SoftwareRequirements";
             }
             if(et.ToUpper() == "TC")
             {
-                return "TestCases";
+                return "SoftwareSystemTests";
             }
             if(et.ToUpper() == "BG")
             {
                 return "Bugs";
             }
             return et;
+        }  
+
+        public string GetParameterOrDefault(string key, string defaultVal)
+        {
+            if(parameters.ContainsKey(key))
+            {
+                return parameters[key];
+            }
+            return defaultVal;
         }
-            
     }
 }

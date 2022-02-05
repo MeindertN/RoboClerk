@@ -14,3 +14,10 @@ Bug = "Bug"
 # relevant. Indicate which item statuses should be ignored.
 
 Ignore = [ "Rejected" ]
+
+# In order to provide hyperlinks in the documents provide the redmine
+# base URL here. NOTE: Ensure the URL ends with a single /
+# If you do not wish the software to include hyperlinks, just set this
+# variable to an empty string "".
+
+RedmineBaseURL = "https://redmine.invivoscribe.com/issues/"

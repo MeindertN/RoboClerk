@@ -7,9 +7,9 @@ namespace RoboClerk
     public interface ISLMSPlugin : IPlugin
     {
         void RefreshItems();
-        List<RequirementItem> GetProductRequirements();
+        List<RequirementItem> GetSystemRequirements();
         List<RequirementItem> GetSoftwareRequirements();
         List<BugItem> GetBugs();
-        List<TestCaseItem> GetTestCases();
+        List<TestCaseItem> GetSoftwareSystemTests();
     }
 }

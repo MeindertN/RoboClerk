@@ -6,6 +6,9 @@
     <OutputType>Library</OutputType>
     <StartupObject />
 	<EnableDynamicLoading>true</EnableDynamicLoading>
+	<Authors>Meindert Niemeijer</Authors>
+	<Company>RoboClerk Project</Company>
+	<Product>AzureDevOps plugin</Product>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -15,7 +18,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="16.170.0" />
-    <PackageReference Include="Tomlyn" Version="0.1.2" />
   </ItemGroup>
 
   <ItemGroup>

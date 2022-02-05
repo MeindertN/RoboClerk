@@ -1,18 +1,18 @@
-﻿@@@title:Info
+﻿@@@Info:Title()
 # Software Design Specification
 @@@
 for
-@@TBD(SoftwareName:Config)@@ @@TBD(SoftwareVersion:Config)@@  
+@@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
   
 Authors:
-@@@authors:Config
+@@@Config:authors()
 NOT FOUND
 @@@
 
 # Introduction
 ## Purpose
 The purpose of this document is to specify the architecture and system design of 
-@@TBD(SoftwareName:Config)@@ @@TBD(SoftwareVersion:Config)@@ developed by @@TBD(CompanyName:Config)@@. 
+@@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. 
 It tracks the information required to define architecture and system design, in order to give the development 
 team guidance on architecture of the system to be developed. The intended audience is the project manager, 
 project team, and development team. Some portions of this document such as the user interface (UI) may, on occasion, 
@@ -28,17 +28,17 @@ levels, can be called software items. (See IEC62304.)
 # Testing Section
 Here we will test a variety of in document trace tags referring to software requirements.
 
-@@9(SR:Trace)@@ The text that has the trace link
-@@(SR:Trace)@@ an empty trace link
-@@10(SR:Trace)@@ And the second trace linke
+@@Trace:SR(id=9)@@ The text that has the trace link
+@@Trace:SR(Id=1234321)@@ the parameter names are case insensitive
+@@Trace:SR(id=10)@@ And the second trace linke
 Just a line of text.
-@@11(SR:Trace)@@ @@12(SR:Trace)@@ Two more trace links
+@@Trace:SR(id=11)@@ @@Trace:SR(id=12)@@ Two more trace links
 
-@@7(PR:Trace)@@ An a random product requirement trace link, is not supposed to show up in the document
+@@Trace:PR(id=7)@@ An a random product requirement trace link, is not supposed to show up in the document
 
-@@89(SR:Trace)@@ non existent software trace
+@@Trace:SR(id=89)@@ non existent software trace
 
-@@@7:ProductRequirement:SLMS
+@@@SLMS:SYS(requirementID=7)
 
 @@@
 The above just tests to see if we can include a single product requirement

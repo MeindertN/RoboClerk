@@ -6,7 +6,7 @@ namespace RoboClerk
 {
     public static class MarkdownTableUtils
     {
-        internal static string GenerateTableSeparator(int[] columnwidths)
+        internal static string GenerateGridTableSeparator(int[] columnwidths)
         {
             StringBuilder output = new StringBuilder("+");
             foreach (var width in columnwidths)
@@ -76,33 +76,31 @@ namespace RoboClerk
             return sb.ToString();
         }
 
-        internal static string GenerateTestCaseStepsHeader(int[] testStepColumnWidth)
+        internal static string GenerateTestCaseStepsHeader(int[] testStepColumnWidth, bool automated)
         {
-            if (testStepColumnWidth.Length < 4)
+            if ((automated && testStepColumnWidth.Length < 4) || (!automated && testStepColumnWidth.Length < 5) )
             {
                 throw new ArgumentException("Not enough columnwidths available to create test case steps header.");
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[0], "Step"));
-            sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[1], "Action"));
-            sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[2], "Expected Result"));
-            sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[3], "Pass"));
+            sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[0], "**Step**"));
+            sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[1], "**Action**"));
+            sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[2], "**Expected Result**"));
+            if (!automated)
+            {
+                sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[3], "**Actual Result**"));
+                sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[4], "**Test Status**"));
+            }
+            else
+            {
+                sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[3], "**Test Status**"));
+            }
             sb.AppendLine("|");
-            sb.Append("| ");
-            sb.Append('-', testStepColumnWidth[0] - 2);
-            sb.Append(" | ");
-            sb.Append('-', testStepColumnWidth[1] - 2);
-            sb.Append(" | ");
-            sb.Append('-', testStepColumnWidth[2] - 2);
-            sb.Append(" | ");
-            sb.Append('-', testStepColumnWidth[3] - 2);
-            sb.AppendLine(" |");
-
             return sb.ToString();
         }
 
-        internal static string GenerateTestCaseStepLine(int[] testStepColumnWidth, string[] step, int stepNr)
+        internal static string GenerateTestCaseStepLine(int[] testStepColumnWidth, string[] step, int stepNr, bool automated)
         {
             if (step.Length < 2)
             {
@@ -113,7 +111,15 @@ namespace RoboClerk
             sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[0], stepNr.ToString()));
             sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[1], step[0].Replace("\n", "").Replace("\r", "")));
             sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[2], step[1].Replace("\n", "").Replace("\r", "")));
-            sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[3], "  "));
+            if (!automated)
+            {    
+                sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[3], "  "));
+                sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[4], "  "));
+            }
+            else
+            {
+                sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[3], "  "));
+            }
             sb.AppendLine("|");
             return sb.ToString();
         }

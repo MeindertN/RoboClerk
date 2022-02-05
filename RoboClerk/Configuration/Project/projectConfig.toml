@@ -2,29 +2,62 @@
 # is running on. It also contains key value pairs for items that are needed in the 
 # documentation such are the name of the software and the version etc.
 
-# Title and location of the documents
+# Title, abbreviation and location of the document templates
 [DocumentLocations]
-ProductRequirementsSpecification = ["Product Requirements Specification", "I:/temp/ProductRequirementSpecification.md"]
-SoftwareRequirementsSpecification = ["Software Requirements Specification", "I:/temp/SoftwareRequirementSpecification.md"]
-SoftwareDevelopmentPlan = ["",""]
-SoftwareDesignSpecification = ["Software Design Specification","I:/temp/SoftwareDesignSpecification.md"]
-RiskAssessmentRecord = ["",""]
-SystemLevelTestPlan = ["System Level Test Plan", "I:/temp/SystemLevelTestPlan.md"]
-IntegrationLevelTestPlan = ["", ""]
-UnitLevelTestPlan = ["", ""]
-DetailedSoftwareDesignSpecification = ["", ""]
-TransferToProductionPlan = ["", ""]
-CodeCoverageRecord = ["", ""]
-OutStandingBugsAndIssues = ["Outstanding Bugs Record", "I:/temp/OutstandingBugsRecord.md"]
-RunTimeErrorDetectionPlanAndReport = ["", ""]
-WorkOrder = ["", ""]
-RevisionLevelHistory = ["", ""]
-SystemBaseline = ["", ""]
-ProductValidationPlan = ["", ""]
-TraceabilityAnalysisRecord = ["Traceability Analysis Record", "I:/temp/TraceabilityAnalysisRecord.md"]
-DocumentationReport = ["", ""]
+SystemRequirementsSpecification = ["Software Requirements Specification", "SRS", "I:/temp/SystemRequirementSpecification.md"]
+SoftwareRequirementsSpecification = ["Software Design Specification", "SDS", "I:/temp/SoftwareRequirementSpecification.md"]
+SoftwareDevelopmentPlan = ["Software Design and Development Plan", "SDDP", ""]
+SoftwareDesignSpecification = ["Software Architecture Design", "SAD", "I:/temp/SoftwareDesignSpecification.md"]
+RiskAssessmentRecord = ["Risk Assessment Record", "RAR", ""] 
+SystemLevelTestPlan = ["System Level Test Plan", "SLTP", "I:/temp/SystemLevelTestPlan.md"]
+IntegrationLevelTestPlan = ["", "", ""]
+UnitLevelTestPlan = ["", "", ""]
+DetailedSoftwareDesignSpecification = ["", "", ""]
+TransferToProductionPlan = ["Software Design Transfer", "SDP", ""]
+CodeCoverageRecord = ["", "", ""]
+ResidualAnomaliesRecord = ["Unresolved Anomalies List", "UAL", "I:/temp/OutstandingBugsRecord.md"]
+RunTimeErrorDetectionRecord = ["", "", ""]
+WorkOrder = ["", "", ""]
+RevisionLevelHistory = ["Software Revision History", "SRH", ""]
+SystemBaseline = ["", "", ""]
+ProductValidationPlan = ["Product Validation Plan", "PVP", ""]
+TraceabilityAnalysisRecord = ["Traceability Analysis Record", "TAR", "I:/temp/TraceabilityAnalysisRecord.md"]
+DocumentationReport = ["", "", ""]
+
+# specify how the different levels of requirements are to be called. This will ensure that the trace output
+# makes sense in your context.
+
+[EntityNames]
+SystemRequirement = "Requirement"
+SoftwareRequirement = "Specification"
+SoftwareSystemTest = "Test Case"
+SoftwareUnitTest = "Unit Test"
+Anomaly = "Bug"
+
+# Use the trace config to configure what documents shall be traced and what in those documents must trace.
+# Two levels of requirements are distinguished, product and software requirements. In the table below, both
+# these levels are represented as tables. In each table all trace documents are listed in the order in which
+# they will be traced. Each of them is assigned a list indicating how the trace should be validated and what
+# requirements should trace to the target doc. It is possible to indicate that only a subset of requirements
+# (based on the category of the requirements) must trace. Multiple categories can be indicated. To indicate
+# that the trace should be complete (all requirements must trace to the target) use the ALL keyword. To 
+# indicate that incomplete trace is allowed, use the OPTIONAL keyword. 
+
+[TraceConfig]
+	
+	[TraceConfig.SystemRequirement]
+		SystemRequirementsSpecification = ["ALL"]
+		SoftwareRequirement = ["ALL"]
+		RiskAssessmentRecord = ["Risk Control Measure"]
+
+	[TraceConfig.SoftwareRequirement]
+		SoftwareRequirementsSpecification = ["ALL"]
+		SystemRequirement = ["ALL"]
+		RiskAssessmentRecord = ["Risk Control Measure"]
+		SystemLevelTestPlan = ["ALL"]
 
 [ConfigValues]
+
 CompanyName = "Acme Inc."
 SoftwareName = "RoboClerk"
 SoftwareVersion = "0.1"

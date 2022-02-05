@@ -11,20 +11,20 @@ namespace RoboClerk.Tests
     public class TestRoboClerkMarkdown
     {
         private string validText = @"This is a line of text.
-@@@TheFirstInfo:SLMS
+@@@SLMS:TheFirstInfo()
 This is the content
 @@@
 another line of text
-@@some other stuff(testinfo:Source)@@ @@some other stuff2(testinfo2:Config)@@
-@@@empty:OTS
+@@Source:testinfo()@@ @@Config:testinfo2()@@
+@@@OTS:empty()
 @@@
-@@@huff:Info
+@@@Info:huff()
 this is some contents
 it is even multiline
 # it contains a *header*
 @@@
-There is some text @@inlinec(inline:Foo)@@ in this line.
-@@M(SR:Trace)@@
+There is some text @@Foo:inline()@@ in this line.
+@@Trace:SWR(id=1234, name  =test name    )@@
  ";
 
         [SetUp]
@@ -70,8 +70,8 @@ There is some text @@inlinec(inline:Foo)@@ in this line.
         public void Exception_Thrown_When_Initial_Inline_Tags_Do_Not_Match()
         {
             StringBuilder sb = new StringBuilder(validText);
-            sb[90] = ' ';
-            sb[91] = ' ';
+            sb[92] = ' ';
+            sb[93] = ' ';
             Assert.Throws<Exception>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
         }
 
@@ -79,8 +79,8 @@ There is some text @@inlinec(inline:Foo)@@ in this line.
         public void Exception_Thrown_When_Final_Inline_Tags_Do_Not_Match()
         {
             StringBuilder sb = new StringBuilder(validText);
-            sb[125] = ' ';
-            sb[126] = ' ';
+            sb[134] = ' ';
+            sb[135] = ' ';
             Assert.Throws<Exception>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
         }
 
@@ -101,16 +101,57 @@ There is some text @@inlinec(inline:Foo)@@ in this line.
         }
 
         [Test]
+        public void Parameters_Are_Successfully_Exctracted()
+        {
+            var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
+            Assert.IsTrue(tags[6].Parameters.Count == 2);
+            Assert.AreEqual("1234", tags[6].Parameters["ID"]);
+            Assert.AreEqual("test name", tags[6].Parameters["NAME"]);
+        }
+
+        [Test]
+        public void Exception_Thrown_When_Malformed_Parameters1()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.AppendLine("text@@Info:SWR(huff)@@ test");
+            Assert.Throws<TagInvalidException>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+        }
+
+        [Test]
+        public void Exception_Thrown_When_Malformed_Parameters2()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.AppendLine("text@@Info:SWR(,huff=puff)@@ test");
+            Assert.Throws<TagInvalidException>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+        }
+
+        [Test]
+        public void Exception_Thrown_When_Malformed_Parameters3()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.AppendLine("text@@Info:SWR(foo,huff=puff)@@ test");
+            Assert.Throws<TagInvalidException>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+        }
+
+        [Test]
+        public void No_Exception_Thrown_When_Not_Malformed_Parameters()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.AppendLine("text@@Info:SWR(foo= barr,   huff=puff     )@@ test");
+            Assert.DoesNotThrow(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+        }
+
+        [Test]
         public void The_Correct_Content_Fields_Are_Extracted()
         {
             var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
             Assert.AreEqual("This is the content\n", tags[0].Contents);
-            Assert.AreEqual("some other stuff", tags[3].Contents);
-            Assert.AreEqual("some other stuff2", tags[4].Contents);
+            Assert.AreEqual("Source:testinfo()", tags[3].Contents);
+            Assert.AreEqual("Config:testinfo2()", tags[4].Contents);
             Assert.AreEqual("", tags[1].Contents);
             Assert.AreEqual("this is some contents\nit is even multiline\n# it contains a *header*\n", tags[2].Contents);
-            Assert.AreEqual("inlinec", tags[5].Contents);
-            Assert.AreEqual("M", tags[6].Contents);
+            Assert.AreEqual("Foo:inline()", tags[5].Contents);
+            Assert.AreEqual("Trace:SWR(id=1234, name  =test name    )", tags[6].Contents);
         }
 
         [Test]
@@ -140,38 +181,6 @@ There is some text @@inlinec(inline:Foo)@@ in this line.
         }
 
         [Test]
-        public void Content_Is_Inserted_In_The_Correct_Place()
-        {
-            var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
-            tags[0].Contents = "item1";
-            tags[3].Contents = "item2";
-            tags[4].Contents = "";
-            tags[1].Contents = "item4";
-            tags[2].Contents = "";
-            tags[5].Contents = "item6";
-            tags[6].Contents = "D";
-
-            string expectedResult = @"This is a line of text.
-@@@TheFirstInfo:SLMS
-item1
-@@@
-another line of text
-@@item2(testinfo:Source)@@ @@(testinfo2:Config)@@
-@@@empty:OTS
-item4
-@@@
-@@@huff:Info
-@@@
-There is some text @@item6(inline:Foo)@@ in this line.
-@@D(SR:Trace)@@
- ";
-            expectedResult = Regex.Replace(expectedResult, @"\r\n", "\n");
-
-            string finalResult = RoboClerkMarkdown.ReInsertRoboClerkTags(validText, tags);
-            Assert.AreEqual(expectedResult, finalResult);
-        }
-
-        [Test]
         public void Content_Is_Inserted_In_The_Correct_Place_Without_Tags()
         {
             var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
@@ -193,7 +202,7 @@ D
  ";
             expectedResult = Regex.Replace(expectedResult, @"\r\n", "\n");
 
-            string finalResult = RoboClerkMarkdown.ReInsertRoboClerkTags(validText, tags, false);
+            string finalResult = RoboClerkMarkdown.ReInsertRoboClerkTags(validText, tags);
             Assert.AreEqual(expectedResult, finalResult);
         }
     }
