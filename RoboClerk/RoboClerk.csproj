@@ -14,7 +14,7 @@
     <None Update="Configuration\RoboClerk\RoboClerk.toml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="DocTemplates\OutstandingBugsRecord.md">
+    <None Update="DocTemplates\ResidualAnomaliesRecord.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DocTemplates\SystemRequirementSpecification.md">

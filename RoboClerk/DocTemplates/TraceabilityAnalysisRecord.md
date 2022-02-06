@@ -17,7 +17,7 @@ The purpose of this document is to document the outcome of the traceability anal
 This document is intended for the software developers at @@Config:CompanyName()@@. It is also prepared as a record of the traceability validation activities. This document is also intended to be reviewed by regulatory agencies and auditors.
 
 ## Product Level Trace Matrix
-@@@SLMS:ProductLevelTraceabilityMatrix()
+@@@SLMS:SystemLevelTraceabilityMatrix()
 
 @@@
 

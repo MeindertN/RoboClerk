@@ -6,21 +6,21 @@ namespace RoboClerk
 {
     public class TraceBase
     {
-        protected TraceEntityType source = TraceEntityType.Unknown;
-        protected TraceEntityType target = TraceEntityType.Unknown;
+        protected TraceEntity source = null;
+        protected TraceEntity target = null;
 
-        public TraceBase(TraceEntityType source, TraceEntityType target)
+        public TraceBase(TraceEntity source, TraceEntity target)
         {
             this.source = source;
             this.target = target;
         }
 
-        public TraceEntityType Source
+        public TraceEntity Source
         {
             get => source;
         }
 
-        public TraceEntityType Target
+        public TraceEntity Target
         {
             get => target;
         }

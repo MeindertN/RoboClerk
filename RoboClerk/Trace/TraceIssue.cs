@@ -16,7 +16,7 @@ namespace RoboClerk
     {
         private TraceIssueType issueType;
 
-        public TraceIssue(TraceEntityType source, TraceEntityType target, string id, TraceIssueType it)
+        public TraceIssue(TraceEntity source, TraceEntity target, string id, TraceIssueType it)
             : base(source, target, id)
         {
             issueType = it;
@@ -27,6 +27,12 @@ namespace RoboClerk
         {
             get => issueType;
         }
+
+        public override int GetHashCode()
+        {
+            return source.GetHashCode() ^ target.GetHashCode() ^ TraceID.GetHashCode();
+        }
+
 
         public override bool Equals(object obj)
         {

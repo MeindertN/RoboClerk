@@ -21,7 +21,7 @@ namespace RoboClerk.AzureDevOps
         private List<RequirementItem> systemRequirements = new List<RequirementItem>();
         private List<RequirementItem> softwareRequirements = new List<RequirementItem>();
         private List<TestCaseItem> testCases = new List<TestCaseItem>();
-        private List<BugItem> bugs = new List<BugItem>();
+        private List<AnomalyItem> bugs = new List<AnomalyItem>();
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         private WorkItemTrackingHttpClient witClient;
@@ -37,7 +37,7 @@ namespace RoboClerk.AzureDevOps
 
         public string Description => description;
 
-        public List<BugItem> GetBugs()
+        public List<AnomalyItem> GetBugs()
         {
             return bugs;
         }
@@ -204,18 +204,18 @@ namespace RoboClerk.AzureDevOps
             return item;
         }
 
-        private BugItem ConvertToBugItem(WorkItem workitem)
+        private AnomalyItem ConvertToBugItem(WorkItem workitem)
         {
             logger.Debug($"Creating bug item for: {workitem.Id.ToString()}");
-            BugItem item = new BugItem();
-            item.BugID = workitem.Id.ToString();
+            AnomalyItem item = new AnomalyItem();
+            item.AnomalyID = workitem.Id.ToString();
             item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
-            item.BugRevision = workitem.Rev.ToString();
-            item.BugState = GetWorkItemField(workitem, "System.State");
-            item.BugJustification = GetWorkItemField(workitem, "Microsoft.VSTS.CMMI.Justification");
-            item.BugAssignee = GetWorkItemField(workitem, "System.AssignedTo");
-            item.BugPriority = GetWorkItemField(workitem, "Microsoft.VSTS.Common.Priority");
-            item.BugTitle = GetWorkItemField(workitem, "System.Title");
+            item.AnomalyRevision = workitem.Rev.ToString();
+            item.AnomalyState = GetWorkItemField(workitem, "System.State");
+            item.AnomalyJustification = GetWorkItemField(workitem, "Microsoft.VSTS.CMMI.Justification");
+            item.AnomalyAssignee = GetWorkItemField(workitem, "System.AssignedTo");
+            item.AnomalyPriority = GetWorkItemField(workitem, "Microsoft.VSTS.Common.Priority");
+            item.AnomalyTitle = GetWorkItemField(workitem, "System.Title");
             return item;
         }
 

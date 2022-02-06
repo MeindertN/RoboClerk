@@ -9,7 +9,7 @@ namespace RoboClerk
         private bool completeTrace = true;
         private List<string> selectedCategories = new List<string>();
 
-        public TraceSpecification(TraceEntityType source, TraceEntityType target, bool completeTrace)
+        public TraceSpecification(TraceEntity source, TraceEntity target, bool completeTrace)
             : base(source,target)
         {
             this.completeTrace = completeTrace;
