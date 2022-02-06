@@ -63,19 +63,23 @@ namespace RoboClerk
         private void ProcessConfigs(string config, string projectConfig)
         {
             var toml = Toml.Parse(projectConfig).ToModel();
-            foreach (var docloc in (TomlTable)toml["DocumentLocations"])
+            foreach (var doctable in (TomlTable)toml["Document"])
             {
-                TomlArray arr = (TomlArray)docloc.Value;
-                if ((string)arr[2] != string.Empty)
+                TomlTable doc = (TomlTable)doctable.Value;
+                if(!doc.ContainsKey("template"))
+                {
+                    throw new Exception($"Error reading template location out of project config file for document {doctable.Key}");
+                }
+                
+                if ((string)doc["template"] != string.Empty)
                 {
                     try
                     {
-                        documents[(string)arr[0]] = ((string)arr[2], File.ReadAllText((string)arr[2]));
+                        documents[(string)doc["title"]] = ((string)doc["template"], File.ReadAllText((string)doc["template"]));
                     }
                     catch(Exception e)
                     {
-                        logger.Error(e);
-                        throw new Exception($"Unable to read {(string)arr[0]} from {(string)arr[2]} ");
+                        throw new Exception($"Unable to read document {doctable.Key} from {(string)doc["template"]}. Check project config file and template file location.");
                     }
                 }
             }
@@ -115,17 +119,17 @@ namespace RoboClerk
                         else
                         {
                             logger.Debug($"Looking for content creator class: {tag.ContentCreatorID}");
-                            IContentCreator contentCreator = GetContentObject(tag);
+                            var te = traceAnalysis.GetTraceEntityForAnyProperty(tag.ContentCreatorID);
+
+                            IContentCreator contentCreator = GetContentObject(te==null?tag.ContentCreatorID:te.ID);
                             if (contentCreator != null)
                             {
                                 logger.Debug($"Content creator {tag.ContentCreatorID} found.");
-                                tag.Contents = contentCreator.GetContent(tag,dataSources,traceAnalysis,document.Title);
+                                tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, document.Title);
+                                continue;
                             }
-                            else
-                            {
-                                logger.Warn($"Content creator {tag.ContentCreatorID} not found.");
-                                tag.Contents = "UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS IS KNOWN TO ROBOCLERK.\n";
-                            }
+                            logger.Warn($"Content creator {tag.ContentCreatorID} not found.");
+                            tag.Contents = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS ({tag.ContentCreatorID}) IS KNOWN TO ROBOCLERK.\n";
                         }
                     }
                 }
@@ -146,7 +150,7 @@ namespace RoboClerk
             }
         }
 
-        private IContentCreator GetContentObject(RoboClerkTag tag)
+        private IContentCreator GetContentObject(string contentCreatorID)
         {
             Assembly thisAssembly = Assembly.GetAssembly(this.GetType());
             Type[] contentTypes = thisAssembly
@@ -156,7 +160,7 @@ namespace RoboClerk
 
             foreach (Type contentType in contentTypes)
             {
-                if (contentType.Name == tag.ContentCreatorID)
+                if (contentType.Name == contentCreatorID)
                 {
                     return Activator.CreateInstance(contentType) as IContentCreator;
                 }

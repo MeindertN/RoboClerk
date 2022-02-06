@@ -89,9 +89,9 @@ namespace RoboClerk
             return items.Find(f => (f.TestCaseID == id));
         }
 
-        public List<BugItem> GetAllBugs()
+        public List<AnomalyItem> GetAllAnomalies()
         {
-            List<BugItem> items = new List<BugItem>();
+            List<AnomalyItem> items = new List<AnomalyItem>();
             foreach(var plugin in slmsPlugins)
             {
                 items.AddRange(plugin.GetBugs());
@@ -99,10 +99,10 @@ namespace RoboClerk
             return items;
         }
 
-        public BugItem GetBug(string id)
+        public AnomalyItem GetAnomaly(string id)
         {
-            var items = GetAllBugs();
-            return items.Find(f => (f.BugID == id));
+            var items = GetAllAnomalies();
+            return items.Find(f => (f.AnomalyID == id));
         }
 
         public Item GetItem(string id)
@@ -123,8 +123,8 @@ namespace RoboClerk
             {
                 return tcase[idx];
             }
-            var bugs = GetAllBugs();
-            if ((idx = bugs.FindIndex(o => o.BugID == id)) >= 0)
+            var bugs = GetAllAnomalies();
+            if ((idx = bugs.FindIndex(o => o.AnomalyID == id)) >= 0)
             {
                 return bugs[idx];
             }

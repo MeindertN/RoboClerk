@@ -4,11 +4,11 @@ using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
-    public class SoftwareSystemTests : ContentCreatorBase
+    public class SoftwareSystemTest : ContentCreatorBase
     {
         protected bool automated = true;
 
-        public SoftwareSystemTests()
+        public SoftwareSystemTest()
         {
 
         }
@@ -26,10 +26,10 @@ namespace RoboClerk.ContentCreators
                 {
                     testCaseFound = true;
                     output.AppendLine(test.ToText());
-                    analysis.AddTrace(docTitle, new TraceLink(TraceEntityType.SoftwareSystemTest, analysis.GetTraceEntityForTitle(docTitle), test.TestCaseID));
+                    analysis.AddTrace(docTitle, new TraceLink(analysis.GetTraceEntityForID("SoftwareSystemTest"), analysis.GetTraceEntityForTitle(docTitle), test.TestCaseID));
                     foreach (var parent in test.Parents)
                     {
-                        analysis.AddTrace(docTitle, new TraceLink(TraceEntityType.SoftwareRequirement, analysis.GetTraceEntityForTitle(docTitle), parent.Item1));
+                        analysis.AddTrace(docTitle, new TraceLink(analysis.GetTraceEntityForID("SoftwareRequirement"), analysis.GetTraceEntityForTitle(docTitle), parent.Item1));
                     }
                 }
             }

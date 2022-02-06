@@ -6,8 +6,8 @@ namespace RoboClerk.ContentCreators
 {
     abstract class TraceabilityMatrixBase : IContentCreator
     {
-        protected TraceEntityType truthSource = TraceEntityType.Unknown;
-        protected TraceEntityType truthTarget = TraceEntityType.Unknown;
+        protected TraceEntity truthSource = null;
+        protected TraceEntity truthTarget = null;
 
         public TraceabilityMatrixBase()
         {
@@ -22,30 +22,17 @@ namespace RoboClerk.ContentCreators
             {
                 throw new Exception($"{truthSource} level trace matrix is empty.");
             }
-
-            //determine the columns
-            TraceEntityType baseDoc = (truthSource == TraceEntityType.SoftwareRequirement ? 
-                TraceEntityType.SoftwareRequirementsSpecification : TraceEntityType.SystemRequirementsSpecification);
-            List<TraceEntityType> columns = new List<TraceEntityType>() { truthSource, baseDoc };
             
-            foreach(KeyValuePair<TraceEntityType,List<List<Item>>> entry in traceMatrix)
-            {
-                if(!columns.Contains(entry.Key))
-                {
-                    columns.Add(entry.Key);
-                }
-            }
-
             List<string> columnHeaders = new List<string>();
-            foreach(var entry in columns)
+            foreach(var entry in traceMatrix)
             {
-                if (entry == TraceEntityType.SystemRequirement || entry == TraceEntityType.SoftwareRequirement)
+                if (entry.Key.ID == "SystemRequirement" || entry.Key.ID == "SoftwareRequirement")
                 {
-                    columnHeaders.Add(analysis.GetTitleForTraceEntity(entry));
+                    columnHeaders.Add($"{entry.Key.Name}s");
                 }
                 else
                 {
-                    columnHeaders.Add(analysis.GetAbreviationForTraceEntity(entry));
+                    columnHeaders.Add(entry.Key.Abbreviation);
                 }
             }
 
@@ -55,16 +42,16 @@ namespace RoboClerk.ContentCreators
             for( int index = 0; index<traceMatrix[truthSource].Count; ++index)
             {
                 List<string> line = new List<string>();
-                foreach(var entry in columns)
+                foreach(var entry in traceMatrix)
                 {
-                    if (traceMatrix[entry][index].Count == 0)
+                    if (entry.Value[index].Count == 0)
                     {
                         line.Add("N/A");
                     }
                     else
                     {
                         StringBuilder combinedString = new StringBuilder();
-                        foreach (Item item in traceMatrix[entry][index])
+                        foreach (Item item in entry.Value[index])
                         {
                             if (item == null)
                             {
@@ -91,22 +78,24 @@ namespace RoboClerk.ContentCreators
             {
                 traceIssuesFound = true;
                 Item item = data.GetItem(issue.TraceID);
-                matrix.AppendLine($"* {analysis.GetTitleForTraceEntity(truthSource)} {(item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID)} is potentially missing a corresponding {analysis.GetTitleForTraceEntity(truthTarget)}.");
+                matrix.AppendLine($"* {truthSource.Name} {(item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID)} is potentially missing a corresponding {truthTarget.Name}.");
             }
 
-            foreach (var tet in columns)
+            foreach (var tet in traceMatrix)
             {
-                if (tet == TraceEntityType.SystemRequirement || tet == TraceEntityType.SoftwareRequirement || tet == TraceEntityType.SoftwareSystemTest) //skip the truth entity types
+                if (tet.Key.ID == "SystemRequirement" || tet.Key.ID == "SoftwareRequirement" ||
+                    tet.Key.ID == "SoftwareSystemTest" || tet.Key.ID == "SoftwareUnitTest" ||
+                    tet.Key.ID == "Anomaly") //skip the truth entity types
                 {
                     continue;
                 }
 
-                var traceIssues = analysis.GetTraceIssuesForDocument(tet);
+                var traceIssues = analysis.GetTraceIssuesForDocument(tet.Key.Name);
                 foreach (var issue in traceIssues)
                 {
                     traceIssuesFound = true;
-                    string sourceTitle = analysis.GetTitleForTraceEntity(issue.Source);
-                    string targetTitle = analysis.GetTitleForTraceEntity(issue.Target);
+                    string sourceTitle = issue.Source.Name;
+                    string targetTitle = issue.Target.Name;
                     Item item = data.GetItem(issue.TraceID);
                     string identifierText = issue.TraceID;
                     if(item != null)
@@ -133,7 +122,7 @@ namespace RoboClerk.ContentCreators
             }
             if(!traceIssuesFound)
             {
-                matrix.AppendLine($"* No {truthSource} level trace problems detected!");
+                matrix.AppendLine($"* No {truthSource.Name} level trace problems detected!");
             }
             return matrix.ToString();
         }

@@ -9,7 +9,7 @@ namespace RoboClerk.ContentCreators
     {
         protected List<RequirementItem> requirements = null;
         protected string requirementName = string.Empty;
-        protected TraceEntityType sourceType = TraceEntityType.Unknown;
+        protected TraceEntity sourceType = null;
 
         public RequirementBase()
         {

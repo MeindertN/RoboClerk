@@ -92,8 +92,6 @@ namespace RoboClerk
         private int tagEnd = -1;
         private string contents = string.Empty; //what is inside the tag in the document
         private string contentCreatorID = string.Empty; //the identifier of this tag 
-        //private string traceReference = string.Empty; //the trace reference for this tag
-        //private string target = "ALL"; //the target category for this tag, ALL returns all which is the default
         private Dictionary<string, string> parameters = new Dictionary<string, string>();
         private bool inline; //true if this tag was found inline
         private DataSource source = DataSource.Unknown;
@@ -180,7 +178,7 @@ namespace RoboClerk
             }
             ExtractParameters(contents);
             var items = contents.Split('(')[0].Split(':');
-            contentCreatorID = GetContentCreatorID(items[1]).Trim();
+            contentCreatorID = items[1].Trim();
             source = GetSource(items[0].Trim());
             //contents = rawDocument.Substring(contentStart,contentEnd - contentStart + 1);
         }
@@ -245,7 +243,7 @@ namespace RoboClerk
             }
             var items = tagContents.Split(':');
             source = GetSource(items[0].Trim());
-            contentCreatorID = GetContentCreatorID(items[1].Split('(')[0].Trim());
+            contentCreatorID = items[1].Split('(')[0].Trim();
             ExtractParameters(tagContents);
             var prelimTagContents = rawDocument.Substring(startIndex, endIndex - startIndex + 1);
             contentStart = startIndex + prelimTagContents.IndexOf('\n') + 1; //ensure to skip linebreak
@@ -294,27 +292,6 @@ namespace RoboClerk
             }
             return DataSource.Unknown;
         }
-
-        private string GetContentCreatorID(string et)
-        {
-            if(et.ToUpper() == "SYS")
-            {
-                return "SystemRequirements";
-            }
-            if(et.ToUpper() == "SWR")
-            {
-                return "SoftwareRequirements";
-            }
-            if(et.ToUpper() == "TC")
-            {
-                return "SoftwareSystemTests";
-            }
-            if(et.ToUpper() == "BG")
-            {
-                return "Bugs";
-            }
-            return et;
-        }  
 
         public string GetParameterOrDefault(string key, string defaultVal)
         {

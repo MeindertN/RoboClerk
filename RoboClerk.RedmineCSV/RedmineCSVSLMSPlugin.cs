@@ -18,7 +18,7 @@ namespace RoboClerk.RedmineCSV
         private List<RequirementItem> systemRequirements = new List<RequirementItem>();
         private List<RequirementItem> softwareRequirements = new List<RequirementItem>();
         private List<TestCaseItem> testCases = new List<TestCaseItem>();
-        private List<BugItem> bugs = new List<BugItem>();
+        private List<AnomalyItem> bugs = new List<AnomalyItem>();
         private string prsTrackerName = string.Empty;
         private string srsTrackerName = string.Empty;
         private string tcTrackerName = string.Empty;
@@ -44,7 +44,7 @@ namespace RoboClerk.RedmineCSV
             get => description;
         }
 
-        public List<BugItem> GetBugs()
+        public List<AnomalyItem> GetBugs()
         {
             return bugs;
         }
@@ -149,21 +149,21 @@ namespace RoboClerk.RedmineCSV
             return resultItem;
         }
 
-        private BugItem CreateBug(RedmineItem rmItem)
+        private AnomalyItem CreateBug(RedmineItem rmItem)
         {
             logger.Debug($"Creating bug item: {rmItem.Id}");
-            BugItem resultItem = new BugItem();
+            AnomalyItem resultItem = new AnomalyItem();
 
-            resultItem.BugAssignee = rmItem.Assignee;
-            resultItem.BugID = rmItem.Id;
-            resultItem.BugJustification = string.Empty;
-            resultItem.BugPriority = string.Empty;
-            resultItem.BugRevision = rmItem.Updated;
-            resultItem.BugState = rmItem.Status;
-            resultItem.BugTitle = rmItem.Subject;
+            resultItem.AnomalyAssignee = rmItem.Assignee;
+            resultItem.AnomalyID = rmItem.Id;
+            resultItem.AnomalyJustification = string.Empty;
+            resultItem.AnomalyPriority = string.Empty;
+            resultItem.AnomalyRevision = rmItem.Updated;
+            resultItem.AnomalyState = rmItem.Status;
+            resultItem.AnomalyTitle = rmItem.Subject;
             if(baseURL != "")
             {
-                resultItem.Link = new Uri($"{baseURL}{resultItem.BugID}");
+                resultItem.Link = new Uri($"{baseURL}{resultItem.AnomalyID}");
             }
 
             return resultItem;

@@ -9,7 +9,7 @@ namespace RoboClerk
         protected string id = string.Empty;
         protected bool valid = true;
 
-        public TraceLink(TraceEntityType source, TraceEntityType target, string id) 
+        public TraceLink(TraceEntity source, TraceEntity target, string id) 
             : base(source, target)
         {
             this.id = id;

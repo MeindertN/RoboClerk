@@ -4,21 +4,15 @@ using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
-    class Bugs : IContentCreator
+    class Anomaly : IContentCreator
     {
-
-        public Bugs()
-        {
-
-        }
-
         public string GetContent(RoboClerkTag tag, DataSources data, TraceabilityAnalysis analysis, string docTitle)
         {
-            var bugs = data.GetAllBugs();
+            var bugs = data.GetAllAnomalies();
             StringBuilder output = new StringBuilder();
             foreach (var bug in bugs)
             {
-                if(bug.BugState == "Closed")
+                if(bug.AnomalyState == "Closed")
                 {
                     continue; //skip closed bugs as they are no longer outstanding
                 }

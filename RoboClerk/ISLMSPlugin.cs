@@ -9,7 +9,7 @@ namespace RoboClerk
         void RefreshItems();
         List<RequirementItem> GetSystemRequirements();
         List<RequirementItem> GetSoftwareRequirements();
-        List<BugItem> GetBugs();
+        List<AnomalyItem> GetBugs();
         List<TestCaseItem> GetSoftwareSystemTests();
     }
 }
