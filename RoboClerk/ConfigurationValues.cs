@@ -1,9 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Tomlyn;
-using Tomlyn.Syntax;
 using Tomlyn.Model;
 
 namespace RoboClerk
@@ -19,7 +15,7 @@ namespace RoboClerk
         public void FromToml(string config)
         {
             var toml = Toml.Parse(config).ToModel();
-            foreach(var val in (TomlTable)toml["ConfigValues"])
+            foreach (var val in (TomlTable)toml["ConfigValues"])
             {
                 keyValues[val.Key] = (string)val.Value;
             }
@@ -32,7 +28,7 @@ namespace RoboClerk
 
         public string GetValue(string key)
         {
-            if( !keyValues.ContainsKey(key) )
+            if (!keyValues.ContainsKey(key))
             {
                 return "NOT FOUND";
             }

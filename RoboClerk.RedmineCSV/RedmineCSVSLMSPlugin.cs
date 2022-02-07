@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Microsoft.VisualBasic.FileIO;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using Tomlyn;
-using Microsoft.VisualBasic.FileIO;
-using Tomlyn.Model;
 using System.Text.RegularExpressions;
+using Tomlyn;
+using Tomlyn.Model;
 
 namespace RoboClerk.RedmineCSV
 {
@@ -77,15 +77,15 @@ namespace RoboClerk.RedmineCSV
                 srsTrackerName = (string)config["SoftwareLevelRequirement"];
                 tcTrackerName = (string)config["TestCase"];
                 bugTrackerName = (string)config["Bug"];
-                
-                if(config.ContainsKey("RedmineBaseURL"))
+
+                if (config.ContainsKey("RedmineBaseURL"))
                 {
                     baseURL = (string)config["RedmineBaseURL"];
                 }
-                
+
                 ignoreList = (TomlArray)config["Ignore"];
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 logger.Error("Error reading configuration file for Redmine CSV SLMS plugin.");
                 logger.Error(e);
@@ -95,12 +95,12 @@ namespace RoboClerk.RedmineCSV
 
         private List<string[]> GetTestSteps(string testDescription)
         {
-            string[] lines =  testDescription.Split('\n');
+            string[] lines = testDescription.Split('\n');
             List<string[]> output = new List<string[]>();
             bool thenFound = false;
-            foreach( var line in lines)
+            foreach (var line in lines)
             {
-                if(!line.ToUpper().Contains("THEN:") && !thenFound)
+                if (!line.ToUpper().Contains("THEN:") && !thenFound)
                 {
                     string[] ln = new string[2] { line, string.Empty };
                     output.Add(ln);
@@ -161,7 +161,7 @@ namespace RoboClerk.RedmineCSV
             resultItem.AnomalyRevision = rmItem.Updated;
             resultItem.AnomalyState = rmItem.Status;
             resultItem.AnomalyTitle = rmItem.Subject;
-            if(baseURL != "")
+            if (baseURL != "")
             {
                 resultItem.Link = new Uri($"{baseURL}{resultItem.AnomalyID}");
             }
@@ -188,18 +188,18 @@ namespace RoboClerk.RedmineCSV
             resultItem.RequirementState = rmItem.Status;
             resultItem.RequirementTitle = rmItem.Subject;
             resultItem.TypeOfRequirement = typeOfRequirement;
-            if(baseURL != "")
+            if (baseURL != "")
             {
                 resultItem.Link = new Uri($"{baseURL}{resultItem.RequirementID}");
             }
 
             foreach (var redmineItem in items)
             {
-                if(redmineItem.ParentTask == rmItem.Id)
+                if (redmineItem.ParentTask == rmItem.Id)
                 {
                     if (baseURL != "")
                     {
-                        resultItem.AddChild(redmineItem.Id, new Uri($"{baseURL}{redmineItem.Id}")); 
+                        resultItem.AddChild(redmineItem.Id, new Uri($"{baseURL}{redmineItem.Id}"));
                     }
                     else
                     {
@@ -208,7 +208,7 @@ namespace RoboClerk.RedmineCSV
                 }
             }
 
-            if(rmItem.ParentTask != string.Empty)
+            if (rmItem.ParentTask != string.Empty)
             {
                 if (baseURL != "")
                 {
@@ -224,36 +224,36 @@ namespace RoboClerk.RedmineCSV
 
         public void RefreshItems()
         {
-            if(csvFileName == string.Empty)
+            if (csvFileName == string.Empty)
             {
                 throw new Exception("CSV filename empty. Could not read csv file.");
             }
 
             logger.Debug($"Parsing CSV file");
             var records = parseCSVFile();
-            foreach(var redmineItem in records)
+            foreach (var redmineItem in records)
             {
-                if(ignoreList.Contains(redmineItem.Status))
+                if (ignoreList.Contains(redmineItem.Status))
                 {
                     logger.Debug($"Ignoring item {redmineItem.Id}");
                     continue; //ignore anything that is to be ignored
                 }
-                if(redmineItem.Tracker == prsTrackerName)
+                if (redmineItem.Tracker == prsTrackerName)
                 {
                     logger.Debug($"Product level requirement found: {redmineItem.Id}");
                     systemRequirements.Add(CreateRequirement(records, redmineItem, RequirementType.SystemRequirement));
                 }
-                else if(redmineItem.Tracker == srsTrackerName)
+                else if (redmineItem.Tracker == srsTrackerName)
                 {
                     logger.Debug($"Software level requirement found: {redmineItem.Id}");
                     softwareRequirements.Add(CreateRequirement(records, redmineItem, RequirementType.SoftwareRequirement));
                 }
-                else if(redmineItem.Tracker == tcTrackerName)
+                else if (redmineItem.Tracker == tcTrackerName)
                 {
                     logger.Debug($"Testcase found: {redmineItem.Id}");
                     testCases.Add(CreateTestCase(redmineItem));
                 }
-                else if(redmineItem.Tracker == bugTrackerName)
+                else if (redmineItem.Tracker == bugTrackerName)
                 {
                     logger.Debug($"Bug item found: {redmineItem.Id}");
                     bugs.Add(CreateBug(redmineItem));
@@ -270,14 +270,14 @@ namespace RoboClerk.RedmineCSV
             fileContents = Regex.Replace(fileContents, @"\r\n", "\n");
             MemoryStream stream = new MemoryStream(Encoding.ASCII.GetBytes(fileContents));
 
-            using (TextFieldParser csvParser = new TextFieldParser(stream,Encoding.ASCII))
+            using (TextFieldParser csvParser = new TextFieldParser(stream, Encoding.ASCII))
             {
                 csvParser.SetDelimiters(new string[] { "," });
                 csvParser.HasFieldsEnclosedInQuotes = true;
                 //read the first line in the CSV which contains the headers
                 var fields = csvParser.ReadFields();
                 //create a header mapper
-                for(int i = 0; i<fields.Length; ++i)
+                for (int i = 0; i < fields.Length; ++i)
                 {
                     headerMapping[fields[i]] = i;
                 }

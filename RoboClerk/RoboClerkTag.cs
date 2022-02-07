@@ -40,9 +40,9 @@ namespace RoboClerk
         {
             get
             {
-                if(documentTitle == string.Empty )
+                if (documentTitle == string.Empty)
                 {
-                    if(line == -1 || character == -1)
+                    if (line == -1 || character == -1)
                     {
                         return $"{reason}. Tag contents: {tagContents}";
                     }
@@ -68,7 +68,7 @@ namespace RoboClerk
         public void SetLocation(int tagStart, string doc)
         {
             string relevantPart = doc.Substring(0, tagStart);
-            line = relevantPart.Count(f => (f == '\n'))+1;
+            line = relevantPart.Count(f => (f == '\n')) + 1;
             character = tagStart - relevantPart.LastIndexOf('\n');
         }
     }
@@ -100,7 +100,7 @@ namespace RoboClerk
         public RoboClerkTag(int startIndex, int endIndex, string rawDocument, bool inline)
         {
             this.inline = inline;
-            if(inline)
+            if (inline)
             {
                 logger.Debug("Processing inline RoboClerk tag.");
                 ProcessRoboClerkContainerInlineTag(startIndex, endIndex, rawDocument);
@@ -122,7 +122,7 @@ namespace RoboClerk
             get => contentCreatorID;
         }
 
-        public Dictionary<string,string> Parameters
+        public Dictionary<string, string> Parameters
         {
             get => parameters;
         }
@@ -132,18 +132,18 @@ namespace RoboClerk
             get => source;
         }
 
-        public string Contents 
+        public string Contents
         {
             get => contents;
             set => contents = value;
         }
 
-        public int ContentStart 
+        public int ContentStart
         {
             get => contentStart;
         }
 
-        public int ContentEnd 
+        public int ContentEnd
         {
             get => contentEnd;
         }
@@ -165,13 +165,13 @@ namespace RoboClerk
             tagEnd = endIndex + 1;
             contentStart = startIndex + 2; //remove starting tag
             contentEnd = endIndex; //remove ending tag
-            contents = rawDocument.Substring(contentStart,contentEnd - contentStart );
+            contents = rawDocument.Substring(contentStart, contentEnd - contentStart);
             //contentEnd = contentStart + tagContents.IndexOf('(') - 1; //do not include ( itself 
             try
             {
                 ValidateTagContents(contents);
             }
-            catch(TagInvalidException e)
+            catch (TagInvalidException e)
             {
                 e.SetLocation(tagStart, rawDocument);
                 throw e;
@@ -186,39 +186,39 @@ namespace RoboClerk
         private void ValidateTagContents(string tagContents)
         {
             //verify required elements are present and in the right order
-            if( tagContents.Count(f => (f == '(')) != 1 ||
+            if (tagContents.Count(f => (f == '(')) != 1 ||
                 tagContents.Count(f => (f == ')')) != 1 ||
                 tagContents.Count(f => (f == ':')) != 1 ||
                 tagContents.IndexOf(')') < tagContents.IndexOf('(') ||
-                tagContents.IndexOf(':') > tagContents.IndexOf('(') )
+                tagContents.IndexOf(':') > tagContents.IndexOf('('))
             {
                 throw new TagInvalidException(tagContents, "RoboClerk tag is not formatted correctly");
             }
             //verify the preamble
             string temp = Regex.Replace(tagContents, @"\s+", ""); //remove whitespace
             string[] preamble = temp.Split('(')[0].Split(':');
-            if(preamble.Length != 2)
+            if (preamble.Length != 2)
             {
                 throw new TagInvalidException(tagContents, "Preamble section in RoboClerk tag not formatted correctly");
             }
             //verify the parameter string
-            if( temp.IndexOf(')') - temp.IndexOf('(') > 1 )
+            if (temp.IndexOf(')') - temp.IndexOf('(') > 1)
             {
-                if( temp.Count(f => (f == '=')) - temp.Count(f => (f == ',')) != 1 )
+                if (temp.Count(f => (f == '=')) - temp.Count(f => (f == ',')) != 1)
                 {
                     throw new TagInvalidException(tagContents, "Parameter section in RoboClerk tag not formatted correctly");
                 }
                 //isolate the parameter string and check each individual element
                 string contents = temp.Split('(')[1].Split(')')[0];
                 string[] elements = contents.Split(',');
-                foreach(var element in elements)
+                foreach (var element in elements)
                 {
-                    if( element.Count( f=> (f == '=')) != 1)
+                    if (element.Count(f => (f == '=')) != 1)
                     {
                         throw new TagInvalidException(tagContents, "Malformed element in parameter section of RoboClerk tag");
                     }
                     string[] variables = element.Split('=');
-                    if( variables.Length != 2)
+                    if (variables.Length != 2)
                     {
                         throw new TagInvalidException(tagContents, "Malformed element in parameter section of RoboClerk tag");
                     }
@@ -264,7 +264,7 @@ namespace RoboClerk
         {
             int paramStart = parameterString.IndexOf('(');
             int paramEnd = parameterString.IndexOf(')');
-            if(paramEnd - paramStart == 1)
+            if (paramEnd - paramStart == 1)
             {
                 return; //there are no parameters
             }
@@ -281,7 +281,7 @@ namespace RoboClerk
 
         private DataSource GetSource(string name)
         {
-            switch(name) 
+            switch (name)
             {
                 case "SLMS": return DataSource.SLMS;
                 case "Source": return DataSource.Source;
@@ -295,7 +295,7 @@ namespace RoboClerk
 
         public string GetParameterOrDefault(string key, string defaultVal)
         {
-            if(parameters.ContainsKey(key))
+            if (parameters.ContainsKey(key))
             {
                 return parameters[key];
             }

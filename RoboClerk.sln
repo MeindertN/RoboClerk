@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk", "RoboClerk\RoboClerk.csproj", "{F6965014-F81B-48AC-B3D8-CA742589856B}"
 EndProject
@@ -10,8 +10,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk.AzureDevOps", "RoboClerk.AzureDevOps\RoboClerk.AzureDevOps.csproj", "{81D5B38E-9E8A-45E2-BF5E-0DD12B29BE4B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk.RedmineCSV", "RoboClerk.RedmineCSV\RoboClerk.RedmineCSV.csproj", "{6AB99159-5710-4F3E-A63E-79D84076BEC5}"
-EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "RoboClerkSetup", "RoboClerkSetup\RoboClerkSetup.vdproj", "{1BF7D31A-AD17-48F5-980E-B276E4B701E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,12 +69,6 @@ Global
 		{6AB99159-5710-4F3E-A63E-79D84076BEC5}.Release|x64.Build.0 = Release|Any CPU
 		{6AB99159-5710-4F3E-A63E-79D84076BEC5}.Release|x86.ActiveCfg = Release|Any CPU
 		{6AB99159-5710-4F3E-A63E-79D84076BEC5}.Release|x86.Build.0 = Release|Any CPU
-		{1BF7D31A-AD17-48F5-980E-B276E4B701E5}.Debug|Any CPU.ActiveCfg = Debug
-		{1BF7D31A-AD17-48F5-980E-B276E4B701E5}.Debug|x64.ActiveCfg = Debug
-		{1BF7D31A-AD17-48F5-980E-B276E4B701E5}.Debug|x86.ActiveCfg = Debug
-		{1BF7D31A-AD17-48F5-980E-B276E4B701E5}.Release|Any CPU.ActiveCfg = Release
-		{1BF7D31A-AD17-48F5-980E-B276E4B701E5}.Release|x64.ActiveCfg = Release
-		{1BF7D31A-AD17-48F5-980E-B276E4B701E5}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

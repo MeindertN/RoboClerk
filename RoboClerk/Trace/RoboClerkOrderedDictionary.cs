@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
 namespace RoboClerk
 {
-    public class RoboClerkOrderedDictionary<TKey,TValue> : IEnumerable<KeyValuePair<TKey,TValue>>
+    public class RoboClerkOrderedDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
         private List<KeyValuePair<TKey, TValue>> items = new List<KeyValuePair<TKey, TValue>>();
         public RoboClerkOrderedDictionary()
@@ -18,7 +16,7 @@ namespace RoboClerk
             get
             {
                 var item = items.Find(f => (f.Key.Equals(key)));
-                if (item.Equals(default(KeyValuePair<TKey,TValue>)))
+                if (item.Equals(default(KeyValuePair<TKey, TValue>)))
                 {
                     return default(TValue);
                 }
@@ -30,15 +28,15 @@ namespace RoboClerk
 
             set
             {
-                for(int i=0; i<items.Count; ++i)
+                for (int i = 0; i < items.Count; ++i)
                 {
-                    if(items[i].Key.Equals(key))
+                    if (items[i].Key.Equals(key))
                     {
                         items[i] = new KeyValuePair<TKey, TValue>(key, value);
                         return;
                     }
                 }
-                items.Add(new KeyValuePair<TKey, TValue>(key,value));
+                items.Add(new KeyValuePair<TKey, TValue>(key, value));
             }
         }
 

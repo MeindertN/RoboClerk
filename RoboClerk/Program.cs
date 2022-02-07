@@ -17,8 +17,12 @@ namespace RoboClerk
             var config = new NLog.Config.LoggingConfiguration();
 
             // Targets where to log to
-            var logFile = new NLog.Targets.FileTarget("logfile") { FileName = 
-                $"{outputDir}{Path.DirectorySeparatorChar}RoboClerkLog.txt", DeleteOldFileOnStartup = true };
+            var logFile = new NLog.Targets.FileTarget("logfile")
+            {
+                FileName =
+                $"{outputDir}{Path.DirectorySeparatorChar}RoboClerkLog.txt",
+                DeleteOldFileOnStartup = true
+            };
             Console.WriteLine(logFile.FileName);
             if (logLevel.ToUpper() == "DEBUG")
             {
@@ -42,7 +46,7 @@ namespace RoboClerk
             {
                 ConfigureLogging(roboClerkConfigFile);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine($"An error occurred configuring Roboclerk logging: \n{e.Message}");
             }
@@ -53,7 +57,7 @@ namespace RoboClerk
                 core.GenerateDocs();
                 core.SaveDocumentsToDisk();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 var logger = NLog.LogManager.GetCurrentClassLogger();
                 logger.Error("An unhandled exception has occurred. RoboClerk failed to complete:\n\n");

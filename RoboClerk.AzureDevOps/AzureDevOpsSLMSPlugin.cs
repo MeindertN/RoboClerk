@@ -1,13 +1,13 @@
 ﻿using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-using Tomlyn;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.IO;
-using System.Xml;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
+using Tomlyn;
 
 namespace RoboClerk.AzureDevOps
 {
@@ -70,7 +70,7 @@ namespace RoboClerk.AzureDevOps
                 witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, (string)config["AccessToken"]);
                 ignoreNewProductReqs = (bool)config["IgnoreNewSystemRequirements"];
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 logger.Error("Error reading configuration file for Azure DevOps SLMS plugin.");
                 logger.Error(e);
@@ -107,7 +107,7 @@ namespace RoboClerk.AzureDevOps
 
         private string GetWorkItemField(WorkItem workitem, string field)
         {
-            if(workitem.Fields.ContainsKey(field))
+            if (workitem.Fields.ContainsKey(field))
             {
                 var ident = workitem.Fields[field] as Microsoft.VisualStudio.Services.WebApi.IdentityRef;
                 if (ident != null)
@@ -132,7 +132,7 @@ namespace RoboClerk.AzureDevOps
             item.RequirementID = workitem.Id.ToString();
             item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
             item.RequirementRevision = workitem.Rev.ToString();
-            item.RequirementState = GetWorkItemField(workitem,"System.State");
+            item.RequirementState = GetWorkItemField(workitem, "System.State");
             item.RequirementDescription = GetWorkItemField(workitem, "System.Description");
             item.RequirementTitle = GetWorkItemField(workitem, "System.Title");
             AddLinksToWorkItems(workitem.Relations, item);
@@ -235,14 +235,14 @@ namespace RoboClerk.AzureDevOps
             foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, systemRequirementQuery))
             {
                 string state = GetWorkItemField(workitem, "System.State").ToUpper();
-                if ( (ignoreNewProductReqs &&  state == "NEW") || state == "REMOVED" )
+                if ((ignoreNewProductReqs && state == "NEW") || state == "REMOVED")
                 {
                     continue;
                 }
                 var item = ConvertToRequirementItem(workitem);
                 item.TypeOfRequirement = RequirementType.SystemRequirement;
                 item.RequirementCategory = GetWorkItemField(workitem, "Custom.TypeofSystemRequirement");
-                if(item.RequirementCategory == String.Empty) //default sometimes comes back as empty
+                if (item.RequirementCategory == String.Empty) //default sometimes comes back as empty
                 {
                     item.RequirementCategory = "Product Requirement";
                 }
@@ -311,6 +311,6 @@ namespace RoboClerk.AzureDevOps
             }*/
         }
 
-        
+
     }
 }

@@ -78,7 +78,7 @@ namespace RoboClerk
 
         internal static string GenerateTestCaseStepsHeader(int[] testStepColumnWidth, bool automated)
         {
-            if ((automated && testStepColumnWidth.Length < 4) || (!automated && testStepColumnWidth.Length < 5) )
+            if ((automated && testStepColumnWidth.Length < 4) || (!automated && testStepColumnWidth.Length < 5))
             {
                 throw new ArgumentException("Not enough columnwidths available to create test case steps header.");
             }
@@ -112,7 +112,7 @@ namespace RoboClerk
             sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[1], step[0].Replace("\n", "").Replace("\r", "")));
             sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[2], step[1].Replace("\n", "").Replace("\r", "")));
             if (!automated)
-            {    
+            {
                 sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[3], "  "));
                 sb.Append(GenerateLeftMostTableCell(testStepColumnWidth[4], "  "));
             }
@@ -146,7 +146,7 @@ namespace RoboClerk
         internal static string GenerateTraceMatrixLine(List<string> items)
         {
             StringBuilder sb = new StringBuilder();
-            foreach(var item in items)
+            foreach (var item in items)
             {
                 sb.Append(GenerateLeftMostTableCell(item.Length + 2, item));
             }

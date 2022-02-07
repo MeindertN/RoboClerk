@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using Tomlyn;
 using Tomlyn.Model;
 
@@ -30,7 +28,7 @@ namespace RoboClerk
                 {
                     string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}/{dir}";
                     path = Path.GetFullPath(path);
-                    var plugin = PluginLoader.LoadPlugin<ISLMSPlugin>((string)val,path);
+                    var plugin = PluginLoader.LoadPlugin<ISLMSPlugin>((string)val, path);
                     if (plugin != null)
                     {
                         plugin.Initialize();
@@ -44,7 +42,7 @@ namespace RoboClerk
         public List<RequirementItem> GetAllSoftwareRequirements()
         {
             List<RequirementItem> items = new List<RequirementItem>();
-            foreach(var plugin in slmsPlugins)
+            foreach (var plugin in slmsPlugins)
             {
                 items.AddRange(plugin.GetSoftwareRequirements());
             }
@@ -92,7 +90,7 @@ namespace RoboClerk
         public List<AnomalyItem> GetAllAnomalies()
         {
             List<AnomalyItem> items = new List<AnomalyItem>();
-            foreach(var plugin in slmsPlugins)
+            foreach (var plugin in slmsPlugins)
             {
                 items.AddRange(plugin.GetBugs());
             }
@@ -109,7 +107,7 @@ namespace RoboClerk
         {
             var sreq = GetAllSoftwareRequirements();
             int idx = -1;
-            if( (idx = sreq.FindIndex(o => o.RequirementID == id)) >= 0)
+            if ((idx = sreq.FindIndex(o => o.RequirementID == id)) >= 0)
             {
                 return sreq[idx];
             }
