@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 
 namespace RoboClerk
@@ -11,16 +10,16 @@ namespace RoboClerk
         public static T LoadPlugin<T>(string name, string pluginDir) where T : class
         {
             //get all the potential plugin dlls
-            foreach(string file in Directory.GetFiles(pluginDir,"RoboClerk.*.dll",SearchOption.AllDirectories))
+            foreach (string file in Directory.GetFiles(pluginDir, "RoboClerk.*.dll", SearchOption.AllDirectories))
             {
                 //go over all the plugins and try to load them as the appropriate type
                 Console.WriteLine($"Loading from: {file}");
                 PluginLoadContext loadContext = new PluginLoadContext(file);
                 var assembly = loadContext.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(file)));
                 //check the name of the plugin and return if found
-                foreach( var plugin in CreatePlugins<T>(assembly))
+                foreach (var plugin in CreatePlugins<T>(assembly))
                 {
-                    if( (plugin as IPlugin).Name == name )
+                    if ((plugin as IPlugin).Name == name)
                     {
                         //found the plugin we were looking for
                         return plugin;

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace RoboClerk
 {
@@ -10,7 +8,7 @@ namespace RoboClerk
         private List<string> selectedCategories = new List<string>();
 
         public TraceSpecification(TraceEntity source, TraceEntity target, bool completeTrace)
-            : base(source,target)
+            : base(source, target)
         {
             this.completeTrace = completeTrace;
         }

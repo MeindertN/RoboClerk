@@ -1,13 +1,11 @@
 using System;
-using System.Text;
-using RoboClerk;
 
 namespace RoboClerk
 {
     class PlaceholderItem : Item
     {
         private string stringContent;
-        
+
         public PlaceholderItem()
         {
             type = "PlaceholderItem";
@@ -18,7 +16,7 @@ namespace RoboClerk
             return stringContent;
         }
 
-        public string StringContent 
+        public string StringContent
         {
             get => stringContent;
             set => stringContent = value;

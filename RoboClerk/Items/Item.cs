@@ -9,17 +9,17 @@ namespace RoboClerk
         protected Uri link = null;
 
         public abstract string ToText();
-        
-        public string ItemID 
+
+        public string ItemID
         {
             get => id;
             set => id = value;
-        }   
+        }
 
         public string ItemType
         {
             get => type;
-        } 
+        }
 
         public bool HasLink
         {

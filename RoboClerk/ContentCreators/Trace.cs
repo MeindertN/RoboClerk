@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace RoboClerk.ContentCreators
+﻿namespace RoboClerk.ContentCreators
 {
     public class Trace : IContentCreator
     {
@@ -17,7 +13,7 @@ namespace RoboClerk.ContentCreators
             {
                 Item item = data.GetItem(tag.Parameters["ID"]);
                 string result = string.Empty;
-                if(item == null) //the item was not found, we'll still add the trace
+                if (item == null) //the item was not found, we'll still add the trace
                 {
                     result = $"({tag.Parameters["ID"]})";
                 }

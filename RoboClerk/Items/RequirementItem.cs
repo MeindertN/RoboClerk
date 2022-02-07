@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Text;
-using RoboClerk;
 
 namespace RoboClerk
 {
@@ -31,14 +29,14 @@ namespace RoboClerk
             int[] columnWidths = new int[2] { 44, 160 };
             string separator = MarkdownTableUtils.GenerateGridTableSeparator(columnWidths);
             sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0],"Requirement ID:"));
+            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Requirement ID:"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, HasLink ? $"[{requirementID}]({link})" : requirementID));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Requirement Revision:"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, requirementRevision));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Requirement Category:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths,requirementCategory));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, requirementCategory));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Parent ID:"));
             string parentField = "N/A";
@@ -53,13 +51,13 @@ namespace RoboClerk
                     parentField = parents[0].Item1;
                 }
             }
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths,parentField));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, parentField));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Title:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths,requirementTitle));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, requirementTitle));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Description:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths,requirementDescription));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, requirementDescription));
             return sb.ToString();
         }
 
@@ -69,13 +67,13 @@ namespace RoboClerk
             set => requirementType = value;
         }
 
-        public string RequirementState 
+        public string RequirementState
         {
             get => requirementState;
             set => requirementState = value;
         }
 
-        public string RequirementID 
+        public string RequirementID
         {
             get => requirementID;
             set
@@ -85,7 +83,7 @@ namespace RoboClerk
             }
         }
 
-        public string RequirementTitle 
+        public string RequirementTitle
         {
             get => requirementTitle;
             set => requirementTitle = value;

@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using Tomlyn;
 using Tomlyn.Model;
-using System.Linq;
 
 namespace RoboClerk
 {
- 
+
     public class TraceabilityAnalysis
     {
         private List<TraceEntity> traceEntities = new List<TraceEntity>();
@@ -42,9 +41,9 @@ namespace RoboClerk
                     throw new Exception($"Error while reading {entityTable.Key} truth entity from project config file. Check if all required elements (\"name\" and \"abbreviation\") are present.");
                 }
                 TraceEntity entity = new TraceEntity(entityTable.Key, (string)elements["name"], (string)elements["abbreviation"]);
-                foreach(var el in traceEntities)
+                foreach (var el in traceEntities)
                 {
-                    if(entity.Abbreviation == el.Abbreviation || 
+                    if (entity.Abbreviation == el.Abbreviation ||
                         entity.Name == el.Name)
                     {
                         throw new Exception($"Detected a duplicate abbreviation or name in Truth.{entityTable.Key}. All IDs, names and abbreviations must be unique.");
@@ -56,8 +55,8 @@ namespace RoboClerk
             foreach (var docloc in (TomlTable)toml["Document"])
             {
                 TomlTable elements = (TomlTable)docloc.Value;
-                if(!elements.ContainsKey("title") || !elements.ContainsKey("abbreviation") ||
-                    !elements.ContainsKey("template") || !elements.ContainsKey("commands"))
+                if (!elements.ContainsKey("title") || !elements.ContainsKey("abbreviation") ||
+                    !elements.ContainsKey("template") || !elements.ContainsKey("Command"))
                 {
                     throw new Exception($"Error while reading {docloc.Key} document from project config file. Check if all required elements (\"title\",\"abbreviation\",\"template\" and \"commands\") are present.");
                 }
@@ -76,17 +75,17 @@ namespace RoboClerk
             foreach (var table in (TomlTable)toml["TraceConfig"])
             {
                 TraceEntity source, target;
-                foreach( var doc in (TomlTable)table.Value)
+                foreach (var doc in (TomlTable)table.Value)
                 {
                     source = traceEntities.Find(f => (f.ID == table.Key));
                     target = traceEntities.Find(f => (f.ID == doc.Key));
-                    if(source == null || target == null)
+                    if (source == null || target == null)
                     {
                         throw new Exception($"Error setting up requested trace from {table.Key} to {doc.Key}. Check if both these entities are correctly defined in the project config file.");
                     }
                     var arr = (TomlArray)doc.Value;
-                    bool completeTrace = false; 
-                    if(arr.Count == 0 || ((string)arr[0]).ToUpper() == "ALL")
+                    bool completeTrace = false;
+                    if (arr.Count == 0 || ((string)arr[0]).ToUpper() == "ALL")
                     {
                         completeTrace = true;
                     }
@@ -144,7 +143,7 @@ namespace RoboClerk
                             documentTraceIssues[documentTitle].Add(ti);
                         }
                     }
-                    else if(ts.SelectedCategories.Contains(req.RequirementCategory))
+                    else if (ts.SelectedCategories.Contains(req.RequirementCategory))
                     {
                         traceData.Add(new List<Item> { null });
                         var ti = new TraceIssue(tet, ts.Target, req.RequirementID, TraceIssueType.Missing);
@@ -176,10 +175,10 @@ namespace RoboClerk
             }
         }
 
-        public RoboClerkOrderedDictionary<TraceEntity,List<List<Item>>> PerformAnalysis(DataSources data, TraceEntity truth)
+        public RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>> PerformAnalysis(DataSources data, TraceEntity truth)
         {
             RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>> result = new RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>>();
-            if (truth.ID != "SystemRequirement" && 
+            if (truth.ID != "SystemRequirement" &&
                 truth.ID != "SoftwareRequirement")
             {
                 throw new Exception($"Traceability analysis must start with {GetTitleForTraceEntity("SystemRequirement")}" +
@@ -205,7 +204,7 @@ namespace RoboClerk
                 result[truth].Add(new List<Item> { req });
             }
 
-            foreach(var ts in requirementTraces)
+            foreach (var ts in requirementTraces)
             {
                 result[ts.Target] = new List<List<Item>>();
                 if (ts.Target.ID == "SoftwareRequirement")
@@ -221,7 +220,7 @@ namespace RoboClerk
                     }
                     continue;
                 }
-                if(ts.Target.ID == "SystemRequirement")
+                if (ts.Target.ID == "SystemRequirement")
                 {
                     //pull product requirements, match the product requirements with the software requirements
                     var prss = data.GetAllSystemRequirements();
@@ -253,10 +252,10 @@ namespace RoboClerk
             }
             return result;
         }
-        
+
         private void AnalyzeTruthReqTrace(RequirementItem pri, List<RequirementItem> family, TraceEntity source, TraceEntity target)
         {
-            if(!truthTraceIssues.ContainsKey(source))
+            if (!truthTraceIssues.ContainsKey(source))
             {
                 truthTraceIssues[source] = new List<TraceIssue>();
             }
@@ -265,11 +264,11 @@ namespace RoboClerk
                 truthTraceIssues[source].Add(new TraceIssue(source,
                     target, pri.RequirementID, TraceIssueType.PossiblyMissing));
             }
-        }      
+        }
 
         public void AddTraceTag(string docTitle, RoboClerkTag tag)
         {
-            if(!tag.Parameters.ContainsKey("ID"))
+            if (!tag.Parameters.ContainsKey("ID"))
             {
                 var ex = new TagInvalidException(tag.Contents, "Trace tag is missing \"ID\" parameter indicating the identity of the truth item.");
                 ex.DocumentTitle = docTitle;
@@ -279,19 +278,19 @@ namespace RoboClerk
             {
                 documentTraceLinks[docTitle] = new List<TraceLink>();
             }
-            
+
             TraceEntity tlt = null;
-            foreach(var entity in traceEntities)
+            foreach (var entity in traceEntities)
             {
-                if(tag.ContentCreatorID == entity.Name || tag.ContentCreatorID == entity.ID || tag.ContentCreatorID == entity.Abbreviation)
+                if (tag.ContentCreatorID == entity.Name || tag.ContentCreatorID == entity.ID || tag.ContentCreatorID == entity.Abbreviation)
                 {
                     tlt = entity;
                 }
             }
 
-            TraceLink link = new TraceLink(tlt,GetTraceEntityForTitle(docTitle),tag.Parameters["ID"]);
+            TraceLink link = new TraceLink(tlt, GetTraceEntityForTitle(docTitle), tag.Parameters["ID"]);
             documentTraceLinks[docTitle].Add(link);
-        }    
+        }
 
         public void AddTrace(string docTitle, TraceLink link)
         {
@@ -328,9 +327,9 @@ namespace RoboClerk
 
         public TraceEntity GetTraceEntityForTitle(string title)
         {
-            foreach( var entry in traceEntities)
+            foreach (var entry in traceEntities)
             {
-                if(entry.Name == title)
+                if (entry.Name == title)
                 {
                     return entry;
                 }
@@ -352,9 +351,9 @@ namespace RoboClerk
 
         public TraceEntity GetTraceEntityForAnyProperty(string prop)
         {
-            foreach(var et in traceEntities)
+            foreach (var et in traceEntities)
             {
-                if( et.ID == prop || et.Name == prop || et.Abbreviation == prop)
+                if (et.ID == prop || et.Name == prop || et.Abbreviation == prop)
                 {
                     return et;
                 }
@@ -364,7 +363,7 @@ namespace RoboClerk
 
         public IEnumerable<TraceLink> GetTraceLinksForDocument(string docTitle)
         {
-            if(documentTraceLinks.ContainsKey(docTitle))
+            if (documentTraceLinks.ContainsKey(docTitle))
             {
                 return documentTraceLinks[docTitle];
             }
@@ -378,7 +377,7 @@ namespace RoboClerk
                 return documentTraceIssues[docTitle];
             }
             return new List<TraceIssue>();
-        }  
+        }
 
         public IEnumerable<TraceIssue> GetTraceIssuesForDocument(TraceEntity tet)
         {
@@ -387,7 +386,7 @@ namespace RoboClerk
 
         public IEnumerable<TraceIssue> GetTraceIssuesForTruth(TraceEntity tet)
         {
-            if(!truthTraceIssues.ContainsKey(tet))
+            if (!truthTraceIssues.ContainsKey(tet))
             {
                 return new List<TraceIssue>();
             }

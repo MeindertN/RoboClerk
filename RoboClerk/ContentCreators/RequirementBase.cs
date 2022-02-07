@@ -1,6 +1,4 @@
-﻿using System;
-using System.Reflection;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 
 namespace RoboClerk.ContentCreators
@@ -25,7 +23,7 @@ namespace RoboClerk.ContentCreators
             foreach (var requirement in requirements)
             {
                 if (ShouldBeIncluded(tag, requirement, properties))
-                { 
+                {
                     foundRequirement = true;
                     output.AppendLine(requirement.ToText());
                     analysis.AddTrace(docTitle, new TraceLink(sourceType, analysis.GetTraceEntityForTitle(docTitle), requirement.RequirementID));

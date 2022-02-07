@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
@@ -12,7 +10,7 @@ namespace RoboClerk.ContentCreators
             StringBuilder output = new StringBuilder();
             foreach (var bug in bugs)
             {
-                if(bug.AnomalyState == "Closed")
+                if (bug.AnomalyState == "Closed")
                 {
                     continue; //skip closed bugs as they are no longer outstanding
                 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace RoboClerk
@@ -30,16 +29,16 @@ namespace RoboClerk
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, HasLink ? $"[{anomalyID}]({link})" : anomalyID));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Revision:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, anomalyRevision == string.Empty ? "N/A": anomalyRevision));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, anomalyRevision == string.Empty ? "N/A" : anomalyRevision));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "State:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, anomalyState == string.Empty ? "N/A": anomalyState));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, anomalyState == string.Empty ? "N/A" : anomalyState));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Assigned To:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, anomalyAssignee == string.Empty ? "NOT ASSIGNED": anomalyAssignee));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, anomalyAssignee == string.Empty ? "NOT ASSIGNED" : anomalyAssignee));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Title:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, anomalyTitle == string.Empty ? "MISSING": anomalyTitle));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, anomalyTitle == string.Empty ? "MISSING" : anomalyTitle));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Priority:"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, anomalyPriority == string.Empty ? "N/A" : anomalyPriority));

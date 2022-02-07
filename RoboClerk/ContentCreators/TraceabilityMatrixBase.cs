@@ -17,14 +17,14 @@ namespace RoboClerk.ContentCreators
         public virtual string GetContent(RoboClerkTag tag, DataSources data, TraceabilityAnalysis analysis, string docTitle)
         {
             var traceMatrix = analysis.PerformAnalysis(data, truthSource);
-             
+
             if (traceMatrix.Count == 0)
             {
                 throw new Exception($"{truthSource} level trace matrix is empty.");
             }
-            
+
             List<string> columnHeaders = new List<string>();
-            foreach(var entry in traceMatrix)
+            foreach (var entry in traceMatrix)
             {
                 if (entry.Key.ID == "SystemRequirement" || entry.Key.ID == "SoftwareRequirement")
                 {
@@ -39,10 +39,10 @@ namespace RoboClerk.ContentCreators
             StringBuilder matrix = new StringBuilder();
             matrix.Append(MarkdownTableUtils.GenerateTraceMatrixHeader(columnHeaders));
 
-            for( int index = 0; index<traceMatrix[truthSource].Count; ++index)
+            for (int index = 0; index < traceMatrix[truthSource].Count; ++index)
             {
                 List<string> line = new List<string>();
-                foreach(var entry in traceMatrix)
+                foreach (var entry in traceMatrix)
                 {
                     if (entry.Value[index].Count == 0)
                     {
@@ -98,7 +98,7 @@ namespace RoboClerk.ContentCreators
                     string targetTitle = issue.Target.Name;
                     Item item = data.GetItem(issue.TraceID);
                     string identifierText = issue.TraceID;
-                    if(item != null)
+                    if (item != null)
                     {
                         identifierText = (item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID);
                     }
@@ -120,7 +120,7 @@ namespace RoboClerk.ContentCreators
                     }
                 }
             }
-            if(!traceIssuesFound)
+            if (!traceIssuesFound)
             {
                 matrix.AppendLine($"* No {truthSource.Name} level trace problems detected!");
             }

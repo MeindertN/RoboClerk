@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using RoboClerk;
 using System;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -164,7 +163,7 @@ There is some text @@Foo:inline()@@ in this line.
             Assert.AreEqual("empty", tags[1].ContentCreatorID);
             Assert.AreEqual("huff", tags[2].ContentCreatorID);
             Assert.AreEqual("inline", tags[5].ContentCreatorID);
-            Assert.AreEqual("SoftwareRequirements", tags[6].ContentCreatorID);
+            Assert.AreEqual("SWR", tags[6].ContentCreatorID);
         }
 
         [Test]

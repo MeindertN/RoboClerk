@@ -1,12 +1,12 @@
 ﻿
+using RoboClerk.ContentCreators;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using Tomlyn;
 using Tomlyn.Model;
-using RoboClerk.ContentCreators;
-using System.Reflection;
-using System;
-using System.Linq;
 
 namespace RoboClerk
 {
@@ -19,8 +19,8 @@ namespace RoboClerk
     public class RoboClerkCore
     {
         private DataSources dataSources = null;
-        private Dictionary<string, (string, string)> documents = //key identifies the document
-            new Dictionary<string, (string, string)>(); //first string in value is the filename and second is file content
+        private Dictionary<string, (Document, Commands)> documents = //key identifies the document
+            new Dictionary<string, (Document, Commands)>(); //first string in value is the filename and second is file content
         private TraceabilityAnalysis traceAnalysis = null;
         private string outputDir = string.Empty;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
@@ -28,13 +28,13 @@ namespace RoboClerk
         public RoboClerkCore(string configFile, string projectConfigFile)
         {
             logger.Debug($"Loading configuration files into RoboClerk: {configFile} and {projectConfigFile}");
-            (configFile,projectConfigFile) = LoadConfigFiles(configFile, projectConfigFile);
+            (configFile, projectConfigFile) = LoadConfigFiles(configFile, projectConfigFile);
             logger.Debug("Setting up data sources");
             dataSources = new DataSources(configFile, projectConfigFile);
             logger.Debug("initiating traceability analysis");
             traceAnalysis = new TraceabilityAnalysis(projectConfigFile);
             logger.Debug("Processing the configuration files");
-            ProcessConfigs(configFile,projectConfigFile);
+            ProcessConfigs(configFile, projectConfigFile);
         }
 
         private (string, string) LoadConfigFiles(string configFile, string projectConfigFile)
@@ -45,7 +45,7 @@ namespace RoboClerk
             {
                 config = File.ReadAllText(configFile);
             }
-            catch(IOException e)
+            catch (IOException e)
             {
                 throw new Exception($"Unable to read config file: {configFile}");
             }
@@ -53,7 +53,7 @@ namespace RoboClerk
             {
                 projectConfig = File.ReadAllText(projectConfigFile);
             }
-            catch(IOException e)
+            catch (IOException e)
             {
                 throw new Exception($"Unable to read project config file {projectConfigFile}");
             }
@@ -62,29 +62,38 @@ namespace RoboClerk
 
         private void ProcessConfigs(string config, string projectConfig)
         {
-            var toml = Toml.Parse(projectConfig).ToModel();
+            //read in the output dir
+            var toml = Toml.Parse(config).ToModel();
+            outputDir = (string)toml["OutputDirectory"];
+            //read in the documents 
+            toml = Toml.Parse(projectConfig).ToModel();
             foreach (var doctable in (TomlTable)toml["Document"])
             {
                 TomlTable doc = (TomlTable)doctable.Value;
-                if(!doc.ContainsKey("template"))
+                if (!doc.ContainsKey("template"))
                 {
                     throw new Exception($"Error reading template location out of project config file for document {doctable.Key}");
                 }
-                
+
                 if ((string)doc["template"] != string.Empty)
                 {
                     try
                     {
-                        documents[(string)doc["title"]] = ((string)doc["template"], File.ReadAllText((string)doc["template"]));
+                        Document document = new Document((string)doc["title"]);
+                        document.FromFile((string)doc["template"]);
+                        Commands commands = null;
+                        if (doc.ContainsKey("Command"))
+                        {
+                            commands = new Commands((TomlTableArray)doc["Command"], outputDir, Path.GetFileName((string)doc["template"]));
+                        }
+                        documents[(string)doc["title"]] = (document, commands);
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         throw new Exception($"Unable to read document {doctable.Key} from {(string)doc["template"]}. Check project config file and template file location.");
                     }
                 }
             }
-            toml = Toml.Parse(config).ToModel();
-            outputDir = (string)toml["OutputDirectory"];
         }
 
         public void GenerateDocs()
@@ -93,20 +102,16 @@ namespace RoboClerk
             var tempDic = new Dictionary<string, (string, string)>();
             foreach (var doc in documents)
             {
-
-                //load the document from disk into a document structure
                 logger.Info($"Generating document: {doc.Key}");
-                Document document = new Document(doc.Key);
-                document.FromText(doc.Value.Item2);
                 //go over the tag list to determine what information should be collected from where
-                foreach(var tag in document.RoboClerkTags)
+                foreach (var tag in doc.Value.Item1.RoboClerkTags)
                 {
-                    if(tag.Source == DataSource.Trace)
+                    if (tag.Source == DataSource.Trace)
                     {
-                        logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID","ERROR")}");
+                        logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID", "ERROR")}");
                         //grab trace tag and add to the trace analysis
                         IContentCreator contentCreator = new Trace();
-                        tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, document.Title);
+                        tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, doc.Value.Item1.Title);
                         continue;
                     }
                     if (tag.Source != DataSource.Info && tag.Source != DataSource.Unknown)
@@ -121,11 +126,11 @@ namespace RoboClerk
                             logger.Debug($"Looking for content creator class: {tag.ContentCreatorID}");
                             var te = traceAnalysis.GetTraceEntityForAnyProperty(tag.ContentCreatorID);
 
-                            IContentCreator contentCreator = GetContentObject(te==null?tag.ContentCreatorID:te.ID);
+                            IContentCreator contentCreator = GetContentObject(te == null ? tag.ContentCreatorID : te.ID);
                             if (contentCreator != null)
                             {
                                 logger.Debug($"Content creator {tag.ContentCreatorID} found.");
-                                tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, document.Title);
+                                tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, doc.Value.Item1.Title);
                                 continue;
                             }
                             logger.Warn($"Content creator {tag.ContentCreatorID} not found.");
@@ -134,10 +139,8 @@ namespace RoboClerk
                     }
                 }
                 logger.Info($"Finished creating document {doc.Value.Item1}");
-                tempDic[doc.Key] = (doc.Value.Item1,document.ToText());
             }
             logger.Info("Finished creating documents.");
-            documents = tempDic;
         }
 
         public void SaveDocumentsToDisk()
@@ -145,8 +148,11 @@ namespace RoboClerk
             logger.Info($"Saving documents to directory: {outputDir}");
             foreach (var doc in documents)
             {
-                logger.Debug($"Writing document to disk: {Path.GetFileName(doc.Value.Item1)}");
-                File.WriteAllText(Path.Combine(outputDir,Path.GetFileName(doc.Value.Item1)), doc.Value.Item2);
+                logger.Debug($"Writing document to disk: {Path.GetFileName(doc.Value.Item1.TemplateFile)}");
+                File.WriteAllText(Path.Combine(outputDir, Path.GetFileName(doc.Value.Item1.TemplateFile)), doc.Value.Item1.ToText());
+                //run the commands
+                logger.Info($"Running commands associated with {doc.Key}");
+                doc.Value.Item2.RunCommands();
             }
         }
 

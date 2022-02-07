@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
@@ -22,7 +20,7 @@ namespace RoboClerk.ContentCreators
             var properties = typeof(TestCaseItem).GetProperties();
             foreach (var test in systemTests)
             {
-                if(ShouldBeIncluded(tag,test,properties) )
+                if (ShouldBeIncluded(tag, test, properties))
                 {
                     testCaseFound = true;
                     output.AppendLine(test.ToText());
@@ -35,7 +33,7 @@ namespace RoboClerk.ContentCreators
             }
             if (!testCaseFound)
             {
-                return $"Unable to find {(automated?"automated":"manual")} test case(s). Check if test cases are provided or if a valid test case identifier is specified.";
+                return $"Unable to find {(automated ? "automated" : "manual")} test case(s). Check if test cases are provided or if a valid test case identifier is specified.";
             }
             return output.ToString();
         }

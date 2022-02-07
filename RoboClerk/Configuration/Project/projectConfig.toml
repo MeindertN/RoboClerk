@@ -26,66 +26,121 @@
 	abbreviation = "BG"
 
 # Document specification, a specification should be created for each document that RoboClerk should know about
-# The document specification needs to have an identifier, a title, an abbreviation and a file location (can be empty)
-# Additionally, you can specify post processing steps as commandline commands that RoboClerk will execute after it 
+# The document specification needs to have an identifier, a title, an abbreviation and a file location (can be empty).
+# Optionally, you can specify post processing steps as commandline commands that RoboClerk will execute in order after it 
 # has produced the markdown versions of the documents. Each document should be specified below in the following format:
 #
 #	[Document.<IDENTIFIER>]
 #		title = "<TITLE OF THE DOCUMENT>"
 #		abbreviation = "<ABBREVIATION>"
 #		template = "<TEMPLATE FILE LOCATION>"
-#		commands = ["<COMMAND1>","<COMMAND2>"]
+#		[[Document.<IDENTIFIER>.Command]]
+#			executable = "<PATH_TO_EXECUTABLE>"
+#			arguments = "<ARGUMENTS>"
+#			workingDirectory = "<WORKING_DIRECTORY>"
+#			ignoreErrors = "False"
+#		[[Document.<IDENTIFIER>.Command]]
+#			executable = "<PATH_TO_EXECUTABLE>"
+#			arguments = "<ARGUMENTS>"
+#			workingDirectory = "<WORKING_DIRECTORY>"
+#			ignoreErrors = "False"
 #
-# In the commands one can use the %OUTPUTFILE% variable to indicate the location of the output file that should be
-# processed. The variable %OUTPUTDIR% is the output directory. RoboClerk will assign these variable the correct values.
+# RoboClerk will check the command exit code. If the exit code indicates an error, RoboClerk throws an exception and stops  
+# processing. To ignore exit codes set ignoreErrors = "True". In the commands one can use the %OUTPUTFILE% variable to 
+# indicate the location of the  output file that should be processed. The variable %OUTPUTDIR% is the output directory.  
+# Note that the value of %OUTPUTDIR% is provided in the general configuration file. RoboClerk will assign these variables
+# the correct values.
 
 [Document.SystemRequirementsSpecification]
 	title = "System Requirements Specification"
 	abbreviation = "PRS"
 	template = "I:/temp/SystemRequirementSpecification.md"
-	commands = []
+	[[Document.SystemRequirementsSpecification.Command]]
+		executable = "pandoc"
+		arguments = "-s %OUTPUTDIR%/SystemRequirementSpecification.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/SystemRequirementSpecification.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
 
 [Document.SoftwareRequirementsSpecification]
 	title = "Software Requirements Specification"
 	abbreviation = "SRS"
 	template = "I:/temp/SoftwareRequirementSpecification.md"
-	commands = []
+	[[Document.SoftwareRequirementsSpecification.Command]]
+		executable = "pandoc"
+		arguments = "-s %OUTPUTDIR%/SoftwareRequirementSpecification.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/SoftwareRequirementSpecification.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
 
 [Document.SoftwareDevelopmentPlan]
 	title = "Software Development Plan"
 	abbreviation = "SDP"
 	template = ""
-	commands = []
+	[[Document.SoftwareDevelopmentPlan.Command]]
+		executable = ""
+		arguments = ""
+		workingDirectory = ""
+		ignoreErrors = "False"
 
 [Document.SoftwareDesignSpecification]
 	title = "Software Design Specification"
 	abbreviation = "SDS"
 	template  = "I:/temp/SoftwareDesignSpecification.md"
-	commands = []
+	[[Document.SoftwareDesignSpecification.Command]]
+		executable = ""
+		arguments = ""
+		workingDirectory = ""
+		ignoreErrors = "False"
 
 [Document.RiskAssessmentRecord]
 	title = "Risk Assessment Record"
 	abbreviation = "RAR"
 	template  = ""
-	commands = []
+	[[Document.RiskAssessmentRecord.Command]]
+		executable = ""
+		arguments = ""
+		workingDirectory = ""
+		ignoreErrors = "False"
 
 [Document.SystemLevelTestPlan]
 	title = "System Level Test Plan"
 	abbreviation = "SLTP"
 	template = "I:/temp/SystemLevelTestPlan.md"
-	commands = []
+	[[Document.SystemLevelTestPlan.Command]]
+		executable = "pandoc"
+		arguments = "-s %OUTPUTDIR%/SystemLevelTestPlan.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/SystemLevelTestPlan.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.SystemLevelTestPlan.Command]]
+		executable = "I:/Users/meind/WPy64-3950/python-3.9.5.amd64/python.exe"
+		arguments = "I:/code/RoboClerk/DocxProcessingScripts/SystemLevelTestPlan.py %OUTPUTDIR%/SystemLevelTestPlan.docx %OUTPUTDIR%/SystemLevelTestPlan.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.SystemLevelTestPlan.Command]]
+		executable = "I:/Users/meind/WPy64-3950/python-3.9.5.amd64/python.exe"
+		arguments = "I:/code/RoboClerk/DocxProcessingScripts/GeneralDocxPostProc.py %OUTPUTDIR%/SystemLevelTestPlan.docx %OUTPUTDIR%/SystemLevelTestPlan.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	
 
 [Document.ResidualAnomaliesRecord]
 	title = "Unresolved Anomalies List"
 	abbreviation = "UAL"
 	template = "I:/temp/ResidualAnomaliesRecord.md"
-	commands = []
+	[[Document.ResidualAnomaliesRecord.Command]]
+		executable = "pandoc"
+		arguments = "-s %OUTPUTDIR%/ResidualAnomaliesRecord.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/ResidualAnomaliesRecord.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
 
 [Document.TraceAbilityAnalysisRecord]
 	title = "Traceability Analysis Record"
 	abbreviation = "TAR"
 	template = "I:/temp/TraceabilityAnalysisRecord.md"
-	commands = []
+	[[Document.TraceAbilityAnalysisRecord.Command]]
+		executable = "pandoc"
+		arguments = "-s %OUTPUTDIR%/TraceabilityAnalysisRecord.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/TraceabilityAnalysisRecord.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
 
 # Use the trace config to configure what documents shall be traced and what in those documents must trace.
 # Two levels of requirements are distinguished, product and software requirements. In the table below, both

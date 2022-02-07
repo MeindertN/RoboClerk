@@ -241,3 +241,4 @@ _Pvt_Extensions
 **/.idea/**/*.iml
 **/.idea/**/contentModel.xml
 **/.idea/**/modules.xml
+/DocxProcessingScripts/.idea

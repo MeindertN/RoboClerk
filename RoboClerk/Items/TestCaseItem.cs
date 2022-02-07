@@ -101,7 +101,7 @@ namespace RoboClerk
         private int getMaxTestStepElementLength(int v)
         {
             int maxLength = 0;
-            foreach( var step in testCaseSteps )
+            foreach (var step in testCaseSteps)
             {
                 maxLength = Math.Max(maxLength, step[v].Length);
             }

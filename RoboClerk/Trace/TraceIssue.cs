@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace RoboClerk
+﻿namespace RoboClerk
 {
     public enum TraceIssueType
     {
@@ -10,7 +6,7 @@ namespace RoboClerk
         Missing,
         PossiblyExtra,
         PossiblyMissing
-    }; 
+    };
 
     public class TraceIssue : TraceLink
     {
