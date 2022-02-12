@@ -1,6 +1,5 @@
-﻿@@@Info:title()
-# Outstanding Bugs
-@@@
+﻿# Outstanding Bugs
+
 for
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
   

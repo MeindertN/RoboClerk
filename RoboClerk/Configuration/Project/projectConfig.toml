@@ -54,7 +54,7 @@
 [Document.SystemRequirementsSpecification]
 	title = "System Requirements Specification"
 	abbreviation = "PRS"
-	template = "I:/temp/SystemRequirementSpecification.md"
+	template = "I:/temp/roboclerk_input/SystemRequirementSpecification.md"
 	[[Document.SystemRequirementsSpecification.Command]]
 		executable = "pandoc"
 		arguments = "-s %OUTPUTDIR%/SystemRequirementSpecification.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/SystemRequirementSpecification.docx"
@@ -64,7 +64,7 @@
 [Document.SoftwareRequirementsSpecification]
 	title = "Software Requirements Specification"
 	abbreviation = "SRS"
-	template = "I:/temp/SoftwareRequirementSpecification.md"
+	template = "I:/temp/roboclerk_input/SoftwareRequirementSpecification.md"
 	[[Document.SoftwareRequirementsSpecification.Command]]
 		executable = "pandoc"
 		arguments = "-s %OUTPUTDIR%/SoftwareRequirementSpecification.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/SoftwareRequirementSpecification.docx"
@@ -84,7 +84,7 @@
 [Document.SoftwareDesignSpecification]
 	title = "Software Design Specification"
 	abbreviation = "SDS"
-	template  = "I:/temp/SoftwareDesignSpecification.md"
+	template  = "I:/temp/roboclerk_input/SoftwareDesignSpecification.md"
 	[[Document.SoftwareDesignSpecification.Command]]
 		executable = ""
 		arguments = ""
@@ -104,7 +104,7 @@
 [Document.SystemLevelTestPlan]
 	title = "System Level Test Plan"
 	abbreviation = "SLTP"
-	template = "I:/temp/SystemLevelTestPlan.md"
+	template = "I:/temp/roboclerk_input/SystemLevelTestPlan.md"
 	[[Document.SystemLevelTestPlan.Command]]
 		executable = "pandoc"
 		arguments = "-s %OUTPUTDIR%/SystemLevelTestPlan.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/SystemLevelTestPlan.docx"
@@ -125,7 +125,7 @@
 [Document.ResidualAnomaliesRecord]
 	title = "Unresolved Anomalies List"
 	abbreviation = "UAL"
-	template = "I:/temp/ResidualAnomaliesRecord.md"
+	template = "I:/temp/roboclerk_input/ResidualAnomaliesRecord.md"
 	[[Document.ResidualAnomaliesRecord.Command]]
 		executable = "pandoc"
 		arguments = "-s %OUTPUTDIR%/ResidualAnomaliesRecord.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/ResidualAnomaliesRecord.docx"
@@ -135,10 +135,15 @@
 [Document.TraceAbilityAnalysisRecord]
 	title = "Traceability Analysis Record"
 	abbreviation = "TAR"
-	template = "I:/temp/TraceabilityAnalysisRecord.md"
+	template = "I:/temp/roboclerk_input/TraceabilityAnalysisRecord.md"
 	[[Document.TraceAbilityAnalysisRecord.Command]]
 		executable = "pandoc"
 		arguments = "-s %OUTPUTDIR%/TraceabilityAnalysisRecord.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/TraceabilityAnalysisRecord.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.TraceAbilityAnalysisRecord.Command]]
+		executable = "I:/Users/meind/WPy64-3950/python-3.9.5.amd64/python.exe"
+		arguments = "I:/code/RoboClerk/DocxProcessingScripts/GeneralDocxPostProc.py %OUTPUTDIR%/TraceabilityAnalysisRecord.docx %OUTPUTDIR%/TraceabilityAnalysisRecord.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 

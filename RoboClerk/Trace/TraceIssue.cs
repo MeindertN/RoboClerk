@@ -4,6 +4,7 @@
     {
         Extra,
         Missing,
+        Incorrect,
         PossiblyExtra,
         PossiblyMissing
     };
@@ -12,8 +13,8 @@
     {
         private TraceIssueType issueType;
 
-        public TraceIssue(TraceEntity source, TraceEntity target, string id, TraceIssueType it)
-            : base(source, target, id)
+        public TraceIssue(TraceEntity source, string sourceID, TraceEntity target, string targetID, TraceIssueType it)
+            : base(source, sourceID, target, targetID)
         {
             issueType = it;
             base.valid = false;
@@ -26,7 +27,7 @@
 
         public override int GetHashCode()
         {
-            return source.GetHashCode() ^ target.GetHashCode() ^ TraceID.GetHashCode();
+            return source.GetHashCode() ^ target.GetHashCode() ^ SourceID.GetHashCode() ^ TargetID.GetHashCode() ;
         }
 
 
@@ -35,7 +36,8 @@
             var comp = obj as TraceIssue;
             return (comp.Source == source) &&
                 (comp.Target == target) &&
-                (comp.TraceID == TraceID);
+                (comp.SourceID == SourceID) &&
+                (comp.TargetID == TargetID);
         }
     }
 }

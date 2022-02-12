@@ -1,6 +1,6 @@
-@@@Info:title()
+
 # Software Requirements Specification
-@@@
+
 for
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
   

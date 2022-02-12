@@ -110,7 +110,7 @@ namespace RoboClerk
             }
         }
 
-        private void CheckDocumentTrace(List<RequirementItem> truthItems, List<List<Item>> traceData, TraceEntity tet, TraceSpecification ts)
+        private void CheckDocumentTrace(DataSources data, List<RequirementItem> truthItems, List<List<Item>> traceData, TraceEntity tet, TraceSpecification ts)
         {
             var documentTitle = ts.Target.Name;
             documentTraceIssues[documentTitle] = new List<TraceIssue>();
@@ -127,17 +127,23 @@ namespace RoboClerk
 
             foreach (var req in truthItems)
             {
-                var foundLinks = from t in tls where (t.TraceID == req.RequirementID && t.Source.Equals(tet)) select t;
+                var foundLinks = from t in tls where (t.SourceID == req.RequirementID && t.Source.Equals(tet)) select t;
                 if (foundLinks.Count() > 0)
                 {
-                    traceData.Add(new List<Item>() { req }); //TODO: need to add support for exclusive traces where only traces of a certain type are allowed to trace (e.g. only Risk Controls can trace to RAR)
+                    List<Item> items = new List<Item>();
+                    foreach (var item in foundLinks)
+                    {
+                        items.Add(data.GetItem(item.TargetID));
+                    }
+                    //TODO: need to add support for exclusive traces where only traces of a certain type are allowed to trace (e.g. only Risk Controls can trace to RAR)
+                    traceData.Add(items); 
                 }
                 else
                 {
                     if (ts.CompleteTrace)
                     {
                         traceData.Add(new List<Item> { null });
-                        var ti = new TraceIssue(tet, ts.Target, req.RequirementID, TraceIssueType.Missing);
+                        var ti = new TraceIssue(tet, req.RequirementID, ts.Target, req.RequirementID, TraceIssueType.Missing);
                         if (!documentTraceIssues[documentTitle].Contains(ti))
                         {
                             documentTraceIssues[documentTitle].Add(ti);
@@ -146,7 +152,7 @@ namespace RoboClerk
                     else if (ts.SelectedCategories.Contains(req.RequirementCategory))
                     {
                         traceData.Add(new List<Item> { null });
-                        var ti = new TraceIssue(tet, ts.Target, req.RequirementID, TraceIssueType.Missing);
+                        var ti = new TraceIssue(tet, req.RequirementID, ts.Target, req.RequirementID, TraceIssueType.Missing);
                         if (!documentTraceIssues[documentTitle].Contains(ti))
                         {
                             documentTraceIssues[documentTitle].Add(ti);
@@ -162,10 +168,19 @@ namespace RoboClerk
             {
                 if (tl.Source == tet)
                 {
-                    var foundLinks = from t in truthItems where (t.RequirementID == tl.TraceID) select t;
+                    var foundLinks = from t in truthItems where (t.RequirementID == tl.SourceID) select t;
                     if (foundLinks.Count() == 0)
                     {
-                        var ti = new TraceIssue(ts.Target, tet, tl.TraceID, TraceIssueType.Extra);
+                        TraceIssue ti = null;
+                        if (tl.TargetID == tl.SourceID)
+                        {
+                            ti = new TraceIssue(ts.Target, tl.TargetID, tet, tl.SourceID, TraceIssueType.Extra);
+                        }
+                        else
+                        {
+                            var item = data.GetItem(tl.SourceID);
+                            ti = new TraceIssue(ts.Target, tl.TargetID, tet, tl.SourceID, TraceIssueType.Incorrect);
+                        }
                         if (!documentTraceIssues[documentTitle].Contains(ti))
                         {
                             documentTraceIssues[documentTitle].Add(ti);
@@ -233,7 +248,7 @@ namespace RoboClerk
                     }
                     continue;
                 }
-                CheckDocumentTrace(truthItems, result[ts.Target], truth, ts);
+                CheckDocumentTrace(data, truthItems, result[ts.Target], truth, ts);
             }
             return result;
         }
@@ -261,8 +276,7 @@ namespace RoboClerk
             }
             if (family.Count == 0)
             {
-                truthTraceIssues[source].Add(new TraceIssue(source,
-                    target, pri.RequirementID, TraceIssueType.PossiblyMissing));
+                truthTraceIssues[source].Add(new TraceIssue(source, pri.RequirementID, target, pri.RequirementID, TraceIssueType.PossiblyMissing));
             }
         }
 
@@ -288,7 +302,7 @@ namespace RoboClerk
                 }
             }
 
-            TraceLink link = new TraceLink(tlt, GetTraceEntityForTitle(docTitle), tag.Parameters["ID"]);
+            TraceLink link = new TraceLink(tlt, tag.Parameters["ID"], GetTraceEntityForTitle(docTitle), tag.Parameters["ID"]);
             documentTraceLinks[docTitle].Add(link);
         }
 

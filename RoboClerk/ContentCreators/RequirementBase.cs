@@ -26,7 +26,7 @@ namespace RoboClerk.ContentCreators
                 {
                     foundRequirement = true;
                     output.AppendLine(requirement.ToText());
-                    analysis.AddTrace(docTitle, new TraceLink(sourceType, analysis.GetTraceEntityForTitle(docTitle), requirement.RequirementID));
+                    analysis.AddTrace(docTitle, new TraceLink(sourceType, requirement.RequirementID, analysis.GetTraceEntityForTitle(docTitle), requirement.RequirementID));
                 }
             }
             if (!foundRequirement)
