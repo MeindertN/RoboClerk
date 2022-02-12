@@ -4,7 +4,7 @@ from docx.oxml import OxmlElement
 import argparse
 
 
-def AddTOCToDocument(par):
+def AddTOCToDocument(document, par, num):
     paragraph = par.clear()
     header = paragraph.insert_paragraph_before("Table of Contents\n", "Heading 1")
     document.paragraphs[num + 1].paragraph_format.page_break_before = True
@@ -43,6 +43,13 @@ def DeleteLineFromDocument(par):
     par._p = par._element = None
 
 
+def InsertPageBreak(document, par, num):
+    document.paragraphs[num + 1].paragraph_format.page_break_before = True
+    p = par._element
+    p.getparent().remove(p)
+    par._p = par._element = None
+
+
 parser = argparse.ArgumentParser(description="Processes the docx and replaces postprocessing tags (marked with ~ in the"
                                              " document) with elements of the Docx.")
 
@@ -58,8 +65,10 @@ document = Document(inputFile)
 for num, par in enumerate(document.paragraphs):
     if '~' in par.text and par.text[0] == '~':
         if '~TOC' in par.text:
-            AddTOCToDocument(par)
-        elif '~REMOVE LINE' in par.text:
+            AddTOCToDocument(document, par, num)
+        elif '~REMOVEPARAGRAPH' in par.text:
             DeleteLineFromDocument(par)
-
+        elif '~PAGEBREAK' in par.text:
+            InsertPageBreak(document, par, num)
+            
 document.save(outputFile)

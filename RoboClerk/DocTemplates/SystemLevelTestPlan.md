@@ -1,6 +1,6 @@
-﻿@@@Info:title()
+﻿
 # System Level Test Plan
-@@@
+
 for
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
   

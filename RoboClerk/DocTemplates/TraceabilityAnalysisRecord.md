@@ -1,6 +1,6 @@
-﻿@@@Info:title()
+﻿
 # Traceability Analysis Record
-@@@
+
 for
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
   

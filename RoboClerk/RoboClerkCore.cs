@@ -114,12 +114,21 @@ namespace RoboClerk
                         tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, doc.Value.Item1.Title);
                         continue;
                     }
-                    if (tag.Source != DataSource.Info && tag.Source != DataSource.Unknown)
+                    if (tag.Source != DataSource.Unknown)
                     {
                         if (tag.Source == DataSource.Config)
                         {
                             logger.Debug($"Configuration file item requested: {tag.ContentCreatorID}");
                             tag.Contents = dataSources.GetConfigValue(tag.ContentCreatorID);
+                        }
+                        else if (tag.Source == DataSource.Comment)
+                        {
+                            tag.Contents = string.Empty;
+                        }
+                        else if (tag.Source == DataSource.Post)
+                        {
+                            IContentCreator cc = new PostLayout();
+                            tag.Contents = cc.GetContent(tag,dataSources,traceAnalysis, doc.Value.Item1.Title);
                         }
                         else
                         {

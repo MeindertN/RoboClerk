@@ -1,6 +1,6 @@
-﻿@@@Info:Title()
+﻿
 # Software Design Specification
-@@@
+
 for
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
   
@@ -8,6 +8,8 @@ Authors:
 @@@Config:authors()
 NOT FOUND
 @@@
+
+@@
 
 # Introduction
 ## Purpose
@@ -42,3 +44,8 @@ Just a line of text.
 
 @@@
 The above just tests to see if we can include a single product requirement
+
+@@@Comment:general()
+Things that are in comment tags will be removed when the document is processed. These comment blocks, when placed
+in templates, can help authors with using hte template in the right way.
+@@@

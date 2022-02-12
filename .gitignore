@@ -242,3 +242,4 @@ _Pvt_Extensions
 **/.idea/**/contentModel.xml
 **/.idea/**/modules.xml
 /DocxProcessingScripts/.idea
+/RoboClerk/ContentCreators/TraceabilityMatrix.cs

@@ -2,18 +2,31 @@
 {
     public class TraceLink : TraceBase
     {
-        protected string id = string.Empty;
+        protected string sourceID = string.Empty;
+        protected string targetID = string.Empty;
         protected bool valid = true;
 
-        public TraceLink(TraceEntity source, TraceEntity target, string id)
+        public TraceLink(TraceEntity source, string sourceID, TraceEntity target, string targetID)
             : base(source, target)
         {
-            this.id = id;
+            this.sourceID = sourceID;
+            this.targetID = targetID;
         }
 
-        public string TraceID
+        public string SourceID
         {
-            get => id;
+            get
+            {
+                return sourceID;
+            }
+        }
+
+        public string TargetID
+        {
+            get
+            {
+                return targetID;
+            }
         }
 
         public bool Valid

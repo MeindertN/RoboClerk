@@ -79,7 +79,8 @@ namespace RoboClerk
         Source, //found in the source code
         Config, //found in the RoboClerk project configuration file
         OTS, //found in a binary control system
-        Info, //informational tag, about the document contents
+        Post, //tag is inserted to indicate insertion of data for post processing tools
+        Comment, //comment tag, contents will be removed after processing
         Trace, //trace tage that is expected to be traced to this document
         Unknown //it is not known where to retrieve this information
     }
@@ -281,14 +282,15 @@ namespace RoboClerk
 
         private DataSource GetSource(string name)
         {
-            switch (name)
+            switch (name.ToUpper())
             {
                 case "SLMS": return DataSource.SLMS;
-                case "Source": return DataSource.Source;
-                case "Config": return DataSource.Config;
+                case "SOURCE": return DataSource.Source;
+                case "CONFIG": return DataSource.Config;
                 case "OTS": return DataSource.OTS;
-                case "Info": return DataSource.Info;
-                case "Trace": return DataSource.Trace;
+                case "POST": return DataSource.Post;
+                case "COMMENT": return DataSource.Comment;
+                case "TRACE": return DataSource.Trace;
             }
             return DataSource.Unknown;
         }

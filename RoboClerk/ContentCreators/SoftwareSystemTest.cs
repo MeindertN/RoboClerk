@@ -24,10 +24,11 @@ namespace RoboClerk.ContentCreators
                 {
                     testCaseFound = true;
                     output.AppendLine(test.ToText());
-                    analysis.AddTrace(docTitle, new TraceLink(analysis.GetTraceEntityForID("SoftwareSystemTest"), analysis.GetTraceEntityForTitle(docTitle), test.TestCaseID));
+                    analysis.AddTrace(docTitle, new TraceLink(analysis.GetTraceEntityForID("SoftwareSystemTest"), test.TestCaseID, analysis.GetTraceEntityForTitle(docTitle), test.TestCaseID));
+                    
                     foreach (var parent in test.Parents)
                     {
-                        analysis.AddTrace(docTitle, new TraceLink(analysis.GetTraceEntityForID("SoftwareRequirement"), analysis.GetTraceEntityForTitle(docTitle), parent.Item1));
+                        analysis.AddTrace(docTitle, new TraceLink(analysis.GetTraceEntityForID("SoftwareRequirement"), parent.Item1, analysis.GetTraceEntityForTitle(docTitle), test.TestCaseID));
                     }
                 }
             }
