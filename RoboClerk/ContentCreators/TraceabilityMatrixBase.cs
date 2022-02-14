@@ -14,7 +14,7 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        public virtual string GetContent(RoboClerkTag tag, DataSources data, TraceabilityAnalysis analysis, string docTitle)
+        public virtual string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle)
         {
             var traceMatrix = analysis.PerformAnalysis(data, truthSource);
 

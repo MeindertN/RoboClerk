@@ -4,10 +4,9 @@
 # For example: DataSourcePlugin = [ "AzureDevOpsSLMSPlugin", "RedmineCSVSLMSPlugin" ]
 DataSourcePlugin = [ "RedmineCSVSLMSPlugin" ]
 
-# These plugin directories are relative to the executing assembly. RoboClerk will
-# search for plugins in the subdirectories of the relative plugin dirs.
-# For example: RelativePluginDirs = [ "plugins" ]
-RelativePluginDirs = [ "../../../../RoboClerk.RedmineCSV/bin/Debug" ]
+# RoboClerk will search for plugins in the subdirectories of the plugin dirs.
+# For example: PluginDirs = [ "c:/temp/plugins" ]
+PluginDirs = [ "I:/code/RoboClerk/RoboClerk.RedmineCSV/bin/Debug/net6.0" ]
 
 # The output directory is where the output files and logs are placed
 OutputDirectory = "C:/temp/roboclerk"

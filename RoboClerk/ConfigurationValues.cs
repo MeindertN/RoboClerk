@@ -12,9 +12,8 @@ namespace RoboClerk
 
         }
 
-        public void FromToml(string config)
+        public void FromToml(TomlTable toml)
         {
-            var toml = Toml.Parse(config).ToModel();
             foreach (var val in (TomlTable)toml["ConfigValues"])
             {
                 keyValues[val.Key] = (string)val.Value;

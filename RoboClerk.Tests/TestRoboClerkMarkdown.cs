@@ -7,7 +7,7 @@ namespace RoboClerk.Tests
 {
     [TestFixture]
     [Description("These tests are for work item 9")]
-    public class TestRoboClerkMarkdown
+    internal class TestRoboClerkMarkdown
     {
         private string validText = @"This is a line of text.
 @@@SLMS:TheFirstInfo()
@@ -17,7 +17,7 @@ another line of text
 @@Source:testinfo()@@ @@Config:testinfo2()@@
 @@@OTS:empty()
 @@@
-@@@Info:huff()
+@@@Comment:huff()
 this is some contents
 it is even multiline
 # it contains a *header*
@@ -174,7 +174,7 @@ There is some text @@Foo:inline()@@ in this line.
             Assert.AreEqual(DataSource.Source, tags[3].Source);
             Assert.AreEqual(DataSource.Config, tags[4].Source);
             Assert.AreEqual(DataSource.OTS, tags[1].Source);
-            Assert.AreEqual(DataSource.Info, tags[2].Source);
+            Assert.AreEqual(DataSource.Comment, tags[2].Source);
             Assert.AreEqual(DataSource.Unknown, tags[5].Source);
             Assert.AreEqual(DataSource.Trace, tags[6].Source);
         }

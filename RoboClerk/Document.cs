@@ -12,9 +12,9 @@ namespace RoboClerk
 
         protected List<RoboClerkTag> roboclerkTags = new List<RoboClerkTag>();
 
-        public Document(string t)
+        public Document(string title)
         {
-            title = t;
+            this.title = title;
         }
 
         public void FromFile(string textFile)

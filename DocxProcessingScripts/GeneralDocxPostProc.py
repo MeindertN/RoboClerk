@@ -44,10 +44,12 @@ def DeleteLineFromDocument(par):
 
 
 def InsertPageBreak(document, par, num):
-    document.paragraphs[num + 1].paragraph_format.page_break_before = True
-    p = par._element
-    p.getparent().remove(p)
-    par._p = par._element = None
+    paragraph = par.clear()
+    if(len(document.paragraphs) <= num + 1 ):
+        document.paragraphs[num].paragraph_format.page_break_before = True
+    else:
+        document.paragraphs[num + 1].paragraph_format.page_break_before = True
+
 
 
 parser = argparse.ArgumentParser(description="Processes the docx and replaces postprocessing tags (marked with ~ in the"

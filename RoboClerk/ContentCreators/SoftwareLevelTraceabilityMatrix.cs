@@ -2,7 +2,7 @@
 {
     class SoftwareLevelTraceabilityMatrix : TraceabilityMatrixBase
     {
-        public override string GetContent(RoboClerkTag tag, DataSources data, TraceabilityAnalysis analysis, string docTitle)
+        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle)
         {
             truthSource = analysis.GetTraceEntityForID("SoftwareRequirement");
             truthTarget = analysis.GetTraceEntityForID("SystemRequirement");

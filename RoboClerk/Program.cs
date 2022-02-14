@@ -3,6 +3,9 @@ using System;
 using System.IO;
 using System.Reflection;
 using Tomlyn;
+using Microsoft.Extensions.DependencyInjection;
+using RoboClerk.Configuration;
+using System.IO.Abstractions;
 
 namespace RoboClerk
 {
@@ -53,7 +56,16 @@ namespace RoboClerk
 
             try
             {
-                RoboClerkCore core = new RoboClerkCore(roboClerkConfigFile, projectConfigFile);
+                var serviceProvider = new ServiceCollection()
+                    .AddTransient<IFileSystem, FileSystem>()
+                    .AddSingleton<IConfiguration>(x => new RoboClerk.Configuration.Configuration(x.GetRequiredService<IFileSystem>(),roboClerkConfigFile,projectConfigFile))
+                    .AddTransient<IPluginLoader, PluginLoader>()
+                    .AddSingleton<IDataSources, DataSources>()
+                    .AddSingleton<ITraceabilityAnalysis, TraceabilityAnalysis>()
+                    .AddSingleton<IRoboClerkCore, RoboClerkCore>()
+                    .BuildServiceProvider();
+
+                var core = serviceProvider.GetService<IRoboClerkCore>();
                 core.GenerateDocs();
                 core.SaveDocumentsToDisk();
             }

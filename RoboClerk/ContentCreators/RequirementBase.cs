@@ -14,7 +14,7 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        public override string GetContent(RoboClerkTag tag, DataSources sources, TraceabilityAnalysis analysis, string docTitle)
+        public override string GetContent(RoboClerkTag tag, IDataSources sources, ITraceabilityAnalysis analysis, string docTitle)
         {
             bool foundRequirement = false;
             //No selection needed, we return everything

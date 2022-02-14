@@ -4,7 +4,7 @@ namespace RoboClerk.ContentCreators
 {
     class Anomaly : IContentCreator
     {
-        public string GetContent(RoboClerkTag tag, DataSources data, TraceabilityAnalysis analysis, string docTitle)
+        public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle)
         {
             var bugs = data.GetAllAnomalies();
             StringBuilder output = new StringBuilder();

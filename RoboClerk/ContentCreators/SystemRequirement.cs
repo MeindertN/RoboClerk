@@ -4,7 +4,7 @@ namespace RoboClerk.ContentCreators
 {
     public class SystemRequirement : RequirementBase
     {
-        public override string GetContent(RoboClerkTag tag, DataSources sources, TraceabilityAnalysis analysis, string docTitle)
+        public override string GetContent(RoboClerkTag tag, IDataSources sources, ITraceabilityAnalysis analysis, string docTitle)
         {
             var te = analysis.GetTraceEntityForID("SystemRequirement");
             if (te == null)

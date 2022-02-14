@@ -11,7 +11,7 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        public override string GetContent(RoboClerkTag tag, DataSources data, TraceabilityAnalysis analysis, string docTitle)
+        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle)
         {
             var systemTests = data.GetAllSystemLevelTests();
             StringBuilder output = new StringBuilder();

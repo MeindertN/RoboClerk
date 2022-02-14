@@ -1,34 +1,30 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using Tomlyn;
-using Tomlyn.Model;
+﻿using RoboClerk.Configuration;
+using System.Collections.Generic;
 
 namespace RoboClerk
 {
-    public class DataSources
+    public class DataSources : IDataSources
     {
-        private ConfigurationValues configVals = null;
+        
         private List<ISLMSPlugin> slmsPlugins = new List<ISLMSPlugin>();
+        private readonly IConfiguration configuration = null;
+        private readonly IPluginLoader pluginLoader = null;
 
-        public DataSources(string configFile, string projectConfigFile)
+        public DataSources(IConfiguration configuration, IPluginLoader pluginLoader)
         {
-            configVals = new ConfigurationValues();
-            configVals.FromToml(projectConfigFile);
-            Configure(configFile);
+            this.pluginLoader = pluginLoader;  
+            this.configuration = configuration;
+
+            LoadPlugins();
         }
 
-        private void Configure(string config)
+        private void LoadPlugins()
         {
-            var toml = Toml.Parse(config).ToModel();
-
-            foreach (var val in (TomlArray)toml["DataSourcePlugin"])
+            foreach (var val in configuration.DataSourcePlugins)
             {
-                foreach (var dir in (TomlArray)toml["RelativePluginDirs"])
+                foreach (var dir in configuration.PluginDirs)
                 {
-                    string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}/{dir}";
-                    path = Path.GetFullPath(path);
-                    var plugin = PluginLoader.LoadPlugin<ISLMSPlugin>((string)val, path);
+                    var plugin = pluginLoader.LoadPlugin<ISLMSPlugin>((string)val, dir);
                     if (plugin != null)
                     {
                         plugin.Initialize();
@@ -131,7 +127,7 @@ namespace RoboClerk
 
         public string GetConfigValue(string key)
         {
-            return configVals.GetValue(key);
+            return configuration.ConfigVals.GetValue(key);
         }
     }
 }

@@ -1,104 +1,85 @@
-﻿using System;
+﻿using RoboClerk.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Tomlyn;
-using Tomlyn.Model;
 
 namespace RoboClerk
 {
 
-    public class TraceabilityAnalysis
+    internal class TraceabilityAnalysis : ITraceabilityAnalysis
     {
+        private IConfiguration configuration = null;
         private List<TraceEntity> traceEntities = new List<TraceEntity>();
         private Dictionary<string, List<TraceLink>> documentTraceLinks = new Dictionary<string, List<TraceLink>>();
-        //private Dictionary<TraceEntity, List<TraceLink>> truthTraceLinks = new Dictionary<TraceEntity, List<TraceLink>>();
         private Dictionary<string, List<TraceIssue>> documentTraceIssues = new Dictionary<string, List<TraceIssue>>();
         private Dictionary<TraceEntity, List<TraceIssue>> truthTraceIssues = new Dictionary<TraceEntity, List<TraceIssue>>();
         private readonly List<TraceSpecification> systemRequirementTraces = new List<TraceSpecification>();
         private readonly List<TraceSpecification> softwareRequirementTraces = new List<TraceSpecification>();
 
-        public TraceabilityAnalysis(string config)
+        public TraceabilityAnalysis(IConfiguration config)
         {
-            ParseConfigFile(config);
+            configuration = config;
+            Configure();
         }
 
-        private void ParseConfigFile(string config)
+        private void Configure()
         {
-            var toml = Toml.Parse(config).ToModel();
             //Truth entities
-            var truth = (TomlTable)toml["Truth"];
-            if (!truth.ContainsKey("SystemRequirement") || !truth.ContainsKey("SoftwareRequirement") ||
-                !truth.ContainsKey("SoftwareSystemTest") || !truth.ContainsKey("SoftwareUnitTest") ||
-                !truth.ContainsKey("Anomaly"))
+            var truth = configuration.TruthEntities;
+            CheckTruthEntities(truth);
+            foreach (var entity in truth)
             {
-                throw new Exception("Not all types of Truth entities were found in the project config file. Make sure the following are present: SystemRequirement, SoftwareRequirement, SoftwareSystemTest, SoftwareUnitTest, Anomaly");
-            }
-            foreach (var entityTable in truth)
-            {
-                TomlTable elements = (TomlTable)entityTable.Value;
-                if (!elements.ContainsKey("name") || !elements.ContainsKey("abbreviation"))
-                {
-                    throw new Exception($"Error while reading {entityTable.Key} truth entity from project config file. Check if all required elements (\"name\" and \"abbreviation\") are present.");
-                }
-                TraceEntity entity = new TraceEntity(entityTable.Key, (string)elements["name"], (string)elements["abbreviation"]);
                 foreach (var el in traceEntities)
                 {
                     if (entity.Abbreviation == el.Abbreviation ||
                         entity.Name == el.Name)
                     {
-                        throw new Exception($"Detected a duplicate abbreviation or name in Truth.{entityTable.Key}. All IDs, names and abbreviations must be unique.");
+                        throw new Exception($"Detected a duplicate abbreviation or name in Truth.{entity.ID}. All IDs, names and abbreviations must be unique.");
                     }
                 }
                 traceEntities.Add(entity);
             }
             //document trace entity extraction
-            foreach (var docloc in (TomlTable)toml["Document"])
+            foreach (var docloc in configuration.Documents)
             {
-                TomlTable elements = (TomlTable)docloc.Value;
-                if (!elements.ContainsKey("title") || !elements.ContainsKey("abbreviation") ||
-                    !elements.ContainsKey("template") || !elements.ContainsKey("Command"))
-                {
-                    throw new Exception($"Error while reading {docloc.Key} document from project config file. Check if all required elements (\"title\",\"abbreviation\",\"template\" and \"commands\") are present.");
-                }
-                TraceEntity entity = new TraceEntity(docloc.Key, (string)elements["title"], (string)elements["abbreviation"]);
+                TraceEntity entity = new TraceEntity(docloc.DocumentID, docloc.DocumentTitle, docloc.DocumentAbbreviation);
                 foreach (var el in traceEntities)
                 {
                     if (entity.Abbreviation == el.Abbreviation ||
                         entity.Name == el.Name)
                     {
-                        throw new Exception($"Detected a duplicate abbreviation or name in Document.{docloc.Key}. All IDs, names and abbreviations must be unique.");
+                        throw new Exception($"Detected a duplicate abbreviation or name in Document.{docloc.DocumentID}. All IDs, names and abbreviations must be unique.");
                     }
                 }
                 traceEntities.Add(entity);
             }
             //trace configuration extraction
-            foreach (var table in (TomlTable)toml["TraceConfig"])
+            foreach (var truthID in configuration.TraceConfig)
             {
                 TraceEntity source, target;
-                foreach (var doc in (TomlTable)table.Value)
+                foreach (var doc in truthID.Traces)
                 {
-                    source = traceEntities.Find(f => (f.ID == table.Key));
+                    source = traceEntities.Find(f => (f.ID == truthID.ID));
                     target = traceEntities.Find(f => (f.ID == doc.Key));
                     if (source == null || target == null)
                     {
-                        throw new Exception($"Error setting up requested trace from {table.Key} to {doc.Key}. Check if both these entities are correctly defined in the project config file.");
+                        throw new Exception($"Error setting up requested trace from {truthID.ID} to {doc.Key}. Check if both these entities are correctly defined in the project config file.");
                     }
-                    var arr = (TomlArray)doc.Value;
                     bool completeTrace = false;
-                    if (arr.Count == 0 || ((string)arr[0]).ToUpper() == "ALL")
+                    if (doc.Value.Count == 0 || doc.Value[0].ToUpper() == "ALL")
                     {
                         completeTrace = true;
                     }
                     TraceSpecification dt = new TraceSpecification(source, target, completeTrace);
-                    if (!completeTrace && ((string)arr[0]).ToUpper() != "OPTIONAL")
+                    if (!completeTrace && doc.Value[0].ToUpper() != "OPTIONAL")
                     {
-                        dt.SelectedCategories = arr.Cast<string>().ToList();
+                        dt.SelectedCategories = doc.Value;
                     }
-                    if ((string)table.Key == "SystemRequirement")
+                    if (truthID.ID == "SystemRequirement")
                     {
                         systemRequirementTraces.Add(dt);
                     }
-                    else if ((string)table.Key == "SoftwareRequirement")
+                    else if (truthID.ID == "SoftwareRequirement")
                     {
                         softwareRequirementTraces.Add(dt);
                     }
@@ -110,7 +91,19 @@ namespace RoboClerk
             }
         }
 
-        private void CheckDocumentTrace(DataSources data, List<RequirementItem> truthItems, List<List<Item>> traceData, TraceEntity tet, TraceSpecification ts)
+        private static void CheckTruthEntities(List<TraceEntity> truth)
+        {
+            if( truth.Find(x => x.ID == "SystemRequirement") == null ||
+                truth.Find(x => x.ID == "SoftwareRequirement") == null ||
+                truth.Find(x => x.ID == "SoftwareSystemTest") == null ||
+                truth.Find(x => x.ID == "SoftwareUnitTest") == null ||
+                truth.Find(x => x.ID == "Anomaly") == null )
+            {
+                throw new Exception("Not all types of Truth entities were found in the project config file. Make sure the following are present: SystemRequirement, SoftwareRequirement, SoftwareSystemTest, SoftwareUnitTest, Anomaly");
+            }
+        }
+
+        private void CheckDocumentTrace(IDataSources data, List<RequirementItem> truthItems, List<List<Item>> traceData, TraceEntity tet, TraceSpecification ts)
         {
             var documentTitle = ts.Target.Name;
             documentTraceIssues[documentTitle] = new List<TraceIssue>();
@@ -190,7 +183,7 @@ namespace RoboClerk
             }
         }
 
-        public RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>> PerformAnalysis(DataSources data, TraceEntity truth)
+        public RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>> PerformAnalysis(IDataSources data, TraceEntity truth)
         {
             RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>> result = new RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>>();
             if (truth.ID != "SystemRequirement" &&

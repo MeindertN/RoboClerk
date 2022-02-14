@@ -47,7 +47,7 @@
 #
 # RoboClerk will check the command exit code. If the exit code indicates an error, RoboClerk throws an exception and stops  
 # processing. To ignore exit codes set ignoreErrors = "True". In the commands one can use the %OUTPUTFILE% variable to 
-# indicate the location of the  output file that should be processed. The variable %OUTPUTDIR% is the output directory.  
+# indicate the location of the output file that should be processed. The variable %OUTPUTDIR% is the output directory.  
 # Note that the value of %OUTPUTDIR% is provided in the general configuration file. RoboClerk will assign these variables
 # the correct values.
 

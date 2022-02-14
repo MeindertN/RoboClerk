@@ -5,9 +5,9 @@ using System.Reflection;
 
 namespace RoboClerk
 {
-    public static class PluginLoader
+    public class PluginLoader : IPluginLoader
     {
-        public static T LoadPlugin<T>(string name, string pluginDir) where T : class
+        public T LoadPlugin<T>(string name, string pluginDir) where T : class
         {
             //get all the potential plugin dlls
             foreach (string file in Directory.GetFiles(pluginDir, "RoboClerk.*.dll", SearchOption.AllDirectories))
@@ -29,7 +29,7 @@ namespace RoboClerk
             return null;
         }
 
-        private static IEnumerable<T> CreatePlugins<T>(Assembly assembly) where T : class
+        private IEnumerable<T> CreatePlugins<T>(Assembly assembly) where T : class
         {
             int count = 0;
 

@@ -7,7 +7,7 @@
 
         }
 
-        public string GetContent(RoboClerkTag tag, DataSources data, TraceabilityAnalysis analysis, string docTitle)
+        public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle)
         {
             if (tag.Parameters.ContainsKey("ID"))
             {

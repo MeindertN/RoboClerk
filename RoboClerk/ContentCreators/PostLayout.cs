@@ -8,7 +8,7 @@ namespace RoboClerk.ContentCreators
 {
     internal class PostLayout : IContentCreator
     {
-        public string GetContent(RoboClerkTag tag, DataSources data, TraceabilityAnalysis analysis, string docTitle)
+        public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle)
         {
             if(tag.ContentCreatorID.ToUpper() == "TOC")
             {

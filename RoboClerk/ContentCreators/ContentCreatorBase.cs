@@ -4,7 +4,7 @@ namespace RoboClerk.ContentCreators
 {
     public abstract class ContentCreatorBase : IContentCreator
     {
-        public abstract string GetContent(RoboClerkTag tag, DataSources data, TraceabilityAnalysis analysis, string docTitle);
+        public abstract string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle);
 
         protected bool ShouldBeIncluded<T>(RoboClerkTag tag, T item, PropertyInfo[] properties)
         {
