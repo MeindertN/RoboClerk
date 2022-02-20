@@ -9,12 +9,12 @@ namespace RoboClerk.Configuration
     public interface IConfiguration
     {
         List<string> DataSourcePlugins { get; }
-        internal List<string> PluginDirs { get; }
-        internal string OutputDir { get; }
-        internal string LogLevel { get; }
-        internal List<TraceEntity> TruthEntities { get; }
-        internal List<DocumentConfig> Documents { get; }
-        internal List<TraceConfig> TraceConfig { get; }
-        internal ConfigurationValues ConfigVals { get; }
+        List<string> PluginDirs { get; }
+        string OutputDir { get; }
+        string LogLevel { get; }
+        List<TraceEntity> TruthEntities { get; }
+        List<DocumentConfig> Documents { get; }
+        List<TraceConfig> TraceConfig { get; }
+        ConfigurationValues ConfigVals { get; }
     }
 }

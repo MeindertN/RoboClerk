@@ -90,7 +90,7 @@ namespace RoboClerk.ContentCreators
                     continue;
                 }
 
-                var traceIssues = analysis.GetTraceIssuesForDocument(tet.Key.Name);
+                var traceIssues = analysis.GetTraceIssuesForDocument(tet.Key);
                 foreach (var issue in traceIssues)
                 {
                     traceIssuesFound = true;

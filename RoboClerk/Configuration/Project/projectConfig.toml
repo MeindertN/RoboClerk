@@ -21,6 +21,10 @@
 	name = "Unit Test"
 	abbreviation = "UT"
 
+[Truth.Risk]
+	name = "Risk"
+	abbreviation = "RSK"
+
 [Truth.Anomaly]
 	name = "Bug"
 	abbreviation = "BG"

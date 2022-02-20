@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace RoboClerk.Configuration
 {
-    internal class Configuration : IConfiguration
+    public class Configuration : IConfiguration
     {
         private readonly IFileSystem fileSystem = null;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();

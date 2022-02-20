@@ -74,7 +74,7 @@ namespace RoboClerk
                             logger.Debug($"Looking for content creator class: {tag.ContentCreatorID}");
                             var te = traceAnalysis.GetTraceEntityForAnyProperty(tag.ContentCreatorID);
 
-                            IContentCreator contentCreator = GetContentObject(te == null ? tag.ContentCreatorID : te.ID);
+                            IContentCreator contentCreator = GetContentObject(te == default(TraceEntity) ? tag.ContentCreatorID : te.ID);
                             if (contentCreator != null)
                             {
                                 logger.Debug($"Content creator {tag.ContentCreatorID} found.");

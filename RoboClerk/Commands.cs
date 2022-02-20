@@ -6,7 +6,7 @@ using Tomlyn.Model;
 
 namespace RoboClerk
 {
-    internal class Commands
+    public class Commands
     {
         private string outputdir = string.Empty;
         private string filename = string.Empty;

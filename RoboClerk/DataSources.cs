@@ -88,7 +88,7 @@ namespace RoboClerk
             List<AnomalyItem> items = new List<AnomalyItem>();
             foreach (var plugin in slmsPlugins)
             {
-                items.AddRange(plugin.GetBugs());
+                items.AddRange(plugin.GetAnomalies());
             }
             return items;
         }
@@ -117,10 +117,10 @@ namespace RoboClerk
             {
                 return tcase[idx];
             }
-            var bugs = GetAllAnomalies();
-            if ((idx = bugs.FindIndex(o => o.AnomalyID == id)) >= 0)
+            var anomalies = GetAllAnomalies();
+            if ((idx = anomalies.FindIndex(o => o.AnomalyID == id)) >= 0)
             {
-                return bugs[idx];
+                return anomalies[idx];
             }
             return null;
         }

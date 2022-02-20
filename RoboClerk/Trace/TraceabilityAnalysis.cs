@@ -6,7 +6,7 @@ using System.Linq;
 namespace RoboClerk
 {
 
-    internal class TraceabilityAnalysis : ITraceabilityAnalysis
+    public class TraceabilityAnalysis : ITraceabilityAnalysis
     {
         private IConfiguration configuration = null;
         private List<TraceEntity> traceEntities = new List<TraceEntity>();
@@ -93,13 +93,15 @@ namespace RoboClerk
 
         private static void CheckTruthEntities(List<TraceEntity> truth)
         {
-            if( truth.Find(x => x.ID == "SystemRequirement") == null ||
+            if( truth == null ||
+                truth.Find(x => x.ID == "SystemRequirement") == null ||
                 truth.Find(x => x.ID == "SoftwareRequirement") == null ||
                 truth.Find(x => x.ID == "SoftwareSystemTest") == null ||
                 truth.Find(x => x.ID == "SoftwareUnitTest") == null ||
+                truth.Find(x => x.ID == "Risk") == null ||
                 truth.Find(x => x.ID == "Anomaly") == null )
             {
-                throw new Exception("Not all types of Truth entities were found in the project config file. Make sure the following are present: SystemRequirement, SoftwareRequirement, SoftwareSystemTest, SoftwareUnitTest, Anomaly");
+                throw new Exception("Not all types of Truth entities were found in the project config file. Make sure the following are present: SystemRequirement, SoftwareRequirement, SoftwareSystemTest, SoftwareUnitTest, Risk, Anomaly");
             }
         }
 
@@ -277,7 +279,7 @@ namespace RoboClerk
         {
             if (!tag.Parameters.ContainsKey("ID"))
             {
-                var ex = new TagInvalidException(tag.Contents, "Trace tag is missing \"ID\" parameter indicating the identity of the truth item.");
+                var ex = new TagInvalidException(tag.Contents, "Trace tag is missing \"ID\" parameter indicating the identity of the truth item");
                 ex.DocumentTitle = docTitle;
                 throw ex;
             }
@@ -299,8 +301,10 @@ namespace RoboClerk
             documentTraceLinks[docTitle].Add(link);
         }
 
-        public void AddTrace(string docTitle, TraceLink link)
+        public void AddTrace(TraceEntity source, string sourceID, TraceEntity target, string targetID)
         {
+            string docTitle = GetTitleForTraceEntity(target.ID);
+            TraceLink link = new TraceLink(source,sourceID,target,targetID);
             if (!documentTraceLinks.ContainsKey(docTitle))
             {
                 documentTraceLinks[docTitle] = new List<TraceLink>();
@@ -365,39 +369,34 @@ namespace RoboClerk
                     return et;
                 }
             }
-            return null;
+            return default(TraceEntity);
         }
 
-        public IEnumerable<TraceLink> GetTraceLinksForDocument(string docTitle)
+        public IEnumerable<TraceLink> GetTraceLinksForDocument(TraceEntity tet)
         {
-            if (documentTraceLinks.ContainsKey(docTitle))
+            if (tet != null && documentTraceLinks.ContainsKey(tet.Name))
             {
-                return documentTraceLinks[docTitle];
+                return documentTraceLinks[tet.Name];
             }
             return new List<TraceLink>();
         }
 
-        public IEnumerable<TraceIssue> GetTraceIssuesForDocument(string docTitle)
+        public IEnumerable<TraceIssue> GetTraceIssuesForDocument(TraceEntity tet)
         {
-            if (documentTraceIssues.ContainsKey(docTitle))
+            if (tet != null && documentTraceIssues.ContainsKey(tet.Name))
             {
-                return documentTraceIssues[docTitle];
+                return documentTraceIssues[tet.Name];
             }
             return new List<TraceIssue>();
         }
 
-        public IEnumerable<TraceIssue> GetTraceIssuesForDocument(TraceEntity tet)
-        {
-            return GetTraceIssuesForDocument(tet.Name);
-        }
-
         public IEnumerable<TraceIssue> GetTraceIssuesForTruth(TraceEntity tet)
         {
-            if (!truthTraceIssues.ContainsKey(tet))
+            if (tet != null && truthTraceIssues.ContainsKey(tet))
             {
-                return new List<TraceIssue>();
+                return truthTraceIssues[tet];
             }
-            return truthTraceIssues[tet];
+            return new List<TraceIssue>();
         }
     }
 }

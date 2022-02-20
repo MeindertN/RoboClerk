@@ -37,7 +37,7 @@ namespace RoboClerk.AzureDevOps
 
         public string Description => description;
 
-        public List<AnomalyItem> GetBugs()
+        public List<AnomalyItem> GetAnomalies()
         {
             return bugs;
         }

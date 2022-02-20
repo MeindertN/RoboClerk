@@ -44,7 +44,7 @@ namespace RoboClerk.RedmineCSV
             get => description;
         }
 
-        public List<AnomalyItem> GetBugs()
+        public List<AnomalyItem> GetAnomalies()
         {
             return bugs;
         }

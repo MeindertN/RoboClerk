@@ -1,23 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Tomlyn.Model;
 
 namespace RoboClerk.Configuration
 {
-    internal class TraceConfig
+    public class TraceConfig
     {
         private string id = string.Empty;
         private RoboClerkOrderedDictionary<string,List<string>> traces = new RoboClerkOrderedDictionary<string, List<string>>();
 
-        internal TraceConfig(string ID)
+        public TraceConfig(string ID)
         {
             id = ID;
         }
 
-        internal void AddTraces(TomlTable toml)
+        public void AddTraces(TomlTable toml)
         {
             foreach (var doc in toml)
             {
@@ -31,7 +27,7 @@ namespace RoboClerk.Configuration
                 }
             }
         }
-        internal string ID => id;
-        internal RoboClerkOrderedDictionary<string,List<string>> Traces => traces;
+        public string ID => id;
+        public RoboClerkOrderedDictionary<string,List<string>> Traces => traces;
     }
 }

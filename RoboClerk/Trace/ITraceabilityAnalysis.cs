@@ -8,17 +8,16 @@ namespace RoboClerk
 {
     public interface ITraceabilityAnalysis
     {
-        void AddTrace(string docTitle, TraceLink link);
+        void AddTrace(TraceEntity source, string sourceID, TraceEntity target, string targetID);
         void AddTraceTag(string docTitle, RoboClerkTag tag);
         string GetAbreviationForTraceEntity(string ID);
         string GetTitleForTraceEntity(string ID);
         TraceEntity GetTraceEntityForAnyProperty(string prop);
         TraceEntity GetTraceEntityForID(string ID);
         TraceEntity GetTraceEntityForTitle(string title);
-        IEnumerable<TraceIssue> GetTraceIssuesForDocument(string docTitle);
         IEnumerable<TraceIssue> GetTraceIssuesForDocument(TraceEntity tet);
         IEnumerable<TraceIssue> GetTraceIssuesForTruth(TraceEntity tet);
-        IEnumerable<TraceLink> GetTraceLinksForDocument(string docTitle);
+        IEnumerable<TraceLink> GetTraceLinksForDocument(TraceEntity tet);
         RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>> PerformAnalysis(IDataSources data, TraceEntity truth);
     }
 }

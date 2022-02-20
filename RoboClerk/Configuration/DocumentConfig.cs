@@ -3,7 +3,7 @@ using Tomlyn.Model;
 
 namespace RoboClerk.Configuration
 {
-    internal class DocumentConfig
+    public class DocumentConfig
     {
         private string documentID = string.Empty;
         private string documentTitle = string.Empty;
@@ -11,7 +11,7 @@ namespace RoboClerk.Configuration
         private string documentTemplate = string.Empty;
         private Commands commands = null;
 
-        internal DocumentConfig(string documentID, string documentTitle, string documentAbbreviation, string documentTemplate)
+        public DocumentConfig(string documentID, string documentTitle, string documentAbbreviation, string documentTemplate)
         {
             this.documentID = documentID;
             this.documentTitle = documentTitle;
@@ -19,15 +19,15 @@ namespace RoboClerk.Configuration
             this.documentTemplate = documentTemplate;
         }
 
-        internal void AddCommands(Commands commands)
+        public void AddCommands(Commands commands)
         {
             this.commands = commands;
         }
 
-        internal string DocumentID => documentID;
-        internal string DocumentTitle => documentTitle;
-        internal string DocumentAbbreviation => documentAbbreviation;
-        internal string DocumentTemplate => documentTemplate;
-        internal Commands Commands => commands; 
+        public string DocumentID => documentID;
+        public string DocumentTitle => documentTitle;
+        public string DocumentAbbreviation => documentAbbreviation;
+        public string DocumentTemplate => documentTemplate;
+        public Commands Commands => commands; 
     }
 }
