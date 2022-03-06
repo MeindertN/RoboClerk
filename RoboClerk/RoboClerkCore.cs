@@ -69,6 +69,11 @@ namespace RoboClerk
                             IContentCreator cc = new PostLayout();
                             tag.Contents = cc.GetContent(tag,dataSources,traceAnalysis, doc.DocumentTitle);
                         }
+                        else if (tag.Source == DataSource.Reference)
+                        {
+                            IContentCreator cc = new Reference();
+                            tag.Contents = cc.GetContent(tag, dataSources, traceAnalysis, doc.DocumentTitle);
+                        }
                         else
                         {
                             logger.Debug($"Looking for content creator class: {tag.ContentCreatorID}");

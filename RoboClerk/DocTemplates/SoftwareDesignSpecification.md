@@ -9,8 +9,6 @@ Authors:
 NOT FOUND
 @@@
 
-@@
-
 # Introduction
 ## Purpose
 The purpose of this document is to specify the architecture and system design of 
@@ -49,3 +47,7 @@ The above just tests to see if we can include a single product requirement
 Things that are in comment tags will be removed when the document is processed. These comment blocks, when placed
 in templates, can help authors with using hte template in the right way.
 @@@
+
+Here is a reference to a document @@Ref:RandomTestDocument()@@
+
+Check out the @@Ref:SystemLevelTestPlan()@@ (@@ref:SystemLevelTestPlan(short=true)@@)

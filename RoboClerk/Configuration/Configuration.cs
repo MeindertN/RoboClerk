@@ -122,13 +122,13 @@ namespace RoboClerk.Configuration
                 string id = (string)doctable.Key;
 
                 TomlTable doc = (TomlTable)doctable.Value;
-                if (!doc.ContainsKey("template") || !doc.ContainsKey("title") || !doc.ContainsKey("abbreviation"))
+                if (!doc.ContainsKey("title") || !doc.ContainsKey("abbreviation"))
                 {
                     throw new Exception($"Error reading document configuration out of project configuration file for document {doctable.Key}");
                 }
-                DocumentConfig docConfig = new DocumentConfig(id, (string)doc["title"], (string)doc["abbreviation"], (string)doc["template"]);
+                DocumentConfig docConfig = new DocumentConfig(id, (string)doc["title"], (string)doc["abbreviation"], doc.ContainsKey("template") ? (string)doc["template"] : string.Empty);
 
-                if (doc.ContainsKey("Command"))
+                if (doc.ContainsKey("template") && doc.ContainsKey("Command"))
                 {
                     docConfig.AddCommands(new Commands((TomlTableArray)doc["Command"], outputDir, Path.GetFileName((string)doc["template"])));
                 }

@@ -81,7 +81,8 @@ namespace RoboClerk
         OTS, //found in a binary control system
         Post, //tag is inserted to indicate insertion of data for post processing tools
         Comment, //comment tag, contents will be removed after processing
-        Trace, //trace tage that is expected to be traced to this document
+        Trace, //trace tag that is expected to be traced to this document
+        Reference, //tag for referencing a document in another document
         Unknown //it is not known where to retrieve this information
     }
 
@@ -180,7 +181,7 @@ namespace RoboClerk
             ExtractParameters(contents);
             var items = contents.Split('(')[0].Split(':');
             contentCreatorID = items[1].Trim();
-            source = GetSource(items[0].Trim());
+            source = GetSource(items[0].Trim().ToUpper());
             //contents = rawDocument.Substring(contentStart,contentEnd - contentStart + 1);
         }
 
@@ -243,7 +244,7 @@ namespace RoboClerk
                 throw e;
             }
             var items = tagContents.Split(':');
-            source = GetSource(items[0].Trim());
+            source = GetSource(items[0].Trim().ToUpper());
             contentCreatorID = items[1].Split('(')[0].Trim();
             ExtractParameters(tagContents);
             var prelimTagContents = rawDocument.Substring(startIndex, endIndex - startIndex + 1);
@@ -291,6 +292,7 @@ namespace RoboClerk
                 case "POST": return DataSource.Post;
                 case "COMMENT": return DataSource.Comment;
                 case "TRACE": return DataSource.Trace;
+                case "REF": return DataSource.Reference;
             }
             return DataSource.Unknown;
         }
