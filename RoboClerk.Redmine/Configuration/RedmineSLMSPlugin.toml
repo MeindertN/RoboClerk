@@ -1,8 +1,13 @@
-﻿# This is the RoboClerk Redmine CSV plugin configuration
+﻿# This is the RoboClerk Redmine plugin configuration
 
-ImportFilename = ""
+RedmineAPIEndpoint = ""
+RedmineAPIKey = ""
 
-# The following allows you to indicate the redmine tracker that maps
+# The name of the project that we will be pulling from Redmine
+
+RedmineProject = "Arcturus"
+
+# The following allows you to indicate the redmine trackers that map
 # to various entities in the RoboClerk software
 
 SystemRequirement = "Specification"

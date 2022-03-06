@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using Tomlyn;
+using RoboClerk.Configuration;
 
 namespace RoboClerk.AzureDevOps
 {
@@ -57,7 +58,7 @@ namespace RoboClerk.AzureDevOps
             return testCases;
         }
 
-        public void Initialize()
+        public void Initialize(IConfiguration configuration)
         {
             logger.Info("Initializing the Azure DevOps SLMS Plugin");
             var assembly = Assembly.GetAssembly(this.GetType());
@@ -65,9 +66,10 @@ namespace RoboClerk.AzureDevOps
             {
                 var configFileLocation = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/AzureDevOpsPlugin.toml";
                 var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
-                organizationName = (string)config["OrganizationName"];
-                projectName = (string)config["ProjectName"];
-                witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, (string)config["AccessToken"]);
+                organizationName = configuration.CommandLineOptionOrDefault("OrganizationName",(string)config["OrganizationName"]);
+                projectName = configuration.CommandLineOptionOrDefault("ProjectName",(string)config["ProjectName"]);
+                witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, 
+                    configuration.CommandLineOptionOrDefault("AccessToken",(string)config["AccessToken"]));
                 ignoreNewProductReqs = (bool)config["IgnoreNewSystemRequirements"];
             }
             catch (Exception e)

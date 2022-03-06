@@ -10,6 +10,7 @@
     <Company>RoboClerk Project</Company>
     <Product>Redmine CSV plugin</Product>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <Configurations>Debug;Release;ReleasePublish</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,5 +29,14 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
+	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
+		<ItemGroup>
+			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+		</ItemGroup>
 
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/RedmineCSVSLMSPlugin.toml" DestinationFolder="$(ProjectDir)../publish/plugins/Configuration" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.RedmineCSV.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.RedmineCSV.deps.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
+	</Target>
 </Project>

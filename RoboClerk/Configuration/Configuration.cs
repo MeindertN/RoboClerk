@@ -25,9 +25,13 @@ namespace RoboClerk.Configuration
         private List<TraceConfig> traceConfig = new List<TraceConfig>();
         private ConfigurationValues configVals = null;
 
-        public Configuration(IFileSystem fs, string configFileName, string projectConfigFileName)
+        //The information supplied on the commandline
+        private Dictionary<string, string> commandLineOptions = new Dictionary<string,string>();
+
+        public Configuration(IFileSystem fileSystem, string configFileName, string projectConfigFileName, Dictionary<string,string> commandLineOptions)
         {
-            fileSystem = fs;
+            this.commandLineOptions = commandLineOptions;
+            this.fileSystem = fileSystem;
             logger.Debug($"Loading configuration files into RoboClerk: {configFileName} and {projectConfigFileName}");
             (configFileName, projectConfigFileName) = LoadConfigFiles(configFileName, projectConfigFileName);
             ProcessConfigs(configFileName, projectConfigFileName);
@@ -82,8 +86,8 @@ namespace RoboClerk.Configuration
             {
                 pluginDirs.Add((string)obj);    
             }
-            outputDir = (string)toml["OutputDirectory"];
-            logLevel = (string)toml["LogLevel"];
+            outputDir = CommandLineOptionOrDefault("OutputDirectory",(string)toml["OutputDirectory"]);
+            logLevel = CommandLineOptionOrDefault("LogLevel",(string)toml["LogLevel"]);
         }
 
         private void ReadProjectConfigFile(string projectConfig)
@@ -147,6 +151,15 @@ namespace RoboClerk.Configuration
                 
                 truthEntities.Add(entity);
             }
+        }
+
+        public string CommandLineOptionOrDefault(string name, string defaultValue)
+        {
+            if(commandLineOptions.ContainsKey(name))
+            {
+                return commandLineOptions[name];
+            }
+            return defaultValue;
         }
     }
 }

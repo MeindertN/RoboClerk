@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Tomlyn;
 using Tomlyn.Model;
+using RoboClerk.Configuration;
 
 namespace RoboClerk.RedmineCSV
 {
@@ -64,7 +65,7 @@ namespace RoboClerk.RedmineCSV
             return testCases;
         }
 
-        public void Initialize()
+        public void Initialize(IConfiguration configuration)
         {
             logger.Info("Initializing the Redmine CSV SLMS Plugin");
             var assembly = Assembly.GetAssembly(this.GetType());
@@ -72,15 +73,15 @@ namespace RoboClerk.RedmineCSV
             {
                 var configFileLocation = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/RedmineCSVSLMSPlugin.toml";
                 var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
-                csvFileName = (string)config["ImportFilename"];
-                prsTrackerName = (string)config["ProductLevelRequirement"];
-                srsTrackerName = (string)config["SoftwareLevelRequirement"];
-                tcTrackerName = (string)config["TestCase"];
-                bugTrackerName = (string)config["Bug"];
+                csvFileName = configuration.CommandLineOptionOrDefault("ImportFilename",(string)config["ImportFilename"]);
+                prsTrackerName = configuration.CommandLineOptionOrDefault("SystemRequirement",(string)config["SystemRequirement"]);
+                srsTrackerName = configuration.CommandLineOptionOrDefault("SoftwareRequirement",(string)config["SoftwareRequirement"]);
+                tcTrackerName = configuration.CommandLineOptionOrDefault("SoftwareSystemTest",(string)config["SoftwareSystemTest"]);
+                bugTrackerName = configuration.CommandLineOptionOrDefault("Anomaly",(string)config["Anomaly"]);
 
                 if (config.ContainsKey("RedmineBaseURL"))
                 {
-                    baseURL = (string)config["RedmineBaseURL"];
+                    baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL",(string)config["RedmineBaseURL"]);
                 }
 
                 ignoreList = (TomlArray)config["Ignore"];
@@ -240,7 +241,7 @@ namespace RoboClerk.RedmineCSV
                 }
                 if (redmineItem.Tracker == prsTrackerName)
                 {
-                    logger.Debug($"Product level requirement found: {redmineItem.Id}");
+                    logger.Debug($"System level requirement found: {redmineItem.Id}");
                     systemRequirements.Add(CreateRequirement(records, redmineItem, RequirementType.SystemRequirement));
                 }
                 else if (redmineItem.Tracker == srsTrackerName)

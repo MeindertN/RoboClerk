@@ -27,7 +27,7 @@ namespace RoboClerk
                     var plugin = pluginLoader.LoadPlugin<ISLMSPlugin>((string)val, dir);
                     if (plugin != null)
                     {
-                        plugin.Initialize();
+                        plugin.Initialize(configuration);
                         plugin.RefreshItems();
                         slmsPlugins.Add(plugin);
                     }

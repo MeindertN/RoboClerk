@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFramework>net6.0</TargetFramework>
+	  <ApplicationIcon />
+	  <OutputType>Library</OutputType>
+	  <StartupObject />
+	  <EnableDynamicLoading>true</EnableDynamicLoading>
+	  <Authors>Meindert Niemeijer</Authors>
+	  <Company>RoboClerk Project</Company>
+	  <Product>Redmine plugin</Product>
+	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+	  <Configurations>Debug;Release;ReleasePublish</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RestSharp" Version="107.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RoboClerk\RoboClerk.csproj">
+		<Private>false</Private>
+		<ExcludeAssets>runtime</ExcludeAssets>
+	</ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Configuration\RedmineSLMSPlugin.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
+		<ItemGroup>
+			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/RedmineSLMSPlugin.toml" DestinationFolder="$(ProjectDir)../publish/plugins/Configuration" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.Redmine.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.Redmine.deps.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
+	</Target>
+</Project>

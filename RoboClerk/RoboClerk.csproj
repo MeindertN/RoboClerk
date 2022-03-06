@@ -4,9 +4,16 @@
     <TargetFramework>net6.0</TargetFramework>
     <StartupObject>RoboClerk.Program</StartupObject>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <Configurations>Debug;Release;ReleasePublish</Configurations>
+    <DebugType>portable</DebugType>
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
+    <Optimize>True</Optimize>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CliWrap" Version="3.4.1" />
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
     <PackageReference Include="NLog" Version="4.7.13" />
@@ -40,6 +47,19 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Properties\PublishProfiles\" />
+    <Folder Include="Properties\" />
   </ItemGroup>
+	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
+		<ItemGroup>
+			<RoboClerkFiles Include="$(ProjectDir)$(OutDir)*.dll;$(ProjectDir)$(OutDir)*.exe" />
+			<TemplateFiles Include="$(ProjectDir)$(OutDir)/DocTemplates/*.*" />
+		</ItemGroup>
+		
+		<Copy SourceFiles="@(RoboClerkFiles)" DestinationFolder="$(ProjectDir)../publish/" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/Project/projectConfig.toml" DestinationFolder="$(ProjectDir)../publish/Configuration/Project" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/RoboClerk/RoboClerk.toml" DestinationFolder="$(ProjectDir)../publish/Configuration/RoboClerk" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.deps.json" DestinationFolder="$(ProjectDir)../publish" />
+		<Copy SourceFiles="@(TemplateFiles)" DestinationFolder="$(ProjectDir)../publish/DocTemplates" />
+	</Target>
 </Project>

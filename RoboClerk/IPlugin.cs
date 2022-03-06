@@ -1,9 +1,11 @@
-﻿namespace RoboClerk
+﻿using RoboClerk.Configuration;
+
+namespace RoboClerk
 {
     public interface IPlugin
     {
         string Name { get; }
         string Description { get; }
-        void Initialize();
+        void Initialize(IConfiguration config);
     }
 }

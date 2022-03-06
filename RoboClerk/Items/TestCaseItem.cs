@@ -37,7 +37,7 @@ namespace RoboClerk
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "**Title:**"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, testCaseTitle));
             sb.AppendLine(separator);
-            sb.AppendLine($"~REMOVE LINE\n");
+            sb.AppendLine($"~REMOVEPARAGRAPH\n");
             int maxDescriptionLength = getMaxTestStepElementLength(0);
             int maxResultLength = getMaxTestStepElementLength(1);
             int[] testStepColumnWidths = null;
@@ -62,7 +62,7 @@ namespace RoboClerk
             }
             if (!testCaseAutomated)
             {
-                sb.AppendLine("~REMOVE LINE\n");
+                sb.AppendLine("~REMOVEPARAGRAPH\n");
                 testStepColumnWidths = new int[2] { 40, 40 };
                 separator = MarkdownTableUtils.GenerateGridTableSeparator(testStepColumnWidths);
                 sb.AppendLine(separator);
