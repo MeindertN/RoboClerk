@@ -3,7 +3,12 @@
 # documentation such are the name of the software and the version etc.
 
 # Truth items are those items retrieved from the source of truth (e.g. the SLMS). Specify how the these truth trace entities
-# should be called. This will ensure that the trace output makes sense in your context.
+# should be called. This will ensure that the trace output makes sense in your context. The way these are defined here are 
+# as follows:
+# [Truth.<TRACE ID>]
+#	name = <HOW THE TRUTH ITEM IS KNOWN IN THIS PROJECT>
+#	abbreviation = <THE ABBREVIATION OF THE TRUTH ITEM>
+# Note that the <TRACE ID> elements cannot be changed by the user and that all truth entities must be present in this file.
 
 [Truth.SystemRequirement]
 	name = "Requirement"
@@ -78,9 +83,9 @@
 		ignoreErrors = "False"
 
 [Document.SoftwareDevelopmentPlan]
-	title = "Software Development Plan"
-	abbreviation = "SDP"
-	template = ""
+	title = "Software Design and Development Plan"
+	abbreviation = "SDDP"
+	template = "I:/temp/roboclerk_input/SoftwareDevelopmentPlan.md"
 	[[Document.SoftwareDevelopmentPlan.Command]]
 		executable = ""
 		arguments = ""

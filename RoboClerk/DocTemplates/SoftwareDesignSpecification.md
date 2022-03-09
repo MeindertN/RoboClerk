@@ -28,15 +28,15 @@ levels, can be called software items. (See IEC62304.)
 # Testing Section
 Here we will test a variety of in document trace tags referring to software requirements.
 
-@@Trace:SR(id=9)@@ The text that has the trace link
-@@Trace:SR(Id=1234321)@@ the parameter names are case insensitive
-@@Trace:SR(id=10)@@ And the second trace linke
+@@Trace:SWR(id=9)@@ The text that has the trace link
+@@Trace:SWR(Id=1234321)@@ the parameter names are case insensitive
+@@Trace:SWR(id=10)@@ And the second trace linke
 Just a line of text.
-@@Trace:SR(id=11)@@ @@Trace:SR(id=12)@@ Two more trace links
+@@Trace:SWR(id=11)@@ @@Trace:SR(id=12)@@ Two more trace links
 
-@@Trace:PR(id=7)@@ An a random product requirement trace link, is not supposed to show up in the document
+@@Trace:SYS(id=7)@@ An a random product requirement trace link, is not supposed to show up in the document
 
-@@Trace:SR(id=89)@@ non existent software trace
+@@Trace:SWR(id=89)@@ non existent software trace
 
 @@@SLMS:SYS(requirementID=7)
 
