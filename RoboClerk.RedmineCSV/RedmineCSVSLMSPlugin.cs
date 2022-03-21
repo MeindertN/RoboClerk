@@ -72,6 +72,10 @@ namespace RoboClerk.RedmineCSV
             try
             {
                 var configFileLocation = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/RedmineCSVSLMSPlugin.toml";
+                if (configuration.PluginConfigDir != string.Empty)
+                {
+                    configFileLocation = Path.Combine(configuration.PluginConfigDir, "RedmineCSVSLMSPlugin.toml");
+                }
                 var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
                 csvFileName = configuration.CommandLineOptionOrDefault("ImportFilename",(string)config["ImportFilename"]);
                 prsTrackerName = configuration.CommandLineOptionOrDefault("SystemRequirement",(string)config["SystemRequirement"]);

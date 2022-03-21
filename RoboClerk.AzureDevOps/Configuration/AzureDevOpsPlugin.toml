@@ -2,7 +2,7 @@
 
 accessToken = ""
 organizationName = ""
-projectName = "RoboClerk"
+projectName = ""
 
 # if you want RoboClerk to ignore new Epics (for instance, in your backlog)
 # set this to true

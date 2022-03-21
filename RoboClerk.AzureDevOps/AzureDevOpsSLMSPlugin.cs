@@ -65,6 +65,10 @@ namespace RoboClerk.AzureDevOps
             try
             {
                 var configFileLocation = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/AzureDevOpsPlugin.toml";
+                if (configuration.PluginConfigDir != string.Empty)
+                {
+                    configFileLocation = Path.Combine(configuration.PluginConfigDir, "AzureDevOpsPlugin.toml");
+                }
                 var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
                 organizationName = configuration.CommandLineOptionOrDefault("OrganizationName",(string)config["OrganizationName"]);
                 projectName = configuration.CommandLineOptionOrDefault("ProjectName",(string)config["ProjectName"]);

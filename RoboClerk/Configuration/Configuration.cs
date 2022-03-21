@@ -18,6 +18,8 @@ namespace RoboClerk.Configuration
         private List<string> pluginDirs = new List<string>();
         private string outputDir = string.Empty;
         private string logLevel = string.Empty;
+        private string pluginConfigDir = string.Empty;
+        private bool clearOutput = false;
 
         //The information contained in the project configuration file
         private List<TraceEntity> truthEntities = new List<TraceEntity>();
@@ -45,6 +47,8 @@ namespace RoboClerk.Configuration
         public List<DocumentConfig> Documents => documents;
         public List<TraceConfig > TraceConfig => traceConfig;
         public ConfigurationValues ConfigVals => configVals;
+        public string PluginConfigDir => pluginConfigDir;
+        public bool ClearOutputDir => clearOutput;
 
         private (string, string) LoadConfigFiles(string configFile, string projectConfigFile)
         {
@@ -86,7 +90,9 @@ namespace RoboClerk.Configuration
             {
                 pluginDirs.Add((string)obj);    
             }
+            pluginConfigDir = CommandLineOptionOrDefault("PluginConfigurationDir", (string)toml["PluginConfigurationDir"]);
             outputDir = CommandLineOptionOrDefault("OutputDirectory",(string)toml["OutputDirectory"]);
+            clearOutput = CommandLineOptionOrDefault("ClearOutputDir", (string)toml["ClearOutputDir"]).ToUpper() == "TRUE";
             logLevel = CommandLineOptionOrDefault("LogLevel",(string)toml["LogLevel"]);
         }
 
@@ -122,11 +128,12 @@ namespace RoboClerk.Configuration
                 string id = (string)doctable.Key;
 
                 TomlTable doc = (TomlTable)doctable.Value;
-                if (!doc.ContainsKey("title") || !doc.ContainsKey("abbreviation"))
+                if (!doc.ContainsKey("title") || !doc.ContainsKey("abbreviation") || !doc.ContainsKey("identifier"))
                 {
                     throw new Exception($"Error reading document configuration out of project configuration file for document {doctable.Key}");
                 }
-                DocumentConfig docConfig = new DocumentConfig(id, (string)doc["title"], (string)doc["abbreviation"], doc.ContainsKey("template") ? (string)doc["template"] : string.Empty);
+                DocumentConfig docConfig = new DocumentConfig(id, (string)doc["identifier"], (string)doc["title"], (string)doc["abbreviation"],
+                    doc.ContainsKey("template") ? (string)doc["template"] : string.Empty);
 
                 if (doc.ContainsKey("template") && doc.ContainsKey("Command"))
                 {

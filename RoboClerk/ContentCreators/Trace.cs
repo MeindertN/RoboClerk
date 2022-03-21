@@ -1,4 +1,6 @@
-﻿namespace RoboClerk.ContentCreators
+﻿using RoboClerk.Configuration;
+
+namespace RoboClerk.ContentCreators
 {
     public class Trace : IContentCreator
     {
@@ -7,7 +9,7 @@
 
         }
 
-        public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle)
+        public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
         {
             if (tag.Parameters.ContainsKey("ID"))
             {
@@ -21,13 +23,13 @@
                 {
                     result = (item.HasLink ? $"[{tag.Parameters["ID"]}]({item.Link})" : tag.Parameters["ID"]);
                 }
-                analysis.AddTraceTag(docTitle, tag);
+                analysis.AddTraceTag(doc.DocumentTitle, tag);
                 return result;
             }
             else
             {
                 var ex = new TagInvalidException(tag.Contents, "Trace tag is missing \"ID\" parameter");
-                ex.DocumentTitle = docTitle;
+                ex.DocumentTitle = doc.DocumentTitle;
                 throw ex;
             }
         }

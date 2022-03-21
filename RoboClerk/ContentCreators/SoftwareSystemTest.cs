@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using RoboClerk.Configuration;
+using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
@@ -11,7 +12,7 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle)
+        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
         {
             var systemTests = data.GetAllSystemLevelTests();
             StringBuilder output = new StringBuilder();
@@ -24,11 +25,11 @@ namespace RoboClerk.ContentCreators
                 {
                     testCaseFound = true;
                     output.AppendLine(test.ToText());
-                    analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareSystemTest"), test.TestCaseID, analysis.GetTraceEntityForTitle(docTitle), test.TestCaseID);
+                    analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareSystemTest"), test.TestCaseID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), test.TestCaseID);
                     
                     foreach (var parent in test.Parents)
                     {
-                        analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareRequirement"), parent.Item1, analysis.GetTraceEntityForTitle(docTitle), test.TestCaseID);
+                        analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareRequirement"), parent.Item1, analysis.GetTraceEntityForTitle(doc.DocumentTitle), test.TestCaseID);
                     }
                 }
             }

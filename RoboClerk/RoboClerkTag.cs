@@ -83,6 +83,7 @@ namespace RoboClerk
         Comment, //comment tag, contents will be removed after processing
         Trace, //trace tag that is expected to be traced to this document
         Reference, //tag for referencing a document in another document
+        Document, //tag for referencing a property of the document
         Unknown //it is not known where to retrieve this information
     }
 
@@ -292,6 +293,7 @@ namespace RoboClerk
                 case "POST": return DataSource.Post;
                 case "COMMENT": return DataSource.Comment;
                 case "TRACE": return DataSource.Trace;
+                case "DOCUMENT": return DataSource.Document;
                 case "REF": return DataSource.Reference;
             }
             return DataSource.Unknown;

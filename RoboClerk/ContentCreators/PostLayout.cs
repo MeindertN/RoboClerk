@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using RoboClerk.Configuration;
 
 namespace RoboClerk.ContentCreators
 {
     internal class PostLayout : IContentCreator
     {
-        public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle)
+        public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
         {
             if(tag.ContentCreatorID.ToUpper() == "TOC")
             {

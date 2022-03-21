@@ -42,13 +42,13 @@ namespace RoboClerk
             //document trace entity extraction
             foreach (var docloc in configuration.Documents)
             {
-                TraceEntity entity = new TraceEntity(docloc.DocumentID, docloc.DocumentTitle, docloc.DocumentAbbreviation);
+                TraceEntity entity = new TraceEntity(docloc.RoboClerkID, docloc.DocumentTitle, docloc.DocumentAbbreviation);
                 foreach (var el in traceEntities)
                 {
                     if (entity.Abbreviation == el.Abbreviation ||
                         entity.Name == el.Name)
                     {
-                        throw new Exception($"Detected a duplicate abbreviation or name in Document.{docloc.DocumentID}. All IDs, names and abbreviations must be unique.");
+                        throw new Exception($"Detected a duplicate abbreviation or name in Document.{docloc.RoboClerkID}. All IDs, names and abbreviations must be unique.");
                     }
                 }
                 traceEntities.Add(entity);

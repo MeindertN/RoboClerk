@@ -77,6 +77,10 @@ namespace RoboClerk.Redmine
             try
             {
                 var configFileLocation = $"{Path.GetDirectoryName(assembly?.Location)}/Configuration/RedmineSLMSPlugin.toml";
+                if (configuration.PluginConfigDir != string.Empty)
+                {
+                    configFileLocation = Path.Combine(configuration.PluginConfigDir, "RedmineSLMSPlugin.toml");
+                }
                 var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
                 apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint",(string)config["RedmineAPIEndpoint"]);
                 client = new RestClient(apiEndpoint);

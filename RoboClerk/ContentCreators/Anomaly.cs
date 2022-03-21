@@ -1,10 +1,11 @@
-﻿using System.Text;
+﻿using RoboClerk.Configuration;
+using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
     class Anomaly : IContentCreator
     {
-        public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle)
+        public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
         {
             var bugs = data.GetAllAnomalies();
             StringBuilder output = new StringBuilder();

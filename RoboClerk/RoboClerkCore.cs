@@ -33,15 +33,19 @@ namespace RoboClerk
         public void GenerateDocs()
         {
             logger.Info("Starting document generation.");
+            if(configuration.ClearOutputDir)
+            {
+                CleanOutputDirectory();
+            }
             var configDocuments = configuration.Documents;
             foreach (var doc in configDocuments)
             {
                 if (doc.DocumentTemplate == string.Empty)
                     continue;  //skip documents without template
-                logger.Info($"Reading document template: {doc.DocumentID}");
+                logger.Info($"Reading document template: {doc.RoboClerkID}");
                 Document document = new Document(doc.DocumentTitle);
                 document.FromFile(doc.DocumentTemplate);
-                logger.Info($"Generating document: {doc.DocumentID}");
+                logger.Info($"Generating document: {doc.RoboClerkID}");
                 //go over the tag list to determine what information should be collected from where
                 foreach (var tag in document.RoboClerkTags)
                 {
@@ -50,7 +54,7 @@ namespace RoboClerk
                         logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID", "ERROR")}");
                         //grab trace tag and add to the trace analysis
                         IContentCreator contentCreator = new Trace();
-                        tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, doc.DocumentTitle);
+                        tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, doc);
                         continue;
                     }
                     if (tag.Source != DataSource.Unknown)
@@ -67,12 +71,17 @@ namespace RoboClerk
                         else if (tag.Source == DataSource.Post)
                         {
                             IContentCreator cc = new PostLayout();
-                            tag.Contents = cc.GetContent(tag,dataSources,traceAnalysis, doc.DocumentTitle);
+                            tag.Contents = cc.GetContent(tag,dataSources,traceAnalysis, doc);
                         }
                         else if (tag.Source == DataSource.Reference)
                         {
                             IContentCreator cc = new Reference();
-                            tag.Contents = cc.GetContent(tag, dataSources, traceAnalysis, doc.DocumentTitle);
+                            tag.Contents = cc.GetContent(tag, dataSources, traceAnalysis, doc);
+                        }
+                        else if (tag.Source == DataSource.Document)
+                        {
+                            IContentCreator cc = new ContentCreators.Document();
+                            tag.Contents = cc.GetContent(tag, dataSources, traceAnalysis, doc);
                         }
                         else
                         {
@@ -83,7 +92,7 @@ namespace RoboClerk
                             if (contentCreator != null)
                             {
                                 logger.Debug($"Content creator {tag.ContentCreatorID} found.");
-                                tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, doc.DocumentTitle);
+                                tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, doc);
                                 continue;
                             }
                             logger.Warn($"Content creator {tag.ContentCreatorID} not found.");
@@ -92,9 +101,22 @@ namespace RoboClerk
                     }
                 }
                 documents.Add(document);
-                logger.Info($"Finished creating document {doc.DocumentID}");
+                logger.Info($"Finished creating document {doc.RoboClerkID}");
             }
             logger.Info("Finished creating documents.");
+        }
+
+        private void CleanOutputDirectory()
+        {
+            logger.Info("Cleaning output directory.");
+            string[] files = Directory.GetFiles(configuration.OutputDir);
+            foreach (string file in files)
+            {
+                if (!file.Contains("RoboClerkLog.txt"))
+                {
+                    File.Delete(file);
+                }
+            }
         }
 
         public void SaveDocumentsToDisk()

@@ -1,12 +1,16 @@
 from docx import Document
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
+from docx.shared import Pt
 import argparse
 
 
 def AddTOCToDocument(document, par, num):
     paragraph = par.clear()
-    header = paragraph.insert_paragraph_before("Table of Contents\n", "Heading 1")
+    header = paragraph.insert_paragraph_before("\nTable of Contents\n", "Normal")
+    header.runs[0].bold = True
+    header.runs[0].underline = True
+    header.runs[0].font.size = Pt(12)
     document.paragraphs[num + 1].paragraph_format.page_break_before = True
     header.paragraph_format.page_break_before = True
     header.paragraph_format.keep_with_next = True

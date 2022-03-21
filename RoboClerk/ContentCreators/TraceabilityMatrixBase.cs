@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RoboClerk.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -14,7 +15,7 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        public virtual string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle)
+        public virtual string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
         {
             var traceMatrix = analysis.PerformAnalysis(data, truthSource);
 

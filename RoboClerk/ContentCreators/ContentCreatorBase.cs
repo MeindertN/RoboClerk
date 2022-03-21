@@ -1,10 +1,11 @@
-﻿using System.Reflection;
+﻿using RoboClerk.Configuration;
+using System.Reflection;
 
 namespace RoboClerk.ContentCreators
 {
     public abstract class ContentCreatorBase : IContentCreator
     {
-        public abstract string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle);
+        public abstract string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc);
 
         protected bool ShouldBeIncluded<T>(RoboClerkTag tag, T item, PropertyInfo[] properties)
         {

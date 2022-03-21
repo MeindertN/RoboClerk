@@ -1,12 +1,14 @@
-﻿namespace RoboClerk.ContentCreators
+﻿using RoboClerk.Configuration;
+
+namespace RoboClerk.ContentCreators
 {
     class SystemLevelTraceabilityMatrix : TraceabilityMatrixBase
     {
-        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, string docTitle)
+        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
         {
             truthTarget = analysis.GetTraceEntityForID("SoftwareRequirement");
             truthSource = analysis.GetTraceEntityForID("SystemRequirement");
-            return base.GetContent(tag, data, analysis, docTitle);
+            return base.GetContent(tag, data, analysis, doc);
         }
     }
 }

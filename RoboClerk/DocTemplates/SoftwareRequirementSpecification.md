@@ -1,5 +1,4 @@
-
-# Software Requirements Specification
+# @@Document:Title()@@
 
 for
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  

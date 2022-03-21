@@ -1,5 +1,4 @@
-﻿
-# Traceability Analysis Record
+﻿# @@Document:Title()@@
 
 for
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  

@@ -1,5 +1,4 @@
-﻿
-# System Level Test Plan
+﻿# @@Document:Title()@@
 
 for
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  

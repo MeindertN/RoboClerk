@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using RoboClerk.Configuration;
+using System.Collections.Generic;
 using System.Text;
 
 namespace RoboClerk.ContentCreators
@@ -14,7 +15,7 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        public override string GetContent(RoboClerkTag tag, IDataSources sources, ITraceabilityAnalysis analysis, string docTitle)
+        public override string GetContent(RoboClerkTag tag, IDataSources sources, ITraceabilityAnalysis analysis, DocumentConfig doc)
         {
             bool foundRequirement = false;
             //No selection needed, we return everything
@@ -26,7 +27,7 @@ namespace RoboClerk.ContentCreators
                 {
                     foundRequirement = true;
                     output.AppendLine(requirement.ToText());
-                    analysis.AddTrace(sourceType, requirement.RequirementID, analysis.GetTraceEntityForTitle(docTitle), requirement.RequirementID);
+                    analysis.AddTrace(sourceType, requirement.RequirementID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), requirement.RequirementID);
                 }
             }
             if (!foundRequirement)
