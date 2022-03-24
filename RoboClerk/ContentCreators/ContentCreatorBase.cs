@@ -5,6 +5,7 @@ namespace RoboClerk.ContentCreators
 {
     public abstract class ContentCreatorBase : IContentCreator
     {
+        protected static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         public abstract string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc);
 
         protected bool ShouldBeIncluded<T>(RoboClerkTag tag, T item, PropertyInfo[] properties)

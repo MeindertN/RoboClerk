@@ -113,6 +113,10 @@ namespace RoboClerk.Redmine
             bool thenFound = false;
             foreach (var line in lines)
             {
+                if(string.IsNullOrWhiteSpace(line))
+                {
+                    continue; //skip empty lines
+                }
                 if (!line.ToUpper().Contains("THEN:") && !thenFound)
                 {
                     string[] ln = new string[2] { line, string.Empty };
@@ -141,23 +145,23 @@ namespace RoboClerk.Redmine
 
             resultItem.TestCaseID = rmItem.Id.ToString();
             resultItem.TestCaseRevision = rmItem.UpdatedOn.ToString();
-            resultItem.TestCaseState = rmItem.Status.Name;
-            resultItem.TestCaseTitle = rmItem.Subject;
+            resultItem.TestCaseState = rmItem.Status.Name ?? string.Empty;
+            resultItem.TestCaseTitle = rmItem.Subject ?? string.Empty;
             if (baseURL != "")
             {
                 resultItem.Link = new Uri($"{baseURL}{resultItem.TestCaseID}");
             }
             logger.Debug($"Getting test steps for item: {rmItem.Id}");
-            resultItem.TestCaseSteps = GetTestSteps(rmItem.Description);
+            resultItem.TestCaseSteps = GetTestSteps(rmItem.Description ?? string.Empty);
             resultItem.TestCaseAutomated = false;
             if (rmItem.CustomFields != null)
             {
                 foreach (var field in rmItem.CustomFields)
                 {
-                    var value = field.Value as string;
-                    if (field.Name == "Test Method" && value != null)
+                    var value = (System.Text.Json.JsonElement)field.Value;
+                    if (field.Name == "Test Method")
                     {
-                        resultItem.TestCaseAutomated = (value == "Automated");
+                        resultItem.TestCaseAutomated = (value.GetString() == "Automated");
                     }
                 }
             }
@@ -177,13 +181,13 @@ namespace RoboClerk.Redmine
             logger.Debug($"Creating bug item: {rmItem.Id}");
             AnomalyItem resultItem = new AnomalyItem();
 
-            resultItem.AnomalyAssignee = rmItem.AssignedTo.Name;
+            resultItem.AnomalyAssignee = rmItem.AssignedTo.Name ?? string.Empty;
             resultItem.AnomalyID = rmItem.Id.ToString();
             resultItem.AnomalyJustification = string.Empty;
             resultItem.AnomalyPriority = string.Empty;
             resultItem.AnomalyRevision = rmItem.UpdatedOn.ToString();
-            resultItem.AnomalyState = rmItem.Status.Name;
-            resultItem.AnomalyTitle = rmItem.Subject;
+            resultItem.AnomalyState = rmItem.Status.Name ?? string.Empty;
+            resultItem.AnomalyTitle = rmItem.Subject ?? string.Empty;
             if (baseURL != "")
             {
                 resultItem.Link = new Uri($"{baseURL}{resultItem.AnomalyID}");
@@ -241,22 +245,23 @@ namespace RoboClerk.Redmine
             {
                 foreach(var field in redmineItem.CustomFields)
                 {
-                    var value = field.Value as List<string>;
-                    if(field.Name == "Functional Area" && value != null)
+                    var value = (System.Text.Json.JsonElement)field.Value;
+                    if(field.Name == "Functional Area" && value.GetArrayLength() > 0)
                     {
-                        if(value.Count > 0)
+                        foreach (var element in value.EnumerateArray())
                         {
-                            resultItem.RequirementCategory = value[0];
+                            resultItem.RequirementCategory = element.GetString();
+                            break;
                         }
                     }
                 }
             }
 
-            resultItem.RequirementDescription = redmineItem.Description;
+            resultItem.RequirementDescription = redmineItem.Description ?? string.Empty;
             resultItem.RequirementID = redmineItem.Id.ToString();
             resultItem.RequirementRevision = redmineItem.UpdatedOn.ToString();
-            resultItem.RequirementState = redmineItem.Status.Name;
-            resultItem.RequirementTitle = redmineItem.Subject;
+            resultItem.RequirementState = redmineItem.Status.Name ?? string.Empty;
+            resultItem.RequirementTitle = redmineItem.Subject ?? string.Empty;
             resultItem.TypeOfRequirement = requirementType;
             if (baseURL != "")
             {

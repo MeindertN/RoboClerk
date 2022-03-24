@@ -24,7 +24,15 @@ namespace RoboClerk.ContentCreators
                 if (ShouldBeIncluded(tag, test, properties))
                 {
                     testCaseFound = true;
-                    output.AppendLine(test.ToText());
+                    try
+                    {
+                        output.AppendLine(test.ToText());
+                    }
+                    catch
+                    {
+                        logger.Error($"An error occurred while rendering software system test {test.TestCaseID} in {doc.DocumentTitle}.");
+                        throw;
+                    }
                     analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareSystemTest"), test.TestCaseID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), test.TestCaseID);
                     
                     foreach (var parent in test.Parents)

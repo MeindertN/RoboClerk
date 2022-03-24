@@ -26,7 +26,15 @@ namespace RoboClerk.ContentCreators
                 if (ShouldBeIncluded(tag, requirement, properties))
                 {
                     foundRequirement = true;
-                    output.AppendLine(requirement.ToText());
+                    try
+                    {
+                        output.AppendLine(requirement.ToText());
+                    }
+                    catch
+                    {
+                        logger.Error($"An error occurred while rendering requirement {requirement.RequirementID} in {doc.DocumentTitle}.");
+                        throw;
+                    }
                     analysis.AddTrace(sourceType, requirement.RequirementID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), requirement.RequirementID);
                 }
             }

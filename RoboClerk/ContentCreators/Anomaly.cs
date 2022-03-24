@@ -3,9 +3,9 @@ using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
-    class Anomaly : IContentCreator
+    class Anomaly : ContentCreatorBase
     {
-        public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
         {
             var bugs = data.GetAllAnomalies();
             StringBuilder output = new StringBuilder();
@@ -15,7 +15,15 @@ namespace RoboClerk.ContentCreators
                 {
                     continue; //skip closed bugs as they are no longer outstanding
                 }
-                output.AppendLine(bug.ToText());
+                try
+                {
+                    output.AppendLine(bug.ToText());
+                }
+                catch
+                {
+                    logger.Error($"An error occurred while rendering anomaly {bug.ItemID} in {doc.DocumentTitle}.");
+                    throw;
+                }
             }
             if (bugs.Count == 0)
             {

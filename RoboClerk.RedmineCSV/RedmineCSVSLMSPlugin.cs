@@ -112,6 +112,10 @@ namespace RoboClerk.RedmineCSV
                 }
                 else
                 {
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        continue; //skip empty lines
+                    }
                     if (!thenFound)
                     {
                         thenFound = true;
