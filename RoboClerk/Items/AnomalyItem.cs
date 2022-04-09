@@ -6,7 +6,6 @@ namespace RoboClerk
     public class AnomalyItem : Item
     {
         private string anomalyState = string.Empty;
-        private string anomalyID = string.Empty;
         private string anomalyTitle = string.Empty;
         private string anomalyRevision = string.Empty;
         private string anomalyAssignee = string.Empty;
@@ -15,7 +14,7 @@ namespace RoboClerk
 
         public AnomalyItem()
         {
-            type = "AnomalyItem";
+            type = "Anomaly";
             id = Guid.NewGuid().ToString();
         }
 
@@ -26,7 +25,7 @@ namespace RoboClerk
             string separator = MarkdownTableUtils.GenerateGridTableSeparator(columnWidths);
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Anomaly ID:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, HasLink ? $"[{anomalyID}]({link})" : anomalyID));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, HasLink ? $"[{ItemID}]({link})" : ItemID));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Revision:"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, anomalyRevision == string.Empty ? "N/A" : anomalyRevision));
@@ -52,16 +51,6 @@ namespace RoboClerk
         {
             get => anomalyState;
             set => anomalyState = value;
-        }
-
-        public string AnomalyID
-        {
-            get => anomalyID;
-            set
-            {
-                id = value;
-                anomalyID = value;
-            }
         }
 
         public string AnomalyTitle

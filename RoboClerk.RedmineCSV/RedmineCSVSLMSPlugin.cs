@@ -135,25 +135,18 @@ namespace RoboClerk.RedmineCSV
             logger.Debug($"Creating test case item: {rmItem.Id}");
             TestCaseItem resultItem = new TestCaseItem();
 
-            resultItem.TestCaseID = rmItem.Id;
+            resultItem.ItemID = rmItem.Id;
             resultItem.TestCaseRevision = rmItem.Updated;
             resultItem.TestCaseState = rmItem.Status;
             resultItem.TestCaseTitle = rmItem.Subject;
             if (baseURL != "")
             {
-                resultItem.Link = new Uri($"{baseURL}{resultItem.TestCaseID}");
+                resultItem.Link = new Uri($"{baseURL}{resultItem.ItemID}");
             }
             logger.Debug($"Getting test steps for item: {rmItem.Id}");
             resultItem.TestCaseSteps = GetTestSteps(rmItem.Description);
             resultItem.TestCaseAutomated = rmItem.TestMethod == "Automated";
-            if (baseURL != "")
-            {
-                resultItem.AddParent(rmItem.ParentTask, new Uri($"{baseURL}{rmItem.ParentTask}"));
-            }
-            else
-            {
-                resultItem.AddParent(rmItem.ParentTask, null);
-            }
+            resultItem.AddLinkedItem(new ItemLink(rmItem.ParentTask, ItemLinkType.Parent));
 
             return resultItem;
         }
@@ -164,7 +157,7 @@ namespace RoboClerk.RedmineCSV
             AnomalyItem resultItem = new AnomalyItem();
 
             resultItem.AnomalyAssignee = rmItem.Assignee;
-            resultItem.AnomalyID = rmItem.Id;
+            resultItem.ItemID = rmItem.Id;
             resultItem.AnomalyJustification = string.Empty;
             resultItem.AnomalyPriority = string.Empty;
             resultItem.AnomalyRevision = rmItem.Updated;
@@ -172,7 +165,7 @@ namespace RoboClerk.RedmineCSV
             resultItem.AnomalyTitle = rmItem.Subject;
             if (baseURL != "")
             {
-                resultItem.Link = new Uri($"{baseURL}{resultItem.AnomalyID}");
+                resultItem.Link = new Uri($"{baseURL}{resultItem.ItemID}");
             }
 
             return resultItem;
@@ -181,52 +174,38 @@ namespace RoboClerk.RedmineCSV
         private RequirementItem CreateRequirement(List<RedmineItem> items, RedmineItem rmItem, RequirementType typeOfRequirement)
         {
             logger.Debug($"Creating requirement item: {rmItem.Id}");
-            RequirementItem resultItem = new RequirementItem();
+            RequirementItem resultItem = new RequirementItem(typeOfRequirement);
 
             if (rmItem.FunctionalArea != "")
             {
-                resultItem.RequirementCategory = rmItem.FunctionalArea;
+                resultItem.ItemCategory = rmItem.FunctionalArea;
             }
             else
             {
-                resultItem.RequirementCategory = "Unknown";
+                resultItem.ItemCategory = "Unknown";
             }
             resultItem.RequirementDescription = rmItem.Description;
-            resultItem.RequirementID = rmItem.Id;
+            resultItem.ItemID = rmItem.Id;
             resultItem.RequirementRevision = rmItem.Updated;
             resultItem.RequirementState = rmItem.Status;
             resultItem.RequirementTitle = rmItem.Subject;
             resultItem.TypeOfRequirement = typeOfRequirement;
             if (baseURL != "")
             {
-                resultItem.Link = new Uri($"{baseURL}{resultItem.RequirementID}");
+                resultItem.Link = new Uri($"{baseURL}{resultItem.ItemID}");
             }
 
             foreach (var redmineItem in items)
             {
                 if (redmineItem.ParentTask == rmItem.Id)
                 {
-                    if (baseURL != "")
-                    {
-                        resultItem.AddChild(redmineItem.Id, new Uri($"{baseURL}{redmineItem.Id}"));
-                    }
-                    else
-                    {
-                        resultItem.AddChild(redmineItem.Id, null);
-                    }
+                    resultItem.AddLinkedItem(new ItemLink(redmineItem.Id, ItemLinkType.Child));
                 }
             }
 
             if (rmItem.ParentTask != string.Empty)
             {
-                if (baseURL != "")
-                {
-                    resultItem.AddParent(rmItem.ParentTask, new Uri($"{baseURL}{rmItem.ParentTask}"));
-                }
-                else
-                {
-                    resultItem.AddParent(rmItem.ParentTask, null);
-                }
+                resultItem.AddLinkedItem(new ItemLink(rmItem.ParentTask, ItemLinkType.Parent));
             }
             return resultItem;
         }
@@ -311,6 +290,11 @@ namespace RoboClerk.RedmineCSV
                 }
             }
             return items;
+        }
+
+        public List<RiskItem> GetRisks()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -112,7 +112,8 @@ namespace RoboClerk
             string[] files = Directory.GetFiles(configuration.OutputDir);
             foreach (string file in files)
             {
-                if (!file.Contains("RoboClerkLog.txt"))
+                if (!file.Contains("RoboClerkLog.txt") &&
+                    !file.Contains(".gitignore"))
                 {
                     File.Delete(file);
                 }

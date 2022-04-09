@@ -128,9 +128,13 @@ namespace RoboClerk.ContentCreators
                             targetID = (targetItem.HasLink ? $"[{targetItem.ItemID}]({targetItem.Link})" : targetItem.ItemID);
                             matrix.AppendLine($"* An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not found.");
                         }
-                        else
+                        else if(targetID != null)
                         {
                             matrix.AppendLine($"* An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not a valid identifier.");
+                        }
+                        else
+                        {
+                            matrix.AppendLine($"* A missing trace was detected in {sourceTitle}. The item with ID {sourceID} does not have a parent while it was expected to trace to {targetTitle}.");
                         }
                     }
                 }

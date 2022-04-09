@@ -26,22 +26,22 @@ This document is intended for the software developers at @@Config:CompanyName()@
 # Requirements
 
 ## Functional Product Requirements
-@@@SLMS:SYS(requirementCategory=Functional)
+@@@SLMS:SYS(itemCategory=Functional)
 
 @@@
 ## Risk Control Product Requirements
-@@@SLMS:SYS(requirementCategory=Risk Control)
+@@@SLMS:SYS(itemCategory=Risk Control)
 
 @@@
 ## Transfer to Production Product Requirements
-@@@SLMS:SYS(requirementCategory=Transfer to Production)
+@@@SLMS:SYS(itemCategory=Transfer to Production)
 
 @@@
 ## Documentation Product Requirements
-@@@SLMS:SYS(requirementCategory=Documentation)
+@@@SLMS:SYS(itemCategory=Documentation)
 
 @@@
 ## Product Usability Requirements
-@@@SLMS:SYS(requirementCategory=Usability)
+@@@SLMS:SYS(itemCategory=Usability)
 
 @@@

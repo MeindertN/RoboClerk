@@ -3,10 +3,50 @@ using Tomlyn.Model;
 
 namespace RoboClerk.Configuration
 {
+    public class TraceConfigElement
+    {
+        private List<string> forwardFilters = new List<string>();
+        private List<string> backwardFilters = new List<string>();
+        private string forwardLinkType = string.Empty;
+        private string backwardLinkType = string.Empty;
+
+        public void AddForwardFilterString(string filter)
+        {
+            forwardFilters.Add(filter);
+        }
+
+        public void AddBackwardFilterString(string filter)
+        {
+            backwardFilters.Add(filter);
+        }
+
+        public string ForwardLinkType
+        {
+            get { return forwardLinkType; }
+            set { forwardLinkType = value; }
+        }
+
+        public string BackwardLinkType
+        {
+            set { backwardLinkType = value; }
+            get { return backwardLinkType; }
+        }
+
+        public List<string> ForwardFilters
+        {
+            get { return forwardFilters; }
+        }
+
+        public List<string> BackwardFilters
+        {
+            get { return forwardFilters; }
+        }
+    }
+
     public class TraceConfig
     {
         private string id = string.Empty;
-        private RoboClerkOrderedDictionary<string,List<string>> traces = new RoboClerkOrderedDictionary<string, List<string>>();
+        private RoboClerkOrderedDictionary<string,TraceConfigElement> traces = new RoboClerkOrderedDictionary<string, TraceConfigElement>();
 
         public TraceConfig(string ID)
         {
@@ -17,17 +57,24 @@ namespace RoboClerk.Configuration
         {
             foreach (var doc in toml)
             {
-                foreach (var obj in (TomlArray)doc.Value)
+                var traceTarget = (TomlTable)(doc.Value);
+                if (!traces.ContainsKey(doc.Key))
                 {
-                    if(!traces.ContainsKey(doc.Key))
-                    {
-                        traces[doc.Key] = new List<string>();
-                    }
-                    traces[doc.Key].Add((string)obj);
+                    traces[doc.Key] = new TraceConfigElement();
                 }
+                foreach (var element in (TomlArray)traceTarget["forward"])
+                {
+                    traces[doc.Key].AddForwardFilterString((string)element);
+                }
+                foreach (var element in (TomlArray)traceTarget["backward"])
+                {
+                    traces[doc.Key].AddForwardFilterString((string)element);
+                }
+                traces[doc.Key].ForwardLinkType = (string)traceTarget["forwardLink"];
+                traces[doc.Key].BackwardLinkType = (string)traceTarget["backwardLink"];
             }
         }
         public string ID => id;
-        public RoboClerkOrderedDictionary<string,List<string>> Traces => traces;
+        public RoboClerkOrderedDictionary<string,TraceConfigElement> Traces => traces;
     }
 }

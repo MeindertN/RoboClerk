@@ -50,29 +50,29 @@ namespace RoboClerk.Tests
         private List<AnomalyItem> ANOMALYs = null;
         private void SetupPlugin()
         {
-            SYSs = new List<RequirementItem> { new RequirementItem(), new RequirementItem() };
+            SYSs = new List<RequirementItem> { new RequirementItem(RequirementType.SystemRequirement), new RequirementItem(RequirementType.SystemRequirement) };
             SYSs[0].RequirementTitle = "SYS_TestTitle1";
-            SYSs[0].RequirementID = "SYS_id1";
+            SYSs[0].ItemID = "SYS_id1";
             SYSs[1].RequirementTitle = "SYS_TestTitle2";
-            SYSs[1].RequirementID = "SYS_id2";
+            SYSs[1].ItemID = "SYS_id2";
             mockPlugin.GetSystemRequirements().Returns(SYSs);
-            SWRs = new List<RequirementItem> { new RequirementItem(), new RequirementItem() };
+            SWRs = new List<RequirementItem> { new RequirementItem(RequirementType.SoftwareRequirement), new RequirementItem(RequirementType.SoftwareRequirement) };
             SWRs[0].RequirementTitle = "SWR_TestTitle1";
-            SWRs[0].RequirementID = "SWR_id1";
+            SWRs[0].ItemID = "SWR_id1";
             SWRs[1].RequirementTitle = "SWR_TestTitle2";
-            SWRs[1].RequirementID = "SWR_id2";
+            SWRs[1].ItemID = "SWR_id2";
             mockPlugin.GetSoftwareRequirements().Returns(SWRs);
             TCs = new List<TestCaseItem> { new TestCaseItem(), new TestCaseItem() };
             TCs[0].TestCaseTitle = "TC_TestTitle1";
-            TCs[0].TestCaseID = "TC_id1";
+            TCs[0].ItemID = "TC_id1";
             TCs[1].TestCaseTitle = "TC_TestTitle2";
-            TCs[1].TestCaseID = "TC_id2";
+            TCs[1].ItemID = "TC_id2";
             mockPlugin.GetSoftwareSystemTests().Returns(TCs);
             ANOMALYs = new List<AnomalyItem> { new AnomalyItem(), new AnomalyItem() };
             ANOMALYs[0].AnomalyTitle = "ANOMALY_TestTitle1";
-            ANOMALYs[0].AnomalyID = "ANOMALY_id1";
+            ANOMALYs[0].ItemID = "ANOMALY_id1";
             ANOMALYs[1].AnomalyTitle = "ANOMALY_TestTitle2";
-            ANOMALYs[1].AnomalyID = "ANOMALY_id2";
+            ANOMALYs[1].ItemID = "ANOMALY_id2";
             mockPlugin.GetAnomalies().Returns(ANOMALYs);
         }
 

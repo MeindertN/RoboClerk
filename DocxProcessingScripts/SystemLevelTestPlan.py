@@ -37,7 +37,7 @@ for table in document.tables:
             SetColumnWidths(table, 2, 1.84)
             SetColumnWidths(table, 3, 1.84)
             SetColumnWidths(table, 4, 0.56)
-    else:  #this type of table if for inital and date
+    elif "Initial:" in table.columns[0].cells[0].text:
         table.rows[0].height = Inches(0.5)
         table.columns[0].width = Inches(3.33)
         table.columns[1].width = Inches(3.32)

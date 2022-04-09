@@ -90,7 +90,7 @@
 	title = "Software Design and Development Plan"
 	abbreviation = "SDDP"
 	identifier = "DOC003"
-	template = "I:/temp/roboclerk_input/SoftwareDevelopmentPlan.md"
+	template = "I:/temp/roboclerk_input/SoftwareDesignAndDevelopmentPlan.md"
 	[[Document.SoftwareDevelopmentPlan.Command]]
 		executable = ""
 		arguments = ""
@@ -112,7 +112,7 @@
 	title = "Risk Assessment Record"
 	abbreviation = "RAR"
 	identifier = "DOC004"
-	template  = ""
+	template  = "I:/temp/roboclerk_input/RiskAssessmentRecord.md"
 	[[Document.RiskAssessmentRecord.Command]]
 		executable = ""
 		arguments = ""
@@ -187,15 +187,46 @@
 [TraceConfig]
 	
 	[TraceConfig.SystemRequirement]
-		SystemRequirementsSpecification = ["ALL"]
-		SoftwareRequirement = ["ALL"]
-		RiskAssessmentRecord = ["Risk Control Measure"]
+		SystemRequirementsSpecification.forward = ["ALL"]
+		SystemRequirementsSpecification.backward = ["ALL"]
+		SystemRequirementsSpecification.forwardLink = "DOC"
+		SystemRequirementsSpecification.backwardLink = "DOC"
+
+		SoftwareRequirement.forward = ["ALL"]
+		SoftwareRequirement.backward = ["ALL"]
+		SoftwareRequirement.forwardLink = "Child"
+		SoftwareRequirement.backwardLink = "Parent"
+
+		RiskAssessmentRecord.forward = ["Risk Control Measure"]
+		RiskAssessmentRecord.backward = ["Risk Control Requirement"]
+		RiskAssessmentRecord.forwardLink = "DOC"
+		RiskAssessmentRecord.backwardLink = "DOC"
+
+		#Risk.forward = ["Risk Control Measure"]
+		#Risk.backward = ["Risk Control Requirement"]
+		#Risk.forwardLink = "Parent"
+		#Risk.backwardLink = "Child"
 
 	[TraceConfig.SoftwareRequirement]
-		SoftwareRequirementsSpecification = ["ALL"]
-		SystemRequirement = ["ALL"]
-		RiskAssessmentRecord = ["Risk Control Measure"]
-		SystemLevelTestPlan = ["ALL"]
+		SoftwareRequirementsSpecification.forward = ["ALL"]
+		SoftwareRequirementsSpecification.backward = ["ALL"]
+		SoftwareRequirementsSpecification.forwardLink = "DOC"
+		SoftwareRequirementsSpecification.backwardLink = "DOC"
+
+		SystemRequirement.forward = ["ALL"]
+		SystemRequirement.backward = ["ALL"]
+		SystemRequirement.forwardLink = "Parent"
+		SystemRequirement.backwardLink = "Child"
+
+		RiskAssessmentRecord.forward = ["Risk Control Measure"]
+		RiskAssessmentRecord.backward = ["Risk Control Specification"]
+		RiskAssessmentRecord.forwardLink = "DOC"
+		RiskAssessmentRecord.backwardLink = "DOC"
+
+		SystemLevelTestPlan.forward = ["ALL"]
+		SystemLevelTestPlan.backward = ["ALL"]
+		SystemLevelTestPlan.forwardLink = "DOC"
+		SystemLevelTestPlan.backwardLink = "DOC"
 
 [ConfigValues]
 

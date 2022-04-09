@@ -11,15 +11,13 @@ namespace RoboClerk
     public class RequirementItem : LinkedItem
     {
         private RequirementType requirementType;
-        private string requirementCategory = string.Empty;
         private string requirementState = string.Empty;
-        private string requirementID = string.Empty;
         private string requirementTitle = string.Empty;
         private string requirementDescription = string.Empty;
         private string requirementRevision = string.Empty;
-        public RequirementItem()
+        public RequirementItem(RequirementType reqType)
         {
-            type = "RequirementItem";
+            TypeOfRequirement = reqType;
             id = Guid.NewGuid().ToString();
         }
 
@@ -30,25 +28,24 @@ namespace RoboClerk
             string separator = MarkdownTableUtils.GenerateGridTableSeparator(columnWidths);
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Requirement ID:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, HasLink ? $"[{requirementID}]({link})" : requirementID));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, HasLink ? $"[{base.ItemID}]({link})" : base.ItemID));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Requirement Revision:"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, requirementRevision));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Requirement Category:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, requirementCategory));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, base.ItemCategory));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Parent ID:"));
             string parentField = "N/A";
-            if (parents.Count > 0)
+            if (linkedItems.Count > 0)
             {
-                if (parents[0].Item2 != null)
+                foreach(var item in linkedItems)
                 {
-                    parentField = $"[{parents[0].Item1}]({parents[0].Item2})";
-                }
-                else
-                {
-                    parentField = parents[0].Item1;
+                    if(item.LinkType == ItemLinkType.Parent)
+                    {
+                        parentField = item.TargetID;
+                    }
                 }
             }
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, parentField));
@@ -64,23 +61,24 @@ namespace RoboClerk
         public RequirementType TypeOfRequirement
         {
             get => requirementType;
-            set => requirementType = value;
+            set
+            {
+                if(value == RequirementType.SystemRequirement)
+                {
+                    type = "SystemRequirement";
+                }
+                else
+                {
+                    type = "SoftwareRequirement";
+                }
+                requirementType = value;
+            }
         }
 
         public string RequirementState
         {
             get => requirementState;
             set => requirementState = value;
-        }
-
-        public string RequirementID
-        {
-            get => requirementID;
-            set
-            {
-                ItemID = value; //we set the itemID to the same value as the requirement ID
-                requirementID = value;
-            }
         }
 
         public string RequirementTitle
@@ -99,12 +97,6 @@ namespace RoboClerk
         {
             get => requirementRevision;
             set => requirementRevision = value;
-        }
-
-        public string RequirementCategory
-        {
-            get => requirementCategory;
-            set => requirementCategory = value;
         }
     }
 }

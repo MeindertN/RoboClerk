@@ -32,10 +32,10 @@ namespace RoboClerk.ContentCreators
                     }
                     catch
                     {
-                        logger.Error($"An error occurred while rendering requirement {requirement.RequirementID} in {doc.DocumentTitle}.");
+                        logger.Error($"An error occurred while rendering requirement {requirement.ItemID} in {doc.DocumentTitle}.");
                         throw;
                     }
-                    analysis.AddTrace(sourceType, requirement.RequirementID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), requirement.RequirementID);
+                    analysis.AddTrace(sourceType, requirement.ItemID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), requirement.ItemID);
                 }
             }
             if (!foundRequirement)

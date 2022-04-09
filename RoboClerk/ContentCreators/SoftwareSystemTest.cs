@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using System.Linq;
 using System.Text;
 
 namespace RoboClerk.ContentCreators
@@ -30,14 +31,20 @@ namespace RoboClerk.ContentCreators
                     }
                     catch
                     {
-                        logger.Error($"An error occurred while rendering software system test {test.TestCaseID} in {doc.DocumentTitle}.");
+                        logger.Error($"An error occurred while rendering software system test {test.ItemID} in {doc.DocumentTitle}.");
                         throw;
                     }
-                    analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareSystemTest"), test.TestCaseID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), test.TestCaseID);
-                    
-                    foreach (var parent in test.Parents)
+                    analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareSystemTest"), test.ItemID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), test.ItemID);
+
+                    var parents = test.LinkedItems.Where(x => x.LinkType == ItemLinkType.Parent);
+                    if (parents.Count() == 0)
                     {
-                        analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareRequirement"), parent.Item1, analysis.GetTraceEntityForTitle(doc.DocumentTitle), test.TestCaseID);
+                        //in case there are no parents, ensure that the broken trace is included
+                        analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareRequirement"), null, analysis.GetTraceEntityForTitle(doc.DocumentTitle), test.ItemID);
+                    }
+                    else foreach (var parent in parents)
+                    {
+                        analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareRequirement"), parent.TargetID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), test.ItemID);
                     }
                 }
             }

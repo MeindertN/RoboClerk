@@ -25,18 +25,18 @@ This document is intended for the software developers at @@Config:CompanyName()@
 # Requirements
 
 ## Functional Software Requirements
-@@@SLMS:SWR(requirementCategory=Functional Requirement)
+@@@SLMS:SWR(itemCategory=Functional Requirement)
 
 @@@
 ## Risk Control Software Requirements
-@@@SLMS:SWR(requirementCategory=Risk Control)
+@@@SLMS:SWR(itemCategory=Risk Control)
 
 @@@
 ## Transfer to Production Software Requirements
-@@@SLMS:SWR(requirementCategory=Transfer to Production)
+@@@SLMS:SWR(itemCategory=Transfer to Production)
 
 @@@
 ## Documentation Software Requirements
-@@@SLMS:SWR(requirementCategory=Documentation)
+@@@SLMS:SWR(itemCategory=Documentation)
 
 @@@

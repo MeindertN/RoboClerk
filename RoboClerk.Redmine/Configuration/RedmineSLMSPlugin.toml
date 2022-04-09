@@ -1,7 +1,7 @@
 ﻿# This is the RoboClerk Redmine plugin configuration
 
-RedmineAPIEndpoint = ""
-RedmineAPIKey = ""
+RedmineAPIEndpoint = "http://192.168.4.40:3001/"
+RedmineAPIKey = "014a75c443c18891c3baf8f7f2d2ce37aa27b94c"
 
 # The name of the project that we will be pulling from Redmine
 
@@ -14,7 +14,7 @@ SystemRequirement = "Specification"
 SoftwareRequirement = "Feature"
 SoftwareSystemTest = "Validation"
 SoftwareUnitTest = "NA"
-Risk = "NA"
+Risk = "Risk"
 Anomaly = "Bug"
 
 # certain items in redmine should be ignored because they are no longer

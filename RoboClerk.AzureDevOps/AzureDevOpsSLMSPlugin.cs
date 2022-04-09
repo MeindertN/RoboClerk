@@ -96,7 +96,7 @@ namespace RoboClerk.AzureDevOps
                         //this is a child link
                         var id = AzureDevOpsUtilities.GetWorkItemIDFromURL(rel.Url);
                         logger.Debug($"Child link found: {id}");
-                        item.AddChild(id, new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{id}/"));
+                        item.AddLinkedItem(new ItemLink(id, ItemLinkType.Child));
                         continue;
                     }
                     if (rel.Rel.Contains("Hierarchy-Reverse") || rel.Rel.Contains("TestedBy-Reverse"))
@@ -104,7 +104,7 @@ namespace RoboClerk.AzureDevOps
                         //this is a parent link
                         var id = AzureDevOpsUtilities.GetWorkItemIDFromURL(rel.Url);
                         logger.Debug($"Parent link found: {id}");
-                        item.AddParent(id, new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{id}/"));
+                        item.AddLinkedItem(new ItemLink(id, ItemLinkType.Parent));
                         continue;
                     }
                 }
@@ -131,11 +131,11 @@ namespace RoboClerk.AzureDevOps
             }
         }
 
-        private RequirementItem ConvertToRequirementItem(WorkItem workitem)
+        private RequirementItem ConvertToRequirementItem(WorkItem workitem, RequirementType rt)
         {
             logger.Debug($"Creating requirement item for: {workitem.Id.ToString()}");
-            RequirementItem item = new RequirementItem();
-            item.RequirementID = workitem.Id.ToString();
+            RequirementItem item = new RequirementItem(rt);
+            item.ItemID = workitem.Id.ToString();
             item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
             item.RequirementRevision = workitem.Rev.ToString();
             item.RequirementState = GetWorkItemField(workitem, "System.State");
@@ -198,7 +198,7 @@ namespace RoboClerk.AzureDevOps
         {
             logger.Debug($"Creating testcase item for: {workitem.Id.ToString()}");
             TestCaseItem item = new TestCaseItem();
-            item.TestCaseID = workitem.Id.ToString();
+            item.ItemID = workitem.Id.ToString();
             item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
             item.TestCaseRevision = workitem.Rev.ToString();
             item.TestCaseState = GetWorkItemField(workitem, "System.State");
@@ -214,7 +214,7 @@ namespace RoboClerk.AzureDevOps
         {
             logger.Debug($"Creating bug item for: {workitem.Id.ToString()}");
             AnomalyItem item = new AnomalyItem();
-            item.AnomalyID = workitem.Id.ToString();
+            item.ItemID = workitem.Id.ToString();
             item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
             item.AnomalyRevision = workitem.Rev.ToString();
             item.AnomalyState = GetWorkItemField(workitem, "System.State");
@@ -245,12 +245,12 @@ namespace RoboClerk.AzureDevOps
                 {
                     continue;
                 }
-                var item = ConvertToRequirementItem(workitem);
+                var item = ConvertToRequirementItem(workitem, RequirementType.SystemRequirement);
                 item.TypeOfRequirement = RequirementType.SystemRequirement;
-                item.RequirementCategory = GetWorkItemField(workitem, "Custom.TypeofSystemRequirement");
-                if (item.RequirementCategory == String.Empty) //default sometimes comes back as empty
+                item.ItemCategory = GetWorkItemField(workitem, "Custom.TypeofSystemRequirement");
+                if (item.ItemCategory == String.Empty) //default sometimes comes back as empty
                 {
-                    item.RequirementCategory = "Product Requirement";
+                    item.ItemCategory = "Product Requirement";
                 }
                 systemRequirements.Add(item);
             }
@@ -263,12 +263,12 @@ namespace RoboClerk.AzureDevOps
 
             foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, softwareRequirementQuery))
             {
-                var item = ConvertToRequirementItem(workitem);
+                var item = ConvertToRequirementItem(workitem, RequirementType.SoftwareRequirement);
                 item.TypeOfRequirement = RequirementType.SoftwareRequirement;
-                item.RequirementCategory = GetWorkItemField(workitem, "Custom.SoftwareRequirementType");
-                if (item.RequirementCategory == String.Empty) //default sometimes comes back as empty
+                item.ItemCategory = GetWorkItemField(workitem, "Custom.SoftwareRequirementType");
+                if (item.ItemCategory == String.Empty) //default sometimes comes back as empty
                 {
-                    item.RequirementCategory = "Software Requirement";
+                    item.ItemCategory = "Software Requirement";
                 }
                 softwareRequirements.Add(item);
             }
@@ -317,6 +317,9 @@ namespace RoboClerk.AzureDevOps
             }*/
         }
 
-
+        public List<RiskItem> GetRisks()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

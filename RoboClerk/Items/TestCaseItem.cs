@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace RoboClerk
 {
     public class TestCaseItem : LinkedItem
     {
         private string testCaseState = "";
-        private string testCaseID = "";
         private string testCaseTitle = "";
         private string testCaseDescription = "";
         private string testCaseRevision = "";
@@ -15,18 +15,18 @@ namespace RoboClerk
         private List<string[]> testCaseSteps = new List<string[]>();
         public TestCaseItem()
         {
-            type = "TestCaseItem";
+            type = "TestCase";
             id = Guid.NewGuid().ToString();
         }
 
         public override string ToText()
         {
             StringBuilder sb = new StringBuilder();
-            int[] columnWidths = new int[2] { 25, Math.Max(($"[{testCaseID}]({link})").Length, 75) };
+            int[] columnWidths = new int[2] { 25, Math.Max(($"[{ItemID}]({link})").Length, 75) };
             string separator = MarkdownTableUtils.GenerateGridTableSeparator(columnWidths);
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "**Test Case ID:**"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, HasLink ? $"[{testCaseID}]({link})" : testCaseID));
+            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, HasLink ? $"[{ItemID}]({link})" : ItemID));
             sb.AppendLine(separator);
             sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "**Test Case Revision:**"));
             sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, testCaseRevision));
@@ -76,6 +76,7 @@ namespace RoboClerk
         private string GetParentField()
         {
             StringBuilder parentField = new StringBuilder();
+            var parents = linkedItems.FindAll(x => x.LinkType == ItemLinkType.Parent);
             if (parents.Count > 0)
             {
                 foreach (var parent in parents)
@@ -84,14 +85,7 @@ namespace RoboClerk
                     {
                         parentField.Append(", ");
                     }
-                    if (parent.Item2 != null)
-                    {
-                        parentField.Append($"[{parent.Item1}]({parent.Item2})");
-                    }
-                    else
-                    {
-                        parentField.Append(parent.Item1);
-                    }
+                    parentField.Append(parent.TargetID);
                 }
                 return parentField.ToString();
             }
@@ -112,16 +106,6 @@ namespace RoboClerk
         {
             get => testCaseState;
             set => testCaseState = value;
-        }
-
-        public string TestCaseID
-        {
-            get => testCaseID;
-            set
-            {
-                id = value;
-                testCaseID = value;
-            }
         }
 
         public string TestCaseTitle

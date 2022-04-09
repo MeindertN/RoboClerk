@@ -6,39 +6,26 @@ namespace RoboClerk
 {
     public abstract class LinkedItem : Item
     {
-        protected List<(string, Uri)> parents = new List<(string, Uri)>();
-        protected List<(string, Uri)> children = new List<(string, Uri)>();
+        protected List<ItemLink> linkedItems = new List<ItemLink>();
 
-        public IEnumerable<(string, Uri)> Parents
+        public IEnumerable<ItemLink> LinkedItems
         {
-            get => parents;
+            get => linkedItems;
         }
 
-        public IEnumerable<(string, Uri)> Children
+        public void AddLinkedItem(ItemLink itemLink)
         {
-            get => children;
+            linkedItems.Add(itemLink);
         }
 
-        public void AddChild(string child, Uri link)
+        public ItemLinkType GetItemLinkType(LinkedItem item)
         {
-            children.Add((child, link));
-        }
-
-        public void AddParent(string parent, Uri link)
-        {
-            parents.Add((parent, link));
-        }
-
-        public bool IsParentOf(LinkedItem item)
-        {
-            var result = from s in children where s.Item1 == item.ItemID select s;
-            return result.Count() > 0;
-        }
-
-        public bool IsChildOf(LinkedItem item)
-        {
-            var result = from s in parents where s.Item1 == item.ItemID select s;
-            return result.Count() > 0;
+            var result = from s in linkedItems where s.TargetID == item.ItemID select s.LinkType;
+            if(result.Count() > 1) //this is a situation that we do not support and that should not occur in practice
+            {
+                throw new Exception($"The same item with ID \"{item.ItemID}\" was linked multiple times to item with ID \"{id}\".");
+            }
+            return result.FirstOrDefault(ItemLinkType.None);  
         }
     }
 }

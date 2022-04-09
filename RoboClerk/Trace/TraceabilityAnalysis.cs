@@ -13,8 +13,7 @@ namespace RoboClerk
         private Dictionary<string, List<TraceLink>> documentTraceLinks = new Dictionary<string, List<TraceLink>>();
         private Dictionary<string, List<TraceIssue>> documentTraceIssues = new Dictionary<string, List<TraceIssue>>();
         private Dictionary<TraceEntity, List<TraceIssue>> truthTraceIssues = new Dictionary<TraceEntity, List<TraceIssue>>();
-        private readonly List<TraceSpecification> systemRequirementTraces = new List<TraceSpecification>();
-        private readonly List<TraceSpecification> softwareRequirementTraces = new List<TraceSpecification>();
+        private readonly Dictionary<TraceEntity, List<TraceSpecification>> traces = new Dictionary<TraceEntity,List<TraceSpecification>>();
 
         public TraceabilityAnalysis(IConfiguration config)
         {
@@ -42,7 +41,7 @@ namespace RoboClerk
             //document trace entity extraction
             foreach (var docloc in configuration.Documents)
             {
-                TraceEntity entity = new TraceEntity(docloc.RoboClerkID, docloc.DocumentTitle, docloc.DocumentAbbreviation);
+                TraceEntity entity = new TraceEntity(docloc.RoboClerkID, docloc.DocumentTitle, docloc.DocumentAbbreviation, TraceEntityType.Document);
                 foreach (var el in traceEntities)
                 {
                     if (entity.Abbreviation == el.Abbreviation ||
@@ -65,28 +64,24 @@ namespace RoboClerk
                     {
                         throw new Exception($"Error setting up requested trace from {truthID.ID} to {doc.Key}. Check if both these entities are correctly defined in the project config file.");
                     }
-                    bool completeTrace = false;
-                    if (doc.Value.Count == 0 || doc.Value[0].ToUpper() == "ALL")
+                    if (!traces.ContainsKey(source))
                     {
-                        completeTrace = true;
+                        traces[source] = new List<TraceSpecification>();
                     }
-                    TraceSpecification dt = new TraceSpecification(source, target, completeTrace);
-                    if (!completeTrace && doc.Value[0].ToUpper() != "OPTIONAL")
+                    TraceSpecification dt = new TraceSpecification(source, target);
+                    dt.CompleteTraceForward = (doc.Value.ForwardFilters.Count == 0 || doc.Value.ForwardFilters[0].ToUpper() == "ALL");
+                    if (!dt.CompleteTraceForward && doc.Value.ForwardFilters[0].ToUpper() != "OPTIONAL")
                     {
-                        dt.SelectedCategories = doc.Value;
+                        dt.SelectedCategoriesForward = doc.Value.ForwardFilters;
                     }
-                    if (truthID.ID == "SystemRequirement")
+                    dt.ForwardLink = ItemLink.GetLinkTypeForString(doc.Value.ForwardLinkType);
+                    dt.CompleteTraceBackward = (doc.Value.BackwardFilters.Count == 0 || doc.Value.BackwardFilters[0].ToUpper() == "ALL");
+                    if (!dt.CompleteTraceBackward && doc.Value.BackwardFilters[0].ToUpper() != "OPTIONAL")
                     {
-                        systemRequirementTraces.Add(dt);
+                        dt.SelectedCategoriesBackward = doc.Value.BackwardFilters;
                     }
-                    else if (truthID.ID == "SoftwareRequirement")
-                    {
-                        softwareRequirementTraces.Add(dt);
-                    }
-                    else
-                    {
-                        throw new Exception("Root trace must be from either SystemRequirement or SoftwareRequirement");
-                    }
+                    dt.BackwardLink = ItemLink.GetLinkTypeForString(doc.Value.BackwardLinkType);
+                    traces[source].Add(dt);
                 }
             }
         }
@@ -105,7 +100,7 @@ namespace RoboClerk
             }
         }
 
-        private void CheckDocumentTrace(IDataSources data, List<RequirementItem> truthItems, List<List<Item>> traceData, TraceEntity tet, TraceSpecification ts)
+        private void CheckDocumentTrace(IDataSources data, List<LinkedItem> truthItems, List<List<Item>> traceData, TraceEntity tet, TraceSpecification ts)
         {
             var documentTitle = ts.Target.Name;
             documentTraceIssues[documentTitle] = new List<TraceIssue>();
@@ -122,7 +117,7 @@ namespace RoboClerk
 
             foreach (var req in truthItems)
             {
-                var foundLinks = from t in tls where (t.SourceID == req.RequirementID && t.Source.Equals(tet)) select t;
+                var foundLinks = from t in tls where (t.SourceID == req.ItemID && t.Source.Equals(tet)) select t;
                 if (foundLinks.Count() > 0)
                 {
                     List<Item> items = new List<Item>();
@@ -135,19 +130,19 @@ namespace RoboClerk
                 }
                 else
                 {
-                    if (ts.CompleteTrace)
+                    if (ts.CompleteTraceForward)
                     {
                         traceData.Add(new List<Item> { null });
-                        var ti = new TraceIssue(tet, req.RequirementID, ts.Target, req.RequirementID, TraceIssueType.Missing);
+                        var ti = new TraceIssue(tet, req.ItemID, ts.Target, req.ItemID, TraceIssueType.Missing);
                         if (!documentTraceIssues[documentTitle].Contains(ti))
                         {
                             documentTraceIssues[documentTitle].Add(ti);
                         }
                     }
-                    else if (ts.SelectedCategories.Contains(req.RequirementCategory))
+                    else if (ts.SelectedCategoriesForward.Contains(req.ItemCategory))
                     {
                         traceData.Add(new List<Item> { null });
-                        var ti = new TraceIssue(tet, req.RequirementID, ts.Target, req.RequirementID, TraceIssueType.Missing);
+                        var ti = new TraceIssue(tet, req.ItemID, ts.Target, req.ItemID, TraceIssueType.Missing);
                         if (!documentTraceIssues[documentTitle].Contains(ti))
                         {
                             documentTraceIssues[documentTitle].Add(ti);
@@ -159,11 +154,11 @@ namespace RoboClerk
                     }
                 }
             }
-            foreach (var tl in tls)
+            foreach (var tl in tls) 
             {
                 if (tl.Source == tet)
                 {
-                    var foundLinks = from t in truthItems where (t.RequirementID == tl.SourceID) select t;
+                    var foundLinks = from t in truthItems where (t.ItemID == tl.SourceID) select t;
                     if (foundLinks.Count() == 0)
                     {
                         TraceIssue ti = null;
@@ -187,68 +182,57 @@ namespace RoboClerk
 
         public RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>> PerformAnalysis(IDataSources data, TraceEntity truth)
         {
-            RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>> result = new RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>>();
-            if (truth.ID != "SystemRequirement" &&
-                truth.ID != "SoftwareRequirement")
+            if(!traces.ContainsKey(truth))
             {
-                throw new Exception($"Traceability analysis must start with {GetTitleForTraceEntity("SystemRequirement")}" +
-                    $" or {GetTitleForTraceEntity("SoftwareRequirement")}");
+                throw new Exception($"No trace specification for traces starting with {GetTitleForTraceEntity(truth.ID)}");
             }
-
-            List<TraceSpecification> requirementTraces = null;
-            List<RequirementItem> truthItems = null;
-            if (truth.ID == "SystemRequirement")
+            RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>> result = new RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>>();
+            List<TraceSpecification> specifiedTraces = traces[truth];
+            
+            if(truth.EntityType == TraceEntityType.Truth)
             {
-                requirementTraces = systemRequirementTraces;
-                truthItems = data.GetAllSystemRequirements();
+                List<LinkedItem> truthItems = data.GetItems(truth);
+                result[truth] = new List<List<Item>>();
+                foreach (var req in truthItems)
+                {
+                    result[truth].Add(new List<Item> { req });
+                }
+                foreach (var ts in specifiedTraces)
+                {
+                    result[ts.Target] = new List<List<Item>>();
+                    if (ts.Target.EntityType == TraceEntityType.Truth)
+                    {
+                        //tracing truth item to truth item, truth items are retrieved from the data source
+                        var targetItems = data.GetItems(ts.Target);
+                        foreach (var ti in truthItems)
+                        {
+                            //make child and parent links properties of the links itself. Create a single list of links with the link objects knowing what the link relationship is
+                            //specify the expected type of link in the trace specification
+                            var linked = targetItems.FindAll((x => x.GetItemLinkType(ti) == ts.BackwardLink));
+                            result[ts.Target].Add(GetReqFamilyStrings(linked));
+                            AnalyzeTruthReqTrace(ti, linked, truth, ts.Target); //TODO: we can get more specific than this
+                        }
+                        continue;
+                    }
+                    else
+                    {
+                        //tracing truth item to document
+                        CheckDocumentTrace(data, truthItems, result[ts.Target], truth, ts);
+                    }
+                }
+                return result;
+            }
+            else if(truth.EntityType == TraceEntityType.Document)
+            {
+                throw new NotImplementedException("Tracing from document not implemented");
             }
             else
             {
-                requirementTraces = softwareRequirementTraces;
-                truthItems = data.GetAllSoftwareRequirements();
+                throw new Exception($"Cannot do trace analysis for a source entity with an Unknown type.");
             }
-
-            result[truth] = new List<List<Item>>();
-            foreach (var req in truthItems)
-            {
-                result[truth].Add(new List<Item> { req });
-            }
-
-            foreach (var ts in requirementTraces)
-            {
-                result[ts.Target] = new List<List<Item>>();
-                if (ts.Target.ID == "SoftwareRequirement")
-                {
-                    //pull software requirements, match the software requirements with the product requirements
-                    var srss = data.GetAllSoftwareRequirements();
-                    foreach (var req in truthItems)
-                    {
-                        //find all software requirements children
-                        var children = srss.FindAll((x => x.IsChildOf(req)));
-                        result[ts.Target].Add(GetReqFamilyStrings(children));
-                        AnalyzeTruthReqTrace(req, children, truth, ts.Target);
-                    }
-                    continue;
-                }
-                if (ts.Target.ID == "SystemRequirement")
-                {
-                    //pull product requirements, match the product requirements with the software requirements
-                    var prss = data.GetAllSystemRequirements();
-                    foreach (var req in truthItems)
-                    {
-                        //find all product requirement parents
-                        var parent = prss.FindAll((x => x.IsParentOf(req)));
-                        result[ts.Target].Add(GetReqFamilyStrings(parent));
-                        AnalyzeTruthReqTrace(req, parent, truth, ts.Target);
-                    }
-                    continue;
-                }
-                CheckDocumentTrace(data, truthItems, result[ts.Target], truth, ts);
-            }
-            return result;
         }
 
-        private List<Item> GetReqFamilyStrings(List<RequirementItem> family)
+        private List<Item> GetReqFamilyStrings(List<LinkedItem> family)
         {
             List<Item> result = new List<Item>();
             if (family.Count == 0)
@@ -263,15 +247,15 @@ namespace RoboClerk
             return result;
         }
 
-        private void AnalyzeTruthReqTrace(RequirementItem pri, List<RequirementItem> family, TraceEntity source, TraceEntity target)
+        private void AnalyzeTruthReqTrace(LinkedItem pri, List<LinkedItem> linked, TraceEntity source, TraceEntity target)
         {
             if (!truthTraceIssues.ContainsKey(source))
             {
                 truthTraceIssues[source] = new List<TraceIssue>();
             }
-            if (family.Count == 0)
+            if (linked.Count == 0)
             {
-                truthTraceIssues[source].Add(new TraceIssue(source, pri.RequirementID, target, pri.RequirementID, TraceIssueType.PossiblyMissing));
+                truthTraceIssues[source].Add(new TraceIssue(source, pri.ItemID, target, pri.ItemID, TraceIssueType.PossiblyMissing));
             }
         }
 

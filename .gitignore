@@ -243,3 +243,4 @@ _Pvt_Extensions
 **/.idea/**/modules.xml
 /DocxProcessingScripts/.idea
 /RoboClerk/ContentCreators/TraceabilityMatrix.cs
+/DocxProcessingScripts/SoftwareHazardAnalysis.py

@@ -4,8 +4,9 @@ namespace RoboClerk
 {
     public abstract class Item
     {
-        protected string id = "";
-        protected string type = "";
+        protected string id = string.Empty;
+        protected string type = string.Empty;
+        protected string category = string.Empty;
         protected Uri link = null;
 
         public abstract string ToText();
@@ -14,6 +15,12 @@ namespace RoboClerk
         {
             get => id;
             set => id = value;
+        }
+
+        public string ItemCategory
+        {
+            get => category;
+            set => category = value;
         }
 
         public string ItemType

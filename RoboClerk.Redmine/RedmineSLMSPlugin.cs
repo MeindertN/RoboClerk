@@ -21,10 +21,12 @@ namespace RoboClerk.Redmine
         private List<RequirementItem> softwareRequirements = new List<RequirementItem>();
         private List<TestCaseItem> testCases = new List<TestCaseItem>();
         private List<AnomalyItem> bugs = new List<AnomalyItem>();
+        private List<RiskItem> risks = new List<RiskItem>();
         private string prsTrackerName = string.Empty;
         private string srsTrackerName = string.Empty;
         private string tcTrackerName = string.Empty;
         private string bugTrackerName = string.Empty;
+        private string riskTrackerName = string.Empty;
         private string baseURL = string.Empty;
         private string apiEndpoint = string.Empty;
         private string apiKey = string.Empty;
@@ -70,6 +72,11 @@ namespace RoboClerk.Redmine
             return testCases;
         }
 
+        public List<RiskItem> GetRisks()
+        {
+            return risks;
+        }
+
         public void Initialize(IConfiguration configuration)
         {
             logger.Info("Initializing the Redmine SLMS Plugin");
@@ -90,6 +97,7 @@ namespace RoboClerk.Redmine
                 srsTrackerName = configuration.CommandLineOptionOrDefault("SoftwareRequirement",(string)config["SoftwareRequirement"]);
                 tcTrackerName = configuration.CommandLineOptionOrDefault("SoftwareSystemTest",(string)config["SoftwareSystemTest"]);
                 bugTrackerName = configuration.CommandLineOptionOrDefault("Anomaly",(string)config["Anomaly"]);
+                riskTrackerName = configuration.CommandLineOptionOrDefault("Risk", (string)config["Risk"]);
 
                 if (config.ContainsKey("RedmineBaseURL"))
                 {
@@ -143,13 +151,13 @@ namespace RoboClerk.Redmine
             logger.Debug($"Creating test case item: {rmItem.Id}");
             TestCaseItem resultItem = new TestCaseItem();
 
-            resultItem.TestCaseID = rmItem.Id.ToString();
+            resultItem.ItemID = rmItem.Id.ToString();
             resultItem.TestCaseRevision = rmItem.UpdatedOn.ToString();
             resultItem.TestCaseState = rmItem.Status.Name ?? string.Empty;
             resultItem.TestCaseTitle = rmItem.Subject ?? string.Empty;
             if (baseURL != "")
             {
-                resultItem.Link = new Uri($"{baseURL}{resultItem.TestCaseID}");
+                resultItem.Link = new Uri($"{baseURL}{resultItem.ItemID}");
             }
             logger.Debug($"Getting test steps for item: {rmItem.Id}");
             resultItem.TestCaseSteps = GetTestSteps(rmItem.Description ?? string.Empty);
@@ -165,13 +173,9 @@ namespace RoboClerk.Redmine
                     }
                 }
             }
-            if (baseURL != "")
+            if (rmItem.Parent != null)
             {
-                resultItem.AddParent(rmItem.Parent.Id.ToString(), new Uri($"{baseURL}{rmItem.Parent.Id}"));
-            }
-            else
-            {
-                resultItem.AddParent(rmItem.Parent.Id.ToString(), null);
+                resultItem.AddLinkedItem(new ItemLink(rmItem.Parent.Id.ToString(), ItemLinkType.Parent));
             }
             return resultItem;
         }
@@ -182,7 +186,7 @@ namespace RoboClerk.Redmine
             AnomalyItem resultItem = new AnomalyItem();
 
             resultItem.AnomalyAssignee = rmItem.AssignedTo.Name ?? string.Empty;
-            resultItem.AnomalyID = rmItem.Id.ToString();
+            resultItem.ItemID = rmItem.Id.ToString();
             resultItem.AnomalyJustification = string.Empty;
             resultItem.AnomalyPriority = string.Empty;
             resultItem.AnomalyRevision = rmItem.UpdatedOn.ToString();
@@ -190,7 +194,7 @@ namespace RoboClerk.Redmine
             resultItem.AnomalyTitle = rmItem.Subject ?? string.Empty;
             if (baseURL != "")
             {
-                resultItem.Link = new Uri($"{baseURL}{resultItem.AnomalyID}");
+                resultItem.Link = new Uri($"{baseURL}{resultItem.ItemID}");
             }
 
             return resultItem;
@@ -204,7 +208,7 @@ namespace RoboClerk.Redmine
             }
 
             logger.Debug($"Retrieving the issues from the redmine server...");
-            var redmineIssues = PullAllIssuesFromServer(new List<string> { prsTrackerName, srsTrackerName, tcTrackerName, bugTrackerName });
+            var redmineIssues = PullAllIssuesFromServer(new List<string> { prsTrackerName, srsTrackerName, tcTrackerName, bugTrackerName, riskTrackerName });
 
             foreach (var redmineIssue in redmineIssues)
             {
@@ -233,66 +237,132 @@ namespace RoboClerk.Redmine
                     logger.Debug($"Bug item found: {redmineIssue.Id}");
                     bugs.Add(CreateBug(redmineIssue));
                 }
+                else if(redmineIssue.Tracker.Name == riskTrackerName)
+                {
+                    logger.Debug($"Risk item found: {redmineIssue.Id}");
+                    risks.Add(CreateRisk(redmineIssues, redmineIssue));
+                }
             }
+        }
+
+        private ItemLinkType GetLinkType(Relation rel)
+        {
+            switch (rel.RelationType)
+            {
+                case "relates": return ItemLinkType.Related;
+                default: return ItemLinkType.None;
+            }
+        }
+
+        private RiskItem CreateRisk(List<RedmineIssue> issues, RedmineIssue redmineItem)
+        {
+            logger.Debug($"Creating risk item: {redmineItem.Id}");
+            RiskItem riskItem = new RiskItem();
+            riskItem.ItemCategory = "Unknown";
+            if (redmineItem.CustomFields.Count != 0)
+            {
+                foreach (var field in redmineItem.CustomFields)
+                {
+                    var value = ((System.Text.Json.JsonElement)field.Value).ToString();
+                    
+                    switch (field.Name)
+                    {
+                        case "Risk Type": riskItem.ItemCategory = value; break;
+                        case "Risk": riskItem.PrimaryHazard = value; break;
+                        case "Hazard Severity": riskItem.SeverityScore = int.Parse(value.Split('-')[0]); break;
+                        case "Hazard Probability": riskItem.OccurenceScore = int.Parse(value.ToString().Split('-')[0]); break;
+                        case "Residual Probability": riskItem.ModifiedOccScore = (value!=string.Empty?int.Parse(value.Split('-')[0]):int.MaxValue); break;
+                        case "Risk Control Category": riskItem.RiskControlMeasureType = (value!=string.Empty?value.Split('\t')[0]:string.Empty); break;
+                    }
+                }
+            }
+            if(redmineItem.Relations.Count != 0)
+            {
+                foreach(var relation in redmineItem.Relations)
+                {
+                    ItemLinkType lt = GetLinkType(relation);
+                    if( lt != ItemLinkType.None )
+                    {
+                        if(relation.IssueId != redmineItem.Id)
+                        {
+                            riskItem.AddLinkedItem(new ItemLink(relation.IssueId.ToString(), lt));
+                        }
+                        else
+                        {
+                            riskItem.AddLinkedItem(new ItemLink(relation.IssueToId.ToString(), lt));
+                        }
+                    }
+                }
+            }
+            int nrOfResults = 0;
+            if( (nrOfResults = riskItem.LinkedItems.Where(x => x.LinkType == ItemLinkType.Related).Count()) > 1 )
+            {
+                logger.Warn($"Expected 1 related link for risk item \"{riskItem.ItemID}\". Multiple related items linked. Please check the item in Redmine.");
+            }
+            else if(nrOfResults == 1)
+            {
+                ItemLink link = riskItem.LinkedItems.Where(x => x.LinkType == ItemLinkType.Related).First();
+                if (link != null)
+                {
+                    var issue = GetIssue(int.Parse(link.TargetID));
+
+                    if (issue != null)
+                    {
+                        riskItem.RiskControlMeasure = issue.Subject;
+                        riskItem.RiskControlImplementation = issue.Description;
+                    }
+                    else
+                    {
+                        logger.Warn($"RoboClerk is unable the find the Redmine ticket {link.TargetID} that is linked to Risk tracker item {riskItem.ItemID}. Please check the risk tracker item in Redmine and its related issue.");
+                    }
+                }
+            }
+            riskItem.FailureMode = redmineItem.Subject ?? String.Empty;
+            riskItem.CauseOfFailure = redmineItem.Description ?? String.Empty;
+            riskItem.RiskRevision = redmineItem.UpdatedOn.ToString() ?? String.Empty;
+            riskItem.ItemID = redmineItem.Id.ToString();
+
+            return riskItem;
         }
 
         private RequirementItem CreateRequirement(List<RedmineIssue> issues, RedmineIssue redmineItem, RequirementType requirementType)
         {
             logger.Debug($"Creating requirement item: {redmineItem.Id}");
-            RequirementItem resultItem = new RequirementItem();
-            resultItem.RequirementCategory = "Unknown";
+            RequirementItem resultItem = new RequirementItem(requirementType);
+            resultItem.ItemCategory = "Unknown";
             if (redmineItem.CustomFields.Count != 0)
             {
                 foreach(var field in redmineItem.CustomFields)
                 {
-                    var value = (System.Text.Json.JsonElement)field.Value;
-                    if(field.Name == "Functional Area" && value.GetArrayLength() > 0)
+                    if(field.Name == "Functional Area" && field.Value != null)
                     {
-                        foreach (var element in value.EnumerateArray())
-                        {
-                            resultItem.RequirementCategory = element.GetString();
-                            break;
-                        }
+                        resultItem.ItemCategory = ((System.Text.Json.JsonElement)field.Value).GetString();
                     }
                 }
             }
 
             resultItem.RequirementDescription = redmineItem.Description ?? string.Empty;
-            resultItem.RequirementID = redmineItem.Id.ToString();
+            resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.RequirementRevision = redmineItem.UpdatedOn.ToString();
             resultItem.RequirementState = redmineItem.Status.Name ?? string.Empty;
             resultItem.RequirementTitle = redmineItem.Subject ?? string.Empty;
             resultItem.TypeOfRequirement = requirementType;
             if (baseURL != "")
             {
-                resultItem.Link = new Uri($"{baseURL}{resultItem.RequirementID}");
+                resultItem.Link = new Uri($"{baseURL}{resultItem.ItemID}");
             }
 
             foreach (var issue in issues)
             {
                 if (issue.Parent != null && issue.Parent.Id == redmineItem.Id)
                 {
-                    if (baseURL != "")
-                    {
-                        resultItem.AddChild(issue.Id.ToString(), new Uri($"{baseURL}{issue.Id}"));
-                    }
-                    else
-                    {
-                        resultItem.AddChild(issue.Id.ToString(), null);
-                    }
+                    resultItem.AddLinkedItem(new ItemLink(issue.Id.ToString(), ItemLinkType.Child));
                 }
             }
 
             if (redmineItem.Parent != null)
             {
-                if (baseURL != "")
-                {
-                    resultItem.AddParent(redmineItem.Parent.Id.ToString(), new Uri($"{baseURL}{redmineItem.Parent.Id}"));
-                }
-                else
-                {
-                    resultItem.AddParent(redmineItem.Parent.Id.ToString(), null);
-                }
+                resultItem.AddLinkedItem(new ItemLink(redmineItem.Parent.Id.ToString(), ItemLinkType.Parent));
             }
             return resultItem;
         }
@@ -335,6 +405,25 @@ namespace RoboClerk.Redmine
                 trackers[tracker.Name] = tracker.Id;    
             }
             return trackers; 
+        }
+
+        private RedmineIssue GetIssue(int issueID)
+        {
+            var request = new RestRequest("issues.json", Method.Get)
+                .AddParameter("limit", 100)
+                .AddParameter("key", apiKey)
+                .AddParameter("include", "relations")
+                .AddParameter("status_id", "*")
+                .AddParameter("issue_id", issueID);
+            var response = client.GetAsync<RedmineIssues>(request).GetAwaiter().GetResult();
+            if(response.Issues.Count == 0)
+            {
+                return null;
+            }
+            else
+            {
+                return response.Issues[0];
+            }
         }
 
         private List<RedmineIssue> GetIssues(int projectID, int trackerID)

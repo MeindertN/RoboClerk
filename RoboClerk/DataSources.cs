@@ -1,5 +1,7 @@
 ﻿using RoboClerk.Configuration;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RoboClerk
 {
@@ -35,6 +37,56 @@ namespace RoboClerk
             }
         }
 
+        public List<LinkedItem> GetItems(TraceEntity te)
+        {
+            if(te.ID == "SystemRequirement")
+            {
+                return GetAllSystemRequirements().Cast<LinkedItem>().ToList();
+            }
+            else if(te.ID == "SoftwareRequirement")
+            {
+                return GetAllSoftwareRequirements().Cast<LinkedItem>().ToList(); 
+            }
+            else if(te.ID == "SoftwareSystemTest")
+            {
+                return GetAllSystemLevelTests().Cast<LinkedItem>().ToList();   
+            }
+            else if(te.ID == "SoftwareUnitTest")
+            {
+                return GetAllUnitLevelTests().Cast<LinkedItem>().ToList();
+            }
+            else if(te.ID == "Risk")
+            {
+                return GetAllRisks().Cast<LinkedItem>().ToList();
+            }
+            else
+            {
+                throw new Exception($"No datasource available for unknown trace entity: {te.ID}");
+            }
+        }
+
+        public List<RiskItem> GetAllRisks()
+        {
+            List<RiskItem> list = new List<RiskItem>();
+            foreach (var plugin in slmsPlugins)
+            {
+                list.AddRange(plugin.GetRisks());
+            }
+            return list;
+        }
+
+        public RiskItem GetRisk(string id)
+        {
+            List<RiskItem> list = GetAllRisks();
+            return list.Find(f => (f.ItemID == id));
+        }
+
+
+        public List<UnitTestItem> GetAllUnitLevelTests()
+        {
+            throw new NotImplementedException("Unit level tests not implemented yet"); ;
+        }
+
         public List<RequirementItem> GetAllSoftwareRequirements()
         {
             List<RequirementItem> items = new List<RequirementItem>();
@@ -48,7 +100,7 @@ namespace RoboClerk
         public RequirementItem GetSoftwareRequirement(string id)
         {
             var reqs = GetAllSoftwareRequirements();
-            return reqs.Find(f => (f.RequirementID == id));
+            return reqs.Find(f => (f.ItemID == id));
         }
 
         public List<RequirementItem> GetAllSystemRequirements()
@@ -64,7 +116,7 @@ namespace RoboClerk
         public RequirementItem GetSystemRequirement(string id)
         {
             var reqs = GetAllSystemRequirements();
-            return reqs.Find(f => (f.RequirementID == id));
+            return reqs.Find(f => (f.ItemID == id));
         }
 
         public List<TestCaseItem> GetAllSystemLevelTests()
@@ -80,7 +132,7 @@ namespace RoboClerk
         public TestCaseItem GetSystemLevelTest(string id)
         {
             var items = GetAllSystemLevelTests();
-            return items.Find(f => (f.TestCaseID == id));
+            return items.Find(f => (f.ItemID == id));
         }
 
         public List<AnomalyItem> GetAllAnomalies()
@@ -96,29 +148,29 @@ namespace RoboClerk
         public AnomalyItem GetAnomaly(string id)
         {
             var items = GetAllAnomalies();
-            return items.Find(f => (f.AnomalyID == id));
+            return items.Find(f => (f.ItemID == id));
         }
 
         public Item GetItem(string id)
         {
             var sreq = GetAllSoftwareRequirements();
             int idx = -1;
-            if ((idx = sreq.FindIndex(o => o.RequirementID == id)) >= 0)
+            if ((idx = sreq.FindIndex(o => o.ItemID == id)) >= 0)
             {
                 return sreq[idx];
             }
             sreq = GetAllSystemRequirements();
-            if ((idx = sreq.FindIndex(o => o.RequirementID == id)) >= 0)
+            if ((idx = sreq.FindIndex(o => o.ItemID == id)) >= 0)
             {
                 return sreq[idx];
             }
             var tcase = GetAllSystemLevelTests();
-            if ((idx = tcase.FindIndex(o => o.TestCaseID == id)) >= 0)
+            if ((idx = tcase.FindIndex(o => o.ItemID == id)) >= 0)
             {
                 return tcase[idx];
             }
             var anomalies = GetAllAnomalies();
-            if ((idx = anomalies.FindIndex(o => o.AnomalyID == id)) >= 0)
+            if ((idx = anomalies.FindIndex(o => o.ItemID == id)) >= 0)
             {
                 return anomalies[idx];
             }
