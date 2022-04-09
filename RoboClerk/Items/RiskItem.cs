@@ -25,11 +25,6 @@ namespace RoboClerk
             id = Guid.NewGuid().ToString();
         }
 
-        public override string ToText()
-        {
-            throw new NotImplementedException();
-        }
-
         public string PrimaryHazard
         {
             get { return primaryHazard; }

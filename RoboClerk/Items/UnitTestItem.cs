@@ -9,16 +9,12 @@ namespace RoboClerk
         private string unitTestPurpose = "";
         private string unitTestAcceptanceCriteria = "";
         private string unitTestRevision = "";
+        private string unitTestFileLocation = "";
         
         public UnitTestItem()
         {
             type = "UnitTest";
             id = Guid.NewGuid().ToString();
-        }
-
-        public override string ToText()
-        {
-            throw new NotImplementedException();
         }
 
         public string UnitTestState
@@ -43,6 +39,12 @@ namespace RoboClerk
         {
             get { return unitTestRevision; }
             set { unitTestRevision = value; }
+        }
+
+        public string UnitTestFileLocation
+        {
+            get { return unitTestFileLocation; }
+            set { unitTestFileLocation = value; }
         }
     }
 }

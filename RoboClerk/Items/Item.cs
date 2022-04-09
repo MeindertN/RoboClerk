@@ -9,8 +9,6 @@ namespace RoboClerk
         protected string category = string.Empty;
         protected Uri link = null;
 
-        public abstract string ToText();
-
         public string ItemID
         {
             get => id;
@@ -36,7 +34,7 @@ namespace RoboClerk
         public Uri Link
         {
             get => link;
-            set => link = value;
+            set => link = value; 
         }
     }
 }
