@@ -130,16 +130,7 @@ namespace RoboClerk
                 }
                 else
                 {
-                    if (ts.CompleteTraceForward)
-                    {
-                        traceData.Add(new List<Item> { null });
-                        var ti = new TraceIssue(tet, req.ItemID, ts.Target, req.ItemID, TraceIssueType.Missing);
-                        if (!documentTraceIssues[documentTitle].Contains(ti))
-                        {
-                            documentTraceIssues[documentTitle].Add(ti);
-                        }
-                    }
-                    else if (ts.SelectedCategoriesForward.Contains(req.ItemCategory))
+                    if (ts.CompleteTraceForward || ts.SelectedCategoriesForward.Contains(req.ItemCategory))
                     {
                         traceData.Add(new List<Item> { null });
                         var ti = new TraceIssue(tet, req.ItemID, ts.Target, req.ItemID, TraceIssueType.Missing);
@@ -206,8 +197,6 @@ namespace RoboClerk
                         var targetItems = data.GetItems(ts.Target);
                         foreach (var ti in truthItems)
                         {
-                            //make child and parent links properties of the links itself. Create a single list of links with the link objects knowing what the link relationship is
-                            //specify the expected type of link in the trace specification
                             var linked = targetItems.FindAll((x => x.GetItemLinkType(ti) == ts.BackwardLink));
                             result[ts.Target].Add(GetReqFamilyStrings(linked));
                             AnalyzeTruthReqTrace(ti, linked, truth, ts.Target); //TODO: we can get more specific than this

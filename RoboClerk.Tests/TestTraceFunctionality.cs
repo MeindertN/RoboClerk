@@ -20,33 +20,68 @@ namespace RoboClerk.Tests
         {
             mockConfig = Substitute.For<IConfiguration>();
             List<TraceEntity> truth = new List<TraceEntity>();
-            truth.Add(new TraceEntity("SystemRequirement", "SYS_name", "SYS"));
-            truth.Add(new TraceEntity("SoftwareRequirement", "SWR_name", "SWR"));
-            truth.Add(new TraceEntity("SoftwareSystemTest", "TC_name", "TC"));
-            truth.Add(new TraceEntity("SoftwareUnitTest", "UT_name", "UT"));
-            truth.Add(new TraceEntity("Risk","RSK_name","RSK"));
-            truth.Add(new TraceEntity("Anomaly", "ANOMALY_name", "ANOMALY"));
+            truth.Add(new TraceEntity("SystemRequirement", "SYS_name", "SYS",TraceEntityType.Truth));
+            truth.Add(new TraceEntity("SoftwareRequirement", "SWR_name", "SWR", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("SoftwareSystemTest", "TC_name", "TC", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("SoftwareUnitTest", "UT_name", "UT", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("Risk","RSK_name","RSK", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("Anomaly", "ANOMALY_name", "ANOMALY", TraceEntityType.Truth));
             mockConfig.TruthEntities.Returns(truth);
 
             List<DocumentConfig> config = new List<DocumentConfig>();
-            config.Add(new DocumentConfig("SystemRequirementsSpecification", "PRS Title", "PRS", "fake0"));
-            config.Add(new DocumentConfig("SoftwareRequirementsSpecification", "SRS Title", "SRS", "fake1"));
-            config.Add(new DocumentConfig("SystemLevelTestPlan", "SLTP Title", "SLTP", "fake2"));
-            config.Add(new DocumentConfig("RiskAssessmentRecord", "RAR Title", "RAR", "fake3"));
+            config.Add(new DocumentConfig("SystemRequirementsSpecification", "DOC001", "PRS Title", "PRS", "fake0"));
+            config.Add(new DocumentConfig("SoftwareRequirementsSpecification", "DOC002", "SRS Title", "SRS", "fake1"));
+            config.Add(new DocumentConfig("SystemLevelTestPlan", "DOC003", "SLTP Title", "SLTP", "fake2"));
+            config.Add(new DocumentConfig("RiskAssessmentRecord", "DOC004", "RAR Title", "RAR", "fake3"));
             mockConfig.Documents.Returns(config);
 
             List<TraceConfig> config2 = new List<TraceConfig>();
             config2.Add(new TraceConfig("SystemRequirement"));
             config2.Add(new TraceConfig("SoftwareRequirement"));
             TomlTable toml = new TomlTable();
-            toml["SystemRequirementsSpecification"] = new TomlArray() { "ALL" };
-            toml["SoftwareRequirement"] = new TomlArray() { "ALL" };
-            toml["RiskAssessmentRecord"] = new TomlArray() { "CategoryName" };
+            TomlTable temp = new TomlTable();
+            temp["forward"] = new TomlArray() { "ALL" };
+            temp["backward"] = new TomlArray() { "ALL" };
+            temp["forwardLink"] = "DOC";
+            temp["backwardLink"] = "DOC";
+            toml["SystemRequirementsSpecification"] = temp;
+
+            temp = new TomlTable();
+            temp["forward"] = new TomlArray() { "ALL" };
+            temp["backward"] = new TomlArray() { "ALL" };
+            temp["forwardLink"] = "Child";
+            temp["backwardLink"] = "Parent";
+            toml["SoftwareRequirement"] = temp;
+
+            temp = new TomlTable();
+            temp["forward"] = new TomlArray() { "CategoryName" };
+            temp["backward"] = new TomlArray() { "ALL" };
+            temp["forwardLink"] = "DOC";
+            temp["backwardLink"] = "DOC";
+            toml["RiskAssessmentRecord"] = temp;
             config2[0].AddTraces(toml);
+            
             TomlTable toml2 = new TomlTable();
-            toml2["SoftwareRequirementsSpecification"] = new TomlArray() { "ALL" };
-            toml2["SystemRequirement"] = new TomlArray() { "ALL" };
-            toml2["RiskAssessmentRecord"] = new TomlArray() { "CategoryName" };
+            temp = new TomlTable();
+            temp["forward"] = new TomlArray() { "ALL" };
+            temp["backward"] = new TomlArray() { "ALL" };
+            temp["forwardLink"] = "DOC";
+            temp["backwardLink"] = "DOC";
+            toml2["SoftwareRequirementsSpecification"] = temp;
+
+            temp = new TomlTable();
+            temp["forward"] = new TomlArray() { "ALL" };
+            temp["backward"] = new TomlArray() { "ALL" };
+            temp["forwardLink"] = "Parent";
+            temp["backwardLink"] = "Child";
+            toml2["SystemRequirement"] = temp;
+
+            temp = new TomlTable();
+            temp["forward"] = new TomlArray() { "CategoryName" };
+            temp["backward"] = new TomlArray() { "ALL" };
+            temp["forwardLink"] = "DOC";
+            temp["backwardLink"] = "DOC";
+            toml2["RiskAssessmentRecord"] = temp;
             config2[1].AddTraces(toml2);
             mockConfig.TraceConfig.Returns(config2);
 
@@ -161,37 +196,37 @@ namespace RoboClerk.Tests
         private ISLMSPlugin mockPlugin = Substitute.For< ISLMSPlugin>();
         private void SetupPlugin()
         {
-            SYSs = new List<RequirementItem> { new RequirementItem(), new RequirementItem() };
+            SYSs = new List<RequirementItem> { new RequirementItem(RequirementType.SystemRequirement), new RequirementItem(RequirementType.SystemRequirement) };
             SYSs[0].RequirementTitle = "SYS_TestTitle1";
             SYSs[0].ItemID = "SYS_id1";
-            SYSs[0].AddChild("SWR_id1", default(Uri));
+            SYSs[0].AddLinkedItem(new ItemLink("SWR_id1",ItemLinkType.Child));
             SYSs[1].RequirementTitle = "SYS_TestTitle2";
             SYSs[1].ItemID = "SYS_id2";
             SYSs[1].ItemCategory = "CategoryName";
-            SYSs[1].AddChild("SWR_id2",default(Uri));
+            SYSs[1].AddLinkedItem(new ItemLink("SWR_id2",ItemLinkType.Child));
             mockPlugin.GetSystemRequirements().Returns(SYSs);
-            SWRs = new List<RequirementItem> { new RequirementItem(), new RequirementItem() };
+            SWRs = new List<RequirementItem> { new RequirementItem(RequirementType.SoftwareRequirement), new RequirementItem(RequirementType.SoftwareRequirement) };
             SWRs[0].RequirementTitle = "SWR_TestTitle1";
             SWRs[0].ItemID = "SWR_id1";
-            SWRs[0].AddParent(SYSs[0].ItemID, default(Uri));
+            SWRs[0].AddLinkedItem(new ItemLink(SYSs[0].ItemID, ItemLinkType.Parent));
             SWRs[1].RequirementTitle = "SWR_TestTitle2";
             SWRs[1].ItemID = "SWR_id2";
             SWRs[1].ItemCategory = "CategoryName";
-            SWRs[1].AddParent(SYSs[1].ItemID, default(Uri));
+            SWRs[1].AddLinkedItem(new ItemLink(SYSs[1].ItemID, ItemLinkType.Parent));
             mockPlugin.GetSoftwareRequirements().Returns(SWRs);
             TCs = new List<TestCaseItem> { new TestCaseItem(), new TestCaseItem() };
             TCs[0].TestCaseTitle = "TC_TestTitle1";
-            TCs[0].TestCaseID = "TC_id1";
-            TCs[0].AddParent("SWR_id1",default (Uri));
+            TCs[0].ItemID = "TC_id1";
+            TCs[0].AddLinkedItem(new ItemLink("SWR_id1", ItemLinkType.Parent));
             TCs[1].TestCaseTitle = "TC_TestTitle2";
-            TCs[1].TestCaseID = "TC_id2";
-            TCs[1].AddParent("SWR_id2", default(Uri));
+            TCs[1].ItemID = "TC_id2";
+            TCs[1].AddLinkedItem(new ItemLink("SWR_id2", ItemLinkType.Parent));
             mockPlugin.GetSoftwareSystemTests().Returns(TCs);
             ANOMALYs = new List<AnomalyItem> { new AnomalyItem(), new AnomalyItem() };
             ANOMALYs[0].AnomalyTitle = "ANOMALY_TestTitle1";
-            ANOMALYs[0].AnomalyID = "ANOMALY_id1";
+            ANOMALYs[0].ItemID = "ANOMALY_id1";
             ANOMALYs[1].AnomalyTitle = "ANOMALY_TestTitle2";
-            ANOMALYs[1].AnomalyID = "ANOMALY_id2";
+            ANOMALYs[1].ItemID = "ANOMALY_id2";
             mockPlugin.GetAnomalies().Returns(ANOMALYs);
         }
 
@@ -324,6 +359,71 @@ namespace RoboClerk.Tests
         }
 
         [Test]
+        public void Trace_From_Truth_To_Document_Missing_ALL_Document_Trace_VERIFIES_Correct_Trace_Matrix_Is_Generated_And_Issue()
+        {
+            ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
+            var tet = traceabilityAnalysis.GetTraceEntityForID("SystemRequirement");
+            IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
+                new List<TestCaseItem>(), new List<AnomalyItem>());
+
+            //add valid trace in PRS / SRS / RAR
+            //traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"), "SYS_id1",
+            //    traceabilityAnalysis.GetTraceEntityForID("SystemRequirementsSpecification"), "SYS_id1");
+            //traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"), "SYS_id2",
+            //    traceabilityAnalysis.GetTraceEntityForID("SystemRequirementsSpecification"), "SYS_id2");
+            traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"), "SYS_id2",
+                traceabilityAnalysis.GetTraceEntityForID("RiskAssessmentRecord"), "SYS_id2");
+
+            var tet1 = traceabilityAnalysis.GetTraceEntityForID("SystemRequirementsSpecification");
+            var tet2 = traceabilityAnalysis.GetTraceEntityForID("SoftwareRequirement");
+            var tet3 = traceabilityAnalysis.GetTraceEntityForID("RiskAssessmentRecord");
+
+            var matrix = traceabilityAnalysis.PerformAnalysis(dataSources, tet);
+            Assert.AreEqual(4, matrix.Count);
+            Assert.AreEqual(2, matrix[tet].Count);
+            Assert.AreEqual(2, matrix[tet1].Count);
+            Assert.AreEqual(2, matrix[tet2].Count);
+            Assert.AreEqual(2, matrix[tet3].Count);
+
+            Assert.AreEqual(1, matrix[tet][0].Count);
+            Assert.AreEqual(1, matrix[tet][1].Count);
+            Assert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
+            Assert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
+
+            Assert.AreEqual(1, matrix[tet1][0].Count);
+            Assert.AreEqual(1, matrix[tet1][1].Count);
+            Assert.AreEqual(null, matrix[tet1][0][0]);
+            Assert.AreEqual(null, matrix[tet1][1][0]);
+
+            Assert.AreEqual(1, matrix[tet2][0].Count);
+            Assert.AreEqual(1, matrix[tet2][1].Count);
+            Assert.AreEqual("SWR_id1", matrix[tet2][0][0].ItemID);
+            Assert.AreEqual("SWR_id2", matrix[tet2][1][0].ItemID);
+
+            Assert.AreEqual(0, matrix[tet3][0].Count);
+            Assert.AreEqual(1, matrix[tet3][1].Count);
+            Assert.AreEqual("SYS_id2", matrix[tet3][1][0].ItemID);
+
+            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet).Count());
+            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet2).Count());
+            Assert.AreEqual(2, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).Count());
+            var issues = traceabilityAnalysis.GetTraceIssuesForDocument(tet1).ToList();
+            Assert.AreEqual(TraceIssueType.Missing, issues[0].IssueType);
+            Assert.AreEqual(tet, issues[0].Source);
+            Assert.AreEqual("SYS_id1", issues[0].SourceID);
+            Assert.AreEqual(tet1, issues[0].Target);
+            Assert.AreEqual("SYS_id1", issues[0].TargetID);
+            Assert.AreEqual(false, issues[0].Valid);
+            Assert.AreEqual(TraceIssueType.Missing, issues[1].IssueType);
+            Assert.AreEqual(tet, issues[1].Source);
+            Assert.AreEqual("SYS_id2", issues[1].SourceID);
+            Assert.AreEqual(tet1, issues[1].Target);
+            Assert.AreEqual("SYS_id2", issues[1].TargetID);
+            Assert.AreEqual(false, issues[1].Valid);
+            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet3).Count());
+        }
+
+        [Test]
         public void Trace_From_Truth_To_Document_Extra_Truth_Trace_VERIFIES_Correct_Trace_Matrix_Is_Generated_And_Issue()
         {
             ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
@@ -384,6 +484,231 @@ namespace RoboClerk.Tests
             Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet3).Count());
         }
 
+        [Test]
+        public void Duplicate_Truth_Entity_Name_VERIFIES_Duplicate_Truth_Entity_Names_Are_Detected()
+        {
+            List<TraceEntity> truth = new List<TraceEntity>();
+            truth.Add(new TraceEntity("SystemRequirement", "SYS_name", "SYS", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("SoftwareRequirement", "SWR_name", "SWR", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("SoftwareSystemTest", "TC_name", "TC", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("SoftwareUnitTest", "UT_name", "UT", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("Risk", "SWR_name", "RSK", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("Anomaly", "ANOMALY_name", "ANOMALY", TraceEntityType.Truth));
+            mockConfig.TruthEntities.Returns(truth);
 
+            Assert.Throws<Exception>(() => { new TraceabilityAnalysis(mockConfig); });
+        }
+
+        [Test]
+        public void Duplicate_Truth_Entity_Abbreviation_VERIFIES_Duplicate_Truth_Entity_Abbreviations_Are_Detected()
+        {
+            List<TraceEntity> truth = new List<TraceEntity>();
+            truth.Add(new TraceEntity("SystemRequirement", "SYS_name", "SYS", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("SoftwareRequirement", "SWR_name", "SWR", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("SoftwareSystemTest", "TC_name", "TC", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("SoftwareUnitTest", "UT_name", "UT", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("Risk", "RSK_name", "RSK", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("Anomaly", "ANOMALY_name", "SYS", TraceEntityType.Truth));
+            mockConfig.TruthEntities.Returns(truth);
+
+            Assert.Throws<Exception>(() => { new TraceabilityAnalysis(mockConfig); });
+        }
+
+        [Test]
+        public void Duplicate_Document_Name_VERIFIES_Duplicate_Document_Names_Are_Detected()
+        {
+            List<DocumentConfig> config = new List<DocumentConfig>();
+            config.Add(new DocumentConfig("SystemRequirementsSpecification", "DOC001", "PRS Title", "PRS", "fake0"));
+            config.Add(new DocumentConfig("SoftwareRequirementsSpecification", "DOC002", "SRS Title", "SRS", "fake1"));
+            config.Add(new DocumentConfig("SystemLevelTestPlan", "DOC003", "SRS Title", "SLTP", "fake2"));
+            config.Add(new DocumentConfig("RiskAssessmentRecord", "DOC004", "RAR Title", "RAR", "fake3"));
+            mockConfig.Documents.Returns(config);
+
+            Assert.Throws<Exception>(() => { new TraceabilityAnalysis(mockConfig); });
+        }
+
+        [Test]
+        public void Duplicate_Document_Abbreviation_VERIFIES_Duplicate_Document_Abbreviations_Are_Detected()
+        {
+            List<DocumentConfig> config = new List<DocumentConfig>();
+            config.Add(new DocumentConfig("SystemRequirementsSpecification", "DOC001", "PRS Title", "PRS", "fake0"));
+            config.Add(new DocumentConfig("SoftwareRequirementsSpecification", "DOC002", "SRS Title", "RAR", "fake1"));
+            config.Add(new DocumentConfig("SystemLevelTestPlan", "DOC003", "SLTP Title", "SLTP", "fake2"));
+            config.Add(new DocumentConfig("RiskAssessmentRecord", "DOC004", "RAR Title", "RAR", "fake3"));
+            mockConfig.Documents.Returns(config);
+
+            Assert.Throws<Exception>(() => { new TraceabilityAnalysis(mockConfig); });
+        }
+
+        [Test]
+        public void Unknown_Target_Document_Name_Supplied_In_TraceConfig_VERIFIES_Unknown_Document_Names_Are_Detected()
+        {
+            List<TraceConfig> config2 = new List<TraceConfig>();
+            config2.Add(new TraceConfig("SystemRequirement"));
+            TomlTable toml = new TomlTable();
+            TomlTable temp = new TomlTable();
+            temp["forward"] = new TomlArray() { "ALL" };
+            temp["backward"] = new TomlArray() { "ALL" };
+            temp["forwardLink"] = "DOC";
+            temp["backwardLink"] = "DOC";
+            toml["SystemSpecification"] = temp; //this documents name is not in the known document list
+
+            config2[0].AddTraces(toml);
+            mockConfig.TraceConfig.Returns(config2);
+
+            Assert.Throws<Exception>(() => { new TraceabilityAnalysis(mockConfig); });
+        }
+
+        [Test]
+        public void Unknown_Source_Truth_Name_Supplied_In_TraceConfig_VERIFIES_Unknown_Source_Truth_Names_Are_Detected()
+        {
+            List<TraceConfig> config2 = new List<TraceConfig>();
+            config2.Add(new TraceConfig("UnknownRequirement"));  //this truth source does not exist
+            TomlTable toml = new TomlTable();
+            TomlTable temp = new TomlTable();
+            temp["forward"] = new TomlArray() { "ALL" };
+            temp["backward"] = new TomlArray() { "ALL" };
+            temp["forwardLink"] = "DOC";
+            temp["backwardLink"] = "DOC";
+            toml["SystemRequirementsSpecification"] = temp; //this documents name is not in the known document list
+
+            config2[0].AddTraces(toml);
+            mockConfig.TraceConfig.Returns(config2);
+
+            Assert.Throws<Exception>(() => { new TraceabilityAnalysis(mockConfig); });
+        }
+
+        [Test]
+        public void One_Missing_Truth_Entity_In_Config_File_VERIFIES_Config_File_Truth_Entity_Presence_Is_Checked()
+        {
+            List<TraceEntity> truth = new List<TraceEntity>();
+            truth.Add(new TraceEntity("SystemRequirement", "SYS_name", "SYS", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("SoftwareRequirement", "SWR_name", "SWR", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("SoftwareSystemTest", "TC_name", "TC", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("SoftwareUnitTest", "UT_name", "UT", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("Anomaly", "ANOMALY_name", "ANOMALY", TraceEntityType.Truth));
+            mockConfig.TruthEntities.Returns(truth);
+
+            Assert.Throws<Exception>(() => { new TraceabilityAnalysis(mockConfig); });
+        }
+
+        [Test]
+        public void Trace_Incorrect_VERIFIES_Trace_Identified_As_Incorrect()
+        {
+            List<TraceConfig> config2 = new List<TraceConfig>();
+            config2.Add(new TraceConfig("SystemRequirement"));
+            TomlTable toml = new TomlTable();
+            TomlTable temp = new TomlTable();
+            temp["forward"] = new TomlArray() { "CategoryName" };
+            temp["backward"] = new TomlArray() { "ALL" };
+            temp["forwardLink"] = "DOC";
+            temp["backwardLink"] = "DOC";
+            toml["SystemRequirementsSpecification"] = temp;
+            config2[0].AddTraces(toml);
+            mockConfig.TraceConfig.Returns(config2);
+
+            ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
+            var tet = traceabilityAnalysis.GetTraceEntityForID("SystemRequirement");
+            IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
+                new List<TestCaseItem>(), new List<AnomalyItem>());
+
+            //add valid trace in PRS / SRS / RAR
+            traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"), "SYS_id",
+                traceabilityAnalysis.GetTraceEntityForID("SystemRequirementsSpecification"), "SYS_id1");
+            traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"), "SYS_id2",
+                traceabilityAnalysis.GetTraceEntityForID("SystemRequirementsSpecification"), "SYS_id2");
+            traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"), "SYS_id2",
+                traceabilityAnalysis.GetTraceEntityForID("RiskAssessmentRecord"), "SYS_id2");
+
+            var tet1 = traceabilityAnalysis.GetTraceEntityForID("SystemRequirementsSpecification");
+
+            var matrix = traceabilityAnalysis.PerformAnalysis(dataSources, tet);
+            Assert.AreEqual(2, matrix.Count);
+            Assert.AreEqual(2, matrix[tet].Count);
+            Assert.AreEqual(2, matrix[tet1].Count);
+
+            Assert.AreEqual(1, matrix[tet][0].Count);
+            Assert.AreEqual(1, matrix[tet][1].Count);
+            Assert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
+            Assert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
+
+            Assert.AreEqual(0, matrix[tet1][0].Count);
+            Assert.AreEqual(1, matrix[tet1][1].Count);
+            Assert.AreEqual("SYS_id2", matrix[tet1][1][0].ItemID);
+
+            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet).Count());
+            Assert.AreEqual(1, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).Count());
+            Assert.AreEqual(TraceIssueType.Incorrect, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).First().IssueType);
+        }
+
+        [Test]
+        public void Truth_Entity_Name_Not_Known_VERIFIES_Unknown_Truth_Entity_Detected()
+        {
+            var analysis = new TraceabilityAnalysis(mockConfig);
+            IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
+                new List<TestCaseItem>(), new List<AnomalyItem>());
+            var tet = new TraceEntity("test", "invalid", "abbreviation", TraceEntityType.Truth);
+
+            Assert.Throws<Exception>(() => { analysis.PerformAnalysis(dataSources, tet); });
+        }
+
+        [Test]
+        public void Truth_Entity_Type_Unknown_VERIFIES_Unknown_Truth_Entity_Detected()
+        {
+            var analysis = new TraceabilityAnalysis(mockConfig);
+            IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
+                new List<TestCaseItem>(), new List<AnomalyItem>());
+            var tet = new TraceEntity("SystemRequirement", "System Requirement", "SYS", TraceEntityType.Unknown);
+
+            Assert.Throws<Exception>(() => { analysis.PerformAnalysis(dataSources, tet); });
+        }
+
+        [Test]
+        public void Incorrect_Link_Type_Used_VERIFIES_Only_Correct_Link_Types_Are_Traced()
+        {
+            IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
+                                                new List<TestCaseItem>(), new List<AnomalyItem>());
+            SWRs = new List<RequirementItem> { new RequirementItem(RequirementType.SoftwareRequirement), new RequirementItem(RequirementType.SoftwareRequirement) };
+            SWRs[0].RequirementTitle = "SWR_TestTitle1";
+            SWRs[0].ItemID = "SWR_id1";
+            SWRs[0].AddLinkedItem(new ItemLink("SYS_id1", ItemLinkType.Related));
+            SWRs[1].RequirementTitle = "SWR_TestTitle2";
+            SWRs[1].ItemID = "SWR_id2";
+            SWRs[1].ItemCategory = "CategoryName";
+            SWRs[1].AddLinkedItem(new ItemLink("SYS_id2", ItemLinkType.Related));
+            mockPlugin.GetSoftwareRequirements().Returns(SWRs);
+
+            var analysis = new TraceabilityAnalysis(mockConfig);
+
+            var tet = analysis.GetTraceEntityForID("SystemRequirement");
+
+            var tet2 = analysis.GetTraceEntityForID("SoftwareRequirement");
+
+            var matrix = analysis.PerformAnalysis(dataSources, tet);
+            Assert.AreEqual(4, matrix.Count);
+            Assert.AreEqual(2, matrix[tet].Count);
+            Assert.AreEqual(2, matrix[tet2].Count);
+
+            Assert.AreEqual(1, matrix[tet][0].Count);
+            Assert.AreEqual(1, matrix[tet][1].Count);
+            Assert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
+            Assert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
+
+            Assert.AreEqual(1, matrix[tet2][0].Count);
+            Assert.AreEqual(1, matrix[tet2][1].Count);
+            Assert.AreEqual(null, matrix[tet2][0][0]);
+            Assert.AreEqual(null, matrix[tet2][1][0]);
+
+            Assert.AreEqual(2, analysis.GetTraceIssuesForTruth(tet).Count());
+            Assert.AreEqual(0, analysis.GetTraceIssuesForTruth(tet2).Count());
+            
+            var issues = analysis.GetTraceIssuesForTruth(tet).ToList();
+
+            Assert.AreEqual(TraceIssueType.PossiblyMissing, issues[0].IssueType);
+            Assert.AreEqual("SYS_id1", issues[0].SourceID);
+            Assert.AreEqual(tet2, issues[0].Target);
+            Assert.AreEqual("SYS_id1", issues[0].TargetID);
+            Assert.AreEqual(false, issues[0].Valid);
+        }
     }
 }
