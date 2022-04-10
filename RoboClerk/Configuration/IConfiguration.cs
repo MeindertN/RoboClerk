@@ -12,6 +12,7 @@ namespace RoboClerk.Configuration
         List<string> PluginDirs { get; }
         string PluginConfigDir { get; }
         string OutputDir { get; }
+        string TemplateDir { get; }
         bool ClearOutputDir { get; }
         string LogLevel { get; }
         List<TraceEntity> TruthEntities { get; }

@@ -26,6 +26,7 @@ namespace RoboClerk.Configuration
         private List<DocumentConfig> documents = new List<DocumentConfig>();
         private List<TraceConfig> traceConfig = new List<TraceConfig>();
         private ConfigurationValues configVals = null;
+        private string templateDir = string.Empty;
 
         //The information supplied on the commandline
         private Dictionary<string, string> commandLineOptions = new Dictionary<string,string>();
@@ -48,6 +49,7 @@ namespace RoboClerk.Configuration
         public List<TraceConfig > TraceConfig => traceConfig;
         public ConfigurationValues ConfigVals => configVals;
         public string PluginConfigDir => pluginConfigDir;
+        public string TemplateDir => templateDir;
         public bool ClearOutputDir => clearOutput;
 
         private (string, string) LoadConfigFiles(string configFile, string projectConfigFile)
@@ -99,6 +101,7 @@ namespace RoboClerk.Configuration
         private void ReadProjectConfigFile(string projectConfig)
         {
             var toml = Toml.Parse(projectConfig).ToModel();
+            templateDir = CommandLineOptionOrDefault("TemplateDirectory", (string)toml["TemplateDirectory"]);
             ReadTruthTraceItems(toml);
             ReadDocuments(toml);
             ReadTraceConfiguration(toml);

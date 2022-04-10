@@ -84,6 +84,7 @@ namespace RoboClerk
         Trace, //trace tag that is expected to be traced to this document
         Reference, //tag for referencing a document in another document
         Document, //tag for referencing a property of the document
+        File, //a file in the template directory
         Unknown //it is not known where to retrieve this information
     }
 
@@ -295,6 +296,7 @@ namespace RoboClerk
                 case "TRACE": return DataSource.Trace;
                 case "DOCUMENT": return DataSource.Document;
                 case "REF": return DataSource.Reference;
+                case "FILE": return DataSource.File;
             }
             return DataSource.Unknown;
         }

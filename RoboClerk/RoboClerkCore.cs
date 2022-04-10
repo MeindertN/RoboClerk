@@ -44,62 +44,70 @@ namespace RoboClerk
                     continue;  //skip documents without template
                 logger.Info($"Reading document template: {doc.RoboClerkID}");
                 Document document = new Document(doc.DocumentTitle);
-                document.FromFile(doc.DocumentTemplate);
+                document.FromFile(Path.Join(configuration.TemplateDir, doc.DocumentTemplate));
                 logger.Info($"Generating document: {doc.RoboClerkID}");
+                int nrOfLevels = 0;
                 //go over the tag list to determine what information should be collected from where
-                foreach (var tag in document.RoboClerkTags)
+                do
                 {
-                    if (tag.Source == DataSource.Trace)
+                    nrOfLevels++;
+                    foreach (var tag in document.RoboClerkTags)
                     {
-                        logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID", "ERROR")}");
-                        //grab trace tag and add to the trace analysis
-                        IContentCreator contentCreator = new Trace();
-                        tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, doc);
-                        continue;
-                    }
-                    if (tag.Source != DataSource.Unknown)
-                    {
-                        if (tag.Source == DataSource.Config)
+                        if (tag.Source == DataSource.Trace)
                         {
-                            logger.Debug($"Configuration file item requested: {tag.ContentCreatorID}");
-                            tag.Contents = dataSources.GetConfigValue(tag.ContentCreatorID);
+                            logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID", "ERROR")}");
+                            //grab trace tag and add to the trace analysis
+                            IContentCreator contentCreator = new Trace();
+                            tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, doc);
+                            continue;
                         }
-                        else if (tag.Source == DataSource.Comment)
+                        if (tag.Source != DataSource.Unknown)
                         {
-                            tag.Contents = string.Empty;
-                        }
-                        else if (tag.Source == DataSource.Post)
-                        {
-                            IContentCreator cc = new PostLayout();
-                            tag.Contents = cc.GetContent(tag,dataSources,traceAnalysis, doc);
-                        }
-                        else if (tag.Source == DataSource.Reference)
-                        {
-                            IContentCreator cc = new Reference();
-                            tag.Contents = cc.GetContent(tag, dataSources, traceAnalysis, doc);
-                        }
-                        else if (tag.Source == DataSource.Document)
-                        {
-                            IContentCreator cc = new ContentCreators.Document();
-                            tag.Contents = cc.GetContent(tag, dataSources, traceAnalysis, doc);
-                        }
-                        else
-                        {
-                            logger.Debug($"Looking for content creator class: {tag.ContentCreatorID}");
-                            var te = traceAnalysis.GetTraceEntityForAnyProperty(tag.ContentCreatorID);
-
-                            IContentCreator contentCreator = GetContentObject(te == default(TraceEntity) ? tag.ContentCreatorID : te.ID);
-                            if (contentCreator != null)
+                            if (tag.Source == DataSource.Config)
                             {
-                                logger.Debug($"Content creator {tag.ContentCreatorID} found.");
-                                tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, doc);
-                                continue;
+                                logger.Debug($"Configuration file item requested: {tag.ContentCreatorID}");
+                                tag.Contents = dataSources.GetConfigValue(tag.ContentCreatorID);
                             }
-                            logger.Warn($"Content creator {tag.ContentCreatorID} not found.");
-                            tag.Contents = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS ({tag.ContentCreatorID}) IS KNOWN TO ROBOCLERK.\n";
+                            else if (tag.Source == DataSource.Comment)
+                            {
+                                tag.Contents = string.Empty;
+                            }
+                            else if (tag.Source == DataSource.Post)
+                            {
+                                IContentCreator cc = new PostLayout();
+                                tag.Contents = cc.GetContent(tag, dataSources, traceAnalysis, doc);
+                            }
+                            else if (tag.Source == DataSource.Reference)
+                            {
+                                IContentCreator cc = new Reference();
+                                tag.Contents = cc.GetContent(tag, dataSources, traceAnalysis, doc);
+                            }
+                            else if (tag.Source == DataSource.Document)
+                            {
+                                IContentCreator cc = new ContentCreators.Document();
+                                tag.Contents = cc.GetContent(tag, dataSources, traceAnalysis, doc);
+                            }
+                            else
+                            {
+                                logger.Debug($"Looking for content creator class: {tag.ContentCreatorID}");
+                                var te = traceAnalysis.GetTraceEntityForAnyProperty(tag.ContentCreatorID);
+
+                                IContentCreator contentCreator = GetContentObject(te == default(TraceEntity) ? tag.ContentCreatorID : te.ID);
+                                if (contentCreator != null)
+                                {
+                                    logger.Debug($"Content creator {tag.ContentCreatorID} found.");
+                                    tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, doc);
+                                    continue;
+                                }
+                                logger.Warn($"Content creator {tag.ContentCreatorID} not found.");
+                                tag.Contents = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS ({tag.ContentCreatorID}) IS KNOWN TO ROBOCLERK.\n";
+                            }
                         }
                     }
+                    string documentContent = document.ToText();
+                    document.FromString(documentContent);
                 }
+                while (document.RoboClerkTags.Count() > 0 && nrOfLevels < 5);
                 documents.Add(document);
                 logger.Info($"Finished creating document {doc.RoboClerkID}");
             }

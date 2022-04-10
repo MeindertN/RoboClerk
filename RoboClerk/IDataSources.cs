@@ -21,5 +21,6 @@ namespace RoboClerk
         TestCaseItem GetSystemLevelTest(string id);
         RequirementItem GetSystemRequirement(string id);
         RiskItem GetRisk(string id);
+        string GetTemplateFile(string fileName);
     }
 }

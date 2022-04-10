@@ -17,15 +17,14 @@ namespace RoboClerk
             this.title = title;
         }
 
-        public void FromFile(string textFile)
+        public void FromString(string text)
         {
-            var fileText = File.ReadAllText(textFile);
-            templateFile = textFile;
             //normalize the line endings in the string
-            rawText = Regex.Replace(fileText, @"\r\n", "\n");
-
+            rawText = Regex.Replace(text, @"\r\n", "\n");
+            
             try
             {
+                roboclerkTags.Clear();
                 roboclerkTags = RoboClerkMarkdown.ExtractRoboClerkTags(rawText);
             }
             catch (TagInvalidException e)
@@ -33,6 +32,13 @@ namespace RoboClerk
                 e.DocumentTitle = title;
                 throw e;
             }
+        }
+
+        public void FromFile(string textFile)
+        {
+            var fileText = File.ReadAllText(textFile);
+            templateFile = textFile;
+            FromString(fileText);
         }
 
         public string ToText()

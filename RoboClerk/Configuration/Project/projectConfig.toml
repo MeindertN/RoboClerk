@@ -2,6 +2,10 @@
 # is running on. It also contains key value pairs for items that are needed in the 
 # documentation such are the name of the software and the version etc.
 
+# Directory where all template files are located 
+
+TemplateDirectory = "I:/temp/roboclerk_input/"
+
 # Truth items are those items retrieved from the source of truth (e.g. the SLMS). Specify how the these truth trace entities
 # should be called. This will ensure that the trace output makes sense in your context. The way these are defined here are 
 # as follows:
@@ -68,7 +72,7 @@
 	title = "System Requirements Specification"
 	abbreviation = "PRS"
 	identifier = "DOC001"
-	template = "I:/temp/roboclerk_input/SystemRequirementSpecification.md"
+	template = "SystemRequirementSpecification.md"
 	[[Document.SystemRequirementsSpecification.Command]]
 		executable = "pandoc"
 		arguments = "-s %OUTPUTDIR%/SystemRequirementSpecification.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/SystemRequirementSpecification.docx"
@@ -79,7 +83,7 @@
 	title = "Software Requirements Specification"
 	abbreviation = "SRS"
 	identifier = "DOC002"
-	template = "I:/temp/roboclerk_input/SoftwareRequirementSpecification.md"
+	template = "SoftwareRequirementSpecification.md"
 	[[Document.SoftwareRequirementsSpecification.Command]]
 		executable = "pandoc"
 		arguments = "-s %OUTPUTDIR%/SoftwareRequirementSpecification.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/SoftwareRequirementSpecification.docx"
@@ -90,7 +94,7 @@
 	title = "Software Design and Development Plan"
 	abbreviation = "SDDP"
 	identifier = "DOC003"
-	template = "I:/temp/roboclerk_input/SoftwareDesignAndDevelopmentPlan.md"
+	template = "SoftwareDesignAndDevelopmentPlan.md"
 	[[Document.SoftwareDevelopmentPlan.Command]]
 		executable = ""
 		arguments = ""
@@ -101,7 +105,7 @@
 	title = "Software Design Specification"
 	abbreviation = "SDS"
 	identifier = "DOC003"
-	template  = "I:/temp/roboclerk_input/SoftwareDesignSpecification.md"
+	template  = "SoftwareDesignSpecification.md"
 	[[Document.SoftwareDesignSpecification.Command]]
 		executable = ""
 		arguments = ""
@@ -112,7 +116,7 @@
 	title = "Risk Assessment Record"
 	abbreviation = "RAR"
 	identifier = "DOC004"
-	template  = "I:/temp/roboclerk_input/RiskAssessmentRecord.md"
+	template  = "RiskAssessmentRecord.md"
 	[[Document.RiskAssessmentRecord.Command]]
 		executable = ""
 		arguments = ""
@@ -123,7 +127,7 @@
 	title = "System Level Test Plan"
 	abbreviation = "SLTP"
 	identifier = "DOC005"
-	template = "I:/temp/roboclerk_input/SystemLevelTestPlan.md"
+	template = "SystemLevelTestPlan.md"
 	[[Document.SystemLevelTestPlan.Command]]
 		executable = "pandoc"
 		arguments = "-s %OUTPUTDIR%/SystemLevelTestPlan.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/SystemLevelTestPlan.docx"
@@ -145,7 +149,7 @@
 	title = "Unresolved Anomalies List"
 	abbreviation = "UAL"
 	identifier = "DOC006"
-	template = "I:/temp/roboclerk_input/ResidualAnomaliesRecord.md"
+	template = "ResidualAnomaliesRecord.md"
 	[[Document.ResidualAnomaliesRecord.Command]]
 		executable = "pandoc"
 		arguments = "-s %OUTPUTDIR%/ResidualAnomaliesRecord.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/ResidualAnomaliesRecord.docx"
@@ -156,7 +160,7 @@
 	title = "Traceability Analysis Record"
 	abbreviation = "TAR"
 	identifier = "DOC007"
-	template = "I:/temp/roboclerk_input/TraceabilityAnalysisRecord.md"
+	template = "TraceabilityAnalysisRecord.md"
 	[[Document.TraceAbilityAnalysisRecord.Command]]
 		executable = "pandoc"
 		arguments = "-s %OUTPUTDIR%/TraceabilityAnalysisRecord.md --reference-doc=I:/code/RoboClerk/DocxProcessingScripts/General_DOCX_template.docx -o %OUTPUTDIR%/TraceabilityAnalysisRecord.docx"

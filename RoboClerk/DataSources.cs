@@ -1,6 +1,7 @@
 ﻿using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace RoboClerk
@@ -180,6 +181,11 @@ namespace RoboClerk
         public string GetConfigValue(string key)
         {
             return configuration.ConfigVals.GetValue(key);
+        }
+
+        public string GetTemplateFile(string fileName)
+        {
+            return File.ReadAllText(Path.Join(configuration.TemplateDir,fileName));
         }
     }
 }
