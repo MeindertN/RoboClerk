@@ -24,30 +24,28 @@ namespace RoboClerk.ContentCreators
                 throw new Exception($"{truthSource} level trace matrix is empty.");
             }
 
-            List<string> columnHeaders = new List<string>();
+            StringBuilder matrix = new StringBuilder();
+            matrix.AppendLine("|====");
             foreach (var entry in traceMatrix)
             {
                 if (entry.Key.ID == "SystemRequirement" || entry.Key.ID == "SoftwareRequirement")
                 {
-                    columnHeaders.Add($"{entry.Key.Name}s");
+                    matrix.Append($"| {entry.Key.Name}s ");
                 }
                 else
                 {
-                    columnHeaders.Add(entry.Key.Abbreviation);
+                    matrix.Append($"| {entry.Key.Abbreviation} ");
                 }
             }
-
-            StringBuilder matrix = new StringBuilder();
-            matrix.Append(MarkdownTableUtils.GenerateTraceMatrixHeader(columnHeaders));
+            matrix.AppendLine();
 
             for (int index = 0; index < traceMatrix[truthSource].Count; ++index)
             {
-                List<string> line = new List<string>();
                 foreach (var entry in traceMatrix)
                 {
                     if (entry.Value[index].Count == 0)
                     {
-                        line.Add("N/A");
+                        matrix.Append("| N/A ");
                     }
                     else
                     {
@@ -60,16 +58,18 @@ namespace RoboClerk.ContentCreators
                             }
                             else
                             {
-                                combinedString.Append(item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID);
+                                combinedString.Append(item.HasLink ? $"{item.Link}[{item.ItemID}]" : item.ItemID);
                             }
                             combinedString.Append(", ");
                         }
                         combinedString.Remove(combinedString.Length - 2, 2); //remove extra comma and space
-                        line.Add(combinedString.ToString());
+                        matrix.Append($"| {combinedString.ToString()} ");
                     }
                 }
-                matrix.Append(MarkdownTableUtils.GenerateTraceMatrixLine(line));
+                matrix.AppendLine();
             }
+            matrix.AppendLine("|====");
+            matrix.AppendLine();
 
             matrix.AppendLine("\nTrace issues:\n");
             bool traceIssuesFound = false;
@@ -79,7 +79,7 @@ namespace RoboClerk.ContentCreators
             {
                 traceIssuesFound = true;
                 Item item = data.GetItem(issue.SourceID);
-                matrix.AppendLine($"* {truthSource.Name} {(item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID)} is potentially missing a corresponding {truthTarget.Name}.");
+                matrix.AppendLine($". {truthSource.Name} {(item.HasLink ? $"{item.Link}[{item.ItemID}]" : item.ItemID)} is potentially missing a corresponding {truthTarget.Name}.");
             }
 
             foreach (var tet in traceMatrix)
@@ -102,39 +102,39 @@ namespace RoboClerk.ContentCreators
                     string targetID = issue.TargetID;
                     if (item != null)
                     {
-                        sourceID = (item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID);
+                        sourceID = (item.HasLink ? $"{item.Link}[{item.ItemID}]" : item.ItemID);
                     }
                     if (issue.IssueType == TraceIssueType.Extra)
                     {
-                        matrix.AppendLine($"* An item with identifier {sourceID} appeared in {sourceTitle} without tracing to {targetTitle}.");
+                        matrix.AppendLine($". An item with identifier {sourceID} appeared in {sourceTitle} without tracing to {targetTitle}.");
                     }
                     else if (issue.IssueType == TraceIssueType.Missing)
                     {
-                        matrix.AppendLine($"* An expected trace from {sourceID} in {sourceTitle} to {targetTitle} is missing.");
+                        matrix.AppendLine($". An expected trace from {sourceID} in {sourceTitle} to {targetTitle} is missing.");
                     }
                     else if (issue.IssueType == TraceIssueType.PossiblyExtra)
                     {
-                        matrix.AppendLine($"* A possibly extra item with identifier {sourceID} appeared in {sourceTitle} without appearing in {targetTitle}.");
+                        matrix.AppendLine($". A possibly extra item with identifier {sourceID} appeared in {sourceTitle} without appearing in {targetTitle}.");
                     }
                     else if (issue.IssueType == TraceIssueType.PossiblyMissing)
                     {
-                        matrix.AppendLine($"* A possibly expected trace from {sourceID} in {sourceTitle} to {targetTitle} is missing.");
+                        matrix.AppendLine($". A possibly expected trace from {sourceID} in {sourceTitle} to {targetTitle} is missing.");
                     }
                     else if (issue.IssueType == TraceIssueType.Incorrect)
                     {
                         var targetItem = data.GetItem(targetID);
                         if (targetItem != null)
                         {
-                            targetID = (targetItem.HasLink ? $"[{targetItem.ItemID}]({targetItem.Link})" : targetItem.ItemID);
-                            matrix.AppendLine($"* An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not found.");
+                            targetID = (targetItem.HasLink ? $"{targetItem.Link}[{targetItem.ItemID}]" : targetItem.ItemID);
+                            matrix.AppendLine($". An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not found.");
                         }
                         else if(targetID != null)
                         {
-                            matrix.AppendLine($"* An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not a valid identifier.");
+                            matrix.AppendLine($". An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not a valid identifier.");
                         }
                         else
                         {
-                            matrix.AppendLine($"* A missing trace was detected in {sourceTitle}. The item with ID {sourceID} does not have a parent while it was expected to trace to {targetTitle}.");
+                            matrix.AppendLine($". A missing trace was detected in {sourceTitle}. The item with ID {sourceID} does not have a parent while it was expected to trace to {targetTitle}.");
                         }
                     }
                 }

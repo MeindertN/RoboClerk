@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using System.Text;
-using System.Linq;
 using System.Collections.Generic;
 
 namespace RoboClerk.ContentCreators
@@ -11,57 +10,83 @@ namespace RoboClerk.ContentCreators
     {
         protected bool automated = true;
 
+        private string GenerateTestCaseStepsHeader(bool automated)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("| *Step* | *Action* | *Expected Result* ");
+            if (!automated)
+            {
+                sb.Append("| *Actual Result* ");
+            }
+            sb.AppendLine("| *Test Status*");
+            return sb.ToString();
+        }
+
+        private string GenerateTestCaseStepLine(string[] step, int stepNr, bool automated)
+        {
+            if (step.Length < 2)
+            {
+                throw new ArgumentException("Not enough information to build step line.");
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append($"| {stepNr.ToString()} ");
+            sb.Append($"| {step[0].Replace("\n", "").Replace("\r", "")} ");
+            sb.Append($"| {step[1].Replace("\n", "").Replace("\r", "")} ");
+            if (!automated)
+            {
+                sb.Append("|  ");
+            }
+            sb.Append("|  ");
+            return sb.ToString();
+        }
+
         private string GenerateMarkdown(TestCaseItem item, IDataSources data)
         {
             StringBuilder sb = new StringBuilder();
-            int[] columnWidths = new int[2] { 25, Math.Max(($"[{item.ItemID}]({item.Link})").Length, 75) };
-            string separator = MarkdownTableUtils.GenerateGridTableSeparator(columnWidths);
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "**Test Case ID:**"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "**Test Case Revision:**"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.TestCaseRevision));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "**Parent ID:**"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, GetParentField(item, data)));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "**Title:**"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.TestCaseTitle));
-            sb.AppendLine(separator);
-            sb.AppendLine($"~REMOVEPARAGRAPH\n");
-            int maxDescriptionLength = getMaxTestStepElementLength(0, item.TestCaseSteps);
-            int maxResultLength = getMaxTestStepElementLength(1, item.TestCaseSteps);
-            int[] testStepColumnWidths = null;
-            if (item.TestCaseAutomated)
-            {
-                testStepColumnWidths = new int[4] { 10, Math.Max(maxDescriptionLength + 2, 12), Math.Max(maxResultLength + 2, 21), 17 };
-            }
-            else
-            {
-                testStepColumnWidths = new int[5] { 10, Math.Max(maxDescriptionLength + 2, 12), Math.Max(maxResultLength + 2, 21), 21, 17 };
-            }
-            separator = MarkdownTableUtils.GenerateGridTableSeparator(testStepColumnWidths);
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateTestCaseStepsHeader(testStepColumnWidths, item.TestCaseAutomated));
-            sb.AppendLine(separator);
+            sb.AppendLine("|====");
+            sb.Append("| *Test Case ID:* ");
+            sb.AppendLine(item.HasLink ? $"| {item.Link}[{item.ItemID}]" : $"| {item.ItemID}");
+            sb.AppendLine();
+
+            sb.Append("| *Test Case Revision:* ");
+            sb.AppendLine($"| {(item.TestCaseRevision==string.Empty ? "N/A" : item.TestCaseRevision)}");
+            sb.AppendLine();
+            
+            sb.Append("| *Parent ID:* ");
+            sb.AppendLine($"| {GetParentField(item, data)}");
+            sb.AppendLine();
+
+            sb.Append("| *Title:* ");
+            sb.AppendLine($"| {(item.TestCaseTitle==string.Empty ? "N/A" : item.TestCaseTitle)}");
+            sb.AppendLine("|====");
+            sb.AppendLine();
+            sb.AppendLine($"@@Post:REMOVEPARAGRAPH()@@");
+            sb.AppendLine();
+            
+            sb.AppendLine("|====");
+            sb.AppendLine(GenerateTestCaseStepsHeader(item.TestCaseAutomated));
+            sb.AppendLine();
             int stepNr = 1;
             foreach (var step in item.TestCaseSteps)
             {
-                sb.Append(MarkdownTableUtils.GenerateTestCaseStepLine(testStepColumnWidths, step, stepNr, item.TestCaseAutomated));
+                sb.AppendLine(GenerateTestCaseStepLine(step, stepNr, item.TestCaseAutomated));
+                sb.AppendLine();
                 stepNr++;
-                sb.AppendLine(separator);
             }
+            sb.AppendLine("|====");
+            
             if (!item.TestCaseAutomated)
             {
-                sb.AppendLine("~REMOVEPARAGRAPH\n");
-                testStepColumnWidths = new int[2] { 40, 40 };
-                separator = MarkdownTableUtils.GenerateGridTableSeparator(testStepColumnWidths);
-                sb.AppendLine(separator);
-                sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(testStepColumnWidths[0], "Initial:"));
-                sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(testStepColumnWidths, "Date:"));
-                sb.AppendLine(separator);
+                sb.AppendLine();
+                sb.AppendLine($"@@Post:REMOVEPARAGRAPH()@@");
+                sb.AppendLine();
+                sb.AppendLine("|====");
+                sb.Append("| Initial: ");
+                sb.AppendLine("| Date: ");
+                sb.AppendLine("|====");
             }
+            
             return sb.ToString();
         }
 
@@ -80,7 +105,7 @@ namespace RoboClerk.ContentCreators
                     var parentItem = data.GetItem(parent.TargetID) as RequirementItem;
                     if (parentItem != null)
                     {
-                        parentField.Append(parentItem.HasLink ? $"[{parentItem.ItemID}]({parentItem.Link})" : parentItem.ItemID);
+                        parentField.Append(parentItem.HasLink ? $"{parentItem.Link}[{parentItem.ItemID}]" : parentItem.ItemID);
                         parentField.Append($": \"{parentItem.RequirementTitle}\"");
                     }
                     else
@@ -91,16 +116,6 @@ namespace RoboClerk.ContentCreators
                 return parentField.ToString();
             }
             return "N/A";
-        }
-
-        private int getMaxTestStepElementLength(int v, List<string[]> testCaseSteps)
-        {
-            int maxLength = 0;
-            foreach (var step in testCaseSteps)
-            {
-                maxLength = Math.Max(maxLength, step[v].Length);
-            }
-            return maxLength;
         }
 
         public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)

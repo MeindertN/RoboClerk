@@ -9,29 +9,34 @@ namespace RoboClerk.ContentCreators
         private string GenerateMarkdown(AnomalyItem item, TraceEntity tet)
         {
             StringBuilder sb = new StringBuilder();
-            int[] columnWidths = new int[2] { 44, 160 };
-            string separator = MarkdownTableUtils.GenerateGridTableSeparator(columnWidths);
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], $"{(tet==null?"Anomaly":tet.Name)} ID:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Revision:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.AnomalyRevision == string.Empty ? "N/A" : item.AnomalyRevision));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "State:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.AnomalyState == string.Empty ? "N/A" : item.AnomalyState));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Assigned To:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.AnomalyAssignee == string.Empty ? "NOT ASSIGNED" : item.AnomalyAssignee));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Title:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.AnomalyTitle == string.Empty ? "MISSING" : item.AnomalyTitle));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Priority:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.AnomalyPriority == string.Empty ? "N/A" : item.AnomalyPriority));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Justification:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.AnomalyJustification == string.Empty ? "N/A" : item.AnomalyJustification));
+            sb.AppendLine("|====");
+            sb.Append($"| {(tet==null?"Anomaly":tet.Name)} ID: ");
+            sb.AppendLine(item.HasLink ? $"| {item.ItemID}[{item.Link}]" : $"| {item.ItemID}");
+            sb.AppendLine();
+
+            sb.Append("| Revision: ");
+            sb.AppendLine(item.AnomalyRevision == string.Empty ? "| N/A" : $"| {item.AnomalyRevision}");
+            sb.AppendLine();
+            
+            sb.Append("| State: ");
+            sb.AppendLine(item.AnomalyState == string.Empty ? "| N/A" : $"| {item.AnomalyState}");
+            sb.AppendLine();
+            
+            sb.Append("| Assigned To: ");
+            sb.AppendLine(item.AnomalyAssignee == string.Empty ? "| NOT ASSIGNED" : $"| {item.AnomalyAssignee}");
+            sb.AppendLine();
+
+            sb.Append("| Title: ");
+            sb.AppendLine(item.AnomalyTitle == string.Empty ? "| MISSING" : $"| {item.AnomalyTitle}");
+            sb.AppendLine();
+
+            sb.Append("| Priority: ");
+            sb.AppendLine(item.AnomalyPriority == string.Empty ? "| N/A" : $"| {item.AnomalyPriority}");
+            sb.AppendLine();
+
+            sb.AppendLine("| Justification: ");
+            sb.AppendLine(item.AnomalyJustification == string.Empty ? "| N/A" : $"a| {item.AnomalyJustification}");
+            sb.AppendLine("|====");
             return sb.ToString();
         }
 

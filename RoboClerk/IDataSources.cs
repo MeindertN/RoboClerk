@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,5 +23,6 @@ namespace RoboClerk
         RequirementItem GetSystemRequirement(string id);
         RiskItem GetRisk(string id);
         string GetTemplateFile(string fileName);
+        Stream GetFileStreamFromTemplateDir(string fileName);
     }
 }

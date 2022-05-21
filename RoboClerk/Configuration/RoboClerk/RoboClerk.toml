@@ -15,7 +15,7 @@ PluginDirs = [ "I:/code/RoboClerk/RoboClerk.Redmine/bin/Debug/net6.0" ]
 PluginConfigurationDir = ""
 
 # The output directory is where the output files and logs are placed
-OutputDirectory = "C:/temp/roboclerk"
+OutputDirectory = "I:/temp/Roboclerk_output"
 
 # Clear output directory before creating new output files.
 ClearOutputDir = "True"

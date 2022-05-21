@@ -8,35 +8,35 @@ Authors:
 NOT FOUND
 @@@
 
-# Introduction
-## Purpose
+== Introduction
+=== Purpose
 The purpose of this document is to specify the software requirements of @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. 
 
-## Document Conventions
+=== Document Conventions
 This document contains the following types of requirements:
 - Functional Software Requirements - requirements specifying how the software behaves and functions
 - Risk Control Software Requirements - requirements specifying how a risk is controlled using the software
 - Transfer To Production Software Requirements - requirements specifying how software that is used to transfer the software to production (e.g. devOps software) behaves and functions
 - Documentation Requirements - requirements specifying contents of "external" documentation (e.g. user manual, transfer to production work order etc.)
  
-## Intended Audience
+=== Intended Audience
 This document is intended for the software developers at @@Config:CompanyName()@@. It is also prepared as a record of the breakdown of system level requirements into lower level (software) requirements according to the SDLC. This document is also intended to be reviewed by regulatory agencies and auditors.
 
-# Requirements
+== Requirements
 
-## Functional Software Requirements
+=== Functional Software Requirements
 @@@SLMS:SWR(itemCategory=Functional Requirement)
 
 @@@
-## Risk Control Software Requirements
+=== Risk Control Software Requirements
 @@@SLMS:SWR(itemCategory=Risk Control)
 
 @@@
-## Transfer to Production Software Requirements
+=== Transfer to Production Software Requirements
 @@@SLMS:SWR(itemCategory=Transfer to Production)
 
 @@@
-## Documentation Software Requirements
+=== Documentation Software Requirements
 @@@SLMS:SWR(itemCategory=Documentation)
 
 @@@

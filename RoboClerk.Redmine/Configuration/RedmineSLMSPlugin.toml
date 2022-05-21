@@ -27,4 +27,4 @@ Ignore = [ "Rejected" ]
 # If you do not wish the software to include hyperlinks, just set this
 # variable to an empty string "".
 
-RedmineBaseURL = ""
+RedmineBaseURL = "http://localhost:3001/issues/"

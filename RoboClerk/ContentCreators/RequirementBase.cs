@@ -19,26 +19,30 @@ namespace RoboClerk.ContentCreators
         private string GenerateMarkdown(RequirementItem item, IDataSources sources)
         {
             StringBuilder sb = new StringBuilder();
-            int[] columnWidths = new int[2] { 44, 160 };
-            string separator = MarkdownTableUtils.GenerateGridTableSeparator(columnWidths);
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], $"{sourceType.Name} ID:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.HasLink ? $"[{item.ItemID}]({item.Link})" : item.ItemID));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], $"{sourceType.Name} Revision:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.RequirementRevision));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], $"{sourceType.Name} Category:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.ItemCategory));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Parent ID:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, GetParentField(item,sources)));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Title:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.RequirementTitle));
-            sb.AppendLine(separator);
-            sb.Append(MarkdownTableUtils.GenerateLeftMostTableCell(columnWidths[0], "Description:"));
-            sb.Append(MarkdownTableUtils.GenerateRightMostTableCell(columnWidths, item.RequirementDescription));
+            sb.AppendLine("|====");
+            sb.Append($"| {sourceType.Name} ID: ");
+            sb.AppendLine(item.HasLink ? $"| {item.Link}[{item.ItemID}]" : $"| {item.ItemID}");
+            sb.AppendLine();
+            
+            sb.Append($"| {sourceType.Name} Revision: ");
+            sb.AppendLine($"| {item.RequirementRevision}");
+            sb.AppendLine();
+            
+            sb.Append($"| {sourceType.Name} Category: ");
+            sb.AppendLine($"| {item.ItemCategory}");
+            sb.AppendLine();
+            
+            sb.Append("| Parent ID: ");
+            sb.AppendLine($"| {GetParentField(item,sources)}");
+            sb.AppendLine();
+            
+            sb.Append("| Title: ");
+            sb.AppendLine($"| {item.RequirementTitle}");
+            sb.AppendLine();
+            
+            sb.AppendLine("| Description: ");
+            sb.AppendLine($"a| {item.RequirementDescription}");
+            sb.AppendLine("|====");
             return sb.ToString();
         }
 
@@ -57,7 +61,7 @@ namespace RoboClerk.ContentCreators
                     var parentItem = data.GetItem(parent.TargetID) as RequirementItem;
                     if (parentItem != null)
                     {
-                        parentField.Append(parentItem.HasLink ? $"[{parentItem.ItemID}]({parentItem.Link})" : parentItem.ItemID);
+                        parentField.Append(parentItem.HasLink ? $"{parentItem.Link}[{parentItem.ItemID}]" : parentItem.ItemID);
                         parentField.Append($": \"{parentItem.RequirementTitle}\"");
                     }
                     else

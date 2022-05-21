@@ -7,6 +7,8 @@
     <Configurations>Debug;Release;ReleasePublish</Configurations>
     <DebugType>portable</DebugType>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	<Deterministic>false</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
     <Optimize>True</Optimize>
@@ -14,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="CliWrap" Version="3.4.1" />
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="DocumentPartner.ClosedXML" Version="0.95.139" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
     <PackageReference Include="NLog" Version="4.7.13" />
@@ -27,22 +30,22 @@
     <None Update="Configuration\RoboClerk\RoboClerk.toml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="DocTemplates\ResidualAnomaliesRecord.md">
+    <None Update="DocTemplates\ResidualAnomaliesRecord.adoc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DocTemplates\SystemRequirementSpecification.md">
+    <None Update="DocTemplates\SystemRequirementSpecification.adoc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DocTemplates\SoftwareDesignSpecification.md">
+    <None Update="DocTemplates\SoftwareDesignSpecification.adoc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DocTemplates\SoftwareRequirementSpecification.md">
+    <None Update="DocTemplates\SoftwareRequirementSpecification.adoc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DocTemplates\SystemLevelTestPlan.md">
+    <None Update="DocTemplates\SystemLevelTestPlan.adoc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DocTemplates\TraceabilityAnalysisRecord.md">
+    <None Update="DocTemplates\TraceabilityAnalysisRecord.adoc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

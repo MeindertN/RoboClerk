@@ -1,6 +1,7 @@
 ﻿using CliWrap;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Tomlyn.Model;
 
@@ -8,17 +9,21 @@ namespace RoboClerk
 {
     public class Commands
     {
-        private string outputdir = string.Empty;
+        private string outputDir = string.Empty;
         private string filename = string.Empty;
+        private string filenameNoExt = string.Empty;
+        private string inputDir = string.Empty;
         private List<string> executables = new List<string>();
         private List<string> workingDirectories = new List<string>();
         private List<string> arguments = new List<string>();
         private List<bool> ignoreErrors = new List<bool>();
 
-        public Commands(TomlTableArray commands, string outputdir, string filename)
+        public Commands(TomlTableArray commands, string outputDir, string filename, string inputDir)
         {
-            this.outputdir = outputdir;
+            this.outputDir = outputDir;
             this.filename = filename;
+            this.filenameNoExt = Path.GetFileNameWithoutExtension(filename);
+            this.inputDir = inputDir;
             ProcessCommands(commands);
         }
 
@@ -26,6 +31,7 @@ namespace RoboClerk
         {
             if (commands == null)
                 return;
+            DateTime currentDateTime = DateTime.Now;
 
             foreach (var command in commands)
             {
@@ -40,19 +46,23 @@ namespace RoboClerk
                 string temp = (string)command["workingDirectory"];
                 if (temp == String.Empty)
                 {
-                    temp = outputdir;
+                    temp = outputDir;
                 }
-                workingDirectories.Add(ReplaceVariables(temp));
+                workingDirectories.Add(ReplaceVariables(temp,currentDateTime));
                 temp = (string)command["arguments"];
-                arguments.Add(ReplaceVariables(temp));
+                arguments.Add(ReplaceVariables(temp,currentDateTime));
                 ignoreErrors.Add((string)command["ignoreErrors"] == "True");
             }
         }
 
-        private string ReplaceVariables(string temp)
+        private string ReplaceVariables(string temp, DateTime now)
         {
             temp = temp.Replace("%OUTPUTFILE%", filename);
-            temp = temp.Replace("%OUTPUTDIR%", outputdir);
+            temp = temp.Replace("%OUTPUTDIR%", outputDir);
+            temp = temp.Replace("%OUTPUTFILENOEXT%", filenameNoExt);
+            temp = temp.Replace("%INPUTDIR%", inputDir);
+            temp = temp.Replace("%DATE%", now.ToString("yyyyMMdd"));
+            temp = temp.Replace("%DATETIME%", now.ToString("yyyyMMddHHmm"));
             return temp;
         }
 

@@ -27,6 +27,7 @@ namespace RoboClerk.Configuration
         private List<TraceConfig> traceConfig = new List<TraceConfig>();
         private ConfigurationValues configVals = null;
         private string templateDir = string.Empty;
+        private string mediaDir = string.Empty;
 
         //The information supplied on the commandline
         private Dictionary<string, string> commandLineOptions = new Dictionary<string,string>();
@@ -50,6 +51,7 @@ namespace RoboClerk.Configuration
         public ConfigurationValues ConfigVals => configVals;
         public string PluginConfigDir => pluginConfigDir;
         public string TemplateDir => templateDir;
+        public string MediaDir => mediaDir;
         public bool ClearOutputDir => clearOutput;
 
         private (string, string) LoadConfigFiles(string configFile, string projectConfigFile)
@@ -102,6 +104,14 @@ namespace RoboClerk.Configuration
         {
             var toml = Toml.Parse(projectConfig).ToModel();
             templateDir = CommandLineOptionOrDefault("TemplateDirectory", (string)toml["TemplateDirectory"]);
+            if (toml.ContainsKey("MediaDirectory"))
+            {
+                mediaDir = CommandLineOptionOrDefault("MediaDirectory", (string)toml["MediaDirectory"]);
+            }
+            else
+            {
+                logger.Warn("MediaDirectory entry is missing from project configuration file, some images will not be shown in output documents.");
+            }
             ReadTruthTraceItems(toml);
             ReadDocuments(toml);
             ReadTraceConfiguration(toml);
@@ -140,7 +150,7 @@ namespace RoboClerk.Configuration
 
                 if (doc.ContainsKey("template") && doc.ContainsKey("Command"))
                 {
-                    docConfig.AddCommands(new Commands((TomlTableArray)doc["Command"], outputDir, Path.GetFileName((string)doc["template"])));
+                    docConfig.AddCommands(new Commands((TomlTableArray)doc["Command"], outputDir, Path.GetFileName((string)doc["template"]), templateDir));
                 }
 
                 documents.Add(docConfig);

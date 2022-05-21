@@ -192,7 +192,7 @@ namespace RoboClerk
             //verify required elements are present and in the right order
             if (tagContents.Count(f => (f == '(')) != 1 ||
                 tagContents.Count(f => (f == ')')) != 1 ||
-                tagContents.Count(f => (f == ':')) != 1 ||
+                tagContents.Substring(0,tagContents.IndexOf('(')).Count(f => (f == ':')) != 1 ||
                 tagContents.IndexOf(')') < tagContents.IndexOf('(') ||
                 tagContents.IndexOf(':') > tagContents.IndexOf('('))
             {

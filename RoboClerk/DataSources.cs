@@ -187,5 +187,11 @@ namespace RoboClerk
         {
             return File.ReadAllText(Path.Join(configuration.TemplateDir,fileName));
         }
+
+        public Stream GetFileStreamFromTemplateDir(string fileName)
+        {
+            var stream = new FileStream(Path.Join(configuration.TemplateDir, fileName),FileMode.Open);
+            return stream;
+        }
     }
 }

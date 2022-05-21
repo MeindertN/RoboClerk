@@ -37,6 +37,17 @@ namespace RoboClerk
             {
                 CleanOutputDirectory();
             }
+            if(configuration.MediaDir != string.Empty)
+            {
+                if(Directory.Exists(configuration.MediaDir))
+                {
+                    CleanAndCopyMediaDirectory();
+                }
+                else
+                {
+                    logger.Warn($"Configured media directory \"{configuration.MediaDir}\" does not exist. Some of the output documents will have missing images.");
+                }
+            }
             var configDocuments = configuration.Documents;
             foreach (var doc in configDocuments)
             {
@@ -124,6 +135,26 @@ namespace RoboClerk
                     !file.Contains(".gitignore"))
                 {
                     File.Delete(file);
+                }
+            }
+        }
+
+        private void CleanAndCopyMediaDirectory()
+        {
+            logger.Info("Cleaning the media directory and copying the media files.");
+            string toplineDir = Path.GetFileName(configuration.MediaDir);
+            string targetDir = Path.Combine(configuration.OutputDir, toplineDir);
+            if(Directory.Exists(targetDir))
+            {
+                Directory.Delete(targetDir, true);
+            }
+            Directory.CreateDirectory(targetDir);
+            string[] files = Directory.GetFiles(configuration.MediaDir);
+            foreach (string file in files)
+            {
+                if (!file.Contains(".gitignore"))
+                {
+                    File.Copy(file, Path.Combine(targetDir,Path.GetFileName(file)));
                 }
             }
         }

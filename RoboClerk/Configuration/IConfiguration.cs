@@ -15,6 +15,7 @@ namespace RoboClerk.Configuration
         string TemplateDir { get; }
         bool ClearOutputDir { get; }
         string LogLevel { get; }
+        string MediaDir { get; }
         List<TraceEntity> TruthEntities { get; }
         List<DocumentConfig> Documents { get; }
         List<TraceConfig> TraceConfig { get; }

@@ -9,6 +9,8 @@ using System.IO.Abstractions;
 using CommandLine;
 using System.Collections.Generic;
 
+[assembly: AssemblyVersion("0.9.*")]
+
 namespace RoboClerk
 {
     class Program
@@ -90,6 +92,7 @@ namespace RoboClerk
                            throw;
                        }
                        var logger = NLog.LogManager.GetCurrentClassLogger();
+                       logger.Info($"RoboClerk Version: {Assembly.GetExecutingAssembly().GetName().Version}");
                        var commandlineOptions = GetConfigOptions(options.ConfigurationOptions, logger);
                        try
                        {

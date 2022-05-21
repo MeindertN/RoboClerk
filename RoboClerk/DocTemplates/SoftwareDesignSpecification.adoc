@@ -8,8 +8,8 @@ Authors:
 NOT FOUND
 @@@
 
-# Introduction
-## Purpose
+== Introduction
+=== Purpose
 The purpose of this document is to specify the architecture and system design of 
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. 
 It tracks the information required to define architecture and system design, in order to give the development 
@@ -18,13 +18,13 @@ project team, and development team. Some portions of this document such as the u
 be shared with the client/user and other stakeholders whose UI input/approval is needed. Traceability information is 
 contained in the document by listing the software requirement ID with the design implementation in the text. 
 
-## Definitions
+=== Definitions
 *SOFTWARE ITEM* – Any identifiable part of a computer program. All levels of composition, including the top and bottom
 levels, can be called software items. (See IEC62304.)
 
 *SOFTWARE UNIT* – The lowest level of software item. This level is not further decomposed.
 
-# Testing Section
+== Testing Section
 Here we will test a variety of in document trace tags referring to software requirements.
 
 @@Trace:SWR(id=9)@@ The text that has the trace link
@@ -49,4 +49,8 @@ in templates, can help authors with using hte template in the right way.
 
 Here is a reference to a document @@Ref:RandomTestDocument()@@
 
-Check out the @@Ref:SystemLevelTestPlan()@@ (@@ref:SystemLevelTestPlan(short=true)@@)
+Check out the @@Ref:SoftwareSystemLevelTestPlan()@@ (@@ref:SoftwareSystemLevelTestPlan(short=true)@@)
+
+We can import excel spreadsheets into our document in the following way:
+@@FILE:ExcelTable(fileName=testspreadsheet.xlsx,range=A3:C6,workSheet=Sheet1)@@
+                                        

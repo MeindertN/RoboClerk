@@ -56,7 +56,7 @@ namespace RoboClerk.ContentCreators
                 sb.Append('|');
                 sb.Append("Incomplete");
                 sb.Append('|');
-                sb.Append(risk.ModifiedOccScore.ToString());
+                sb.Append(risk.ModifiedOccScore == int.MaxValue?"":risk.ModifiedOccScore.ToString());
 
                 analysis.AddTrace(analysis.GetTraceEntityForID("Risk"), risk.ItemID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), risk.ItemID);
             }
