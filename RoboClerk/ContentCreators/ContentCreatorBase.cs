@@ -16,7 +16,7 @@ namespace RoboClerk.ContentCreators
                 {
                     if (prop.Name.ToUpper() == param.Key)
                     {
-                        if (prop.GetValue(item).ToString() != param.Value)
+                        if (prop.GetValue(item).ToString().ToUpper() != param.Value.ToUpper())
                         {
                             return false;
                         }

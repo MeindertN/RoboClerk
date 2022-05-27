@@ -3,7 +3,7 @@ using System.Text;
 
 namespace RoboClerk
 {
-    public class AnomalyItem : Item
+    public class AnomalyItem : LinkedItem
     {
         private string anomalyState = string.Empty;
         private string anomalyTitle = string.Empty;

@@ -14,14 +14,14 @@
     <Optimize>True</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.4.1" />
-    <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="DocumentPartner.ClosedXML" Version="0.95.139" />
+    <PackageReference Include="CliWrap" Version="3.4.4" />
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    <PackageReference Include="DocumentPartner.ClosedXML" Version="0.95.171" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
-    <PackageReference Include="NLog" Version="4.7.13" />
-    <PackageReference Include="System.IO.Abstractions" Version="16.1.10" />
-    <PackageReference Include="Tomlyn" Version="0.10.2" />
+    <PackageReference Include="NLog" Version="4.7.15" />
+    <PackageReference Include="System.IO.Abstractions" Version="16.1.26" />
+    <PackageReference Include="Tomlyn" Version="0.14.3" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Configuration\Project\projectConfig.toml">

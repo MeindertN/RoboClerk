@@ -17,8 +17,12 @@ namespace RoboClerk.ContentCreators
             if (!automated)
             {
                 sb.Append("| *Actual Result* ");
+                sb.AppendLine("| *Test Status*");
             }
-            sb.AppendLine("| *Test Status*");
+            else
+            {
+                sb.AppendLine();
+            }
             return sb.ToString();
         }
 
@@ -35,13 +39,12 @@ namespace RoboClerk.ContentCreators
             sb.Append($"| {step[1].Replace("\n", "").Replace("\r", "")} ");
             if (!automated)
             {
-                sb.Append("|  ");
+                sb.Append("|  | ");
             }
-            sb.Append("|  ");
             return sb.ToString();
         }
 
-        private string GenerateMarkdown(TestCaseItem item, IDataSources data)
+        private string GenerateADOC(TestCaseItem item, IDataSources data)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("|====");
@@ -132,7 +135,7 @@ namespace RoboClerk.ContentCreators
                     testCaseFound = true;
                     try
                     {
-                        output.AppendLine(GenerateMarkdown(test,data));
+                        output.AppendLine(GenerateADOC(test,data));
                     }
                     catch
                     {

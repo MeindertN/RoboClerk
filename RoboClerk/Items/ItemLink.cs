@@ -21,7 +21,9 @@ namespace RoboClerk
     public class ItemLink
     {
         private string targetID = string.Empty;
+        private string targetType = string.Empty;
         private ItemLinkType linkType = ItemLinkType.None;
+        
 
         public ItemLink(string targetID, ItemLinkType linkType)
         {
@@ -30,7 +32,11 @@ namespace RoboClerk
         }
 
         public string TargetID { get { return targetID; } }
-        public ItemLinkType LinkType { get { return linkType; } }
+        public ItemLinkType LinkType
+        { 
+            set { linkType = value; }
+            get { return linkType; } 
+        }
 
         public static ItemLinkType GetLinkTypeForString(string lt)
         {

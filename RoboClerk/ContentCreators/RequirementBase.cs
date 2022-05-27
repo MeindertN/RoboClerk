@@ -16,7 +16,7 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        private string GenerateMarkdown(RequirementItem item, IDataSources sources)
+        private string GenerateADOC(RequirementItem item, IDataSources sources)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("|====");
@@ -87,7 +87,7 @@ namespace RoboClerk.ContentCreators
                     foundRequirement = true;
                     try
                     {
-                        output.AppendLine(GenerateMarkdown(requirement,sources));
+                        output.AppendLine(GenerateADOC(requirement,sources));
                     }
                     catch
                     {

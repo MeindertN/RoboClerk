@@ -65,6 +65,11 @@ namespace RoboClerk.RedmineCSV
             return testCases;
         }
 
+        public List<SOUPItem> GetSOUP() //we don't support SOUP items with redmine CSV
+        {
+            return new List<SOUPItem>();
+        }
+
         public void Initialize(IConfiguration configuration)
         {
             logger.Info("Initializing the Redmine CSV SLMS Plugin");

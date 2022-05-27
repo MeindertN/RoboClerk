@@ -14,14 +14,10 @@ namespace RoboClerk.ContentCreators
             if (tag.Parameters.ContainsKey("ID"))
             {
                 Item item = data.GetItem(tag.Parameters["ID"]);
-                string result = string.Empty;
-                if (item == null) //the item was not found, we'll still add the trace
+                string result = $"({tag.Parameters["ID"]})";
+                if (item != null && item.HasLink) 
                 {
-                    result = $"({tag.Parameters["ID"]})";
-                }
-                else
-                {
-                    result = (item.HasLink ? $"[{tag.Parameters["ID"]}]({item.Link})" : tag.Parameters["ID"]);
+                    result = $"({item.Link}[{tag.Parameters["ID"]}])";
                 }
                 analysis.AddTraceTag(doc.DocumentTitle, tag);
                 return result;

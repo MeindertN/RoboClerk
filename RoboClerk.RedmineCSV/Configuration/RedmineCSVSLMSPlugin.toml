@@ -11,6 +11,7 @@ SoftwareSystemTest = "Validation"
 SoftwareUnitTest = "NA"
 Risk = "NA"
 Anomaly = "Bug"
+SOUP = "SOUP"
 
 # certain items in redmine should be ignored because they are no longer
 # relevant. Indicate which item statuses should be ignored.

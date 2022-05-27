@@ -58,6 +58,11 @@ namespace RoboClerk.AzureDevOps
             return testCases;
         }
 
+        public List<SOUPItem> GetSOUP() //TODO: we don't support SOUP items with AzureDevOps right now, can be added
+        {
+            return new List<SOUPItem>();
+        }
+
         public void Initialize(IConfiguration configuration)
         {
             logger.Info("Initializing the Azure DevOps SLMS Plugin");

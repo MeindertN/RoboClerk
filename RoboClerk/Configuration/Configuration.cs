@@ -28,6 +28,7 @@ namespace RoboClerk.Configuration
         private ConfigurationValues configVals = null;
         private string templateDir = string.Empty;
         private string mediaDir = string.Empty;
+        private string projectRoot = string.Empty;
 
         //The information supplied on the commandline
         private Dictionary<string, string> commandLineOptions = new Dictionary<string,string>();
@@ -52,6 +53,7 @@ namespace RoboClerk.Configuration
         public string PluginConfigDir => pluginConfigDir;
         public string TemplateDir => templateDir;
         public string MediaDir => mediaDir;
+        public string ProjectRoot => projectRoot;
         public bool ClearOutputDir => clearOutput;
 
         private (string, string) LoadConfigFiles(string configFile, string projectConfigFile)
@@ -104,6 +106,7 @@ namespace RoboClerk.Configuration
         {
             var toml = Toml.Parse(projectConfig).ToModel();
             templateDir = CommandLineOptionOrDefault("TemplateDirectory", (string)toml["TemplateDirectory"]);
+            projectRoot = CommandLineOptionOrDefault("ProjectRoot", (string)toml["ProjectRoot"]);
             if (toml.ContainsKey("MediaDirectory"))
             {
                 mediaDir = CommandLineOptionOrDefault("MediaDirectory", (string)toml["MediaDirectory"]);

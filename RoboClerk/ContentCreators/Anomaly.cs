@@ -11,7 +11,7 @@ namespace RoboClerk.ContentCreators
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("|====");
             sb.Append($"| {(tet==null?"Anomaly":tet.Name)} ID: ");
-            sb.AppendLine(item.HasLink ? $"| {item.ItemID}[{item.Link}]" : $"| {item.ItemID}");
+            sb.AppendLine(item.HasLink ? $"| {item.Link}[{item.ItemID}]" : $"| {item.ItemID}");
             sb.AppendLine();
 
             sb.Append("| Revision: ");

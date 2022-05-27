@@ -197,7 +197,7 @@ namespace RoboClerk
                         var targetItems = data.GetItems(ts.Target);
                         foreach (var ti in truthItems)
                         {
-                            var linked = targetItems.FindAll((x => x.GetItemLinkType(ti) == ts.BackwardLink));
+                            var linked = targetItems.FindAll(x => x.GetItemLinkType(ti) == ts.BackwardLink);
                             result[ts.Target].Add(GetReqFamilyStrings(linked));
                             AnalyzeTruthReqTrace(ti, linked, truth, ts.Target); //TODO: we can get more specific than this
                         }

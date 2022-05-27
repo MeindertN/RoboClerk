@@ -15,6 +15,7 @@ namespace RoboClerk
         List<TestCaseItem> GetAllSystemLevelTests();
         List<RequirementItem> GetAllSystemRequirements();
         List<RiskItem> GetAllRisks();
+        List<SOUPItem> GetAllSOUP();
         AnomalyItem GetAnomaly(string id);
         string GetConfigValue(string key);
         Item GetItem(string id);
@@ -22,6 +23,7 @@ namespace RoboClerk
         TestCaseItem GetSystemLevelTest(string id);
         RequirementItem GetSystemRequirement(string id);
         RiskItem GetRisk(string id);
+        SOUPItem GetSOUP(string id);
         string GetTemplateFile(string fileName);
         Stream GetFileStreamFromTemplateDir(string fileName);
     }

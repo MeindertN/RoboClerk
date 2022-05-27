@@ -13,6 +13,7 @@ namespace RoboClerk.Configuration
         string PluginConfigDir { get; }
         string OutputDir { get; }
         string TemplateDir { get; }
+        string ProjectRoot { get; }
         bool ClearOutputDir { get; }
         string LogLevel { get; }
         string MediaDir { get; }

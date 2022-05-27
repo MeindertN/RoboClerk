@@ -38,7 +38,7 @@ namespace RoboClerk.ContentCreators
                     if (cell.HasHyperlink)
                     {
                         
-                        sb.Append($"{{{cell.GetHyperlink().ExternalAddress}}} [{cell.GetRichText().Text}] ");
+                        sb.Append($"{cell.GetHyperlink().ExternalAddress}[{cell.GetRichText().Text}] ");
                     }
                     else
                     {

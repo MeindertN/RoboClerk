@@ -22,11 +22,13 @@ namespace RoboClerk.Redmine
         private List<TestCaseItem> testCases = new List<TestCaseItem>();
         private List<AnomalyItem> bugs = new List<AnomalyItem>();
         private List<RiskItem> risks = new List<RiskItem>();
+        private List<SOUPItem> soup = new List<SOUPItem>();
         private string prsTrackerName = string.Empty;
         private string srsTrackerName = string.Empty;
         private string tcTrackerName = string.Empty;
         private string bugTrackerName = string.Empty;
         private string riskTrackerName = string.Empty;
+        private string soupTrackerName = string.Empty;
         private string baseURL = string.Empty;
         private string apiEndpoint = string.Empty;
         private string apiKey = string.Empty;
@@ -77,6 +79,11 @@ namespace RoboClerk.Redmine
             return risks;
         }
 
+        public List<SOUPItem> GetSOUP()
+        {
+            return soup; 
+        }
+
         public void Initialize(IConfiguration configuration)
         {
             logger.Info("Initializing the Redmine SLMS Plugin");
@@ -98,6 +105,7 @@ namespace RoboClerk.Redmine
                 tcTrackerName = configuration.CommandLineOptionOrDefault("SoftwareSystemTest",(string)config["SoftwareSystemTest"]);
                 bugTrackerName = configuration.CommandLineOptionOrDefault("Anomaly",(string)config["Anomaly"]);
                 riskTrackerName = configuration.CommandLineOptionOrDefault("Risk", (string)config["Risk"]);
+                soupTrackerName = configuration.CommandLineOptionOrDefault("SOUP", (string)config["SOUP"]);
 
                 if (config.ContainsKey("RedmineBaseURL"))
                 {
@@ -146,7 +154,7 @@ namespace RoboClerk.Redmine
             return output;
         }
 
-        private TestCaseItem CreateTestCase(RedmineIssue rmItem)
+        private TestCaseItem CreateTestCase(List<RedmineIssue> issues, RedmineIssue rmItem)
         {
             logger.Debug($"Creating test case item: {rmItem.Id}");
             TestCaseItem resultItem = new TestCaseItem();
@@ -173,10 +181,74 @@ namespace RoboClerk.Redmine
                     }
                 }
             }
-            if (rmItem.Parent != null)
+            
+            AddLinksToItem(rmItem, resultItem);
+            //any software requirements are treated as parents, regardless of the link type
+            foreach(var link in resultItem.LinkedItems)
             {
-                resultItem.AddLinkedItem(new ItemLink(rmItem.Parent.Id.ToString(), ItemLinkType.Parent));
+                foreach(var issue in issues)
+                {
+                    if(issue.Id.ToString() == link.TargetID && issue.Tracker.Name == srsTrackerName)
+                    {
+                        link.LinkType = ItemLinkType.Parent;
+                    }
+                }
             }
+
+            return resultItem;
+        }
+
+        private SOUPItem CreateSOUP(RedmineIssue rmItem)
+        {
+            logger.Debug($"Creating SOUP item: {rmItem.Id}");
+            SOUPItem resultItem = new SOUPItem();
+
+            resultItem.ItemID = rmItem.Id.ToString();
+            resultItem.SOUPRevision = rmItem.UpdatedOn.ToString();
+            resultItem.SOUPTitle = rmItem.Subject ?? string.Empty;
+            if (baseURL != "")
+            {
+                resultItem.Link = new Uri($"{baseURL}{resultItem.ItemID}");
+            }
+            if (rmItem.CustomFields != null)
+            {
+                foreach (var field in rmItem.CustomFields)
+                {
+                    var value = (System.Text.Json.JsonElement)field.Value;
+                    if (field.Name == "SOUP Detailed Description")
+                    {
+                        resultItem.SOUPDetailedDescription = value.GetString();
+                    }
+                    else if (field.Name == "Performance Critical?")
+                    {
+                        resultItem.SOUPPerformanceCritical = !value.GetString().Contains("is not");
+                        resultItem.SOUPPerformanceCriticalText = value.GetString();
+                    }
+                    else if (field.Name == "CyberSecurity Critical?")
+                    {
+                        resultItem.SOUPCybersecurityCritical = !value.GetString().Contains("is not");
+                        resultItem.SOUPCybersecurityCriticalText = value.GetString();
+                    }
+                    else if (field.Name == "Anomaly List Examination")
+                    {
+                        resultItem.SOUPAnomalyListDescription = value.GetString();
+                    }
+                    else if (field.Name == "Installed by end user?")
+                    {
+                        resultItem.SOUPInstalledByUser = !value.GetString().Contains("No");
+                        resultItem.SOUPInstalledByUserText = value.GetString();
+                    }
+                    else if (field.Name == "End user training")
+                    {
+                        resultItem.SOUPEnduserTraining = value.GetString();
+                    }
+                    else if (field.Name == "SOUP License")
+                    {
+                        resultItem.SOUPLicense = value.GetString();
+                    }
+                }
+            }
+            AddLinksToItem(rmItem, resultItem);
             return resultItem;
         }
 
@@ -185,7 +257,14 @@ namespace RoboClerk.Redmine
             logger.Debug($"Creating bug item: {rmItem.Id}");
             AnomalyItem resultItem = new AnomalyItem();
 
-            resultItem.AnomalyAssignee = rmItem.AssignedTo.Name ?? string.Empty;
+            if (rmItem.AssignedTo != null)
+            {
+                resultItem.AnomalyAssignee = rmItem.AssignedTo.Name;
+            }
+            else
+            {
+                resultItem.AnomalyAssignee = string.Empty;
+            }
             resultItem.ItemID = rmItem.Id.ToString();
             resultItem.AnomalyJustification = string.Empty;
             resultItem.AnomalyPriority = string.Empty;
@@ -196,6 +275,7 @@ namespace RoboClerk.Redmine
             {
                 resultItem.Link = new Uri($"{baseURL}{resultItem.ItemID}");
             }
+            AddLinksToItem(rmItem, resultItem);
 
             return resultItem;
         }
@@ -208,7 +288,8 @@ namespace RoboClerk.Redmine
             }
 
             logger.Debug($"Retrieving the issues from the redmine server...");
-            var redmineIssues = PullAllIssuesFromServer(new List<string> { prsTrackerName, srsTrackerName, tcTrackerName, bugTrackerName, riskTrackerName });
+            var redmineIssues = PullAllIssuesFromServer(new List<string> { prsTrackerName, srsTrackerName, tcTrackerName, 
+                                                                    bugTrackerName, riskTrackerName, soupTrackerName });
 
             foreach (var redmineIssue in redmineIssues)
             {
@@ -230,7 +311,7 @@ namespace RoboClerk.Redmine
                 else if (redmineIssue.Tracker.Name == tcTrackerName)
                 {
                     logger.Debug($"Testcase found: {redmineIssue.Id}");
-                    testCases.Add(CreateTestCase(redmineIssue));
+                    testCases.Add(CreateTestCase(redmineIssues,redmineIssue));
                 }
                 else if (redmineIssue.Tracker.Name == bugTrackerName)
                 {
@@ -242,15 +323,11 @@ namespace RoboClerk.Redmine
                     logger.Debug($"Risk item found: {redmineIssue.Id}");
                     risks.Add(CreateRisk(redmineIssues, redmineIssue));
                 }
-            }
-        }
-
-        private ItemLinkType GetLinkType(Relation rel)
-        {
-            switch (rel.RelationType)
-            {
-                case "relates": return ItemLinkType.Related;
-                default: return ItemLinkType.None;
+                else if(redmineIssue.Tracker.Name == soupTrackerName)
+                {
+                    logger.Debug($"SOUP item found: {redmineIssue.Id}");
+                    soup.Add(CreateSOUP(redmineIssue));
+                }
             }
         }
 
@@ -264,42 +341,25 @@ namespace RoboClerk.Redmine
                 foreach (var field in redmineItem.CustomFields)
                 {
                     var value = ((System.Text.Json.JsonElement)field.Value).ToString();
-                    
+
                     switch (field.Name)
                     {
                         case "Risk Type": riskItem.ItemCategory = value; break;
                         case "Risk": riskItem.PrimaryHazard = value; break;
                         case "Hazard Severity": riskItem.SeverityScore = int.Parse(value.Split('-')[0]); break;
                         case "Hazard Probability": riskItem.OccurenceScore = int.Parse(value.ToString().Split('-')[0]); break;
-                        case "Residual Probability": riskItem.ModifiedOccScore = (value!=string.Empty?int.Parse(value.Split('-')[0]):int.MaxValue); break;
-                        case "Risk Control Category": riskItem.RiskControlMeasureType = (value!=string.Empty?value.Split('\t')[0]:string.Empty); break;
+                        case "Residual Probability": riskItem.ModifiedOccScore = (value != string.Empty ? int.Parse(value.Split('-')[0]) : int.MaxValue); break;
+                        case "Risk Control Category": riskItem.RiskControlMeasureType = (value != string.Empty ? value.Split('\t')[0] : string.Empty); break;
                     }
                 }
             }
-            if(redmineItem.Relations.Count != 0)
-            {
-                foreach(var relation in redmineItem.Relations)
-                {
-                    ItemLinkType lt = GetLinkType(relation);
-                    if( lt != ItemLinkType.None )
-                    {
-                        if(relation.IssueId != redmineItem.Id)
-                        {
-                            riskItem.AddLinkedItem(new ItemLink(relation.IssueId.ToString(), lt));
-                        }
-                        else
-                        {
-                            riskItem.AddLinkedItem(new ItemLink(relation.IssueToId.ToString(), lt));
-                        }
-                    }
-                }
-            }
+            AddLinksToItem(redmineItem, riskItem);
             int nrOfResults = 0;
-            if( (nrOfResults = riskItem.LinkedItems.Where(x => x.LinkType == ItemLinkType.Related).Count()) > 1 )
+            if ((nrOfResults = riskItem.LinkedItems.Where(x => x.LinkType == ItemLinkType.Related).Count()) > 1)
             {
                 logger.Warn($"Expected 1 related link for risk item \"{riskItem.ItemID}\". Multiple related items linked. Please check the item in Redmine.");
             }
-            else if(nrOfResults == 1)
+            else if (nrOfResults == 1)
             {
                 ItemLink link = riskItem.LinkedItems.Where(x => x.LinkType == ItemLinkType.Related).First();
                 if (link != null)
@@ -323,6 +383,41 @@ namespace RoboClerk.Redmine
             riskItem.ItemID = redmineItem.Id.ToString();
 
             return riskItem;
+        }
+
+        private ItemLinkType GetLinkType(Relation rel)
+        {
+            switch (rel.RelationType)
+            {
+                case "relates": return ItemLinkType.Related;
+                default: return ItemLinkType.None;
+            }
+        }
+
+        private void AddLinksToItem(RedmineIssue redmineItem, LinkedItem resultItem)
+        {
+            if (redmineItem.Parent != null)
+            {
+                resultItem.AddLinkedItem(new ItemLink(redmineItem.Parent.Id.ToString(), ItemLinkType.Parent));
+            }
+            if (redmineItem.Relations.Count != 0)
+            {
+                foreach (var relation in redmineItem.Relations)
+                {
+                    ItemLinkType lt = GetLinkType(relation);
+                    if (lt != ItemLinkType.None)
+                    {
+                        if (relation.IssueId != redmineItem.Id)
+                        {
+                            resultItem.AddLinkedItem(new ItemLink(relation.IssueId.ToString(), lt));
+                        }
+                        else
+                        {
+                            resultItem.AddLinkedItem(new ItemLink(relation.IssueToId.ToString(), lt));
+                        }
+                    }
+                }
+            }
         }
 
         private RequirementItem CreateRequirement(List<RedmineIssue> issues, RedmineIssue redmineItem, RequirementType requirementType)
@@ -360,10 +455,7 @@ namespace RoboClerk.Redmine
                 }
             }
 
-            if (redmineItem.Parent != null)
-            {
-                resultItem.AddLinkedItem(new ItemLink(redmineItem.Parent.Id.ToString(), ItemLinkType.Parent));
-            }
+            AddLinksToItem(redmineItem, resultItem);
             return resultItem;
         }
 

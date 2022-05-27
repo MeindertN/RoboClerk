@@ -60,10 +60,30 @@ namespace RoboClerk
             {
                 return GetAllRisks().Cast<LinkedItem>().ToList();
             }
+            else if(te.ID == "SOUP")
+            {
+                return GetAllSOUP().Cast<LinkedItem>().ToList();
+            }
             else
             {
                 throw new Exception($"No datasource available for unknown trace entity: {te.ID}");
             }
+        }
+
+        public List<SOUPItem> GetAllSOUP()
+        {
+            List<SOUPItem> list = new List<SOUPItem>();
+            foreach (var plugin in slmsPlugins)
+            {
+                list.AddRange(plugin.GetSOUP());
+            }
+            return list;
+        }
+
+        public SOUPItem GetSOUP(string id)
+        {
+            List<SOUPItem> list = GetAllSOUP();
+            return list.Find(f => (f.ItemID == id));
         }
 
         public List<RiskItem> GetAllRisks()

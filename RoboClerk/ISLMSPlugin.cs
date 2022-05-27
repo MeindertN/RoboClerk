@@ -9,7 +9,7 @@ namespace RoboClerk
         List<RequirementItem> GetSoftwareRequirements();
         List<AnomalyItem> GetAnomalies();
         List<TestCaseItem> GetSoftwareSystemTests();
-
         List<RiskItem> GetRisks();
+        List<SOUPItem> GetSOUP();
     }
 }
