@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk.Redmine", "RoboCl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk.RedmineCSV", "RoboClerk.RedmineCSV\RoboClerk.RedmineCSV.csproj", "{6DEBC124-3DFC-4B1A-883D-92DDE8642D6C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoboClerk.Gradle", "RoboClerk.Gradle\RoboClerk.Gradle.csproj", "{E3F2E8F6-7DB0-4736-B2BF-A79DF11344F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk.DependenciesFile", "RoboClerk.DependenciesFile\RoboClerk.DependenciesFile.csproj", "{E3F2E8F6-7DB0-4736-B2BF-A79DF11344F1}"
 	ProjectSection(ProjectDependencies) = postProject
 		{F6965014-F81B-48AC-B3D8-CA742589856B} = {F6965014-F81B-48AC-B3D8-CA742589856B}
 	EndProjectSection

@@ -226,7 +226,7 @@ MediaDirectory = "I:/temp/Roboclerk_input/media"
 		ignoreErrors = "False"
 	[[Document.TraceAbilityAnalysisRecord.Command]]
 		executable = "I:/Users/meind/WPy64-3950/python-3.9.5.amd64/python.exe"
-		arguments = "I:/code/RoboClerk/DocxProcessingScripts/GeneralDocxPostProc.py %OUTPUTDIR%/%OUTPUTFILENOEXT%.docx %OUTPUTDIR%/%OUTPUTFILENOEXT%.docx"
+		arguments = "I:/code/RoboClerk/DocxProcessingScripts/GeneralDocxPostProc.py %OUTPUTDIR%/%OUTPUTFILENOEXT%-%DATE%.docx %OUTPUTDIR%/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 

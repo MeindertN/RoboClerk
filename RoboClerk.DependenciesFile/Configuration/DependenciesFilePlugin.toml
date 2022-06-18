@@ -1,0 +1,13 @@
+﻿# This is the RoboClerk dependencies file plugin configuration. Using this plugin,
+# project dependencies can be read from files. The plugin is intended to support
+# different file formats.
+
+# Dependencies file locations array, supports multiple files
+
+FileLocations = ["I:\\temp\\Roboclerk_input\\dependencies.txt"]
+
+# Dependencies file formats array, needs to be the same size are the file locations array. 
+# The following formats are supported:
+# GRADLE - parses the output of a gradle call "gradle dependencies --configuration <CONFIGURATION_NAME>"
+
+FileFormats = ["GRADLE"]

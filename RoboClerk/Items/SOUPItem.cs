@@ -4,8 +4,9 @@ namespace RoboClerk
 {
     public class SOUPItem : LinkedItem
     {
-        private string soupTitle = string.Empty;
-        private string soupDescription = string.Empty;
+        private string soupName = string.Empty;
+        private string soupVersion = string.Empty;
+        private bool soupLinkedLib = false;
         private string soupDetailedDescription = string.Empty;
         private string soupAnomalyListDescription = string.Empty;
         private string soupRevision = string.Empty;
@@ -24,16 +25,22 @@ namespace RoboClerk
             id = Guid.NewGuid().ToString();
         }
         
-        public string SOUPTitle
+        public string SOUPName
         {
-            get { return soupTitle; }
-            set { soupTitle = value; }
+            get { return soupName; }
+            set { soupName = value; }
         }
 
-        public string SOUPDescription
+        public string SOUPVersion
         {
-            get { return soupDescription; } 
-            set { soupDescription = value; }
+            get { return soupVersion; } 
+            set { soupVersion = value; }
+        }
+
+        public bool SOUPLinkedLib
+        {
+            get { return soupLinkedLib; }
+            set { soupLinkedLib = value; }
         }
 
         public string SOUPDetailedDescription

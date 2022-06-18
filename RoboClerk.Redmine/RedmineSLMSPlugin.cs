@@ -145,9 +145,14 @@ namespace RoboClerk.Redmine
                         thenFound = true;
                         output[output.Count - 1][1] = line;
                     }
-                    else
+                    else if(!line.ToUpper().Contains("AND:"))
                     {
                         output[output.Count - 1][1] = output[output.Count - 1][1] + '\n' + line;
+                    }
+                    else
+                    {
+                        string[] ln = new string[2] { string.Empty, line };
+                        output.Add(ln);
                     }
                 }
             }
@@ -174,10 +179,13 @@ namespace RoboClerk.Redmine
             {
                 foreach (var field in rmItem.CustomFields)
                 {
-                    var value = (System.Text.Json.JsonElement)field.Value;
-                    if (field.Name == "Test Method")
+                    if (field.Value != null)
                     {
-                        resultItem.TestCaseAutomated = (value.GetString() == "Automated");
+                        var value = (System.Text.Json.JsonElement)field.Value;
+                        if (field.Name == "Test Method")
+                        {
+                            resultItem.TestCaseAutomated = (value.GetString() == "Automated");
+                        }
                     }
                 }
             }
@@ -205,7 +213,7 @@ namespace RoboClerk.Redmine
 
             resultItem.ItemID = rmItem.Id.ToString();
             resultItem.SOUPRevision = rmItem.UpdatedOn.ToString();
-            resultItem.SOUPTitle = rmItem.Subject ?? string.Empty;
+            resultItem.SOUPName = rmItem.Subject ?? string.Empty;
             if (baseURL != "")
             {
                 resultItem.Link = new Uri($"{baseURL}{resultItem.ItemID}");
@@ -214,7 +222,19 @@ namespace RoboClerk.Redmine
             {
                 foreach (var field in rmItem.CustomFields)
                 {
+                    if(field.Value == null)
+                    {
+                        continue;
+                    }
                     var value = (System.Text.Json.JsonElement)field.Value;
+                    if (field.Name == "Version")
+                    {
+                        resultItem.SOUPVersion = value.GetString();
+                    }
+                    if (field.Name == "Linked Library")
+                    {
+                        resultItem.SOUPLinkedLib = value.GetString().Contains("1"); //this is how custom boolean fields store their value (1/0)
+                    }
                     if (field.Name == "SOUP Detailed Description")
                     {
                         resultItem.SOUPDetailedDescription = value.GetString();
@@ -340,6 +360,10 @@ namespace RoboClerk.Redmine
             {
                 foreach (var field in redmineItem.CustomFields)
                 {
+                    if(field.Value == null)
+                    {
+                        continue;
+                    }
                     var value = ((System.Text.Json.JsonElement)field.Value).ToString();
 
                     switch (field.Name)

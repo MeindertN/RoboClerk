@@ -10,6 +10,8 @@ namespace RoboClerk
     {
         
         private List<ISLMSPlugin> slmsPlugins = new List<ISLMSPlugin>();
+        private List<IDependencyManagementPlugin> dependencyManagementPlugins = new List<IDependencyManagementPlugin>();
+
         private readonly IConfiguration configuration = null;
         private readonly IPluginLoader pluginLoader = null;
 
@@ -27,12 +29,24 @@ namespace RoboClerk
             {
                 foreach (var dir in configuration.PluginDirs)
                 {
-                    var plugin = pluginLoader.LoadPlugin<ISLMSPlugin>((string)val, dir);
+                    var plugin = pluginLoader.LoadPlugin<IPlugin>((string)val, dir);
                     if (plugin != null)
                     {
                         plugin.Initialize(configuration);
-                        plugin.RefreshItems();
-                        slmsPlugins.Add(plugin);
+                        if (plugin as ISLMSPlugin != null)
+                        {
+                            var temp = plugin as ISLMSPlugin;
+                            temp.RefreshItems();
+                            slmsPlugins.Add(temp);
+                            continue;
+                        }
+                        if (plugin as IDependencyManagementPlugin != null)
+                        {
+                            var temp = plugin as IDependencyManagementPlugin;
+                            temp.RefreshItems();
+                            dependencyManagementPlugins.Add(temp);
+                            continue;
+                        }
                     }
                 }
             }
@@ -102,6 +116,15 @@ namespace RoboClerk
             return list.Find(f => (f.ItemID == id));
         }
 
+        public List<ExternalDependency> GetAllExternalDependencies()
+        {
+            var dependencies = new List<ExternalDependency>();
+            foreach (var plugin in dependencyManagementPlugins)
+            {
+                dependencies.AddRange(plugin.GetDependencies());
+            }
+            return dependencies;
+        }
 
         public List<UnitTestItem> GetAllUnitLevelTests()
         {

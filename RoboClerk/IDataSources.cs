@@ -14,6 +14,7 @@ namespace RoboClerk
         List<RequirementItem> GetAllSoftwareRequirements();
         List<TestCaseItem> GetAllSystemLevelTests();
         List<RequirementItem> GetAllSystemRequirements();
+        List<ExternalDependency> GetAllExternalDependencies();
         List<RiskItem> GetAllRisks();
         List<SOUPItem> GetAllSOUP();
         AnomalyItem GetAnomaly(string id);
@@ -26,5 +27,6 @@ namespace RoboClerk
         SOUPItem GetSOUP(string id);
         string GetTemplateFile(string fileName);
         Stream GetFileStreamFromTemplateDir(string fileName);
+        
     }
 }

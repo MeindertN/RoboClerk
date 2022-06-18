@@ -1,9 +1,6 @@
 ﻿using RoboClerk.Configuration;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Reflection;
 
 namespace RoboClerk.ContentCreators
@@ -13,6 +10,79 @@ namespace RoboClerk.ContentCreators
         public SOUP()
         {
 
+        }
+
+        private string GenerateSoupCheck(IDataSources sources, string soupName)
+        {
+            var extDeps = sources.GetAllExternalDependencies();
+            var soups = sources.GetAllSOUP();
+
+            StringBuilder output = new StringBuilder();
+            output.AppendLine($"Roboclerk detected the following potential {soupName} issues:");
+            output.AppendLine();
+            bool issueDetected = false;
+            foreach(var extDep in extDeps)
+            {
+                bool soupNameMatch = false;
+                bool soupVersionMatch = false;
+                string soupVersion = string.Empty;
+
+                foreach(var soup in soups)
+                {
+                    if(soup.SOUPName == extDep.Name)
+                    {
+                        soupNameMatch = true;
+                        soupVersion = soup.SOUPVersion;
+                        if (soup.SOUPVersion == extDep.Version)
+                        {
+                            soupVersionMatch = true;
+                        }
+                        break;
+                    }
+                }
+
+                if(soupNameMatch)
+                {
+                    if (!soupVersionMatch)
+                    {
+                        output.AppendLine($"* An external dependency ({extDep.Name}) has a matching {soupName} " +
+                            $"item with a mismatched version (\"{soupVersion}\" instead of \"{extDep.Version}\").");
+                        issueDetected = true;
+                    }
+                }
+                else
+                {
+                    output.AppendLine($"* An external dependency {extDep.Name} {extDep.Version} " +
+                        $"does not seem to have a matching {soupName} item.");
+                    issueDetected = true;
+                }
+            }
+            foreach(var soup in soups)
+            {
+                if(soup.SOUPLinkedLib)
+                {
+                    bool depNameMatch = false;
+                    foreach (var extDep in extDeps)
+                    {
+                        if(extDep.Name == soup.SOUPName)
+                        {
+                            depNameMatch = true;
+                            break;
+                        }
+                    }
+                    if(!depNameMatch)
+                    {
+                        output.AppendLine($"* A {soupName} item (i.e. \"{soup.SOUPName} {soup.SOUPVersion}\") that is marked as being linked into " +
+                            $"the software does not have a matching external dependency.");
+                        issueDetected = true;
+                    }
+                }
+            }
+            if(!issueDetected)
+            {
+                output.AppendLine($"* No {soupName} related issues detected!");
+            }
+            return output.ToString();
         }
 
         private string GenerateBriefADOC(List<SOUPItem> items, TraceEntity sourceType, RoboClerkTag tag, PropertyInfo[] properties, ITraceabilityAnalysis analysis, TraceEntity docType)
@@ -27,7 +97,7 @@ namespace RoboClerk.ContentCreators
                 if (ShouldBeIncluded<SOUPItem>(tag, item, properties))
                 {
                     sb.Append(item.HasLink ? $"| {item.Link}[{item.ItemID}]" : $"| {item.ItemID} ");
-                    sb.AppendLine($"| {item.SOUPTitle}");
+                    sb.AppendLine($"| {item.SOUPName} {item.SOUPVersion}");
                     sb.AppendLine();
                     analysis.AddTrace(sourceType, item.ItemID, docType, item.ItemID);
                 }
@@ -49,7 +119,7 @@ namespace RoboClerk.ContentCreators
             sb.AppendLine();
 
             sb.Append($"| {sourceType.Name} Name and Version: ");
-            sb.AppendLine($"| {item.SOUPTitle}");
+            sb.AppendLine($"| {item.SOUPName} {item.SOUPVersion}");
             sb.AppendLine();
 
             sb.Append($"| Is {sourceType.Name} Critical for Performance: ");
@@ -99,11 +169,19 @@ namespace RoboClerk.ContentCreators
 
             if (tag.Parameters.ContainsKey("BRIEF") && tag.Parameters["BRIEF"].ToUpper() == "TRUE")
             {
+                //this will print a brief list of all soups and versions that Roboclerk knows about
                 if (soups.Count > 0)
                 {
                     foundSOUP = true;
                     output.AppendLine(GenerateBriefADOC(soups, sourceType, tag, properties, analysis, analysis.GetTraceEntityForTitle(doc.DocumentTitle)));
                 }
+            }
+            else if (tag.Parameters.ContainsKey("CHECKSOUP") && tag.Parameters["CHECKSOUP"].ToUpper() == "TRUE")
+            {
+                //this will retrieve a list of external dependencies (from a dependency manager like NuGet or Gradle)
+                //and compare them with the known SOUP items. Any discrepancies are listed.
+                foundSOUP= true;
+                output.AppendLine(GenerateSoupCheck(sources,sourceType.Name));
             }
             else foreach (var soup in soups)
             {
@@ -116,10 +194,10 @@ namespace RoboClerk.ContentCreators
                     }
                     catch
                     {
-                        logger.Error($"An error occurred while rendering SOUP {soup.ItemID} in {doc.DocumentTitle}.");
+                        logger.Error($"An error occurred while rendering {sourceType.Name} {soup.ItemID} in {doc.DocumentTitle}.");
                         throw;
                     }
-                    analysis.AddTrace(analysis.GetTraceEntityForID("SOUP"), soup.ItemID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), soup.ItemID);
+                    analysis.AddTrace(sourceType, soup.ItemID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), soup.ItemID);
                 }
             }
             if (!foundSOUP)

@@ -55,6 +55,7 @@ We can import excel spreadsheets into our document in the following way:
 @@FILE:ExcelTable(fileName=testspreadsheet.xlsx,range=A3:C6,workSheet=Sheet1)@@
 
 Here is some SOUP that is included in the documents.
+
 @@@SLMS:SOUP()
 This tag retrieves all SOUP from the SLMS and shows it here.
 @@@
@@ -62,5 +63,5 @@ This tag retrieves all SOUP from the SLMS and shows it here.
 A summary table version of all the SOUP that are installed by the user
 
 @@@SLMS:SOUP(brief=true,SOUPInstalledByUser=true)
-This shows a summary table for all the SOUP
+This shows a summary table for all the SOUP that are installed by the user
 @@@
