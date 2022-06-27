@@ -13,6 +13,10 @@
 	  <Configurations>Debug;Release;ReleasePublish</Configurations>
   </PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+	
   <ItemGroup>
     <PackageReference Include="RestSharp" Version="107.3.0" />
   </ItemGroup>

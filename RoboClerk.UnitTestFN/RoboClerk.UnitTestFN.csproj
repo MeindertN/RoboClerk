@@ -1,14 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-      <TargetFramework>net6.0</TargetFramework>
+	  <TargetFramework>net6.0</TargetFramework>
 	  <ApplicationIcon />
 	  <OutputType>Library</OutputType>
 	  <StartupObject />
 	  <EnableDynamicLoading>true</EnableDynamicLoading>
 	  <Authors>Meindert Niemeijer</Authors>
 	  <Company>RoboClerk Project</Company>
-	  <Product>Dependencies File Plugin</Product>
+	  <Product>Redmine plugin</Product>
 	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 	  <Configurations>Debug;Release;ReleasePublish</Configurations>
   </PropertyGroup>
@@ -16,16 +16,13 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
 		<Optimize>True</Optimize>
 	</PropertyGroup>
-	
-  <ItemGroup>
-	  <ProjectReference Include="..\RoboClerk\RoboClerk.csproj">
-		  <Private>false</Private>
-		  <ExcludeAssets>runtime</ExcludeAssets>
-	  </ProjectReference>
+
+	<ItemGroup>
+    <ProjectReference Include="..\RoboClerk\RoboClerk.csproj" />
   </ItemGroup>
 
 	<ItemGroup>
-		<None Update="Configuration\DependenciesFilePlugin.toml">
+		<None Update="Configuration\UnitTestFNPlugin.toml">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
@@ -35,9 +32,9 @@
 		</ItemGroup>
 
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/DependenciesFilePlugin.toml" DestinationFolder="$(ProjectDir)../publish/plugins/Configuration" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.DependenciesFile.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.DependenciesFile.deps.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/SourceCodePlugin.toml" DestinationFolder="$(ProjectDir)../publish/plugins/Configuration" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.SourceCode.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.SourceCode.deps.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
 	</Target>
 
 </Project>

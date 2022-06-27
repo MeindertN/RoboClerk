@@ -14,6 +14,7 @@ namespace RoboClerk
         private Dictionary<string, List<TraceIssue>> documentTraceIssues = new Dictionary<string, List<TraceIssue>>();
         private Dictionary<TraceEntity, List<TraceIssue>> truthTraceIssues = new Dictionary<TraceEntity, List<TraceIssue>>();
         private readonly Dictionary<TraceEntity, List<TraceSpecification>> traces = new Dictionary<TraceEntity,List<TraceSpecification>>();
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public TraceabilityAnalysis(IConfiguration config)
         {
@@ -318,6 +319,7 @@ namespace RoboClerk
                     return entry;
                 }
             }
+            logger.Warn($"TraceEntity with title: {title} not found!");
             return default(TraceEntity);
         }
 
@@ -330,6 +332,7 @@ namespace RoboClerk
                     return entry;
                 }
             }
+            logger.Warn($"TraceEntity with ID: {ID} not found!");
             return default(TraceEntity);
         }
 
@@ -342,6 +345,7 @@ namespace RoboClerk
                     return et;
                 }
             }
+            logger.Warn($"TraceEntity with property: {prop} not found!");
             return default(TraceEntity);
         }
 

@@ -13,7 +13,6 @@ namespace RoboClerk
             foreach (string file in Directory.GetFiles(pluginDir, "RoboClerk.*.dll", SearchOption.AllDirectories))
             {
                 //go over all the plugins and try to load them as the appropriate type
-                Console.WriteLine($"Loading from: {file}");
                 PluginLoadContext loadContext = new PluginLoadContext(file);
                 var assembly = loadContext.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(file)));
                 //check the name of the plugin and return if found
@@ -22,6 +21,7 @@ namespace RoboClerk
                     if ((plugin as IPlugin).Name == name)
                     {
                         //found the plugin we were looking for
+                        Console.WriteLine($"Loading from {file}: {name}");
                         return plugin;
                     }
                 }

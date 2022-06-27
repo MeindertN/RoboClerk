@@ -25,23 +25,26 @@ for table in document.tables:
     if "Test Case ID:" in table.columns[0].cells[0].text:
         SetColumnWidths(table, 0, 1.39)
         SetColumnWidths(table, 1, 5.26)
+        table.style = 'RoboClerk Standard'
     elif "Step" in table.columns[0].cells[0].text:
-        if len(table.columns) == 4:
+        if len(table.columns) == 3:
             SetColumnWidths(table, 0, 0.45)
-            SetColumnWidths(table, 1, 2.87)
-            SetColumnWidths(table, 2, 2.76)
-            SetColumnWidths(table, 3, 0.56)
+            SetColumnWidths(table, 1, 3.15)
+            SetColumnWidths(table, 2, 3.05)
+            table.style = 'RoboClerk Standard'
         elif len(table.columns) == 5:
             SetColumnWidths(table, 0, 0.45)
             SetColumnWidths(table, 1, 1.96)
             SetColumnWidths(table, 2, 1.84)
             SetColumnWidths(table, 3, 1.84)
             SetColumnWidths(table, 4, 0.56)
+            table.style = 'RoboClerk Standard'
     elif "Initial:" in table.columns[0].cells[0].text:
         table.rows[0].height = Inches(0.5)
         table.columns[0].width = Inches(3.33)
         table.columns[1].width = Inches(3.32)
         table.columns[0].cells[0].width = Inches(3.33)
         table.columns[1].cells[0].width = Inches(3.32)
+        table.style = 'RoboClerk Standard'
 
 document.save(outputFile)

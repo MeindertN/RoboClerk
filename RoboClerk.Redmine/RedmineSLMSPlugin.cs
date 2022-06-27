@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Tomlyn;
 using Tomlyn.Model;
 using RoboClerk.Configuration;
@@ -81,7 +79,7 @@ namespace RoboClerk.Redmine
 
         public List<SOUPItem> GetSOUP()
         {
-            return soup; 
+            return soup;
         }
 
         public void Initialize(IConfiguration configuration)

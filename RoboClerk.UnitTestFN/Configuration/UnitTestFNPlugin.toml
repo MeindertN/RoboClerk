@@ -1,0 +1,50 @@
+﻿# This is the RoboClerk UnitTest Function Name analysis plugin. Using this plugin,
+# information can be extracted from the unit test source code files. This plugin 
+# assumes that the test plan can be created from information extracted from the
+# test function name. The test function name must follow a standard pattern
+# specified in this configuration file.
+
+# Directories where RoboClerk should search for unit tests
+
+TestDirectories = ["I:\\temp\\Roboclerk_input\\dependencies.txt"]
+
+# set to true to include subdirs 
+
+SubDirs = true
+
+# Set the filemasks that will be used to match files
+
+FileMasks = ["Test*.cs"]
+
+# The decoration of the test function. Most modern testing frameworks decorate
+# the test function in a certain way. By providing this plugin with the decoration
+# to look for, it will find the test functions. If no decorator is available RoboClerk
+# will attempt to find the functions based on the FunctionMask alone.
+
+TestFunctionDecoration = "[Test]"
+
+# Function name mask is used to define how to parse various sections of the unit
+# test description from the function name. The following element identifiers are
+# supported:
+# <PURPOSE> = the setup for the test, usually a short description
+# <POSTCONDITION> = the successful (expected) postcondition for the test
+# <IDENTIFIER> = a unique identifier for the unit test, if no unique identifier
+#                is supplied, Roboclerk will generate one based on the filename
+#                and line number of the test.
+# <TRACEID> = a traceable link from this test to a trace entity
+# <IGNORE> = a placeholder for parts of the function name to ignore. Can be used
+#			 to exclude, for instance, the parameter part of the function.
+# NOTE THAT THE FUNCTION MASK MUST START WITH AN ELEMENT IDENTIFIER
+
+FunctionMask = "<PURPOSE>_VERIFIES_<POSTCONDITION>(<IGNORE>"
+
+# As spaces are not allowed in function names, a system must be used to separate
+# the words in each section. For this configuration one or more separator 
+# characters can be indicated (e.g. this_is_not_camel_case with separator _) or
+# CAMELCASE for a camelcase (e.g. thisIsCamelCase) based approach.
+
+SectionSeparator = "_"
+
+
+
+

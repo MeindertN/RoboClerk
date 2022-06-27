@@ -70,6 +70,7 @@ namespace RoboClerk.DependenciesFile
 
         public void RefreshItems()
         {
+            logger.Info("Refreshing the external dependencies from file.");
             externalDependencies.Clear();
             for(int i = 0; i < fileLocations.Count; i++)
             {
@@ -86,6 +87,11 @@ namespace RoboClerk.DependenciesFile
 
         private void ParseGradleFile(string filename)
         {
+            if(!File.Exists(filename))
+            {
+                logger.Warn($"Cannot find Gradle file \"{filename}\" no dependencies will be loaded from this file.");
+                return;
+            }
             foreach (string line in File.ReadLines(filename))
             {
                 if (line.StartsWith("+---") || line.StartsWith("\\---"))

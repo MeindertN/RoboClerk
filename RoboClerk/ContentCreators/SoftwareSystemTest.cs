@@ -8,8 +8,6 @@ namespace RoboClerk.ContentCreators
 {
     public class SoftwareSystemTest : ContentCreatorBase
     {
-        protected bool automated = true;
-
         private string GenerateTestCaseStepsHeader(bool automated)
         {
             StringBuilder sb = new StringBuilder();
@@ -158,7 +156,7 @@ namespace RoboClerk.ContentCreators
             }
             if (!testCaseFound)
             {
-                return $"Unable to find {(automated ? "automated" : "manual")} test case(s). Check if test cases are provided or if a valid test case identifier is specified.";
+                return $"Unable to find specified test case(s). Check if test cases are provided or if a valid test case identifier is specified.";
             }
             return output.ToString();
         }
