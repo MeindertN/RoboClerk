@@ -169,7 +169,14 @@ namespace RoboClerk
                 //run the commands
                 logger.Info($"Running commands associated with {doc.Title}");
                 var configDoc = configuration.Documents.Find(x => x.DocumentTitle == doc.Title);
-                configDoc.Commands.RunCommands();
+                if (configDoc != null && configDoc.Commands != null)
+                {
+                    configDoc.Commands.RunCommands();
+                }
+                else
+                {
+                    logger.Warn($"No commands found for {doc.Title}. Ensure this is intended.");
+                }
             }
         }
 

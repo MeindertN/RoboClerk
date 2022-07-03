@@ -16,6 +16,7 @@ namespace RoboClerk
                 if (index + 1 == markdownText.Length - 1)
                 {
                     inlineIndices.Add(index);
+                    break;
                 }
                 if (markdownText[index + 2] != '@')
                 {
