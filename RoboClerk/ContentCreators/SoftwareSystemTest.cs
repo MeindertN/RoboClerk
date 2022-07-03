@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using System.Text;
-using System.Collections.Generic;
 
 namespace RoboClerk.ContentCreators
 {
@@ -121,7 +120,7 @@ namespace RoboClerk.ContentCreators
 
         public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
         {
-            var systemTests = data.GetAllSystemLevelTests();
+            var systemTests = data.GetAllSoftwareSystemTests();
             StringBuilder output = new StringBuilder();
             bool testCaseFound = false;
 

@@ -2,11 +2,11 @@
 
 # Provide the names of the DataSource plugin(s) in a comma seperated list
 # For example: DataSourcePlugin = [ "AzureDevOpsSLMSPlugin", "RedmineCSVSLMSPlugin" ]
-DataSourcePlugin = [ "RedmineSLMSPlugin", "DependenciesFilePlugin" ]
+DataSourcePlugin = [ "RedmineSLMSPlugin", "DependenciesFilePlugin", "UnitTestFNPlugin" ]
 
 # RoboClerk will search for plugins in the subdirectories of the plugin dirs.
 # For example: PluginDirs = [ "c:/temp/plugins" ]
-PluginDirs = [ "I:/code/RoboClerk/RoboClerk.Redmine/bin/Debug/net6.0","I:/code/RoboClerk/RoboClerk.DependenciesFile/bin/Debug/net6.0" ]
+PluginDirs = [ "I:/code/RoboClerk/RoboClerk.Redmine/bin/Debug/net6.0","I:/code/RoboClerk/RoboClerk.DependenciesFile/bin/Debug/net6.0", "I:/code/RoboClerk/RoboClerk.UnitTestFN/bin/Debug/net6.0" ]
 
 # The configuration files for the plugins may be in a different location than the 
 # plugins themselves. E.g. when executing RoboClerk in a docker environment. If

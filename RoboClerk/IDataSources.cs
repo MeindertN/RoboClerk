@@ -12,7 +12,8 @@ namespace RoboClerk
         List<LinkedItem> GetItems(TraceEntity te);
         List<AnomalyItem> GetAllAnomalies();
         List<RequirementItem> GetAllSoftwareRequirements();
-        List<TestCaseItem> GetAllSystemLevelTests();
+        List<UnitTestItem> GetAllSoftwareUnitTests();
+        List<TestCaseItem> GetAllSoftwareSystemTests();
         List<RequirementItem> GetAllSystemRequirements();
         List<ExternalDependency> GetAllExternalDependencies();
         List<RiskItem> GetAllRisks();
@@ -21,12 +22,12 @@ namespace RoboClerk
         string GetConfigValue(string key);
         Item GetItem(string id);
         RequirementItem GetSoftwareRequirement(string id);
-        TestCaseItem GetSystemLevelTest(string id);
+        TestCaseItem GetSoftwareSystemTest(string id);
+        UnitTestItem GetSoftwareUnitTest(string id);
         RequirementItem GetSystemRequirement(string id);
         RiskItem GetRisk(string id);
         SOUPItem GetSOUP(string id);
         string GetTemplateFile(string fileName);
-        Stream GetFileStreamFromTemplateDir(string fileName);
-        
+        Stream GetFileStreamFromTemplateDir(string fileName);        
     }
 }

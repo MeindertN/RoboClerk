@@ -6,7 +6,7 @@
 
 # Directories where RoboClerk should search for unit tests
 
-TestDirectories = ["I:\\temp\\Roboclerk_input\\dependencies.txt"]
+TestDirectories = ["I:\\code\\RoboClerk\\RoboClerk.Tests"]
 
 # set to true to include subdirs 
 
@@ -21,7 +21,7 @@ FileMasks = ["Test*.cs"]
 # to look for, it will find the test functions. If no decorator is available RoboClerk
 # will attempt to find the functions based on the FunctionMask alone.
 
-TestFunctionDecoration = "[Test]"
+TestFunctionDecoration = ""
 
 # Function name mask is used to define how to parse various sections of the unit
 # test description from the function name. The following element identifiers are
@@ -34,6 +34,8 @@ TestFunctionDecoration = "[Test]"
 # <TRACEID> = a traceable link from this test to a trace entity
 # <IGNORE> = a placeholder for parts of the function name to ignore. Can be used
 #			 to exclude, for instance, the parameter part of the function.
+# Example: "<PURPOSE>_VERIFIES_<POSTCONDITION>(<IGNORE>" matches
+#		   This_is_the_purpose_VERIFIES_that_the_test_is_good(int i)
 # NOTE THAT THE FUNCTION MASK MUST START WITH AN ELEMENT IDENTIFIER
 
 FunctionMask = "<PURPOSE>_VERIFIES_<POSTCONDITION>(<IGNORE>"

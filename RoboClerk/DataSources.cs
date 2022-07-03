@@ -11,6 +11,7 @@ namespace RoboClerk
         
         private List<ISLMSPlugin> slmsPlugins = new List<ISLMSPlugin>();
         private List<IDependencyManagementPlugin> dependencyManagementPlugins = new List<IDependencyManagementPlugin>();
+        private List<ISourceCodeAnalysisPlugin> sourceCodeAnalysisPlugins = new List<ISourceCodeAnalysisPlugin>();
 
         private readonly IConfiguration configuration = null;
         private readonly IPluginLoader pluginLoader = null;
@@ -47,6 +48,13 @@ namespace RoboClerk
                             dependencyManagementPlugins.Add(temp);
                             continue;
                         }
+                        if (plugin as ISourceCodeAnalysisPlugin != null)
+                        {
+                            var temp = plugin as ISourceCodeAnalysisPlugin;
+                            temp.RefreshItems();
+                            sourceCodeAnalysisPlugins.Add(temp);
+                            continue;
+                        }
                     }
                 }
             }
@@ -64,11 +72,11 @@ namespace RoboClerk
             }
             else if(te.ID == "SoftwareSystemTest")
             {
-                return GetAllSystemLevelTests().Cast<LinkedItem>().ToList();   
+                return GetAllSoftwareUnitTests().Cast<LinkedItem>().ToList();   
             }
             else if(te.ID == "SoftwareUnitTest")
             {
-                return GetAllUnitLevelTests().Cast<LinkedItem>().ToList();
+                return GetAllSoftwareUnitTests().Cast<LinkedItem>().ToList();
             }
             else if(te.ID == "Risk")
             {
@@ -126,9 +134,24 @@ namespace RoboClerk
             return dependencies;
         }
 
-        public List<UnitTestItem> GetAllUnitLevelTests()
+        public List<UnitTestItem> GetAllSoftwareUnitTests()
         {
-            throw new NotImplementedException("Unit level tests not implemented yet"); ;
+            var unitTests = new List<UnitTestItem>();
+            foreach(var plugin in slmsPlugins)
+            {
+                unitTests.AddRange(plugin.GetUnitTests());
+            }
+            foreach(var plugin in sourceCodeAnalysisPlugins)
+            {
+                unitTests.AddRange(plugin.GetUnitTests());
+            }
+            return unitTests;
+        }
+
+        public UnitTestItem GetSoftwareUnitTest(string id)
+        {
+            var items = GetAllSoftwareUnitTests();
+            return items.Find(f => (f.ItemID == id));
         }
 
         public List<RequirementItem> GetAllSoftwareRequirements()
@@ -163,7 +186,7 @@ namespace RoboClerk
             return reqs.Find(f => (f.ItemID == id));
         }
 
-        public List<TestCaseItem> GetAllSystemLevelTests()
+        public List<TestCaseItem> GetAllSoftwareSystemTests()
         {
             List<TestCaseItem> items = new List<TestCaseItem>();
             foreach (var plugin in slmsPlugins)
@@ -173,9 +196,9 @@ namespace RoboClerk
             return items;
         }
 
-        public TestCaseItem GetSystemLevelTest(string id)
+        public TestCaseItem GetSoftwareSystemTest(string id)
         {
-            var items = GetAllSystemLevelTests();
+            var items = GetAllSoftwareSystemTests();
             return items.Find(f => (f.ItemID == id));
         }
 
@@ -208,7 +231,7 @@ namespace RoboClerk
             {
                 return sreq[idx];
             }
-            var tcase = GetAllSystemLevelTests();
+            var tcase = GetAllSoftwareUnitTests();
             if ((idx = tcase.FindIndex(o => o.ItemID == id)) >= 0)
             {
                 return tcase[idx];

@@ -576,5 +576,10 @@ namespace RoboClerk.Redmine
             }
             return issueList;
         }
+
+        public List<UnitTestItem> GetUnitTests()
+        {
+            return new List<UnitTestItem>();
+        }
     }
 }

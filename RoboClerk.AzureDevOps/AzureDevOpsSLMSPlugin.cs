@@ -326,5 +326,10 @@ namespace RoboClerk.AzureDevOps
         {
             throw new NotImplementedException();
         }
+
+        public List<UnitTestItem> GetUnitTests()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

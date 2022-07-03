@@ -53,7 +53,7 @@ namespace RoboClerk.SourceCode
                 }
                 var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
 
-                subDir = (bool)config["SubDir"]; 
+                subDir = (bool)config["SubDirs"]; 
                 testFunctionDecoration = configuration.CommandLineOptionOrDefault("TestFunctionDecoration", (string)config["TestFunctionDecoration"]); 
                 var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", (string)config["FunctionMask"]);
                 functionMaskElements = ParseFunctionMask(functionMask);
@@ -151,7 +151,8 @@ namespace RoboClerk.SourceCode
                     if(element.ToUpper() != "<PURPOSE>" &&
                         element.ToUpper() != "<POSTCONDITION>" &&
                         element.ToUpper() != "<IDENTIFIER>" &&
-                        element.ToUpper() != "<TRACEID>" )
+                        element.ToUpper() != "<TRACEID>" &&
+                        element.ToUpper() != "<IGNORE>")
                     {
                         throw new Exception($"Error in UnitTestFNPlugin, unknown function mask element found: \"{element}\"");
                     }
@@ -168,11 +169,11 @@ namespace RoboClerk.SourceCode
 
         private string SeparateSection(string section)
         {
-            StringBuilder sb = new StringBuilder();
             if(sectionSeparator.ToUpper() == "CAMELCASE")
             {
+                StringBuilder sb = new StringBuilder();
                 bool first = true;
-                //don't case if the first word is capitalized
+                //don't care if the first word is capitalized
                 foreach(char c in section)
                 {
                     if(first)
@@ -193,19 +194,19 @@ namespace RoboClerk.SourceCode
                         }
                     }
                 }
+                return sb.ToString();
             }
             else
             {
-                section.Replace(sectionSeparator, " ");
+                return section.Replace(sectionSeparator, " ");
             }
-            return sb.ToString();
         }
 
         private List<(string,string)> ApplyFunctionNameMask(string line)
         {
             List<(string, string)> resultingElements = new List<(string, string)>();
             var strings = line.Trim().Split(' ');
-            var longestString = strings.OrderByDescending(s => s.Length).First();
+            var longestString = strings.OrderByDescending(s => s.Length).First(); //we assume that the function name is the longest element
             bool foundMatch = true;
             foreach (var functionMaskElement in functionMaskElements)
             {
@@ -216,7 +217,7 @@ namespace RoboClerk.SourceCode
             }
             if(foundMatch)
             {
-                string remainingLine = line;
+                string remainingLine = longestString;
                 for (int i = 1; i < functionMaskElements.Count ; i+=2)
                 {
                     if(remainingLine == string.Empty)
@@ -247,17 +248,36 @@ namespace RoboClerk.SourceCode
             return resultingElements;
         }
 
-        private void AddUnitTest(List<(string,string)> els)
+        private void AddUnitTest(List<(string,string)> els,string fileName, int lineNumber)
         {
-
+            var unitTest = new UnitTestItem();
+            bool identified = false;
+            foreach(var el in els)
+            {
+                switch(el.Item1.ToUpper())
+                {
+                    case "<PURPOSE>": unitTest.UnitTestPurpose = SeparateSection(el.Item2); break;
+                    case "<POSTCONDITION>": unitTest.UnitTestAcceptanceCriteria = SeparateSection(el.Item2); break;
+                    case "<IDENTIFIER>": unitTest.ItemID = SeparateSection(el.Item2); identified = true; break;
+                    case "<TRACEID>": unitTest.AddLinkedItem(new ItemLink(el.Item2, ItemLinkType.Related)); break;
+                    case "<IGNORE>": break;
+                    default: throw new Exception($"Unknown element identifier in FunctionMask: {el.Item1.ToUpper()}"); 
+                }
+            }
+            if(!identified)
+            {
+                unitTest.ItemID = $"{fileName}:{lineNumber}";
+            }
+            unitTests.Add(unitTest);
         }
 
-        private List<string> FindAndProcessFunctions(string[] lines)
+        private void FindAndProcessFunctions(string[] lines, string fileName)
         {
-            List<string> result = new List<string>();
             bool nextLineIsFunction = testFunctionDecoration == string.Empty;
+            int currentLineNumber = 0;
             foreach (var line in lines)
             {
+                currentLineNumber++;
                 if(nextLineIsFunction)
                 {
                     if(line.Trim().Length > 3)
@@ -266,7 +286,7 @@ namespace RoboClerk.SourceCode
                         if(els.Count > 0)
                         {
                             //Create unit test
-                            AddUnitTest(els);
+                            AddUnitTest(els,fileName,currentLineNumber);
                         }
                         nextLineIsFunction = false || testFunctionDecoration == string.Empty;
                     }
@@ -287,7 +307,7 @@ namespace RoboClerk.SourceCode
             foreach(var sourceFile in sourceFiles)
             {
                 var lines = File.ReadAllLines(sourceFile);
-                var functionNames = FindFunctions(lines);
+                FindAndProcessFunctions(lines,Path.GetFileName(sourceFile));
             }
         }
     }

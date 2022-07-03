@@ -8,7 +8,7 @@
 	  <EnableDynamicLoading>true</EnableDynamicLoading>
 	  <Authors>Meindert Niemeijer</Authors>
 	  <Company>RoboClerk Project</Company>
-	  <Product>Redmine plugin</Product>
+	  <Product>Unit Test FN plugin</Product>
 	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 	  <Configurations>Debug;Release;ReleasePublish</Configurations>
   </PropertyGroup>
@@ -18,7 +18,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-    <ProjectReference Include="..\RoboClerk\RoboClerk.csproj" />
+		<ProjectReference Include="..\RoboClerk\RoboClerk.csproj">
+			<Private>false</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
   </ItemGroup>
 
 	<ItemGroup>

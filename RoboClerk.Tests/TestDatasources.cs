@@ -105,10 +105,10 @@ namespace RoboClerk.Tests
         {
             SetupPlugin();
             var ds = new DataSources(mockConfiguration, mockPluginLoader);
-            var returnedReqs = ds.GetAllSystemLevelTests();
+            var returnedReqs = ds.GetAllSoftwareSystemTests();
             Assert.AreSame(TCs[0], returnedReqs[0]);
             Assert.AreSame(TCs[1], returnedReqs[1]);
-            Assert.AreSame(TCs[1], ds.GetSystemLevelTest("TC_id2"));
+            Assert.AreSame(TCs[1], ds.GetSoftwareSystemTest("TC_id2"));
             Assert.AreSame(TCs[0], ds.GetItem("TC_id1"));
         }
 
