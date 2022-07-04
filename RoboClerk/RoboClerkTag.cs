@@ -90,7 +90,7 @@ namespace RoboClerk
 
     public class RoboClerkTag
     {
-        private int contentStart = -1; //stores the start location of the content in the *original* markdown string
+        private int contentStart = -1; //stores the start location of the content in the *original* asciidoc string
         private int contentEnd = -1; //stores the end location of the content similar to the content start location
         private int tagStart = -1;
         private int tagEnd = -1;

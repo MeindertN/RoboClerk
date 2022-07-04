@@ -35,9 +35,9 @@
 		</ItemGroup>
 
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/SourceCodePlugin.toml" DestinationFolder="$(ProjectDir)../publish/plugins/Configuration" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.SourceCode.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.SourceCode.deps.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/UnitTestFNPlugin.toml" DestinationFolder="$(ProjectDir)../publish/plugins/Configuration" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.UnitTestFN.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.UnitTestFN.deps.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
 	</Target>
 
 </Project>

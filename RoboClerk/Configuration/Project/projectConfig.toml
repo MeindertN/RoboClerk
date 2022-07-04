@@ -57,7 +57,7 @@ MediaDirectory = "I:/temp/Roboclerk_input/media"
 # organizational identifier (i.e. IDENTIFIER) and a file location (can be empty or omitted for documents not managed 
 # by RoboClerk).
 # Optionally, you can specify post processing steps as commandline commands that RoboClerk will execute in order after it 
-# has produced the markdown versions of the documents. Each document should be specified below in the following format:
+# has produced the AsciiDoc versions of the documents. Each document should be specified below in the following format:
 #
 #	[Document.<RCIDENTIFIER>]
 #		title = "<TITLE OF THE DOCUMENT>"

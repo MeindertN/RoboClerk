@@ -6,7 +6,7 @@ namespace RoboClerk.ContentCreators
     class Anomaly : ContentCreatorBase
     {
 
-        private string GenerateMarkdown(AnomalyItem item, TraceEntity tet)
+        private string GenerateADoc(AnomalyItem item, TraceEntity tet)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("|====");
@@ -52,7 +52,7 @@ namespace RoboClerk.ContentCreators
                 }
                 try
                 {
-                    output.AppendLine(GenerateMarkdown(anomaly,analysis.GetTraceEntityForID("Anomaly")));
+                    output.AppendLine(GenerateADoc(anomaly,analysis.GetTraceEntityForID("Anomaly")));
                 }
                 catch
                 {

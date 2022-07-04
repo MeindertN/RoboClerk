@@ -7,7 +7,7 @@ namespace RoboClerk.Tests
 {
     [TestFixture]
     [Description("These tests are for work item 9")]
-    internal class TestRoboClerkMarkdown
+    internal class TestRoboClerkADoc
     {
         private string validText = @"This is a line of text.
 @@@SLMS:TheFirstInfo()
@@ -35,13 +35,13 @@ There is some text @@Foo:inline()@@ in this line.
         [Test]
         public void Valid_Text_Can_Be_Parsed_VERIFIES_No_Exception_Thrown_When_Input_Valid()
         {
-            Assert.DoesNotThrow(() => { RoboClerkMarkdown.ExtractRoboClerkTags(validText); });
+            Assert.DoesNotThrow(() => { RoboClerkAsciiDoc.ExtractRoboClerkTags(validText); });
         }
 
         [Test]
         public void Test_Tag_Extraction_VERIFIES_The_Expected_Nr_Of_Tags_Is_Extracted()
         {
-            var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
             Assert.AreEqual(7, tags.Count);
         }
 
@@ -52,7 +52,7 @@ There is some text @@Foo:inline()@@ in this line.
             sb[24] = ' ';
             sb[25] = ' ';
             sb[26] = ' ';
-            Assert.Throws<Exception>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<Exception>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -62,7 +62,7 @@ There is some text @@Foo:inline()@@ in this line.
             sb[65] = ' ';
             sb[66] = ' ';
             sb[67] = ' ';
-            Assert.Throws<Exception>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<Exception>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -71,7 +71,7 @@ There is some text @@Foo:inline()@@ in this line.
             StringBuilder sb = new StringBuilder(validText);
             sb[92] = ' ';
             sb[93] = ' ';
-            Assert.Throws<Exception>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<Exception>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -80,7 +80,7 @@ There is some text @@Foo:inline()@@ in this line.
             StringBuilder sb = new StringBuilder(validText);
             sb[134] = ' ';
             sb[135] = ' ';
-            Assert.Throws<Exception>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<Exception>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -88,7 +88,7 @@ There is some text @@Foo:inline()@@ in this line.
         {
             StringBuilder sb = new StringBuilder(validText);
             sb[92] = '\n';
-            Assert.Throws<Exception>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<Exception>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -96,13 +96,13 @@ There is some text @@Foo:inline()@@ in this line.
         {
             StringBuilder sb = new StringBuilder(validText);
             sb[124] = '\n';
-            Assert.Throws<Exception>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<Exception>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
         public void Parameters_Are_Successfully_Extracted_VERIFIES_Parameter_Values_Match_Expected_Values()
         {
-            var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
             Assert.IsTrue(tags[6].Parameters.Count == 2);
             Assert.AreEqual("1234", tags[6].Parameters["ID"]);
             Assert.AreEqual("test name", tags[6].Parameters["NAME"]);
@@ -113,7 +113,7 @@ There is some text @@Foo:inline()@@ in this line.
         {
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("text@@Info:SWR(huff)@@ test");
-            Assert.Throws<TagInvalidException>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -121,7 +121,7 @@ There is some text @@Foo:inline()@@ in this line.
         {
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("text@@Info:SWR(,huff=puff)@@ test");
-            Assert.Throws<TagInvalidException>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -129,7 +129,7 @@ There is some text @@Foo:inline()@@ in this line.
         {
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("text@@Info:SWR(foo,huff=puff)@@ test");
-            Assert.Throws<TagInvalidException>(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -137,13 +137,13 @@ There is some text @@Foo:inline()@@ in this line.
         {
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("text@@Info:SWR(foo= barr,   huff=puff     )@@ test");
-            Assert.DoesNotThrow(() => RoboClerkMarkdown.ExtractRoboClerkTags(sb.ToString()));
+            Assert.DoesNotThrow(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
         public void Content_Fields_Are_Parsed_Correctly_VERIFIES_The_Correct_Content_Fields_Are_Extracted()
         {
-            var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
             Assert.AreEqual("This is the content\n", tags[0].Contents);
             Assert.AreEqual("Source:testinfo()", tags[3].Contents);
             Assert.AreEqual("Config:testinfo2()", tags[4].Contents);
@@ -156,7 +156,7 @@ There is some text @@Foo:inline()@@ in this line.
         [Test]
         public void Info_Fields_Are_Parsed_Correctly_VERIFIES_The_Correct_Info_Fields_Are_Extracted()
         {
-            var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
             Assert.AreEqual("TheFirstInfo", tags[0].ContentCreatorID);
             Assert.AreEqual("testinfo", tags[3].ContentCreatorID);
             Assert.AreEqual("testinfo2", tags[4].ContentCreatorID);
@@ -169,7 +169,7 @@ There is some text @@Foo:inline()@@ in this line.
         [Test]
         public void Source_Fields_Are_Parsed_Correctly_VERIFIES_The_Correct_Source_Fields_Are_Extracted()
         {
-            var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
             Assert.AreEqual(DataSource.SLMS, tags[0].Source);
             Assert.AreEqual(DataSource.Source, tags[3].Source);
             Assert.AreEqual(DataSource.Config, tags[4].Source);
@@ -182,7 +182,7 @@ There is some text @@Foo:inline()@@ in this line.
         [Test]
         public void Tag_Content_Replacement_Behavior_VERIFIES_Content_Is_Inserted_In_The_Correct_Place_Without_Tags()
         {
-            var tags = RoboClerkMarkdown.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
             tags[0].Contents = "item1";
             tags[3].Contents = "item2";
             tags[4].Contents = "";
@@ -201,7 +201,7 @@ D
  ";
             expectedResult = Regex.Replace(expectedResult, @"\r\n", "\n");
 
-            string finalResult = RoboClerkMarkdown.ReInsertRoboClerkTags(validText, tags);
+            string finalResult = RoboClerkAsciiDoc.ReInsertRoboClerkTags(validText, tags);
             Assert.AreEqual(expectedResult, finalResult);
         }
     }

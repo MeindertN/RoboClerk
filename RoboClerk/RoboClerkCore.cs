@@ -9,12 +9,6 @@ using System.Reflection;
 
 namespace RoboClerk
 {
-    public enum DocumentFormat
-    {
-        Markdown,
-        HTML
-    };
-
     internal class RoboClerkCore : IRoboClerkCore
     {
         private readonly IDataSources dataSources = null;

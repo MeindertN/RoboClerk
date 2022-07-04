@@ -25,7 +25,7 @@ namespace RoboClerk
             try
             {
                 roboclerkTags.Clear();
-                roboclerkTags = RoboClerkMarkdown.ExtractRoboClerkTags(rawText);
+                roboclerkTags = RoboClerkAsciiDoc.ExtractRoboClerkTags(rawText);
             }
             catch (TagInvalidException e)
             {
@@ -46,7 +46,7 @@ namespace RoboClerk
             //this function can be called at any time, remove the tags and relace them with 
             //the tag contents that could have been updated since the document was parsed. 
             //The document can be updated by replacing the individual tag contents.
-            return RoboClerkMarkdown.ReInsertRoboClerkTags(rawText, roboclerkTags);
+            return RoboClerkAsciiDoc.ReInsertRoboClerkTags(rawText, roboclerkTags);
         }
 
         public IEnumerable<RoboClerkTag> RoboClerkTags

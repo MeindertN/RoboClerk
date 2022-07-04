@@ -4,21 +4,21 @@ using System.Linq;
 
 namespace RoboClerk
 {
-    public static class RoboClerkMarkdown
+    public static class RoboClerkAsciiDoc
     {
-        public static List<RoboClerkTag> ExtractRoboClerkTags(string markdownText)
+        public static List<RoboClerkTag> ExtractRoboClerkTags(string asciiDocText)
         {
             int index = 0;
             List<int> containerIndices = new List<int>();
             List<int> inlineIndices = new List<int>();
-            while ((index = markdownText.IndexOf("@@", index)) >= 0)
+            while ((index = asciiDocText.IndexOf("@@", index)) >= 0)
             {
-                if (index + 1 == markdownText.Length - 1)
+                if (index + 1 == asciiDocText.Length - 1)
                 {
                     inlineIndices.Add(index);
                     break;
                 }
-                if (markdownText[index + 2] != '@')
+                if (asciiDocText[index + 2] != '@')
                 {
                     inlineIndices.Add(index);
                     index += 2;
@@ -43,30 +43,30 @@ namespace RoboClerk
 
             for (int i = 0; i < containerIndices.Count; i += 2)
             {
-                tags.Add(new RoboClerkTag(containerIndices[i], containerIndices[i + 1], markdownText, false));
+                tags.Add(new RoboClerkTag(containerIndices[i], containerIndices[i + 1], asciiDocText, false));
             }
 
             for (int i = 0; i < inlineIndices.Count; i += 2)
             {
                 //check for newlines in tag which is illegal
-                int idx = markdownText.IndexOf('\n', inlineIndices[i], inlineIndices[i + 1] - inlineIndices[i]);
+                int idx = asciiDocText.IndexOf('\n', inlineIndices[i], inlineIndices[i + 1] - inlineIndices[i]);
                 if (idx >= 0 && idx <= inlineIndices[i + 1])
                 {
                     throw new Exception($"Inline Roboclerk containers cannot have newline characters in them. Newline found in tag at {inlineIndices[i]}.");
                 }
-                tags.Add(new RoboClerkTag(inlineIndices[i], inlineIndices[i + 1], markdownText, true));
+                tags.Add(new RoboClerkTag(inlineIndices[i], inlineIndices[i + 1], asciiDocText, true));
             }
 
             return tags;
         }
 
-        public static string ReInsertRoboClerkTags(string markdownDoc, List<RoboClerkTag> tags)
+        public static string ReInsertRoboClerkTags(string asciiDoc, List<RoboClerkTag> tags)
         {
             if (tags.Count == 0)
             {
-                return markdownDoc;
+                return asciiDoc;
             }
-            //first we break apart the original markdownDoc using the original tag locations
+            //first we break apart the original asciiDoc using the original tag locations
             //determine the break points by sorting the tags by the start value and
             //iterating over them
             List<RoboClerkTag> sortedTags = tags.OrderBy(o => o.ContentStart).ToList();
@@ -75,12 +75,12 @@ namespace RoboClerk
             int lastEnd = -1;
             foreach (var tag in sortedTags)
             {
-                parts.Add(markdownDoc.Substring(lastEnd + 1, tag.TagStart - (lastEnd + 1)));
+                parts.Add(asciiDoc.Substring(lastEnd + 1, tag.TagStart - (lastEnd + 1)));
                 lastEnd = tag.TagEnd;
             }
-            if (lastEnd + 1 < markdownDoc.Length)
+            if (lastEnd + 1 < asciiDoc.Length)
             {
-                parts.Add(markdownDoc.Substring(lastEnd + 1, markdownDoc.Length - (lastEnd + 1)));
+                parts.Add(asciiDoc.Substring(lastEnd + 1, asciiDoc.Length - (lastEnd + 1)));
             }
 
             //then we insert the potentially updated tag contents
