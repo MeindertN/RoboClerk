@@ -15,6 +15,7 @@ namespace RoboClerk
         private string requirementTitle = string.Empty;
         private string requirementDescription = string.Empty;
         private string requirementRevision = string.Empty;
+        private string requirementAssignee = string.Empty;
         public RequirementItem(RequirementType reqType)
         {
             TypeOfRequirement = reqType;
@@ -42,6 +43,12 @@ namespace RoboClerk
         {
             get => requirementState;
             set => requirementState = value;
+        }
+
+        public string RequirementAssignee
+        {
+            get => requirementAssignee;
+            set => requirementAssignee = value;
         }
 
         public string RequirementTitle

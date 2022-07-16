@@ -231,10 +231,15 @@ namespace RoboClerk
             {
                 return sreq[idx];
             }
-            var tcase = GetAllSoftwareUnitTests();
+            var tcase = GetAllSoftwareSystemTests();
             if ((idx = tcase.FindIndex(o => o.ItemID == id)) >= 0)
             {
                 return tcase[idx];
+            }
+            var utest = GetAllSoftwareUnitTests();
+            if ((idx = utest.FindIndex(o => o.ItemID == id)) >= 0)
+            {
+                return utest[idx];
             }
             var anomalies = GetAllAnomalies();
             if ((idx = anomalies.FindIndex(o => o.ItemID == id)) >= 0)

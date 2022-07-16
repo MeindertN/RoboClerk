@@ -283,6 +283,7 @@ namespace RoboClerk.Redmine
             {
                 resultItem.AnomalyAssignee = string.Empty;
             }
+      
             resultItem.ItemID = rmItem.Id.ToString();
             resultItem.AnomalyJustification = string.Empty;
             resultItem.AnomalyPriority = string.Empty;
@@ -456,6 +457,15 @@ namespace RoboClerk.Redmine
                         resultItem.ItemCategory = ((System.Text.Json.JsonElement)field.Value).GetString();
                     }
                 }
+            }
+
+            if (redmineItem.AssignedTo != null)
+            {
+                resultItem.RequirementAssignee = redmineItem.AssignedTo.Name;
+            }
+            else
+            {
+                resultItem.RequirementAssignee = string.Empty;
             }
 
             resultItem.RequirementDescription = redmineItem.Description ?? string.Empty;

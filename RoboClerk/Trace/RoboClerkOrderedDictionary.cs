@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace RoboClerk
@@ -44,6 +45,11 @@ namespace RoboClerk
         {
             var item = items.Find(f => (f.Key.Equals(key)));
             return !item.Equals(default(KeyValuePair<TKey, TValue>));
+        }
+
+        public void Sort(IComparer<KeyValuePair<TKey, TValue>> sorter)
+        {
+            items.Sort(sorter);
         }
 
         public void Add(TKey key, TValue value)
