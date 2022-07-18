@@ -200,7 +200,7 @@ namespace RoboClerk
             }
             //verify the preamble
             string temp = Regex.Replace(tagContents, @"\s+", ""); //remove whitespace
-            string[] preamble = temp.Split('(')[0].Split(':');
+            string[] preamble = temp.Split('(')[0].Split(':',StringSplitOptions.RemoveEmptyEntries);
             if (preamble.Length != 2)
             {
                 throw new TagInvalidException(tagContents, "Preamble section in RoboClerk tag not formatted correctly");
@@ -221,7 +221,7 @@ namespace RoboClerk
                     {
                         throw new TagInvalidException(tagContents, "Malformed element in parameter section of RoboClerk tag");
                     }
-                    string[] variables = element.Split('=');
+                    string[] variables = element.Split('=', StringSplitOptions.RemoveEmptyEntries);
                     if (variables.Length != 2)
                     {
                         throw new TagInvalidException(tagContents, "Malformed element in parameter section of RoboClerk tag");
@@ -303,9 +303,9 @@ namespace RoboClerk
 
         public string GetParameterOrDefault(string key, string defaultVal)
         {
-            if (parameters.ContainsKey(key))
+            if (parameters.ContainsKey(key.ToUpper()))
             {
-                return parameters[key];
+                return parameters[key.ToUpper()];
             }
             return defaultVal;
         }

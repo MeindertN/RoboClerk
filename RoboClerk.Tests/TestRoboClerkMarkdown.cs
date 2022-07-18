@@ -23,8 +23,7 @@ it is even multiline
 # it contains a *header*
 @@@
 There is some text @@Foo:inline()@@ in this line.
-@@Trace:SWR(id=1234, name  =test name    )@@
- ";
+@@Trace:SWR(id=1234, name  =test name    )@@";
 
         [SetUp]
         public void TestSetup()
@@ -197,12 +196,191 @@ another line of text
 item2 
 item4
 There is some text item6 in this line.
-D
- ";
+D";
             expectedResult = Regex.Replace(expectedResult, @"\r\n", "\n");
 
             string finalResult = RoboClerkAsciiDoc.ReInsertRoboClerkTags(validText, tags);
             Assert.AreEqual(expectedResult, finalResult);
+        }
+
+        [Test]
+        public void Tag_Invalid_Format_Brackets1_Inline_VERIFIES_Inline_RoboClerk_Tag_Verifies_Tag_Validity()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.AppendLine("\n@@SLMS:testfunc)(@@");
+
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
+            Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMS:testfunc)("));
+        }
+
+        [Test]
+        public void Tag_Invalid_Format_Brackets2_Inline_VERIFIES_Inline_RoboClerk_Tag_Verifies_Tag_Validity()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.AppendLine("\n@@SLMS:testfunc(()@@");
+
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
+            Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMS:testfunc(()"));
+        }
+
+        [Test]
+        public void Tag_Invalid_Format_Brackets3_Inline_VERIFIES_Inline_RoboClerk_Tag_Verifies_Tag_Validity()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.AppendLine("\n@@SLMS:testfunc())@@");
+
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
+            Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMS:testfunc())"));
+        }
+
+        [Test]
+        public void Tag_Invalid_Format_Brackets_Missing_Inline_VERIFIES_Inline_RoboClerk_Tag_Verifies_Tag_Validity()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.AppendLine("\n@@SLMS:testfunc@@");
+
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
+            Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMS:testfunc"));
+        }
+
+        [Test]
+        public void Tag_Invalid_Format_Colon_Position_Inline_VERIFIES_Inline_RoboClerk_Tag_Verifies_Tag_Validity()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.AppendLine("\n@@SLMStestfunc(:)@@");
+
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
+            Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMStestfunc(:)"));
+        }
+
+        [Test]
+        public void Tag_Invalid_Format_Colon_Missing_Inline_VERIFIES_Inline_RoboClerk_Tag_Verifies_Tag_Validity()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.AppendLine("\n@@SLMStestfunc()@@");
+
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
+            Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMStestfunc()"));
+        }
+
+        [Test]
+        public void Tag_Valid_Format_Double_Colon_Inline_VERIFIES_Inline_RoboClerk_Tag_Verifies_Tag_Validity()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.AppendLine("\n@@SLMS:testfunc(test=A:B)@@");
+
+            Assert.DoesNotThrow(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
+        }
+
+        [Test]  //we will only test one instance of the block code because the tag validation is the same
+        public void Tag_Invalid_Format_Colon_Missing_Block_VERIFIES_Block_RoboClerk_Tag_Verifies_Tag_Validity()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.Append("\n@@@SLMStestfunc()\n");
+            sb.Append("\n");
+            sb.Append("@@@\n");
+
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
+            Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMStestfunc()"));
+        }
+
+        [Test]  
+        public void Preamble_Invalid_Format_Block_VERIFIES_Block_RoboClerk_Tag_Verifies_Preamble_Validity1()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.Append("\n@@@:testfunc()\n");
+            sb.Append("\n");
+            sb.Append("@@@\n");
+
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
+            Assert.That(ex.Message, Is.EqualTo("Preamble section in RoboClerk tag not formatted correctly at (16:1). Tag contents: :testfunc()"));
+        }
+
+        [Test]
+        public void Preamble_Invalid_Format_Block_VERIFIES_Block_RoboClerk_Tag_Verifies_Preamble_Validity2()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.Append("\n@@@SLMS:()\n");
+            sb.Append("\n");
+            sb.Append("@@@\n");
+
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
+            Assert.That(ex.Message, Is.EqualTo("Preamble section in RoboClerk tag not formatted correctly at (16:1). Tag contents: SLMS:()"));
+        }
+
+        [Test]
+        public void Parameters_Invalid_Format_Block_VERIFIES_Block_RoboClerk_Tag_Verifies_Parameter_Validity1()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.Append("\n@@@SLMS:testfunc(test==4)\n");
+            sb.Append("\n");
+            sb.Append("@@@\n");
+
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
+            Assert.That(ex.Message, Is.EqualTo("Parameter section in RoboClerk tag not formatted correctly at (16:1). Tag contents: SLMS:testfunc(test==4)"));
+        }
+
+        [Test]
+        public void Parameters_Invalid_Format_Block_VERIFIES_Block_RoboClerk_Tag_Verifies_Parameter_Validity2()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.Append("\n@@@SLMS:testfunc(test==4,testing)\n");
+            sb.Append("\n");
+            sb.Append("@@@\n");
+
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
+            Assert.That(ex.Message, Is.EqualTo("Malformed element in parameter section of RoboClerk tag at (16:1). Tag contents: SLMS:testfunc(test==4,testing)"));
+        }
+
+        [Test]
+        public void Parameters_Invalid_Format_Block_VERIFIES_Block_RoboClerk_Tag_Verifies_Parameter_Validity3()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.Append("\n@@@SLMS:testfunc(test=4,testing=)\n");
+            sb.Append("\n");
+            sb.Append("@@@\n");
+
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
+            Assert.That(ex.Message, Is.EqualTo("Malformed element in parameter section of RoboClerk tag at (16:1). Tag contents: SLMS:testfunc(test=4,testing=)"));
+        }
+
+        [Test]
+        public void Parameters_Retrieval_Functions_VERIFIES_Parameter_Value_Can_Be_Retrieved()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.Append("\n@@@SLMS:testfunc(test=4,testing=teststring)\n");
+            sb.Append("\n");
+            sb.Append("@@@\n");
+
+            var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString());
+
+            foreach(var tag in tags)
+            {
+                if(tag.ContentCreatorID == "testfunc")
+                {
+                    Assert.That(tag.GetParameterOrDefault("test", "default"), Is.EqualTo("4"));
+                    Assert.That(tag.GetParameterOrDefault("testing", "default"), Is.EqualTo("teststring"));
+                    Assert.That(tag.GetParameterOrDefault("testrrrr", "default"), Is.EqualTo("default"));
+                    return;
+                }
+            }
+            Assert.Fail("Could not find test tag in parsed tags.");
+        }
+
+        [Test]
+        public void TagInvalidException_Message_Retrieval_VERIFIES_Correct_Message_Is_Returned1()
+        {
+            TagInvalidException ex = new TagInvalidException("test contents", "test reason");
+            Assert.That(ex.Message, Is.EqualTo("test reason. Tag contents: test contents"));
+            string teststring = "\nabcdeThis is the test text.";
+            ex.SetLocation(5, teststring);
+            Assert.That(ex.Message, Is.EqualTo("test reason at (2:5). Tag contents: test contents"));
+
+            ex = new TagInvalidException("test contents", "test reason");
+            ex.DocumentTitle = "test title";
+            Assert.That(ex.Message, Is.EqualTo("test reason in test title template. Tag contents: test contents"));
+            ex.SetLocation(5, teststring);
+            Assert.That(ex.Message, Is.EqualTo("test reason in test title template at (2:5). Tag contents: test contents"));
         }
     }
 }

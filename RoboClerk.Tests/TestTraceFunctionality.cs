@@ -193,7 +193,10 @@ namespace RoboClerk.Tests
         private List<RequirementItem> SWRs = null;
         private List<TestCaseItem> TCs = null;
         private List<AnomalyItem> ANOMALYs = null;
+        private List<UnitTestItem> UTs = null;
         private ISLMSPlugin mockPlugin = Substitute.For< ISLMSPlugin>();
+        private List<SOUPItem> SOUPs = null;
+        private List<RiskItem> RISKs = null;
         private void SetupPlugin()
         {
             SYSs = new List<RequirementItem> { new RequirementItem(RequirementType.SystemRequirement), new RequirementItem(RequirementType.SystemRequirement) };
@@ -228,6 +231,30 @@ namespace RoboClerk.Tests
             ANOMALYs[1].AnomalyTitle = "ANOMALY_TestTitle2";
             ANOMALYs[1].ItemID = "ANOMALY_id2";
             mockPlugin.GetAnomalies().Returns(ANOMALYs);
+            UTs = new List<UnitTestItem> { new UnitTestItem(), new UnitTestItem() };
+            UTs[0].UnitTestPurpose = "UT_TestPurpose1";
+            UTs[0].ItemID = "UT_id1";
+            UTs[1].UnitTestPurpose = "UT_TestPurpose2";
+            UTs[1].UnitTestPurpose = "UT_id2";
+            mockPlugin.GetUnitTests().Returns(UTs);
+            SOUPs = new List<SOUPItem> { new SOUPItem(), new SOUPItem() };
+            SOUPs[0].SOUPName = "SOUP_name1";
+            SOUPs[0].SOUPLicense = "SOUP_license1";
+            SOUPs[0].SOUPDetailedDescription = "SOUP_details1";
+            SOUPs[0].ItemID = "SOUP_id1";
+            SOUPs[1].SOUPName = "SOUP_name2";
+            SOUPs[1].SOUPLicense = "SOUP_license2";
+            SOUPs[1].SOUPDetailedDescription = "SOUP_details2";
+            SOUPs[1].ItemID = "SOUP_id2";
+            mockPlugin.GetSOUP().Returns(SOUPs);
+            RISKs = new List<RiskItem> { new RiskItem(), new RiskItem() };
+            RISKs[0].DetectabilityScore = 100;
+            RISKs[0].CauseOfFailure = "RISK_cause1";
+            RISKs[0].ItemID = "RISK_id1";
+            RISKs[1].DetectabilityScore = 200;
+            RISKs[1].CauseOfFailure = "RISK_cause2";
+            RISKs[1].ItemID = "RISK_id2";
+            mockPlugin.GetRisks().Returns(RISKs);
         }
 
 
@@ -236,9 +263,9 @@ namespace RoboClerk.Tests
         {
             SetupPlugin();
             IPluginLoader mockPluginLoader = Substitute.For<IPluginLoader>();
-            mockPluginLoader.LoadPlugin<ISLMSPlugin>(Arg.Any<string>(), Arg.Any<string>()).Returns<ISLMSPlugin>(l => null);
-            mockPluginLoader.Configure().LoadPlugin<ISLMSPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist")).Returns(mockPlugin);
-            IDataSources dataSources = new DataSources(mockConfig, mockPluginLoader);
+            mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>()).Returns<IPlugin>(l => null);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist")).Returns(mockPlugin);
+            IDataSources dataSources = new DataSources(mockConfig, mockPluginLoader, null);
             SYSs.AddRange(systemReqs);
             SWRs.AddRange(softwareReqs);
             TCs.AddRange(tcs);

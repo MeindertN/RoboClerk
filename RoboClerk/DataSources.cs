@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.IO.Abstractions;
 
 namespace RoboClerk
 {
@@ -15,11 +16,13 @@ namespace RoboClerk
 
         private readonly IConfiguration configuration = null;
         private readonly IPluginLoader pluginLoader = null;
+        private readonly IFileSystem fileSystem = null;
 
-        public DataSources(IConfiguration configuration, IPluginLoader pluginLoader)
+        public DataSources(IConfiguration configuration, IPluginLoader pluginLoader, IFileSystem fileSystem)
         {
             this.pluginLoader = pluginLoader;  
             this.configuration = configuration;
+            this.fileSystem = fileSystem;
 
             LoadPlugins();
         }
@@ -72,7 +75,7 @@ namespace RoboClerk
             }
             else if(te.ID == "SoftwareSystemTest")
             {
-                return GetAllSoftwareUnitTests().Cast<LinkedItem>().ToList();   
+                return GetAllSoftwareSystemTests().Cast<LinkedItem>().ToList();   
             }
             else if(te.ID == "SoftwareUnitTest")
             {
@@ -85,6 +88,10 @@ namespace RoboClerk
             else if(te.ID == "SOUP")
             {
                 return GetAllSOUP().Cast<LinkedItem>().ToList();
+            }
+            else if(te.ID == "Anomaly")
+            {
+                return GetAllAnomalies().Cast<LinkedItem>().ToList();
             }
             else
             {
@@ -246,6 +253,16 @@ namespace RoboClerk
             {
                 return anomalies[idx];
             }
+            var SOUPs = GetAllSOUP();
+            if ((idx = SOUPs.FindIndex(o => o.ItemID == id)) >= 0)
+            {
+                return SOUPs[idx];
+            }
+            var Risks = GetAllRisks();
+            if ((idx = Risks.FindIndex(o => o.ItemID == id)) >= 0)
+            {
+                return Risks[idx];
+            }
             return null;
         }
 
@@ -256,12 +273,12 @@ namespace RoboClerk
 
         public string GetTemplateFile(string fileName)
         {
-            return File.ReadAllText(Path.Join(configuration.TemplateDir,fileName));
+            return fileSystem.File.ReadAllText(Path.Join(configuration.TemplateDir,fileName));
         }
 
         public Stream GetFileStreamFromTemplateDir(string fileName)
         {
-            var stream = new FileStream(Path.Join(configuration.TemplateDir, fileName),FileMode.Open);
+            var stream = fileSystem.FileStream.Create(fileSystem.Path.Join(configuration.TemplateDir, fileName),FileMode.Open);
             return stream;
         }
     }
