@@ -34,16 +34,16 @@ namespace RoboClerk.ContentCreators
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("|====");
             string tempID = item.HasLink ? $"{item.Link}[{item.ItemID}]" : $"{item.ItemID} ";
-            sb.AppendLine($"| {name} ID | {tempID}");
+            sb.AppendLine($"| *{name} ID* | {tempID}");
             sb.AppendLine();
             if (item.UnitTestRevision != string.Empty)
             {
-                sb.AppendLine($"| Revision | {item.UnitTestRevision}");
+                sb.AppendLine($"| *Revision* | {item.UnitTestRevision}");
                 sb.AppendLine();
             }
             if(item.LinkedItems.Count() != 0)
             {
-                sb.Append($"| Trace Link | ");
+                sb.Append($"| *Trace Link* | ");
                 foreach (var linkedItem in item.LinkedItems)
                 {
                     sb.Append($"{linkedItem.TargetID}  ");
@@ -51,10 +51,10 @@ namespace RoboClerk.ContentCreators
                 sb.AppendLine();
             }
             string tempPurpose = item.UnitTestPurpose == string.Empty ? "N/A" : item.UnitTestPurpose;
-            sb.AppendLine($"| Purpose | {tempPurpose}");
+            sb.AppendLine($"| *Purpose* | {tempPurpose}");
             sb.AppendLine();
             string tempAcceptanceCriteria = item.UnitTestAcceptanceCriteria == string.Empty ? "N/A" : item.UnitTestAcceptanceCriteria;
-            sb.AppendLine($"| Acceptance Criteria | {tempAcceptanceCriteria}");
+            sb.AppendLine($"| *Acceptance Criteria* | {tempAcceptanceCriteria}");
             sb.AppendLine();
 
             sb.AppendLine("|====");

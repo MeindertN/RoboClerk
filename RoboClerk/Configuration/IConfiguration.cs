@@ -21,6 +21,7 @@ namespace RoboClerk.Configuration
         List<DocumentConfig> Documents { get; }
         List<TraceConfig> TraceConfig { get; }
         ConfigurationValues ConfigVals { get; }
+        CheckpointConfig CheckpointConfig { get; }
         string CommandLineOptionOrDefault(string name, string defaultValue);
 
     }

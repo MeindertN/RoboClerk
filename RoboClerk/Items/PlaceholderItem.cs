@@ -2,7 +2,7 @@ using System;
 
 namespace RoboClerk
 {
-    class PlaceholderItem : Item
+    public class PlaceholderItem : Item
     {
         private string stringContent;
 

@@ -1,0 +1,180 @@
+﻿using RoboClerk.Configuration;
+using System;
+using System.Collections.Generic;
+using System.IO.Abstractions;
+using System.Text.Json;
+
+namespace RoboClerk
+{
+    public class CheckpointDataSources : DataSourcesBase, IDataSources
+    {
+        private IConfiguration configuration = null;
+        private IFileSystem fileSystem = null;
+        private CheckpointDataStorage dataStorage = new CheckpointDataStorage();
+        private IDataSources pluginDatasource = null;
+
+        public CheckpointDataSources(IConfiguration configuration, IPluginLoader pluginLoader, IFileSystem fileSystem, string checkpointFile)
+            : base(configuration, fileSystem)
+        {
+            logger.Info($"RoboClerk is using the following checkpoint file in the template directory to read its input data: {checkpointFile}");
+            this.configuration = configuration;
+            this.fileSystem = fileSystem;
+            pluginDatasource = new PluginDataSources(configuration,pluginLoader,fileSystem);
+            SetFileSource(checkpointFile);
+            ChangeUpdatedItems();
+        }
+
+        public void SetFileSource(string fileName)
+        {
+            string fullFilePath = fileSystem.Path.Join(configuration.TemplateDir, fileName);
+            if (!fileSystem.File.Exists(fullFilePath))
+            {
+                throw new Exception($"Could not find checkpoint file \"{fullFilePath}\". Unable to continue.");
+            }
+            dataStorage = JsonSerializer.Deserialize<CheckpointDataStorage>(GetFileStreamFromTemplateDir(fileName));
+        }
+
+        private void ChangeUpdatedItems()
+        {
+            var checkpointConfig = configuration.CheckpointConfig;
+            foreach(var riskID in checkpointConfig.UpdatedRiskIDs)
+            {
+                var sourceRiskItem = pluginDatasource.GetRisk(riskID);
+                if (sourceRiskItem != null)
+                {
+                    //item still exists, update it
+                    dataStorage.UpdateRisk(sourceRiskItem);
+                }
+                else
+                {
+                    //item no longer exists, should remove from checkpoint data
+                    dataStorage.RemoveRisk(riskID);
+                }
+            }
+            foreach (var systemRequirementID in checkpointConfig.UpdatedSystemRequirementIDs)
+            {
+                var systemRequirement = pluginDatasource.GetSystemRequirement(systemRequirementID);
+                if (systemRequirement != null)
+                {
+                    //item still exists, update it
+                    dataStorage.UpdateSystemRequirement(systemRequirement);
+                }
+                else
+                {
+                    //item no longer exists, should remove from checkpoint data
+                    dataStorage.RemoveSystemRequirement(systemRequirementID);
+                }
+            }
+            foreach (var softwareRequirementID in checkpointConfig.UpdatedSoftwareRequirementIDs)
+            {
+                var softwareRequirement = pluginDatasource.GetSoftwareRequirement(softwareRequirementID);
+                if (softwareRequirement != null)
+                {
+                    //item still exists, update it
+                    dataStorage.UpdateSoftwareRequirement(softwareRequirement);
+                }
+                else
+                {
+                    //item no longer exists, should remove from checkpoint data
+                    dataStorage.RemoveSoftwareRequirement(softwareRequirementID);
+                }
+            }
+            foreach (var softwareSystemTestID in checkpointConfig.UpdatedSoftwareSystemTestIDs)
+            {
+                var softwareSystemTest = pluginDatasource.GetSoftwareSystemTest(softwareSystemTestID);
+                if (softwareSystemTest != null)
+                {
+                    //item still exists, update it
+                    dataStorage.UpdateSoftwareSystemTest(softwareSystemTest);
+                }
+                else
+                {
+                    //item no longer exists, should remove from checkpoint data
+                    dataStorage.RemoveSoftwareSystemTest(softwareSystemTestID);
+                }
+            }
+            foreach (var softwareUnitTestID in checkpointConfig.UpdatedSoftwareUnitTestIDs)
+            {
+                var softwareUnitTest = pluginDatasource.GetSoftwareUnitTest(softwareUnitTestID);
+                if (softwareUnitTest != null)
+                {
+                    //item still exists, update it
+                    dataStorage.UpdateUnitTest(softwareUnitTest);
+                }
+                else
+                {
+                    //item no longer exists, should remove from checkpoint data
+                    dataStorage.RemoveUnitTest(softwareUnitTestID);
+                }
+            }
+            foreach (var anomalyID in checkpointConfig.UpdatedAnomalyIDs)
+            {
+                var anomaly = pluginDatasource.GetAnomaly(anomalyID);
+                if (anomaly != null)
+                {
+                    //item still exists, update it
+                    dataStorage.UpdateAnomaly(anomaly);
+                }
+                else
+                {
+                    //item no longer exists, should remove from checkpoint data
+                    dataStorage.RemoveAnomaly(anomalyID);
+                }
+            }
+            foreach (var soupID in checkpointConfig.UpdatedSOUPIDs)
+            {
+                var soup = pluginDatasource.GetSOUP(soupID);
+                if (soup != null)
+                {
+                    //item still exists, update it
+                    dataStorage.UpdateSOUP(soup);
+                }
+                else
+                {
+                    //item no longer exists, should remove from checkpoint data
+                    dataStorage.RemoveSOUP(soupID);
+                }
+            }
+        }
+
+        public override List<AnomalyItem> GetAllAnomalies()
+        {
+            return dataStorage.Anomalies;
+        }
+
+        public override List<ExternalDependency> GetAllExternalDependencies()
+        {
+            return pluginDatasource.GetAllExternalDependencies();
+        }
+
+        public override List<RiskItem> GetAllRisks()
+        {
+            return dataStorage.Risks;
+        }
+
+        public override List<RequirementItem> GetAllSoftwareRequirements()
+        {
+            return dataStorage.SoftwareRequirements;
+        }
+
+        public override List<TestCaseItem> GetAllSoftwareSystemTests()
+        {
+            return dataStorage.SoftwareSystemTests;
+        }
+
+        public override List<UnitTestItem> GetAllSoftwareUnitTests()
+        {
+            return dataStorage.UnitTests;
+        }
+
+        public override List<SOUPItem> GetAllSOUP()
+        {
+            return dataStorage.SOUPs;
+        }
+
+        public override List<RequirementItem> GetAllSystemRequirements()
+        {
+            return dataStorage.SystemRequirements;
+        }
+    }
+}

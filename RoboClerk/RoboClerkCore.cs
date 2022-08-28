@@ -27,10 +27,6 @@ namespace RoboClerk
         public void GenerateDocs()
         {
             logger.Info("Starting document generation.");
-            if(configuration.ClearOutputDir)
-            {
-                CleanOutputDirectory();
-            }
             if(configuration.MediaDir != string.Empty)
             {
                 if(Directory.Exists(configuration.MediaDir))
@@ -119,20 +115,6 @@ namespace RoboClerk
             logger.Info("Finished creating documents.");
         }
 
-        private void CleanOutputDirectory()
-        {
-            logger.Info("Cleaning output directory.");
-            string[] files = Directory.GetFiles(configuration.OutputDir);
-            foreach (string file in files)
-            {
-                if (!file.Contains("RoboClerkLog.txt") &&
-                    !file.Contains(".gitignore"))
-                {
-                    File.Delete(file);
-                }
-            }
-        }
-
         private void CleanAndCopyMediaDirectory()
         {
             logger.Info("Cleaning the media directory and copying the media files.");
@@ -171,6 +153,7 @@ namespace RoboClerk
                 {
                     logger.Warn($"No commands found for {doc.Title}. Ensure this is intended.");
                 }
+                File.WriteAllText(Path.Combine(configuration.OutputDir, "DataSourceData.json"),dataSources.ToJSON());
             }
         }
 

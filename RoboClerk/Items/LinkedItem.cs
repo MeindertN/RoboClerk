@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace RoboClerk
 {
@@ -8,9 +9,17 @@ namespace RoboClerk
     {
         protected List<ItemLink> linkedItems = new List<ItemLink>();
 
+        [JsonInclude]
         public IEnumerable<ItemLink> LinkedItems
         {
-            get => linkedItems;
+            get
+            {
+                return linkedItems;
+            }
+            private set
+            {
+                linkedItems = (List<ItemLink>)value;
+            }
         }
 
         public void AddLinkedItem(ItemLink itemLink)

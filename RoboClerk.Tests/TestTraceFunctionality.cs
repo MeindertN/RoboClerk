@@ -265,7 +265,7 @@ namespace RoboClerk.Tests
             IPluginLoader mockPluginLoader = Substitute.For<IPluginLoader>();
             mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>()).Returns<IPlugin>(l => null);
             mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist")).Returns(mockPlugin);
-            IDataSources dataSources = new DataSources(mockConfig, mockPluginLoader, null);
+            IDataSources dataSources = new PluginDataSources(mockConfig, mockPluginLoader, null);
             SYSs.AddRange(systemReqs);
             SWRs.AddRange(softwareReqs);
             TCs.AddRange(tcs);

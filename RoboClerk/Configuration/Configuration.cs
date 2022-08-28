@@ -25,6 +25,7 @@ namespace RoboClerk.Configuration
         private List<TraceEntity> truthEntities = new List<TraceEntity>();
         private List<DocumentConfig> documents = new List<DocumentConfig>();
         private List<TraceConfig> traceConfig = new List<TraceConfig>();
+        private CheckpointConfig checkpointConfig = new CheckpointConfig();
         private ConfigurationValues configVals = null;
         private string templateDir = string.Empty;
         private string mediaDir = string.Empty;
@@ -49,6 +50,7 @@ namespace RoboClerk.Configuration
         public List<TraceEntity> TruthEntities => truthEntities;
         public List<DocumentConfig> Documents => documents;
         public List<TraceConfig > TraceConfig => traceConfig;
+        public CheckpointConfig CheckpointConfig => checkpointConfig;
         public ConfigurationValues ConfigVals => configVals;
         public string PluginConfigDir => pluginConfigDir;
         public string TemplateDir => templateDir;
@@ -118,7 +120,14 @@ namespace RoboClerk.Configuration
             ReadTruthTraceItems(toml);
             ReadDocuments(toml);
             ReadTraceConfiguration(toml);
+            ReadCheckpointConfiguration(toml);
             ReadConfigurationValues(toml);
+        }
+
+        private void ReadCheckpointConfiguration(TomlTable toml)
+        {
+            checkpointConfig = new CheckpointConfig();
+            checkpointConfig.FromToml(toml);
         }
 
         private void ReadConfigurationValues(TomlTable toml)

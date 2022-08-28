@@ -290,6 +290,37 @@ MediaDirectory = "I:/temp/Roboclerk_input/media"
 		SoftwareSystemLevelTestPlan.forwardLink = "DOC"
 		SoftwareSystemLevelTestPlan.backwardLink = "DOC"
 
+# The following element can be used to take a snapshot as produced in a RoboClerk build
+# and rebuild the documentation without the use of any external datasources. It can also
+# be used to make small additions and changes to accomodate patches and bug fixes that 
+# impact the documentation. Users can indicate what new truth items to pull from external
+# sources like the SLMS.
+
+[CheckpointConfiguration]
+
+# To use a checkpoint, indicate its fileName (without path). It must be located in the 
+# template dir.
+CheckpointFile = "DataSourceData.json"
+
+# For the following items, enter any IDs you want RoboClerk to pull from the normal
+# data sources. Could be new or updated. If the ID already exists in the checkPoint
+# (e.g. in case of an updated item) only the externally retrieved item is used. 
+# IDs in RoboClerk are strings.
+
+UpdatedSystemRequirementIDs = []
+
+UpdatedSoftwareRequirementIDs = []
+
+UpdatedSoftwareSystemTestIDs = []
+	
+UpdatedSoftwareUnitTestIDs = []
+	
+UpdatedRiskIDs = []
+
+UpdatedAnomalyIDs = []
+
+UpdatedSOUPIDs = []
+
 [ConfigValues]
 
 CompanyName = "Acme Inc."

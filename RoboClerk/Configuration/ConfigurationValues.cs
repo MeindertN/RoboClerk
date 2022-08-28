@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using Tomlyn;
+﻿using System;
+using System.Collections.Generic;
 using Tomlyn.Model;
 
-namespace RoboClerk
+namespace RoboClerk.Configuration
 {
     public class ConfigurationValues
     {
@@ -14,6 +14,10 @@ namespace RoboClerk
 
         public void FromToml(TomlTable toml)
         {
+            if( !toml.ContainsKey("ConfigValues"))
+            {
+                throw new Exception("Required configuration element \"ConfigValues\" is missing from project configuration file. Cannot continue.");
+            }
             foreach (var val in (TomlTable)toml["ConfigValues"])
             {
                 keyValues[val.Key] = (string)val.Value;

@@ -48,13 +48,13 @@ namespace RoboClerk.Tests
         [Test]
         public void Successful_Creation_DataSources_VERIFIES_DataSources_Class_Creation_No_Throw()
         {
-            Assert.DoesNotThrow(() => new DataSources(mockConfiguration,mockPluginLoader,mockFileSystem));
+            Assert.DoesNotThrow(() => new PluginDataSources(mockConfiguration,mockPluginLoader,mockFileSystem));
         }
 
         [Test]
         public void Plugin_Search_Functionality_Works_Correctly_VERIFIES_DataSources_Traverses_All_Plugins_And_All_Directories()
         {
-            var ds = new DataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin1"), Arg.Is<string>("c:\\temp\\does_not_exist")));
             Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin1"), Arg.Is<string>("c:\\temp\\")));
             Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin2"), Arg.Is<string>("c:\\temp\\does_not_exist")));
@@ -144,7 +144,7 @@ namespace RoboClerk.Tests
         public void System_Requirements_Can_Be_Retrieved_VERIFIES_Supplied_Requirements_Are_Returned()
         {
             SetupSLMSPlugin();
-            var ds = new DataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedReqs = ds.GetAllSystemRequirements();
             Assert.AreSame(SYSs[0], returnedReqs[0]);
             Assert.AreSame(SYSs[1], returnedReqs[1]);
@@ -159,7 +159,7 @@ namespace RoboClerk.Tests
         public void Software_Requirements_Can_Be_Retrieved_VERIFIES_Supplied_Requirements_Are_Returned()
         {
             SetupSLMSPlugin();
-            var ds = new DataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedReqs = ds.GetAllSoftwareRequirements();
             Assert.AreSame(SWRs[0], returnedReqs[0]);
             Assert.AreSame(SWRs[1], returnedReqs[1]);
@@ -174,7 +174,7 @@ namespace RoboClerk.Tests
         public void Test_Cases_Can_Be_Retrieved_VERIFIES_Supplied_Test_Cases_Are_Returned()
         {
             SetupSLMSPlugin();
-            var ds = new DataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedReqs = ds.GetAllSoftwareSystemTests();
             Assert.AreSame(TCs[0], returnedReqs[0]);
             Assert.AreSame(TCs[1], returnedReqs[1]);
@@ -190,7 +190,7 @@ namespace RoboClerk.Tests
         {
             SetupSLMSPlugin();
             SetupSrcCodePlugin();
-            var ds = new DataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedSOUP = ds.GetAllSOUP();
             Assert.AreSame(SOUPs[0], returnedSOUP[0]);
             Assert.AreSame(SOUPs[1], returnedSOUP[1]);
@@ -206,7 +206,7 @@ namespace RoboClerk.Tests
         {
             SetupSLMSPlugin();
             SetupSrcCodePlugin();
-            var ds = new DataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedRISKs = ds.GetAllRisks();
             Assert.AreSame(RISKs[0], returnedRISKs[0]);
             Assert.AreSame(RISKs[1], returnedRISKs[1]);
@@ -222,7 +222,7 @@ namespace RoboClerk.Tests
         {
             SetupSLMSPlugin();
             SetupSrcCodePlugin();
-            var ds = new DataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedUTs = ds.GetAllSoftwareUnitTests();
             Assert.AreSame(SLMSUTs[0], returnedUTs[0]);
             Assert.AreSame(SLMSUTs[1], returnedUTs[1]);
@@ -240,7 +240,7 @@ namespace RoboClerk.Tests
         {
             SetupSLMSPlugin();
             SetupSrcCodePlugin();
-            var ds = new DataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedAnomalies = ds.GetAllAnomalies();
             Assert.IsTrue(returnedAnomalies.Count > 0);
             Assert.AreSame(ANOMALYs[0], returnedAnomalies[0]);
@@ -257,7 +257,7 @@ namespace RoboClerk.Tests
         {
             SetupSLMSPlugin();
             SetupSrcCodePlugin();
-            var ds = new DataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var ex = Assert.Throws<Exception>(() => ds.GetItems(new TraceEntity("wrongID", "wrong", "wrong", TraceEntityType.Truth)));
             Assert.That(ex.Message, Is.EqualTo("No datasource available for unknown trace entity: wrongID"));
         }
@@ -267,7 +267,7 @@ namespace RoboClerk.Tests
         {
             SetupSLMSPlugin();
             SetupDepPlugin();
-            var ds = new DataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedDeps = ds.GetAllExternalDependencies();
             Assert.IsTrue(returnedDeps.Count > 0);
             Assert.AreSame(DEPs[0], returnedDeps[0]);
@@ -280,7 +280,7 @@ namespace RoboClerk.Tests
         {
             SetupSLMSPlugin();
             SetupSrcCodePlugin();
-            var ds = new DataSources(mockConfiguration,mockPluginLoader, mockFileSystem);
+            var ds = new PluginDataSources(mockConfiguration,mockPluginLoader, mockFileSystem);
             var result = ds.GetItem("does not exist");
             Assert.AreSame(null, result);
         }
@@ -294,7 +294,7 @@ namespace RoboClerk.Tests
             ConfigurationValues vals = new ConfigurationValues();
             vals.FromToml(table);
             mockConfiguration.ConfigVals.Returns(vals);
-            var ds = new DataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             Assert.AreSame("TestValue",ds.GetConfigValue("testKey"));
             Assert.AreSame("NOT FOUND", ds.GetConfigValue("estKey"));
         }
@@ -306,7 +306,7 @@ namespace RoboClerk.Tests
             {
                 { @"c:\myfile.txt", new MockFileData("This is a \nmultiline text file.") },
             });
-            var ds = new DataSources(mockConfiguration, mockPluginLoader, fileSystem);
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, fileSystem);
             Assert.That(ds.GetTemplateFile(@"C:\myfile.txt"), Is.EqualTo("This is a \nmultiline text file."));
         }
 
@@ -318,7 +318,7 @@ namespace RoboClerk.Tests
             {
                 { @"c:\templateDir\myfile.txt", new MockFileData("This is a \nmultiline text file.") },
             });
-            var ds = new DataSources(mockConfiguration, mockPluginLoader, fileSystem);
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, fileSystem);
             Stream s = ds.GetFileStreamFromTemplateDir(@"myfile.txt");
             StreamReader reader = new StreamReader(s);
             Assert.That(reader.ReadToEnd(), Is.EqualTo("This is a \nmultiline text file."));

@@ -49,7 +49,7 @@ namespace RoboClerk.SourceCode
                 var configFileLocation = $"{Path.GetDirectoryName(assembly?.Location)}/Configuration/UnitTestFNPlugin.toml";
                 if (configuration.PluginConfigDir != string.Empty)
                 {
-                    configFileLocation = Path.Combine(configuration.PluginConfigDir, "RedmineSLMSPlugin.toml");
+                    configFileLocation = Path.Combine(configuration.PluginConfigDir, "UnitTestFNPlugin.toml");
                 }
                 var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
 

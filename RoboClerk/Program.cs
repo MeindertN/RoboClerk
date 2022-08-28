@@ -62,6 +62,20 @@ namespace RoboClerk
             return options;
         }
 
+        private static void CleanOutputDirectory(string outputDir, ILogger logger)
+        {
+            logger.Info("Cleaning output directory.");
+            string[] files = Directory.GetFiles(outputDir);
+            foreach (string file in files)
+            {
+                if (!file.Contains("RoboClerkLog.txt") &&
+                    !file.Contains(".gitignore"))
+                {
+                    File.Delete(file);
+                }
+            }
+        }
+
         static int Main(string[] args)
         {
             try
@@ -69,8 +83,8 @@ namespace RoboClerk
                 Parser.Default.ParseArguments<CommandlineOptions>(args)
                     .WithParsed<CommandlineOptions>(options =>
                    {
-                   //set up logging first
-                   var assembly = Assembly.GetExecutingAssembly();
+                       //set up logging first
+                       var assembly = Assembly.GetExecutingAssembly();
                        var projectConfigFile = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/Project/projectConfig.toml";
                        var roboClerkConfigFile = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/RoboClerk/RoboClerk.toml";
                        if (options.ConfigurationFile != null)
@@ -96,14 +110,30 @@ namespace RoboClerk
                        var commandlineOptions = GetConfigOptions(options.ConfigurationOptions, logger);
                        try
                        {
-                           var serviceProvider = new ServiceCollection()
-                               .AddTransient<IFileSystem, FileSystem>()
-                               .AddSingleton<IConfiguration>(x => new RoboClerk.Configuration.Configuration(x.GetRequiredService<IFileSystem>(), roboClerkConfigFile, projectConfigFile, commandlineOptions))
-                               .AddTransient<IPluginLoader, PluginLoader>()
-                               .AddSingleton<IDataSources, DataSources>()
-                               .AddSingleton<ITraceabilityAnalysis, TraceabilityAnalysis>()
-                               .AddSingleton<IRoboClerkCore, RoboClerkCore>()
-                               .BuildServiceProvider();
+                           var serviceCollection = new ServiceCollection();
+                           serviceCollection.AddTransient<IFileSystem, FileSystem>();
+                           serviceCollection.AddSingleton<IConfiguration>(x => new RoboClerk.Configuration.Configuration(x.GetRequiredService<IFileSystem>(), roboClerkConfigFile, projectConfigFile, commandlineOptions));
+                           serviceCollection.AddTransient<IPluginLoader, PluginLoader>();
+                           serviceCollection.AddSingleton<ITraceabilityAnalysis, TraceabilityAnalysis>();
+                           serviceCollection.AddSingleton<IRoboClerkCore, RoboClerkCore>();
+                           
+                           var serviceProvider = serviceCollection.BuildServiceProvider();
+
+                           //clean the output directory before we start working
+                           var config = serviceProvider.GetService<IConfiguration>();
+                           if(config != null && config.ClearOutputDir)
+                           {
+                               CleanOutputDirectory(config.OutputDir,logger);
+                           }
+                           if (config.CheckpointConfig.CheckpointFile == string.Empty) //check if we are not using a checkpoint
+                           {
+                               serviceCollection.AddSingleton<IDataSources, PluginDataSources>();
+                           }
+                           else
+                           {
+                               serviceCollection.AddSingleton<IDataSources>(x => new CheckpointDataSources(x.GetRequiredService<IConfiguration>(), x.GetRequiredService<IPluginLoader>(), x.GetRequiredService<IFileSystem>(), config.CheckpointConfig.CheckpointFile));
+                           }
+                           serviceProvider = serviceCollection.BuildServiceProvider();
 
                            var core = serviceProvider.GetService<IRoboClerkCore>();
                            core.GenerateDocs();

@@ -148,7 +148,7 @@ namespace RoboClerk.ContentCreators
                 sb.AppendLine();
             }
 
-            sb.AppendLine("| Detailed Description: ");
+            sb.Append("| Detailed Description: ");
             sb.AppendLine($"a| {item.SOUPDetailedDescription}");
             sb.AppendLine();
 

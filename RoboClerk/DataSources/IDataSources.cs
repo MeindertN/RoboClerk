@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RoboClerk
 {
@@ -28,6 +24,7 @@ namespace RoboClerk
         RiskItem GetRisk(string id);
         SOUPItem GetSOUP(string id);
         string GetTemplateFile(string fileName);
-        Stream GetFileStreamFromTemplateDir(string fileName);        
+        Stream GetFileStreamFromTemplateDir(string fileName);
+        string ToJSON();
     }
 }

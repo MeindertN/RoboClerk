@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 
 namespace RoboClerk
 {
@@ -16,9 +15,9 @@ namespace RoboClerk
         private string requirementDescription = string.Empty;
         private string requirementRevision = string.Empty;
         private string requirementAssignee = string.Empty;
-        public RequirementItem(RequirementType reqType)
+        public RequirementItem(RequirementType typeOfRequirement)
         {
-            TypeOfRequirement = reqType;
+            TypeOfRequirement = typeOfRequirement;
             id = Guid.NewGuid().ToString();
         }
 
