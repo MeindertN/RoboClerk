@@ -28,7 +28,7 @@ namespace RoboClerk.ContentCreators
             matrix.AppendLine("|====");
             foreach (var entry in traceMatrix)
             {
-                if (entry.Key.ID == "SystemRequirement" || entry.Key.ID == "SoftwareRequirement")
+                if (entry.Key.ID == "SystemRequirement" || entry.Key.ID == "SoftwareRequirement" || entry.Key.ID == "Risk")
                 {
                     matrix.Append($"| {entry.Key.Name}s ");
                 }

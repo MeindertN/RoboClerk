@@ -260,14 +260,14 @@ MediaDirectory = "I:/temp/Roboclerk_input/media"
 		SoftwareRequirement.backwardLink = "Parent"
 
 		RiskAssessmentRecord.forward = ["Risk Control Measure"]
-		RiskAssessmentRecord.backward = ["Risk Control Requirement"]
+		RiskAssessmentRecord.backward = ["OPTIONAL"]
 		RiskAssessmentRecord.forwardLink = "DOC"
 		RiskAssessmentRecord.backwardLink = "DOC"
 
-		#Risk.forward = ["Risk Control Measure"]
-		#Risk.backward = ["Risk Control Requirement"]
-		#Risk.forwardLink = "Parent"
-		#Risk.backwardLink = "Child"
+		Risk.forward = ["Risk Control Measure"]
+		Risk.backward = ["OPTIONAL"]
+		Risk.forwardLink = "Related"
+		Risk.backwardLink = "Related"
 
 	[TraceConfig.SoftwareRequirement]
 		SoftwareRequirementsSpecification.forward = ["ALL"]
@@ -280,15 +280,16 @@ MediaDirectory = "I:/temp/Roboclerk_input/media"
 		SystemRequirement.forwardLink = "Parent"
 		SystemRequirement.backwardLink = "Child"
 
-		RiskAssessmentRecord.forward = ["Risk Control Measure"]
-		RiskAssessmentRecord.backward = ["Risk Control Specification"]
-		RiskAssessmentRecord.forwardLink = "DOC"
-		RiskAssessmentRecord.backwardLink = "DOC"
-
 		SoftwareSystemLevelTestPlan.forward = ["ALL"]
 		SoftwareSystemLevelTestPlan.backward = ["ALL"]
 		SoftwareSystemLevelTestPlan.forwardLink = "DOC"
 		SoftwareSystemLevelTestPlan.backwardLink = "DOC"
+	
+	[TraceConfig.Risk]
+		SystemRequirement.forward = ["ALL"]
+		SystemRequirement.backward = ["OPTIONAL"]
+		SystemRequirement.forwardLink = "Related"
+		SystemRequirement.backwardLink = "Related"
 
 # The following element can be used to take a snapshot as produced in a RoboClerk build
 # and rebuild the documentation without the use of any external datasources. It can also
@@ -299,8 +300,9 @@ MediaDirectory = "I:/temp/Roboclerk_input/media"
 [CheckpointConfiguration]
 
 # To use a checkpoint, indicate its fileName (without path). It must be located in the 
-# template dir.
-CheckpointFile = "DataSourceData.json"
+# template dir. If the checkpoint filename is an empty string, assume there is no checkpoint
+# file
+CheckpointFile = ""
 
 # For the following items, enter any IDs you want RoboClerk to pull from the normal
 # data sources. Could be new or updated. If the ID already exists in the checkPoint

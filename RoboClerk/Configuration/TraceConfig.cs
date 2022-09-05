@@ -39,7 +39,7 @@ namespace RoboClerk.Configuration
 
         public List<string> BackwardFilters
         {
-            get { return forwardFilters; }
+            get { return backwardFilters; }
         }
     }
 
@@ -68,7 +68,7 @@ namespace RoboClerk.Configuration
                 }
                 foreach (var element in (TomlArray)traceTarget["backward"])
                 {
-                    traces[doc.Key].AddForwardFilterString((string)element);
+                    traces[doc.Key].AddBackwardFilterString((string)element);
                 }
                 traces[doc.Key].ForwardLinkType = (string)traceTarget["forwardLink"];
                 traces[doc.Key].BackwardLinkType = (string)traceTarget["backwardLink"];

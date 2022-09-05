@@ -355,6 +355,11 @@ namespace RoboClerk.Redmine
             logger.Debug($"Creating risk item: {redmineItem.Id}");
             RiskItem riskItem = new RiskItem();
             riskItem.ItemCategory = "Unknown";
+            riskItem.ItemID = redmineItem.Id.ToString();
+            if (baseURL != "")
+            {
+                riskItem.Link = new Uri($"{baseURL}{riskItem.ItemID}");
+            }
             if (redmineItem.CustomFields.Count != 0)
             {
                 foreach (var field in redmineItem.CustomFields)
@@ -403,7 +408,6 @@ namespace RoboClerk.Redmine
             riskItem.FailureMode = redmineItem.Subject ?? String.Empty;
             riskItem.CauseOfFailure = redmineItem.Description ?? String.Empty;
             riskItem.RiskRevision = redmineItem.UpdatedOn.ToString() ?? String.Empty;
-            riskItem.ItemID = redmineItem.Id.ToString();
 
             return riskItem;
         }

@@ -106,6 +106,7 @@ namespace RoboClerk
             var documentTitle = ts.Target.Name;
             documentTraceIssues[documentTitle] = new List<TraceIssue>();
 
+            //Ensure there is at least an empty list of documentTraceLinks
             List<TraceLink> tls = null;
             if (!documentTraceLinks.ContainsKey(documentTitle))
             {
@@ -116,9 +117,15 @@ namespace RoboClerk
                 tls = documentTraceLinks[documentTitle];
             }
 
+            //go over all truthItems and find those linked to the document
             foreach (var req in truthItems)
             {
-                var foundLinks = from t in tls where (t.SourceID == req.ItemID && t.Source.Equals(tet)) select t;
+                //the source ID and the source type (e.g. SystemRequirement) need to match
+                IEnumerable<TraceLink> foundLinks = new List<TraceLink>();
+                if (ts.SelectedCategoriesForward.Count == 0 || ts.SelectedCategoriesForward.Contains(req.ItemCategory))
+                {
+                    foundLinks = from t in tls where (t.SourceID == req.ItemID && t.Source.Equals(tet)) select t;
+                }
                 if (foundLinks.Count() > 0)
                 {
                     List<Item> items = new List<Item>();
@@ -146,6 +153,7 @@ namespace RoboClerk
                     }
                 }
             }
+            //now we need to go over the tracelinks to see if trace in the other direction is ok as well
             foreach (var tl in tls) 
             {
                 if (tl.Source == tet)
@@ -198,9 +206,27 @@ namespace RoboClerk
                         var targetItems = data.GetItems(ts.Target);
                         foreach (var ti in truthItems)
                         {
-                            var linked = targetItems.FindAll(x => x.GetItemLinkType(ti) == ts.BackwardLink);
-                            result[ts.Target].Add(GetReqFamilyStrings(linked));
-                            AnalyzeTruthReqTrace(ti, linked, truth, ts.Target); //TODO: we can get more specific than this
+                            if (ts.SelectedCategoriesForward.Count == 0 || (ts.SelectedCategoriesForward.FindIndex(x => x == ti.ItemCategory) >= 0))
+                            {
+                                var linked = targetItems.FindAll(x => x.GetItemLinkType(ti) == ts.BackwardLink);
+                                if (ts.CompleteTraceForward && linked.Count == 0)
+                                {
+                                    // the trace should be complete but the link is not there, that means missing
+                                    result[ts.Target].Add(new List<Item>() { null });
+                                    // add a trace issue 
+                                    AnalyzeTruthReqTrace(ti, linked, truth, ts.Target);
+                                }
+                                else
+                                {
+                                    // a complete trace is not needed or we found linked items
+                                    result[ts.Target].Add(GetReqFamilyStrings(linked));
+                                }
+                            }
+                            else
+                            {
+                                //this is a N/A, selected categories do not match so link is not important
+                                result[ts.Target].Add(new List<Item>()); 
+                            }
                         }
                         continue;
                     }
@@ -225,11 +251,6 @@ namespace RoboClerk
         private List<Item> GetReqFamilyStrings(List<LinkedItem> family)
         {
             List<Item> result = new List<Item>();
-            if (family.Count == 0)
-            {
-                result.Add(null);
-                return result;
-            }
             foreach (var item in family)
             {
                 result.Add(item);
