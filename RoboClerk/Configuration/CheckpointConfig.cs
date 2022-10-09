@@ -14,6 +14,10 @@ namespace RoboClerk.Configuration
 
         public List<string> UpdatedSoftwareRequirementIDs { get; set; } = new List<string>();
 
+        public List<string> UpdatedDocumentationRequirementIDs { get; set; } = new List<string>();
+
+        public List<string> UpdatedDocContentIDs { get; set; } = new List<string>();
+
         public List<string> UpdatedSoftwareSystemTestIDs { get; set; } = new List<string>();
 
         public List<string> UpdatedSoftwareUnitTestIDs { get; set; } = new List<string>();
@@ -80,8 +84,20 @@ namespace RoboClerk.Configuration
                             UpdatedSOUPIDs.Add((string)id);
                         }
                         break;
+                    case "UpdatedDocumentationRequirementIDs":
+                        foreach (var docid in (TomlArray)val.Value)
+                        {
+                            UpdatedDocumentationRequirementIDs.Add((string)docid);
+                        }
+                        break;
+                    case "UpdatedDocContentIDs":
+                        foreach (var doccid in (TomlArray)val.Value)
+                        {
+                            UpdatedDocContentIDs.Add((string)doccid);
+                        }
+                        break;
                     default:
-                        throw new Exception($"Unknown CheckpointConfiguration item \"{val.Key}\" found, please check project ocnfiguration file.");
+                        throw new Exception($"Unknown CheckpointConfiguration item \"{val.Key}\" found, please check project configuration file.");
                 }
             }
         }

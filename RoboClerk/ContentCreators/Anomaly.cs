@@ -15,7 +15,7 @@ namespace RoboClerk.ContentCreators
             sb.AppendLine();
 
             sb.Append("| Revision: ");
-            sb.AppendLine(item.AnomalyRevision == string.Empty ? "| N/A" : $"| {item.AnomalyRevision}");
+            sb.AppendLine(item.ItemRevision == string.Empty ? "| N/A" : $"| {item.ItemRevision}");
             sb.AppendLine();
             
             sb.Append("| State: ");
@@ -30,8 +30,8 @@ namespace RoboClerk.ContentCreators
             sb.AppendLine(item.AnomalyTitle == string.Empty ? "| MISSING" : $"| {item.AnomalyTitle}");
             sb.AppendLine();
 
-            sb.Append("| Priority: ");
-            sb.AppendLine(item.AnomalyPriority == string.Empty ? "| N/A" : $"| {item.AnomalyPriority}");
+            sb.Append("| Severity: ");
+            sb.AppendLine(item.AnomalySeverity == string.Empty ? "| N/A" : $"| {item.AnomalySeverity}");
             sb.AppendLine();
 
             sb.AppendLine("| Justification: ");
@@ -44,20 +44,24 @@ namespace RoboClerk.ContentCreators
         {
             var anomalies = data.GetAllAnomalies();
             StringBuilder output = new StringBuilder();
+            var properties = typeof(AnomalyItem).GetProperties();
             foreach (var anomaly in anomalies)
             {
-                if (anomaly.AnomalyState == "Closed")
+                if (ShouldBeIncluded(tag, anomaly, properties) && CheckUpdateDateTime(tag,anomaly))
                 {
-                    continue; //skip closed bugs as they are no longer outstanding
-                }
-                try
-                {
-                    output.AppendLine(GenerateADoc(anomaly,analysis.GetTraceEntityForID("Anomaly")));
-                }
-                catch
-                {
-                    logger.Error($"An error occurred while rendering anomaly {anomaly.ItemID} in {doc.DocumentTitle}.");
-                    throw;
+                    if (anomaly.AnomalyState == "Closed")
+                    {
+                        continue; //skip closed bugs as they are no longer outstanding
+                    }
+                    try
+                    {
+                        output.AppendLine(GenerateADoc(anomaly, analysis.GetTraceEntityForID("Anomaly")));
+                    }
+                    catch
+                    {
+                        logger.Error($"An error occurred while rendering anomaly {anomaly.ItemID} in {doc.DocumentTitle}.");
+                        throw;
+                    }
                 }
             }
             if (anomalies.Count == 0)

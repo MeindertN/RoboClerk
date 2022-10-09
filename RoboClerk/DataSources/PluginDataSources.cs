@@ -122,6 +122,26 @@ namespace RoboClerk
             return items;
         }
 
+        public override List<RequirementItem> GetAllDocumentationRequirements()
+        {
+            List<RequirementItem> items = new List<RequirementItem>();
+            foreach (var plugin in slmsPlugins)
+            {
+                items.AddRange(plugin.GetDocumentationRequirements());
+            }
+            return items;
+        }
+
+        public override List<DocContentItem> GetAllDocContents()
+        {
+            List<DocContentItem> items = new List<DocContentItem>();
+            foreach (var plugin in slmsPlugins)
+            {
+                items.AddRange(plugin.GetDocContents());
+            }
+            return items;
+        }
+
         public override List<TestCaseItem> GetAllSoftwareSystemTests()
         {
             List<TestCaseItem> items = new List<TestCaseItem>();

@@ -7,6 +7,8 @@ namespace RoboClerk
         protected string id = string.Empty;
         protected string type = string.Empty;
         protected string category = string.Empty;
+        protected string revision = string.Empty;
+        protected DateTime lastUpdated = DateTime.MinValue;
         protected Uri link = null;
 
         public string ItemID
@@ -24,6 +26,18 @@ namespace RoboClerk
         public string ItemType
         {
             get => type;
+        }
+
+        public string ItemRevision
+        {
+            set => revision = value;
+            get => revision;
+        }
+
+        public DateTime ItemLastUpdated
+        {
+            get => lastUpdated;
+            set => lastUpdated = value;
         }
 
         public bool HasLink

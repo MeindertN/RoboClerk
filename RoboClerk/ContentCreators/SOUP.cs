@@ -115,7 +115,7 @@ namespace RoboClerk.ContentCreators
             sb.AppendLine();
 
             sb.Append($"| {sourceType.Name} Revision: ");
-            sb.AppendLine($"| {item.SOUPRevision}");
+            sb.AppendLine($"| {item.ItemRevision}");
             sb.AppendLine();
 
             sb.Append($"| {sourceType.Name} Name and Version: ");
@@ -185,7 +185,7 @@ namespace RoboClerk.ContentCreators
             }
             else foreach (var soup in soups)
             {
-                if (ShouldBeIncluded<SOUPItem>(tag, soup, properties))
+                if (ShouldBeIncluded<SOUPItem>(tag, soup, properties) && CheckUpdateDateTime(tag, soup))
                 {
                     foundSOUP = true;
                     try

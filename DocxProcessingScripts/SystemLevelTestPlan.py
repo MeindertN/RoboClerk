@@ -41,10 +41,12 @@ for table in document.tables:
             table.style = 'RoboClerk Standard'
     elif "Initial:" in table.columns[0].cells[0].text:
         table.rows[0].height = Inches(0.5)
-        table.columns[0].width = Inches(3.33)
-        table.columns[1].width = Inches(3.32)
-        table.columns[0].cells[0].width = Inches(3.33)
-        table.columns[1].cells[0].width = Inches(3.32)
+        table.columns[0].width = Inches(2.21)
+        table.columns[1].width = Inches(2.22)
+        table.columns[2].width = Inches(2.22)
+        table.columns[0].cells[0].width = Inches(2.21)
+        table.columns[1].cells[0].width = Inches(2.22)
+        table.columns[2].cells[0].width = Inches(2.22)
         table.style = 'RoboClerk Standard'
 
 document.save(outputFile)

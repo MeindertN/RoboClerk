@@ -1,4 +1,5 @@
-﻿using RoboClerk.Configuration;
+﻿using DocumentFormat.OpenXml.Drawing;
+using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +9,7 @@ using System.Text.Json;
 
 namespace RoboClerk
 {
-    public abstract class DataSourcesBase
+    public abstract class DataSourcesBase : IDataSources
     {
         private readonly IConfiguration configuration = null;
         private readonly IFileSystem fileSystem = null;
@@ -31,6 +32,10 @@ namespace RoboClerk
         public abstract List<RequirementItem> GetAllSoftwareRequirements();
 
         public abstract List<RequirementItem> GetAllSystemRequirements();
+
+        public abstract List<RequirementItem> GetAllDocumentationRequirements();
+
+        public abstract List<DocContentItem> GetAllDocContents();
 
         public abstract List<TestCaseItem> GetAllSoftwareSystemTests();
 
@@ -65,6 +70,14 @@ namespace RoboClerk
             else if (te.ID == "Anomaly")
             {
                 return GetAllAnomalies().Cast<LinkedItem>().ToList();
+            }
+            else if (te.ID == "DocumentationRequirement")
+            {
+                return GetAllDocumentationRequirements().Cast<LinkedItem>().ToList();
+            }
+            else if (te.ID == "DocContent")
+            {
+                return GetAllDocContents().Cast<LinkedItem>().ToList();
             }
             else
             {
@@ -102,6 +115,18 @@ namespace RoboClerk
             return reqs.Find(f => (f.ItemID == id));
         }
 
+        public RequirementItem GetDocumentationRequirement(string id)
+        {
+            var reqs = GetAllDocumentationRequirements();
+            return reqs.Find(f => (f.ItemID == id));
+        }
+
+        public DocContentItem GetDocContent(string id)
+        {
+            var items = GetAllDocContents();
+            return items.Find(f => (f.ItemID == id));
+        }
+
         public TestCaseItem GetSoftwareSystemTest(string id)
         {
             var items = GetAllSoftwareSystemTests();
@@ -126,6 +151,16 @@ namespace RoboClerk
             if ((idx = sreq.FindIndex(o => o.ItemID == id)) >= 0)
             {
                 return sreq[idx];
+            }
+            sreq = GetAllDocumentationRequirements();
+            if ((idx = sreq.FindIndex(o => o.ItemID == id)) >= 0)
+            {
+                return sreq[idx];
+            }
+            var dcont = GetAllDocContents();
+            if ((idx = dcont.FindIndex(o => o.ItemID == id)) >= 0)
+            {
+                return dcont[idx];
             }
             var tcase = GetAllSoftwareSystemTests();
             if ((idx = tcase.FindIndex(o => o.ItemID == id)) >= 0)
@@ -163,7 +198,7 @@ namespace RoboClerk
         public string GetTemplateFile(string fileName)
         {
             string fn = fileSystem.Path.GetFileName(fileName);
-            return fileSystem.File.ReadAllText(Path.Join(configuration.TemplateDir, fn));
+            return fileSystem.File.ReadAllText(fileSystem.Path.Join(configuration.TemplateDir, fn));
         }
 
         public Stream GetFileStreamFromTemplateDir(string fileName)

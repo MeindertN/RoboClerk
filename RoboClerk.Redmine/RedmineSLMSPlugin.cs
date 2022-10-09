@@ -10,19 +10,12 @@ using RoboClerk.Configuration;
 
 namespace RoboClerk.Redmine
 {
-    public class RedmineSLMSPlugin : ISLMSPlugin
+    public class RedmineSLMSPlugin : SLMSPluginBase
     {
-        private string name = string.Empty;
-        private string description = string.Empty;
-        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        private List<RequirementItem> systemRequirements = new List<RequirementItem>();
-        private List<RequirementItem> softwareRequirements = new List<RequirementItem>();
-        private List<TestCaseItem> testCases = new List<TestCaseItem>();
-        private List<AnomalyItem> bugs = new List<AnomalyItem>();
-        private List<RiskItem> risks = new List<RiskItem>();
-        private List<SOUPItem> soup = new List<SOUPItem>();
         private string prsTrackerName = string.Empty;
         private string srsTrackerName = string.Empty;
+        private string docTrackerName = string.Empty;
+        private string cntTrackerName = string.Empty;
         private string tcTrackerName = string.Empty;
         private string bugTrackerName = string.Empty;
         private string riskTrackerName = string.Empty;
@@ -41,50 +34,9 @@ namespace RoboClerk.Redmine
             description = "A plugin that can interrogate Redmine via its REST API to retrieve information needed by RoboClerk to create documentation.";
         }
 
-        public string Name
+        public override void Initialize(IConfiguration configuration)
         {
-            get => name;
-        }
-
-        public string Description
-        {
-            get => description;
-        }
-
-
-        public List<AnomalyItem> GetAnomalies()
-        {
-            return bugs;
-        }
-
-        public List<RequirementItem> GetSystemRequirements()
-        {
-            return systemRequirements;
-        }
-
-        public List<RequirementItem> GetSoftwareRequirements()
-        {
-            return softwareRequirements;
-        }
-
-        public List<TestCaseItem> GetSoftwareSystemTests()
-        {
-            return testCases;
-        }
-
-        public List<RiskItem> GetRisks()
-        {
-            return risks;
-        }
-
-        public List<SOUPItem> GetSOUP()
-        {
-            return soup;
-        }
-
-        public void Initialize(IConfiguration configuration)
-        {
-            logger.Info("Initializing the Redmine SLMS Plugin");
+            logger.Info($"Initializing {name}");
             var assembly = Assembly.GetAssembly(this.GetType());
             try
             {
@@ -94,29 +46,95 @@ namespace RoboClerk.Redmine
                     configFileLocation = Path.Combine(configuration.PluginConfigDir, "RedmineSLMSPlugin.toml");
                 }
                 var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
-                apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint",(string)config["RedmineAPIEndpoint"]);
+                apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", GetStringForKey(config,"RedmineAPIEndpoint",true));
                 client = new RestClient(apiEndpoint);
-                apiKey = configuration.CommandLineOptionOrDefault("RedmineAPIKey",(string)config["RedmineAPIKey"]);
-                projectName = configuration.CommandLineOptionOrDefault("RedmineProject",(string)config["RedmineProject"]);
-                prsTrackerName = configuration.CommandLineOptionOrDefault("SystemRequirement",(string)config["SystemRequirement"]);
-                srsTrackerName = configuration.CommandLineOptionOrDefault("SoftwareRequirement",(string)config["SoftwareRequirement"]);
-                tcTrackerName = configuration.CommandLineOptionOrDefault("SoftwareSystemTest",(string)config["SoftwareSystemTest"]);
-                bugTrackerName = configuration.CommandLineOptionOrDefault("Anomaly",(string)config["Anomaly"]);
-                riskTrackerName = configuration.CommandLineOptionOrDefault("Risk", (string)config["Risk"]);
-                soupTrackerName = configuration.CommandLineOptionOrDefault("SOUP", (string)config["SOUP"]);
+                apiKey = configuration.CommandLineOptionOrDefault("RedmineAPIKey", GetStringForKey(config,"RedmineAPIKey",true));
+                projectName = configuration.CommandLineOptionOrDefault("RedmineProject", GetStringForKey(config,"RedmineProject",true));
+                prsTrackerName = configuration.CommandLineOptionOrDefault("SystemRequirement", GetStringForKey(config,"SystemRequirement",false));
+                srsTrackerName = configuration.CommandLineOptionOrDefault("SoftwareRequirement", GetStringForKey(config,"SoftwareRequirement",false));
+                docTrackerName = configuration.CommandLineOptionOrDefault("DocumentationRequirement", GetStringForKey(config,"DocumentationRequirement",false));
+                cntTrackerName = configuration.CommandLineOptionOrDefault("DocContent", GetStringForKey(config, "DocContent", false));
+                tcTrackerName = configuration.CommandLineOptionOrDefault("SoftwareSystemTest", GetStringForKey(config,"SoftwareSystemTest",false));
+                bugTrackerName = configuration.CommandLineOptionOrDefault("Anomaly", GetStringForKey(config,"Anomaly",false));
+                riskTrackerName = configuration.CommandLineOptionOrDefault("Risk", GetStringForKey(config,"Risk",false));
+                soupTrackerName = configuration.CommandLineOptionOrDefault("SOUP", GetStringForKey(config,"SOUP",false));
+                baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL", GetStringForKey(config,"RedmineBaseURL",false));
 
-                if (config.ContainsKey("RedmineBaseURL"))
+                if (config.ContainsKey("Ignore"))
                 {
-                    baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL",(string)config["RedmineBaseURL"]);
+                    ignoreList = (TomlArray)config["Ignore"];
                 }
-
-                ignoreList = (TomlArray)config["Ignore"];
+                else
+                {
+                    logger.Warn($"Key \"Ignore\" missing from configuration file for {name}. Attempting to continue.");
+                }
             }
             catch (Exception e)
             {
-                logger.Error("Error reading configuration file for Redmine SLMS plugin.");
+                logger.Error($"Error reading configuration file for {name}.");
                 logger.Error(e);
-                throw new Exception("The redmine SLMS plugin could not read its configuration. Aborting...");
+                throw new Exception($"The {name} could not read its configuration. Aborting...");
+            }
+        }
+
+        public override void RefreshItems()
+        {
+            if (apiEndpoint == string.Empty || apiKey == string.Empty)
+            {
+                throw new Exception("No API endpoint or API key provided in configuration file.");
+            }
+
+            logger.Debug($"Retrieving the issues from the redmine server...");
+            var redmineIssues = PullAllIssuesFromServer(new List<string> { prsTrackerName, srsTrackerName, tcTrackerName,
+                                                                    bugTrackerName, riskTrackerName, soupTrackerName, docTrackerName, cntTrackerName });
+
+            foreach (var redmineIssue in redmineIssues)
+            {
+                if (ignoreList.Contains(redmineIssue.Status.Name))
+                {
+                    logger.Debug($"Ignoring redmine issue {redmineIssue.Id}");
+                    continue;
+                }
+                if (redmineIssue.Tracker.Name == prsTrackerName)
+                {
+                    logger.Debug($"System level requirement found: {redmineIssue.Id}");
+                    systemRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SystemRequirement));
+                }
+                else if (redmineIssue.Tracker.Name == srsTrackerName)
+                {
+                    logger.Debug($"Software level requirement found: {redmineIssue.Id}");
+                    softwareRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SoftwareRequirement));
+                }
+                else if (redmineIssue.Tracker.Name == tcTrackerName)
+                {
+                    logger.Debug($"Testcase found: {redmineIssue.Id}");
+                    testCases.Add(CreateTestCase(redmineIssues, redmineIssue));
+                }
+                else if (redmineIssue.Tracker.Name == bugTrackerName)
+                {
+                    logger.Debug($"Bug item found: {redmineIssue.Id}");
+                    bugs.Add(CreateBug(redmineIssue));
+                }
+                else if (redmineIssue.Tracker.Name == riskTrackerName)
+                {
+                    logger.Debug($"Risk item found: {redmineIssue.Id}");
+                    risks.Add(CreateRisk(redmineIssues, redmineIssue));
+                }
+                else if (redmineIssue.Tracker.Name == soupTrackerName)
+                {
+                    logger.Debug($"SOUP item found: {redmineIssue.Id}");
+                    soup.Add(CreateSOUP(redmineIssue));
+                }
+                else if (redmineIssue.Tracker.Name == docTrackerName)
+                {
+                    logger.Debug($"Documentation item found: {redmineIssue.Id}");
+                    documentationRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.DocumentationRequirement));
+                }
+                else if (redmineIssue.Tracker.Name == cntTrackerName)
+                {
+                    logger.Debug($"DocContent item found: {redmineIssue.Id}");
+                    docContents.Add(CreateDocContent(redmineIssue));
+                }
             }
         }
 
@@ -163,7 +181,8 @@ namespace RoboClerk.Redmine
             TestCaseItem resultItem = new TestCaseItem();
 
             resultItem.ItemID = rmItem.Id.ToString();
-            resultItem.TestCaseRevision = rmItem.UpdatedOn.ToString();
+            resultItem.ItemRevision = rmItem.UpdatedOn.ToString();
+            resultItem.ItemLastUpdated = (DateTime)rmItem.UpdatedOn;
             resultItem.TestCaseState = rmItem.Status.Name ?? string.Empty;
             resultItem.TestCaseTitle = rmItem.Subject ?? string.Empty;
             if (baseURL != "")
@@ -204,13 +223,42 @@ namespace RoboClerk.Redmine
             return resultItem;
         }
 
+        private DocContentItem CreateDocContent(RedmineIssue redmineItem)
+        {
+            logger.Debug($"Creating DocContent item: {redmineItem.Id}");
+            DocContentItem docContentItem = new DocContentItem();
+
+            docContentItem.ItemID = redmineItem.Id.ToString();
+            docContentItem.ItemRevision = redmineItem.UpdatedOn.ToString();
+            docContentItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
+            docContentItem.Contents = redmineItem.Description.ToString();
+            if (baseURL != "")
+            {
+                docContentItem.Link = new Uri($"{baseURL}{docContentItem.ItemID}");
+            }
+
+            if (redmineItem.CustomFields.Count != 0)
+            {
+                foreach (var field in redmineItem.CustomFields)
+                {
+                    if (field.Name == "Functional Area" && field.Value != null)
+                    {
+                        docContentItem.ItemCategory = ((System.Text.Json.JsonElement)field.Value).GetString();
+                    }
+                }
+            }
+            AddLinksToItem(redmineItem, docContentItem);
+            return docContentItem;
+        }
+
         private SOUPItem CreateSOUP(RedmineIssue rmItem)
         {
             logger.Debug($"Creating SOUP item: {rmItem.Id}");
             SOUPItem resultItem = new SOUPItem();
 
             resultItem.ItemID = rmItem.Id.ToString();
-            resultItem.SOUPRevision = rmItem.UpdatedOn.ToString();
+            resultItem.ItemRevision = rmItem.UpdatedOn.ToString();
+            resultItem.ItemLastUpdated = (DateTime)rmItem.UpdatedOn;
             resultItem.SOUPName = rmItem.Subject ?? string.Empty;
             if (baseURL != "")
             {
@@ -286,8 +334,9 @@ namespace RoboClerk.Redmine
       
             resultItem.ItemID = rmItem.Id.ToString();
             resultItem.AnomalyJustification = string.Empty;
-            resultItem.AnomalyPriority = string.Empty;
-            resultItem.AnomalyRevision = rmItem.UpdatedOn.ToString();
+            resultItem.AnomalySeverity = string.Empty;
+            resultItem.ItemRevision = rmItem.UpdatedOn.ToString();
+            resultItem.ItemLastUpdated = (DateTime)rmItem.UpdatedOn;
             resultItem.AnomalyState = rmItem.Status.Name ?? string.Empty;
             resultItem.AnomalyTitle = rmItem.Subject ?? string.Empty;
             if (baseURL != "")
@@ -297,57 +346,6 @@ namespace RoboClerk.Redmine
             AddLinksToItem(rmItem, resultItem);
 
             return resultItem;
-        }
-
-        public void RefreshItems()
-        {
-            if (apiEndpoint == string.Empty || apiKey == string.Empty)
-            {
-                throw new Exception("No API endpoint or API key provided in configuration file.");
-            }
-
-            logger.Debug($"Retrieving the issues from the redmine server...");
-            var redmineIssues = PullAllIssuesFromServer(new List<string> { prsTrackerName, srsTrackerName, tcTrackerName, 
-                                                                    bugTrackerName, riskTrackerName, soupTrackerName });
-
-            foreach (var redmineIssue in redmineIssues)
-            {
-                if (ignoreList.Contains(redmineIssue.Status.Name))
-                {
-                    logger.Debug($"Ignoring redmine issue {redmineIssue.Id}");
-                    continue;
-                }
-                if (redmineIssue.Tracker.Name == prsTrackerName)
-                {
-                    logger.Debug($"System level requirement found: {redmineIssue.Id}");
-                    systemRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SystemRequirement));
-                }
-                else if (redmineIssue.Tracker.Name == srsTrackerName)
-                {
-                    logger.Debug($"Software level requirement found: {redmineIssue.Id}");
-                    softwareRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SoftwareRequirement));
-                }
-                else if (redmineIssue.Tracker.Name == tcTrackerName)
-                {
-                    logger.Debug($"Testcase found: {redmineIssue.Id}");
-                    testCases.Add(CreateTestCase(redmineIssues,redmineIssue));
-                }
-                else if (redmineIssue.Tracker.Name == bugTrackerName)
-                {
-                    logger.Debug($"Bug item found: {redmineIssue.Id}");
-                    bugs.Add(CreateBug(redmineIssue));
-                }
-                else if(redmineIssue.Tracker.Name == riskTrackerName)
-                {
-                    logger.Debug($"Risk item found: {redmineIssue.Id}");
-                    risks.Add(CreateRisk(redmineIssues, redmineIssue));
-                }
-                else if(redmineIssue.Tracker.Name == soupTrackerName)
-                {
-                    logger.Debug($"SOUP item found: {redmineIssue.Id}");
-                    soup.Add(CreateSOUP(redmineIssue));
-                }
-            }
         }
 
         private RiskItem CreateRisk(List<RedmineIssue> issues, RedmineIssue redmineItem)
@@ -407,7 +405,8 @@ namespace RoboClerk.Redmine
             }
             riskItem.FailureMode = redmineItem.Subject ?? String.Empty;
             riskItem.CauseOfFailure = redmineItem.Description ?? String.Empty;
-            riskItem.RiskRevision = redmineItem.UpdatedOn.ToString() ?? String.Empty;
+            riskItem.ItemRevision = redmineItem.UpdatedOn.ToString() ?? String.Empty;
+            riskItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
 
             return riskItem;
         }
@@ -474,7 +473,8 @@ namespace RoboClerk.Redmine
 
             resultItem.RequirementDescription = redmineItem.Description ?? string.Empty;
             resultItem.ItemID = redmineItem.Id.ToString();
-            resultItem.RequirementRevision = redmineItem.UpdatedOn.ToString();
+            resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
+            resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
             resultItem.RequirementState = redmineItem.Status.Name ?? string.Empty;
             resultItem.RequirementTitle = redmineItem.Subject ?? string.Empty;
             resultItem.TypeOfRequirement = requirementType;
@@ -589,11 +589,6 @@ namespace RoboClerk.Redmine
                 issueList.AddRange(GetIssues(projectID, trackers[queryTracker]));
             }
             return issueList;
-        }
-
-        public List<UnitTestItem> GetUnitTests()
-        {
-            return new List<UnitTestItem>();
         }
     }
 }

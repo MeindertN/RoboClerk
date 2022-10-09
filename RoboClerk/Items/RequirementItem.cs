@@ -5,7 +5,8 @@ namespace RoboClerk
     public enum RequirementType
     {
         SystemRequirement,
-        SoftwareRequirement
+        SoftwareRequirement,
+        DocumentationRequirement
     };
     public class RequirementItem : LinkedItem
     {
@@ -13,7 +14,6 @@ namespace RoboClerk
         private string requirementState = string.Empty;
         private string requirementTitle = string.Empty;
         private string requirementDescription = string.Empty;
-        private string requirementRevision = string.Empty;
         private string requirementAssignee = string.Empty;
         public RequirementItem(RequirementType typeOfRequirement)
         {
@@ -60,12 +60,6 @@ namespace RoboClerk
         {
             get => requirementDescription;
             set => requirementDescription = value;
-        }
-
-        public string RequirementRevision
-        {
-            get => requirementRevision;
-            set => requirementRevision = value;
         }
     }
 }

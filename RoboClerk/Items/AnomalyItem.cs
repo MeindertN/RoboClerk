@@ -7,9 +7,8 @@ namespace RoboClerk
     {
         private string anomalyState = string.Empty;
         private string anomalyTitle = string.Empty;
-        private string anomalyRevision = string.Empty;
         private string anomalyAssignee = string.Empty;
-        private string anomalyPriority = string.Empty;
+        private string anomalySeverity = string.Empty;
         private string anomalyJustification = string.Empty;
 
         public AnomalyItem()
@@ -30,22 +29,16 @@ namespace RoboClerk
             set => anomalyTitle = value;
         }
 
-        public string AnomalyRevision
-        {
-            get => anomalyRevision;
-            set => anomalyRevision = value;
-        }
-
         public string AnomalyAssignee
         {
             get => anomalyAssignee;
             set => anomalyAssignee = value;
         }
 
-        public string AnomalyPriority
+        public string AnomalySeverity
         {
-            get => anomalyPriority;
-            set => anomalyPriority = value;
+            get => anomalySeverity;
+            set => anomalySeverity = value;
         }
 
         public string AnomalyJustification

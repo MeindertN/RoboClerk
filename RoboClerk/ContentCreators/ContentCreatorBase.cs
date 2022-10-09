@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using System;
 using System.Reflection;
 
 namespace RoboClerk.ContentCreators
@@ -25,5 +26,22 @@ namespace RoboClerk.ContentCreators
             }
             return true;
         }
+
+        protected bool CheckUpdateDateTime(RoboClerkTag tag, Item item)
+        {
+            foreach (var param in tag.Parameters)
+            {
+                if (param.Key.ToUpper() == "OLDERTHAN" && DateTime.Compare(item.ItemLastUpdated,Convert.ToDateTime(param.Value)) >= 0)
+                {
+                    return false;
+                }
+                if (param.Key.ToUpper() == "NEWERTHAN" && DateTime.Compare(item.ItemLastUpdated, Convert.ToDateTime(param.Value)) <= 0)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
     }
 }

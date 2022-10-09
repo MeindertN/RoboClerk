@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace RoboClerk
 {
-    public class CheckpointDataSources : DataSourcesBase, IDataSources
+    public class CheckpointDataSources : DataSourcesBase
     {
         private IConfiguration configuration = null;
         private IFileSystem fileSystem = null;
@@ -77,6 +77,34 @@ namespace RoboClerk
                 {
                     //item no longer exists, should remove from checkpoint data
                     dataStorage.RemoveSoftwareRequirement(softwareRequirementID);
+                }
+            }
+            foreach (var documentationRequirementID in checkpointConfig.UpdatedDocumentationRequirementIDs)
+            {
+                var documentationRequirement = pluginDatasource.GetSoftwareRequirement(documentationRequirementID);
+                if (documentationRequirement != null)
+                {
+                    //item still exists, update it
+                    dataStorage.UpdateDocumentationRequirement(documentationRequirement);
+                }
+                else
+                {
+                    //item no longer exists, should remove from checkpoint data
+                    dataStorage.RemoveDocumentationRequirement(documentationRequirementID);
+                }
+            }
+            foreach (var docContentID in checkpointConfig.UpdatedDocContentIDs)
+            {
+                var docContent = pluginDatasource.GetDocContent(docContentID);
+                if (docContent != null)
+                {
+                    //item still exists, update it
+                    dataStorage.UpdateDocContent(docContent);
+                }
+                else
+                {
+                    //item no longer exists, should remove from checkpoint data
+                    dataStorage.RemoveDocContent(docContentID);
                 }
             }
             foreach (var softwareSystemTestID in checkpointConfig.UpdatedSoftwareSystemTestIDs)
@@ -175,6 +203,16 @@ namespace RoboClerk
         public override List<RequirementItem> GetAllSystemRequirements()
         {
             return dataStorage.SystemRequirements;
+        }
+
+        public override List<RequirementItem> GetAllDocumentationRequirements()
+        {
+            return dataStorage.DocumentationRequirements;
+        }
+
+        public override List<DocContentItem> GetAllDocContents()
+        {
+            return dataStorage.DocContents;
         }
     }
 }

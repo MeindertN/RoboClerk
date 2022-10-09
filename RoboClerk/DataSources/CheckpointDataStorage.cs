@@ -6,11 +6,13 @@ namespace RoboClerk
     {
         private List<RequirementItem> systemRequirements = new List<RequirementItem>();
         private List<RequirementItem> softwareRequirements = new List<RequirementItem>();
+        private List<RequirementItem> documentationRequirements = new List<RequirementItem>();
         private List<RiskItem> risks = new List<RiskItem>();
         private List<SOUPItem> soups = new List<SOUPItem>();
         private List<TestCaseItem> softwareSystemTests = new List<TestCaseItem>();
         private List<UnitTestItem> unitTests = new List<UnitTestItem>();
         private List<AnomalyItem> anomalies = new List<AnomalyItem>();
+        private List<DocContentItem> docContents = new List<DocContentItem>();
 
         public List<RequirementItem> SystemRequirements 
         { 
@@ -33,6 +35,30 @@ namespace RoboClerk
             set
             {
                 softwareRequirements = value;
+            }
+        }
+
+        public List<RequirementItem> DocumentationRequirements
+        {
+            get
+            {
+                return documentationRequirements;
+            }
+            set
+            {
+                documentationRequirements = value;
+            }
+        }
+
+        public List<DocContentItem> DocContents
+        {
+            get 
+            { 
+                return docContents; 
+            }
+            set 
+            { 
+                docContents = value; 
             }
         }
 
@@ -124,6 +150,36 @@ namespace RoboClerk
             if (index >= 0)
             {
                 softwareRequirements.RemoveAt(index);
+            }
+        }
+
+        public void UpdateDocumentationRequirement(RequirementItem item)
+        {
+            RemoveDocumentationRequirement(item.ItemID);
+            documentationRequirements.Add(item);
+        }
+
+        public void RemoveDocumentationRequirement(string itemID)
+        {
+            int index = documentationRequirements.FindIndex(x => x.ItemID == itemID);
+            if (index >= 0)
+            {
+                documentationRequirements.RemoveAt(index);
+            }
+        }
+
+        public void UpdateDocContent(DocContentItem item)
+        {
+            RemoveDocContent(item.ItemID);
+            docContents.Add(item);
+        }
+
+        public void RemoveDocContent(string itemID)
+        {
+            int index = docContents.FindIndex(x => x.ItemID == itemID);
+            if (index >= 0)
+            {
+                docContents.RemoveAt(index);
             }
         }
 

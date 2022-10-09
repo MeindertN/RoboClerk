@@ -50,7 +50,7 @@ namespace RoboClerk.ContentCreators
             sb.AppendLine();
 
             sb.Append("| *Test Case Revision:* ");
-            sb.AppendLine($"| {(item.TestCaseRevision==string.Empty ? "N/A" : item.TestCaseRevision)}");
+            sb.AppendLine($"| {(item.ItemRevision==string.Empty ? "N/A" : item.ItemRevision)}");
             sb.AppendLine();
             
             sb.Append("| *Parent ID:* ");
@@ -83,7 +83,8 @@ namespace RoboClerk.ContentCreators
                 sb.AppendLine();
                 sb.AppendLine("|====");
                 sb.Append("| Initial: ");
-                sb.AppendLine("| Date: ");
+                sb.Append("| Date: ");
+                sb.AppendLine("| Asset ID: ");
                 sb.AppendLine("|====");
             }
             
@@ -127,7 +128,7 @@ namespace RoboClerk.ContentCreators
             var properties = typeof(TestCaseItem).GetProperties();
             foreach (var test in systemTests)
             {
-                if (ShouldBeIncluded(tag, test, properties))
+                if (ShouldBeIncluded(tag, test, properties) && CheckUpdateDateTime(tag, test))
                 {
                     testCaseFound = true;
                     try

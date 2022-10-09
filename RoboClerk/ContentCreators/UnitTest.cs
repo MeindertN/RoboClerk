@@ -36,9 +36,9 @@ namespace RoboClerk.ContentCreators
             string tempID = item.HasLink ? $"{item.Link}[{item.ItemID}]" : $"{item.ItemID} ";
             sb.AppendLine($"| *{name} ID* | {tempID}");
             sb.AppendLine();
-            if (item.UnitTestRevision != string.Empty)
+            if (item.ItemRevision != string.Empty)
             {
-                sb.AppendLine($"| *Revision* | {item.UnitTestRevision}");
+                sb.AppendLine($"| *Revision* | {item.ItemRevision}");
                 sb.AppendLine();
             }
             if(item.LinkedItems.Count() != 0)
@@ -80,7 +80,7 @@ namespace RoboClerk.ContentCreators
             }
             else foreach (var test in unitTests)
             {
-                if (ShouldBeIncluded(tag, test, properties))
+                if (ShouldBeIncluded(tag, test, properties) && CheckUpdateDateTime(tag, test))
                 {
                     unitTestFound = true;
                     try

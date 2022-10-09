@@ -17,8 +17,6 @@ namespace RoboClerk
         private int modifiedOccScore = int.MaxValue;
         private int modifiedDetScore = int.MaxValue;
 
-        private string riskRevision = string.Empty;
-
         public RiskItem()
         {
             type = "Risk";
@@ -89,12 +87,6 @@ namespace RoboClerk
         {
             get { return modifiedDetScore; }
             set { modifiedDetScore = value; }
-        }
-
-        public string RiskRevision
-        {
-            get { return riskRevision; }
-            set { riskRevision = value; }
         }
     }
 }

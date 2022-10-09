@@ -8,7 +8,6 @@ namespace RoboClerk.ContentCreators
     abstract class TraceabilityMatrixBase : IContentCreator
     {
         protected TraceEntity truthSource = null;
-        protected TraceEntity truthTarget = null;
 
         public TraceabilityMatrixBase()
         {
@@ -79,7 +78,7 @@ namespace RoboClerk.ContentCreators
             {
                 traceIssuesFound = true;
                 Item item = data.GetItem(issue.SourceID);
-                matrix.AppendLine($". {truthSource.Name} {(item.HasLink ? $"{item.Link}[{item.ItemID}]" : item.ItemID)} is potentially missing a corresponding {truthTarget.Name}.");
+                matrix.AppendLine($". {truthSource.Name} {(item.HasLink ? $"{item.Link}[{item.ItemID}]" : item.ItemID)} is potentially missing a corresponding {issue.Target.Name}.");
             }
 
             foreach (var tet in traceMatrix)

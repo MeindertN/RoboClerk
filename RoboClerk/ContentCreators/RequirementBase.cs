@@ -25,7 +25,7 @@ namespace RoboClerk.ContentCreators
             sb.AppendLine();
             
             sb.Append($"| {sourceType.Name} Revision: ");
-            sb.AppendLine($"| {item.RequirementRevision}");
+            sb.AppendLine($"| {item.ItemRevision}");
             sb.AppendLine();
             
             sb.Append($"| {sourceType.Name} Category: ");
@@ -82,7 +82,7 @@ namespace RoboClerk.ContentCreators
             var properties = typeof(RequirementItem).GetProperties();
             foreach (var requirement in requirements)
             {
-                if (ShouldBeIncluded(tag, requirement, properties))
+                if (ShouldBeIncluded(tag, requirement, properties) && CheckUpdateDateTime(tag, requirement))
                 {
                     foundRequirement = true;
                     try

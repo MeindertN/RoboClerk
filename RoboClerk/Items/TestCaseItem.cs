@@ -8,8 +8,8 @@ namespace RoboClerk
         private string testCaseState = "";
         private string testCaseTitle = "";
         private string testCaseDescription = "";
-        private string testCaseRevision = "";
         private bool testCaseAutomated = false;
+        private bool testCaseToUnitTest = false;
         private List<string[]> testCaseSteps = new List<string[]>();
         public TestCaseItem()
         {
@@ -35,12 +35,6 @@ namespace RoboClerk
             set => testCaseDescription = value;
         }
 
-        public string TestCaseRevision
-        {
-            get => testCaseRevision;
-            set => testCaseRevision = value;
-        }
-
         public List<string[]> TestCaseSteps
         {
             get => testCaseSteps;
@@ -53,6 +47,11 @@ namespace RoboClerk
             set => testCaseAutomated = value;
         }
 
+        public bool TestCaseToUnitTest
+        {
+            get => testCaseToUnitTest;
+            set => testCaseToUnitTest = value;
+        }
     }
 }
 

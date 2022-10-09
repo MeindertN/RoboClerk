@@ -162,7 +162,6 @@ namespace RoboClerk
             get => tagEnd;
         }
 
-
         private void ProcessRoboClerkContainerInlineTag(int startIndex, int endIndex, string rawDocument)
         {
             tagStart = startIndex;

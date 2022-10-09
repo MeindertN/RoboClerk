@@ -27,6 +27,10 @@ namespace RoboClerk.ContentCreators
             {
                 return doc.RoboClerkID;
             }
+            else if(tag.ContentCreatorID.ToUpper() == "GENDATETIME")
+            {
+                return DateTime.Now.ToString("yyyy/MM/dd HH:mm");
+            }
             throw new Exception($"RoboClerk did not know how to handle the document tag: \"{tag.Source}:{tag.ContentCreatorID}\" in \"{doc.RoboClerkID}\".");
         }
     }

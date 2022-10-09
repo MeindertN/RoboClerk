@@ -9,7 +9,6 @@ namespace RoboClerk
         private bool soupLinkedLib = false;
         private string soupDetailedDescription = string.Empty;
         private string soupAnomalyListDescription = string.Empty;
-        private string soupRevision = string.Empty;
         private string soupEnduserTraining = string.Empty;
         private string soupLicense = string.Empty;
         private bool soupInstalledByUser = false;
@@ -53,12 +52,6 @@ namespace RoboClerk
         {
             get { return soupAnomalyListDescription; }
             set { soupAnomalyListDescription = value; }
-        }
-
-        public string SOUPRevision
-        {
-            get { return soupRevision; }
-            set { soupRevision = value; }
         }
 
         public string SOUPEnduserTraining
