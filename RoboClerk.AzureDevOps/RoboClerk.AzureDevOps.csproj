@@ -34,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Configuration\AzureDevOpsPlugin.toml">
+    <None Update="Configuration\AzureDevOpsSLMSPlugin.toml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -44,7 +44,7 @@
 		</ItemGroup>
 
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/AzureDevOpsPlugin.toml" DestinationFolder="$(ProjectDir)../publish/plugins/Configuration" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/AzureDevOpsSLMSPlugin.toml" DestinationFolder="$(ProjectDir)../publish/plugins/Configuration" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AzureDevOps.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AzureDevOps.deps.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
 	</Target>

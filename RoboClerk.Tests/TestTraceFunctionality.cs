@@ -6,6 +6,7 @@ using Tomlyn.Model;
 using System;
 using System.Linq;
 using NSubstitute.Extensions;
+using System.Runtime.InteropServices;
 
 namespace RoboClerk.Tests
 {
@@ -191,6 +192,8 @@ namespace RoboClerk.Tests
 
         private List<RequirementItem> SYSs = null;
         private List<RequirementItem> SWRs = null;
+        private List<RequirementItem> DOCs = null;
+        private List<DocContentItem> DOCCTs = null;
         private List<TestCaseItem> TCs = null;
         private List<AnomalyItem> ANOMALYs = null;
         private List<UnitTestItem> UTs = null;
@@ -251,10 +254,27 @@ namespace RoboClerk.Tests
             RISKs[0].DetectabilityScore = 100;
             RISKs[0].CauseOfFailure = "RISK_cause1";
             RISKs[0].ItemID = "RISK_id1";
+            RISKs[0].AddLinkedItem(new ItemLink("DOC_id1", ItemLinkType.Related));
             RISKs[1].DetectabilityScore = 200;
             RISKs[1].CauseOfFailure = "RISK_cause2";
             RISKs[1].ItemID = "RISK_id2";
             mockPlugin.GetRisks().Returns(RISKs);
+            DOCs = new List<RequirementItem> { new RequirementItem(RequirementType.DocumentationRequirement), new RequirementItem(RequirementType.DocumentationRequirement) };
+            DOCs[0].RequirementTitle = "DOC_TestTitle1";
+            DOCs[0].ItemID = "DOC_id1";
+            DOCs[0].AddLinkedItem(new ItemLink(RISKs[0].ItemID, ItemLinkType.Related));
+            DOCs[0].AddLinkedItem(new ItemLink("DOCCT_id2", ItemLinkType.Child));
+            DOCs[1].RequirementTitle = "DOC_TestTitle2";
+            DOCs[1].ItemID = "DOC_id2";
+            DOCs[1].ItemCategory = "CategoryName";
+            mockPlugin.GetDocumentationRequirements().Returns(DOCs);
+            DOCCTs = new List<DocContentItem> { new DocContentItem(), new DocContentItem() };
+            DOCCTs[0].Contents = "DOCCT_Contents1";
+            DOCCTs[0].ItemID = "DOCCT_id1";
+            DOCCTs[1].Contents = "DOCCT_Contents2";
+            DOCCTs[1].ItemID = "DOCCT_id2";
+            DOCCTs[1].AddLinkedItem(new ItemLink(DOCs[0].ItemID, ItemLinkType.Parent));
+            mockPlugin.GetDocContents().Returns(DOCCTs);
         }
 
 

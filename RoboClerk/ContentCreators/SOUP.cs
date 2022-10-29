@@ -94,7 +94,7 @@ namespace RoboClerk.ContentCreators
 
             foreach (var item in items)
             {
-                if (ShouldBeIncluded<SOUPItem>(tag, item, properties))
+                if (ShouldBeIncluded<SOUPItem>(tag, item, properties) && CheckUpdateDateTime(tag, item))
                 {
                     sb.Append(item.HasLink ? $"| {item.Link}[{item.ItemID}]" : $"| {item.ItemID} ");
                     sb.AppendLine($"| {item.SOUPName} {item.SOUPVersion}");

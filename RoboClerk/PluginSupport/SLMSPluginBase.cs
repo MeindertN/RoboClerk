@@ -1,15 +1,9 @@
-﻿using RoboClerk.Configuration;
-using System;
-using System.Collections.Generic;
-using Tomlyn.Model;
+﻿using System.Collections.Generic;
 
 namespace RoboClerk
 {
-    public abstract class SLMSPluginBase : ISLMSPlugin
+    public abstract class SLMSPluginBase : PluginBase, ISLMSPlugin
     {
-        protected string name = string.Empty;
-        protected string description = string.Empty;
-        protected static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         protected List<RequirementItem> systemRequirements = new List<RequirementItem>();
         protected List<RequirementItem> softwareRequirements = new List<RequirementItem>();
         protected List<RequirementItem> documentationRequirements = new List<RequirementItem>();
@@ -18,17 +12,6 @@ namespace RoboClerk
         protected List<RiskItem> risks = new List<RiskItem>();
         protected List<SOUPItem> soup = new List<SOUPItem>();
         protected List<DocContentItem> docContents = new List<DocContentItem>(); 
-
-        public string Name
-        {
-            get => name;
-        }
-
-        public string Description
-        {
-            get => description;
-        }
-
 
         public List<AnomalyItem> GetAnomalies()
         {
@@ -75,28 +58,6 @@ namespace RoboClerk
             return new List<UnitTestItem>();
         }
 
-        protected string GetStringForKey(TomlTable config, string keyName, bool required)
-        {
-            string result = string.Empty;
-            if (config.ContainsKey(keyName))
-            {
-                return (string)config[keyName];
-            }
-            else
-            {
-                if (required)
-                {
-                    throw new Exception($"Required key \"{keyName}\" missing from configuration file for {name}. Cannot continue.");
-                }
-                else
-                {
-                    logger.Warn($"Key \\\"{keyName}\\\" missing from configuration file for {name}. Attempting to continue.");
-                    return string.Empty;
-                }
-            }
-        }
-
         public abstract void RefreshItems();
-        public abstract void Initialize(IConfiguration config);
     }
 }

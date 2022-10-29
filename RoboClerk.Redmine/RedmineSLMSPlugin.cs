@@ -1,10 +1,7 @@
 ﻿using RestSharp;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using Tomlyn;
 using Tomlyn.Model;
 using RoboClerk.Configuration;
 
@@ -36,16 +33,9 @@ namespace RoboClerk.Redmine
 
         public override void Initialize(IConfiguration configuration)
         {
-            logger.Info($"Initializing {name}");
-            var assembly = Assembly.GetAssembly(this.GetType());
             try
             {
-                var configFileLocation = $"{Path.GetDirectoryName(assembly?.Location)}/Configuration/RedmineSLMSPlugin.toml";
-                if (configuration.PluginConfigDir != string.Empty)
-                {
-                    configFileLocation = Path.Combine(configuration.PluginConfigDir, "RedmineSLMSPlugin.toml");
-                }
-                var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
+                var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
                 apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", GetStringForKey(config,"RedmineAPIEndpoint",true));
                 client = new RestClient(apiEndpoint);
                 apiKey = configuration.CommandLineOptionOrDefault("RedmineAPIKey", GetStringForKey(config,"RedmineAPIKey",true));
@@ -77,6 +67,15 @@ namespace RoboClerk.Redmine
             }
         }
 
+        private List<string> GetTrackerList()
+        {
+            var result = new List<string> { prsTrackerName, srsTrackerName, tcTrackerName,
+                                            bugTrackerName, riskTrackerName, soupTrackerName,
+                                            docTrackerName, cntTrackerName };
+            result.RemoveAll(x => x == string.Empty );
+            return result;
+        }
+
         public override void RefreshItems()
         {
             if (apiEndpoint == string.Empty || apiKey == string.Empty)
@@ -85,8 +84,7 @@ namespace RoboClerk.Redmine
             }
 
             logger.Debug($"Retrieving the issues from the redmine server...");
-            var redmineIssues = PullAllIssuesFromServer(new List<string> { prsTrackerName, srsTrackerName, tcTrackerName,
-                                                                    bugTrackerName, riskTrackerName, soupTrackerName, docTrackerName, cntTrackerName });
+            var redmineIssues = PullAllIssuesFromServer(GetTrackerList());
 
             foreach (var redmineIssue in redmineIssues)
             {
@@ -201,7 +199,8 @@ namespace RoboClerk.Redmine
                         var value = (System.Text.Json.JsonElement)field.Value;
                         if (field.Name == "Test Method")
                         {
-                            resultItem.TestCaseAutomated = (value.GetString() == "Automated");
+                            resultItem.TestCaseAutomated = (value.GetString() == "Automated") || (value.GetString() == "Unit Tested");
+                            resultItem.TestCaseToUnitTest = (value.GetString() == "Unit Tested");
                         }
                     }
                 }

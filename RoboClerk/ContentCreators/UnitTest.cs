@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,7 +17,7 @@ namespace RoboClerk.ContentCreators
 
             foreach (var item in unitTests)
             {
-                if (ShouldBeIncluded<UnitTestItem>(tag, item, properties))
+                if (ShouldBeIncluded<UnitTestItem>(tag, item, properties) && CheckUpdateDateTime(tag, item))
                 {
                     sb.Append(item.HasLink ? $"| {item.Link}[{item.ItemID}]" : $"| {item.ItemID} ");
                     sb.AppendLine($"| {item.UnitTestPurpose} | {item.UnitTestAcceptanceCriteria}");
@@ -39,6 +40,11 @@ namespace RoboClerk.ContentCreators
             if (item.ItemRevision != string.Empty)
             {
                 sb.AppendLine($"| *Revision* | {item.ItemRevision}");
+                sb.AppendLine();
+            }
+            if (item.ItemLastUpdated != DateTime.MinValue)
+            {
+                sb.AppendLine($"| *Last Updated* | {item.ItemLastUpdated.ToString("yyyy/MM/dd HH:mm:ss")}");
                 sb.AppendLine();
             }
             if(item.LinkedItems.Count() != 0)

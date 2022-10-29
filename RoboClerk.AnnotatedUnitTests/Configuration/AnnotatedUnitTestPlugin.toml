@@ -1,0 +1,69 @@
+﻿# This is the RoboClerk Annotated Unit Test analysis plugin. Using this plugin,
+# information can be extracted from the unit test source code files. This plugin 
+# assumes that the test plan can be created from information extracted from the
+# function annotation. This plugin is general enough to be configure for use with
+# annotations/attributes/decorations in languages like C#, Java, Python etc.
+# Note that RoboClerk has a UnitTestAttribute class that works well with this 
+# plugin.
+
+# Directories where RoboClerk should search for unit tests
+
+TestDirectories = ["I:\\code\\RoboClerk\\RoboClerk.Tests"]
+
+# set to true to include subdirs 
+
+SubDirs = true
+
+# Set the filemasks that will be used to match files
+
+FileMasks = ["Test*.cs"]
+
+# Use git to determine the version and time of last update for a given unit test
+# file. Be careful enabling this because if files are not in a git repository 
+# this will cause errors.
+
+UseGit = true
+
+# String that marks the beginning of the annotation (e.g. "[NameOfAttribute" for C#)
+
+DecorationMarker = "[UnitTestAttribute"
+
+# String that marks the beginning of the parameter section of the annotation (e.g. "(" for C#)
+# Note that parameter here means one or more of: parameterName = "string value of the parameter" 
+
+ParameterStartDelimiter = "("
+
+# String that marks the end of the parameter section of the annotation (e.g. ")" for C#)
+
+ParameterEndDelimiter = ")"
+
+# String that seperates parameters from each other (e.g. "," for C#)
+
+ParameterSeparator = ","
+
+# This plugin supports extracting the following information:
+# Purpose		= the setup for the test, usually a short description
+# PostCondition = the successful (expected) postcondition for the test
+# Identifier	= a unique identifier for the unit test, if no unique identifier
+#                 is supplied, Roboclerk will generate one based on the filename
+#                 and line number of the test.
+# TraceID		= a traceable link from this test to a trace entity (i.e. the
+#				  trace entity's ItemID)
+
+[Purpose]
+	Keyword = "Purpose"
+	Optional = false
+
+[PostCondition]
+	Keyword = "PostCondition"
+	Optional = false
+
+[Identifier]
+	Keyword = "Identifier"
+	Optional = true
+
+[TraceID]
+	Keyword = "TraceID"
+	Optional = true
+
+

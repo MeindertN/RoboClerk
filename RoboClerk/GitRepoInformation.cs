@@ -82,7 +82,17 @@ namespace RoboClerk
                 return (cId != pId);
             });
 
-            return repo.Commits.Where(filter).OrderByDescending(c => c.Author.When).FirstOrDefault();
+            var commits = repo.Commits.Where(filter).OrderByDescending(c => c.Author.When);
+            //return the one that is most recent and only has a single parent
+            foreach(var commit in commits)
+            {
+                if (commit.Parents?.Count() < 2)
+                {
+                    return commit;
+                }
+            }
+            //could not find the commit
+            return null;
         }
 
         private void FileUnderProjectRoot(string filename)

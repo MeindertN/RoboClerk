@@ -2,18 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using Tomlyn;
 using Tomlyn.Model;
 
 namespace RoboClerk.DependenciesFile
 {
-    public class DependenciesFilePlugin : IDependencyManagementPlugin
+    public class DependenciesFilePlugin : PluginBase, IDependencyManagementPlugin
     {
-        private string name = string.Empty;
-        private string description = string.Empty;
-        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-
         private List<string> fileLocations = new List<string>();
         private List<string> fileFormats = new List<string>();
 
@@ -25,27 +19,17 @@ namespace RoboClerk.DependenciesFile
             description = "A plugin that retrieves project dependencies via one or more files.";
         }
 
-        public string Name => name;
-
-        public string Description => description;
-
         public List<ExternalDependency> GetDependencies()
         {
             return externalDependencies;
         }
 
-        public void Initialize(IConfiguration configuration)
+        public override void Initialize(IConfiguration configuration)
         {
             logger.Info("Initializing the Dependencies Files Plugin");
-            var assembly = Assembly.GetAssembly(this.GetType());
             try
             {
-                var configFileLocation = $"{Path.GetDirectoryName(assembly?.Location)}/Configuration/DependenciesFilePlugin.toml";
-                if (configuration.PluginConfigDir != string.Empty)
-                {
-                    configFileLocation = Path.Combine(configuration.PluginConfigDir, "DependenciesFilePlugin.toml");
-                }
-                var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
+                var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
                 foreach( var item in (TomlArray)config["FileLocations"])
                 {
                     fileLocations.Add((string)item);
@@ -105,7 +89,7 @@ namespace RoboClerk.DependenciesFile
                     }
                     if (version.Contains("->"))
                     {
-                        version = version.Split("->")[1].Trim();
+                        version = version.Split("->")[0].Trim();
                         conflict = true;
                     }
                     externalDependencies.Add(new ExternalDependency($"{elements[0]}:{elements[1]}",version, conflict));

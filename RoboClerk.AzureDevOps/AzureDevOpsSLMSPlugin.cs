@@ -29,15 +29,9 @@ namespace RoboClerk.AzureDevOps
         public override void Initialize(IConfiguration configuration)
         {
             logger.Info("Initializing the Azure DevOps SLMS Plugin");
-            var assembly = Assembly.GetAssembly(this.GetType());
             try
             {
-                var configFileLocation = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/AzureDevOpsPlugin.toml";
-                if (configuration.PluginConfigDir != string.Empty)
-                {
-                    configFileLocation = Path.Combine(configuration.PluginConfigDir, "AzureDevOpsPlugin.toml");
-                }
-                var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
+                var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
                 organizationName = configuration.CommandLineOptionOrDefault("OrganizationName",(string)config["OrganizationName"]);
                 projectName = configuration.CommandLineOptionOrDefault("ProjectName",(string)config["ProjectName"]);
                 witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, 

@@ -8,7 +8,7 @@
 	  <EnableDynamicLoading>true</EnableDynamicLoading>
 	  <Authors>Meindert Niemeijer</Authors>
 	  <Company>RoboClerk Project</Company>
-	  <Product>Unit Test FN plugin</Product>
+	  <Product>Annotated Unit Test plugin</Product>
 	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 	  <Configurations>Debug;Release;ReleasePublish</Configurations>
   </PropertyGroup>
@@ -25,7 +25,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="Configuration\UnitTestFNPlugin.toml">
+		<None Update="Configuration\AnnotatedUnitTestPlugin.toml">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
@@ -35,9 +35,9 @@
 		</ItemGroup>
 
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/UnitTestFNPlugin.toml" DestinationFolder="$(ProjectDir)../publish/plugins/Configuration" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.UnitTestFN.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.UnitTestFN.deps.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/AnnotatedUnitTestPlugin.toml" DestinationFolder="$(ProjectDir)../publish/plugins/Configuration" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AnnotatedUnitTests.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AnnotatedUnitTests.deps.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
 	</Target>
 
 </Project>

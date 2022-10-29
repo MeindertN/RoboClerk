@@ -3,27 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
-using Tomlyn;
-using Tomlyn.Model;
 
 namespace RoboClerk.SourceCode
 {
-    public class UnitTestFNPlugin : ISourceCodeAnalysisPlugin
+    public class UnitTestFNPlugin : SourceCodeAnalysisPluginBase 
     {
-        private string name = string.Empty;
-        private string description = string.Empty;
-        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        private List<string> testDirectories = new List<string>();
-        private bool subDir = false;
-        private List<string> fileMasks = new List<string>();
         private string testFunctionDecoration = string.Empty;
         private List<string> functionMaskElements = new List<string>();
-        private List<string> sourceFiles = new List<string>();
-        private string sectionSeparator = string.Empty;        
-
-        private List<UnitTestItem> unitTests = new List<UnitTestItem>();
+        private string sectionSeparator = string.Empty;
 
         public UnitTestFNPlugin()
         {
@@ -31,44 +19,19 @@ namespace RoboClerk.SourceCode
             description = "A plugin that analyzes a project's source code to extract unit test information for RoboClerk.";
         }
 
-        public string Name => name;
-
-        public string Description => description;
-
-        public List<UnitTestItem> GetUnitTests()
-        {
-            return unitTests;
-        }
-
-        public void Initialize(IConfiguration configuration)
+        public override void Initialize(IConfiguration configuration)
         {
             logger.Info("Initializing the Unit Test Function Name Plugin");
-            var assembly = Assembly.GetAssembly(this.GetType());
             try
             {
-                var configFileLocation = $"{Path.GetDirectoryName(assembly?.Location)}/Configuration/UnitTestFNPlugin.toml";
-                if (configuration.PluginConfigDir != string.Empty)
-                {
-                    configFileLocation = Path.Combine(configuration.PluginConfigDir, "UnitTestFNPlugin.toml");
-                }
-                var config = Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
-
-                subDir = (bool)config["SubDirs"]; 
-                testFunctionDecoration = configuration.CommandLineOptionOrDefault("TestFunctionDecoration", (string)config["TestFunctionDecoration"]); 
-                var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", (string)config["FunctionMask"]);
+                base.Initialize(configuration);
+                var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
+                                
+                testFunctionDecoration = configuration.CommandLineOptionOrDefault("TestFunctionDecoration", GetStringForKey(config,"TestFunctionDecoration",false)); 
+                var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", GetStringForKey(config,"FunctionMask",true));
                 functionMaskElements = ParseFunctionMask(functionMask);
                 ValidateFunctionMaskElements(functionMaskElements);
-                sectionSeparator = configuration.CommandLineOptionOrDefault("SectionSeparator", (string)config["SectionSeparator"]);
-
-                foreach (var obj in (TomlArray)config["TestDirectories"])
-                {
-                    testDirectories.Add((string)obj);
-                }
-
-                foreach (var obj in (TomlArray)config["FileMasks"])
-                {
-                    fileMasks.Add((string)obj);
-                }
+                sectionSeparator = configuration.CommandLineOptionOrDefault("SectionSeparator", GetStringForKey(config,"SectionSeparator",true));
             }
             catch (Exception e)
             {
@@ -76,32 +39,7 @@ namespace RoboClerk.SourceCode
                 logger.Error(e);
                 throw new Exception("The Unit Test FN plugin could not read its configuration. Aborting...");
             }
-            sourceFiles.Clear();
             ScanDirectoriesForSourceFiles();
-        }
-
-        private void ScanDirectoriesForSourceFiles()
-        {
-            foreach(var testDirectory in testDirectories)
-            {
-                DirectoryInfo dir = new DirectoryInfo(testDirectory);
-                try
-                {
-                    foreach (var fileMask in fileMasks)
-                    {
-                        FileInfo[] files = dir.GetFiles(fileMask, subDir ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-                        foreach(var file in files)
-                        {
-                            sourceFiles.Add(file.FullName);
-                        }
-                    }
-                }
-                catch
-                {
-                    logger.Error($"Error reading directory {testDirectory}");
-                    throw;
-                }
-            }
         }
 
         private List<string> ParseFunctionMask(string functionMask)
@@ -252,7 +190,8 @@ namespace RoboClerk.SourceCode
         {
             var unitTest = new UnitTestItem();
             bool identified = false;
-            foreach(var el in els)
+            string shortFileName = Path.GetFileName(fileName);
+            foreach (var el in els)
             {
                 switch(el.Item1.ToUpper())
                 {
@@ -266,7 +205,23 @@ namespace RoboClerk.SourceCode
             }
             if(!identified)
             {
-                unitTest.ItemID = $"{fileName}:{lineNumber}";
+                unitTest.ItemID = $"{shortFileName}:{lineNumber}";
+            }
+            if(gitInfo != null && !gitInfo.GetFileLocallyUpdated(fileName))
+            {
+                //if gitInfo is not null, this means some item data elements should be collected through git
+                unitTest.ItemLastUpdated = gitInfo.GetFileLastUpdated(fileName);
+                unitTest.ItemRevision = gitInfo.GetFileVersion(fileName);
+            }
+            else
+            {
+                //the last time the local file was updated is our best guess
+                unitTest.ItemLastUpdated = File.GetLastWriteTime(fileName); 
+                unitTest.ItemRevision = File.GetLastWriteTime(fileName).ToString("yyyy/MM/dd HH:mm:ss");
+            }
+            if (unitTests.FindIndex(x => x.ItemID == unitTest.ItemID) != -1)
+            {
+                throw new Exception($"Duplicate unit test identifier detected in {shortFileName} in the annotation starting on line {lineNumber}. Check other unit tests to ensure all unit tests have a unique identifier.");
             }
             unitTests.Add(unitTest);
         }
@@ -299,15 +254,14 @@ namespace RoboClerk.SourceCode
                     }
                 }
             }
-
         }
 
-        public void RefreshItems()
+        public override void RefreshItems()
         {
             foreach(var sourceFile in sourceFiles)
             {
                 var lines = File.ReadAllLines(sourceFile);
-                FindAndProcessFunctions(lines,Path.GetFileName(sourceFile));
+                FindAndProcessFunctions(lines,sourceFile);
             }
         }
     }

@@ -63,11 +63,13 @@ namespace RoboClerk.Tests
 
         private List<RequirementItem> SYSs = null;
         private List<RequirementItem> SWRs = null;
+        private List<RequirementItem> DOCs = null;
         private List<TestCaseItem> TCs = null;
         private List<AnomalyItem> ANOMALYs = null;
         private List<UnitTestItem> SLMSUTs = null;
         private List<UnitTestItem> SRCUTs = null;
         private List<ExternalDependency> DEPs = null;
+        private List<DocContentItem> DOCCTs = null;
         private List<SOUPItem> SOUPs = null;
         private List<RiskItem> RISKs = null;
         private void SetupSLMSPlugin()
@@ -84,12 +86,24 @@ namespace RoboClerk.Tests
             SWRs[1].RequirementTitle = "SWR_TestTitle2";
             SWRs[1].ItemID = "SWR_id2";
             mockSLMSPlugin.GetSoftwareRequirements().Returns(SWRs);
+            DOCs = new List<RequirementItem> { new RequirementItem(RequirementType.DocumentationRequirement), new RequirementItem(RequirementType.DocumentationRequirement) };
+            DOCs[0].RequirementTitle = "DOC_TestTitle1";
+            DOCs[0].ItemID = "DOC_id1";
+            DOCs[1].RequirementTitle = "DOC_TestTitle2";
+            DOCs[1].ItemID = "DOC_id2";
+            mockSLMSPlugin.GetDocumentationRequirements().Returns(DOCs);
             TCs = new List<TestCaseItem> { new TestCaseItem(), new TestCaseItem() };
             TCs[0].TestCaseTitle = "TC_TestTitle1";
             TCs[0].ItemID = "TC_id1";
             TCs[1].TestCaseTitle = "TC_TestTitle2";
             TCs[1].ItemID = "TC_id2";
             mockSLMSPlugin.GetSoftwareSystemTests().Returns(TCs);
+            DOCCTs = new List<DocContentItem> { new DocContentItem(), new DocContentItem() };
+            DOCCTs[0].Contents = "DOCCT_TestContents";
+            DOCCTs[0].ItemID = "DOCCT_id1";
+            DOCCTs[1].Contents = "DOCCT_TestContents2";
+            DOCCTs[1].ItemID = "DOCCT_id2";
+            mockSLMSPlugin.GetDocContents().Returns(DOCCTs);
             ANOMALYs = new List<AnomalyItem> { new AnomalyItem(), new AnomalyItem() };
             ANOMALYs[0].AnomalyTitle = "ANOMALY_TestTitle1";
             ANOMALYs[0].ItemID = "ANOMALY_id1";

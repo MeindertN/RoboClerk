@@ -47,6 +47,12 @@ FunctionMask = "<PURPOSE>_VERIFIES_<POSTCONDITION>(<IGNORE>"
 
 SectionSeparator = "_"
 
+# Use git to determine the version and time of last update for a given unit test
+# file. Be careful enabling this because if files are not in a git repository 
+# this will cause errors.
+
+UseGit = true
+
 
 
 
