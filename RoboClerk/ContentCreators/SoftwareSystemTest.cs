@@ -36,7 +36,14 @@ namespace RoboClerk.ContentCreators
             sb.Append($"| {step[1].Replace("\n", "").Replace("\r", "")} ");
             if (!automated)
             {
-                sb.Append("|  | ");
+                if (step[1] == string.Empty)
+                {
+                    sb.Append("|  | ");
+                }
+                else
+                {
+                    sb.Append("|  | Pass / Fail");
+                }
             }
             return sb.ToString();
         }

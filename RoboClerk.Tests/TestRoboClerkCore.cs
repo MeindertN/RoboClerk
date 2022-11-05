@@ -1,0 +1,401 @@
+﻿using NUnit.Framework;
+using NSubstitute;
+using System;
+using System.Collections.Generic;
+using RoboClerk.Configuration;
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
+
+namespace RoboClerk.Tests
+{
+    [TestFixture]
+    [Description("These tests test the RoboClerk Core")]
+    internal class TestRoboClerkCore
+    {
+
+        private string templateFile = string.Empty;
+
+        [SetUp]
+        public void TestSetup()
+        {
+
+        }
+
+        [UnitTestAttribute(
+        Identifier = "9B6BDA21-1C7D-4EE8-8EC6-11838377294A",
+        Purpose = "RoboClerk Core is created",
+        PostCondition = "No exception is thrown")]
+        [Test]
+        public void CreateRoboClerkCore()
+        {
+            IConfiguration config = Substitute.For<IConfiguration>();
+            IDataSources dataSources = Substitute.For<IDataSources>();
+            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            IFileSystem fs = Substitute.For<IFileSystem>();
+            var core = new RoboClerkCore(config,dataSources,traceAnalysis,fs);
+        }
+
+        [UnitTestAttribute(
+            Identifier = "9A3258CF-F9EE-4A1A-95E6-B49EF25FB200",
+            Purpose = "RoboClerk Processes the media directory, output media directory exists",
+            PostCondition = "Media directory is deleted, recreated and files are copied (except .gitignore)")]
+        [Test]
+        public void CheckMediaDirectory()
+        {
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { @"c:\temp\media\illustration.jpeg", new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
+                { @"c:\temp\media\image.gif", new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
+                { @"c:\temp\media\.gitignore", new MockFileData("This is a gitignore file") },
+                { @"c:\out\media\junk.jpeg", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+            });
+            IConfiguration config = Substitute.For<IConfiguration>();
+            config.MediaDir.Returns(@"c:\temp\media");
+            config.OutputDir.Returns(@"c:\out\");
+            config.Documents.Returns(new List<DocumentConfig>());
+            IDataSources dataSources = Substitute.For<IDataSources>();
+            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            IFileSystem fs = fileSystem;
+            
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core.GenerateDocs();
+            Assert.IsFalse(fileSystem.FileExists(@"c:\out\media\junk.jpeg"));
+            Assert.IsTrue(fileSystem.FileExists(@"c:\temp\media\illustration.jpeg"));
+            Assert.IsTrue(fileSystem.FileExists(@"c:\temp\media\image.gif"));
+            Assert.IsTrue(fileSystem.FileExists(@"c:\temp\media\.gitignore"));
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\media\illustration.jpeg"));
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\media\image.gif"));
+            Assert.IsFalse(fileSystem.FileExists(@"c:\out\media\.gitignore"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "4FFA9AF7-7C4E-4B79-A3B5-67F49664A31B",
+            Purpose = "RoboClerk Processes the media directory, output directory does not exist",
+            PostCondition = "Media directory is created, files are copied (except .gitignore)")]
+        [Test]
+        public void CheckMediaDirectory2()
+        {
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { @"c:\temp\media\illustration.jpeg", new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
+                { @"c:\temp\media\image.gif", new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
+                { @"c:\temp\media\.gitignore", new MockFileData("This is a gitignore file") },
+                { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+            });
+            IConfiguration config = Substitute.For<IConfiguration>();
+            config.MediaDir.Returns(@"c:\temp\media");
+            config.OutputDir.Returns(@"c:\out\");
+            config.Documents.Returns(new List<DocumentConfig>());
+            IDataSources dataSources = Substitute.For<IDataSources>();
+            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            IFileSystem fs = fileSystem;
+
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core.GenerateDocs();
+            Assert.IsTrue(fileSystem.FileExists(@"c:\temp\media\illustration.jpeg"));
+            Assert.IsTrue(fileSystem.FileExists(@"c:\temp\media\image.gif"));
+            Assert.IsTrue(fileSystem.FileExists(@"c:\temp\media\.gitignore"));
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\media\illustration.jpeg"));
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\media\image.gif"));
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\placeholder.bin"));
+            Assert.IsFalse(fileSystem.FileExists(@"c:\out\media\.gitignore"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "E566D07E-7A44-4D8E-8999-31F31A3EF833",
+            Purpose = "RoboClerk Processes the media directory, media directory does not exist",
+            PostCondition = "No changes are made to the filesystem")]
+        [Test]
+        public void CheckMediaDirectory3()
+        {
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+            });
+            IConfiguration config = Substitute.For<IConfiguration>();
+            config.MediaDir.Returns(@"c:\temp\media");
+            config.OutputDir.Returns(@"c:\out\");
+            config.Documents.Returns(new List<DocumentConfig>());
+            IDataSources dataSources = Substitute.For<IDataSources>();
+            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            IFileSystem fs = fileSystem;
+
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core.GenerateDocs();
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\placeholder.bin"));
+            Assert.IsFalse(fileSystem.FileExists(@"c:\out\media"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "039C8A94-6DA6-4C62-B96E-77040153EB1C",
+            Purpose = "RoboClerk processes a document without a template",
+            PostCondition = "No output document is produced")]
+        [Test]
+        public void ProcessDocumentWithoutTemplate1()
+        {
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { @"c:\in\template.adoc", new MockFileData("@@Config:SoftwareName()@@") },
+                { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+            });
+            IConfiguration config = Substitute.For<IConfiguration>();
+            config.MediaDir.Returns(@"c:\temp\media");
+            config.OutputDir.Returns(@"c:\out\");
+            DocumentConfig config2 = new DocumentConfig(
+                "roboclerkID", "documentID", "documentTitle", "ABR", string.Empty);
+            config.Documents.Returns(new List<DocumentConfig>() { config2 });
+            IDataSources dataSources = Substitute.For<IDataSources>();
+            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            IFileSystem fs = fileSystem;
+
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core.GenerateDocs();
+            core.SaveDocumentsToDisk();
+            Assert.IsFalse(fileSystem.FileExists(@"c:\out\template.adoc"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "8B35B5E8-0799-46AD-AD60-512AE625C093",
+            Purpose = "RoboClerk processes a document with config value tag",
+            PostCondition = "Resulting processed document is as expected")]
+        [Test]
+        public void ProcessConfigValueDocument1()
+        {
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { @"c:\in\template.adoc", new MockFileData("@@Config:SoftwareName()@@") },
+                { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+            });
+            IConfiguration config = Substitute.For<IConfiguration>();
+            config.MediaDir.Returns(@"c:\temp\media");
+            config.OutputDir.Returns(@"c:\out\");
+            DocumentConfig config2 = new DocumentConfig(
+                "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
+            config.Documents.Returns(new List<DocumentConfig>() { config2 });
+            IDataSources dataSources = Substitute.For<IDataSources>();
+            dataSources.GetConfigValue("SoftwareName").Returns("testvalue");
+            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            IFileSystem fs = fileSystem;
+
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core.GenerateDocs();
+            core.SaveDocumentsToDisk();
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
+            string content = fileSystem.File.ReadAllText(@"c:\out\template.adoc");
+            Assert.That(content == "testvalue");
+        }
+
+        [UnitTestAttribute(
+            Identifier = "22717813-58D3-4676-AFC8-E98608B88B1C",
+            Purpose = "RoboClerk processes a document with trace tag",
+            PostCondition = "Resulting processed document is as expected")]
+        [Test]
+        public void ProcessTraceTagDocument1()
+        {
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { @"c:\in\template.adoc", new MockFileData("@@Trace:SWR(id=89)@@ @@traCe:SWR(iD=19)@@") },
+                { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+            });
+            IConfiguration config = Substitute.For<IConfiguration>();
+            config.MediaDir.Returns(@"c:\temp\media");
+            config.OutputDir.Returns(@"c:\out\");
+            DocumentConfig config2 = new DocumentConfig(
+                "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
+            config.Documents.Returns(new List<DocumentConfig>() { config2 });
+            IDataSources dataSources = Substitute.For<IDataSources>();
+            var item = new RequirementItem(RequirementType.SoftwareRequirement);
+            item.Link = new Uri("http://localhost/");
+            dataSources.GetItem("19").Returns(item);
+            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            IFileSystem fs = fileSystem;
+
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core.GenerateDocs();
+            core.SaveDocumentsToDisk();
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
+            string content = fileSystem.File.ReadAllText(@"c:\out\template.adoc");
+            Assert.That(content == "(89) (http://localhost/[19])");
+
+            fileSystem.File.WriteAllText(@"c:\in\template.adoc", "@@Trace:SWR()@@");
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            Assert.Throws<TagInvalidException>(() => core.GenerateDocs());
+        }
+
+        [UnitTestAttribute(
+            Identifier = "E45202E9-39CC-47D8-A749-43B5EB2EA28F",
+            Purpose = "RoboClerk processes a document with a comment tag",
+            PostCondition = "Resulting processed document is as expected")]
+        [Test]
+        public void ProcessCommentTagDocument1()
+        {
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { @"c:\in\template.adoc", new MockFileData("remainder\n@@@Comment:general()\nthis is the comment\n@@@") },
+                { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+            });
+            IConfiguration config = Substitute.For<IConfiguration>();
+            config.MediaDir.Returns(@"c:\temp\media");
+            config.OutputDir.Returns(@"c:\out\");
+            DocumentConfig config2 = new DocumentConfig(
+                "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
+            config.Documents.Returns(new List<DocumentConfig>() { config2 });
+            IDataSources dataSources = Substitute.For<IDataSources>();
+            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            IFileSystem fs = fileSystem;
+
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core.GenerateDocs();
+            core.SaveDocumentsToDisk();
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
+            string content = fileSystem.File.ReadAllText(@"c:\out\template.adoc");
+            Assert.That(content == "remainder\n");
+        }
+
+        [UnitTestAttribute(
+            Identifier = "8E4E6058-7606-415C-9191-FCEE6F3A37F7",
+            Purpose = "RoboClerk processes a document with a post tag",
+            PostCondition = "Resulting processed document is as expected")]
+        [Test]
+        public void ProcessPostTagDocument1()
+        {
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { @"c:\in\template.adoc", new MockFileData("@@PosT:PageBreak()@@ @@POSt:RemoveParagraph()@@ @@post:Toc()@@ @@post:unknown()@@") },
+                { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+            });
+            IConfiguration config = Substitute.For<IConfiguration>();
+            config.MediaDir.Returns(@"c:\temp\media");
+            config.OutputDir.Returns(@"c:\out\");
+            DocumentConfig config2 = new DocumentConfig(
+                "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
+            config.Documents.Returns(new List<DocumentConfig>() { config2 });
+            IDataSources dataSources = Substitute.For<IDataSources>();
+            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            IFileSystem fs = fileSystem;
+
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core.GenerateDocs();
+            core.SaveDocumentsToDisk();
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
+            string content = fileSystem.File.ReadAllText(@"c:\out\template.adoc");
+            Assert.That(content == "~PAGEBREAK ~REMOVEPARAGRAPH ~TOC UNKNOWN POST PROCESSING TAG: unknown");
+        }
+
+        [UnitTestAttribute(
+            Identifier = "C8A8666F-6D6D-44BF-A22F-41077F6068E8",
+            Purpose = "RoboClerk processes a document with a reference tag",
+            PostCondition = "Resulting processed document is as expected")]
+        [Test]
+        public void ProcessReferenceTagDocument1()
+        {
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { @"c:\in\template.adoc", new MockFileData("@@Ref:roboclerkID()@@ @@Ref:roboclerkID(short=true)@@") },
+                { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+            });
+            IConfiguration config = Substitute.For<IConfiguration>();
+            config.MediaDir.Returns(@"c:\temp\media");
+            config.OutputDir.Returns(@"c:\out\");
+            DocumentConfig config2 = new DocumentConfig(
+                "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
+            config.Documents.Returns(new List<DocumentConfig>() { config2 });
+            IDataSources dataSources = Substitute.For<IDataSources>();
+            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            traceAnalysis.GetTraceEntityForID("roboclerkID").Returns(new TraceEntity("roboclerkID","documentTitle","ABR",TraceEntityType.Document));
+            IFileSystem fs = fileSystem;
+
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core.GenerateDocs();
+            core.SaveDocumentsToDisk();
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
+            string content = fileSystem.File.ReadAllText(@"c:\out\template.adoc");
+            Assert.That(content == "documentTitle ABR");
+
+            fileSystem.File.WriteAllText(@"c:\in\template.adoc", "@@Ref:nonexistentID()@@ @@Ref:nonexistentID(short=true)@@");
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            Assert.Throws<TagInvalidException>(() => core.GenerateDocs());
+        }
+
+        [UnitTestAttribute(
+            Identifier = "49CD1DAA-CB59-4988-9BFE-1C9FA4B1BEF2",
+            Purpose = "RoboClerk processes a document with a document tag",
+            PostCondition = "Resulting processed document is as expected")]
+        [Test]
+        public void ProcessDocumentTagDocument1()
+        {
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { @"c:\in\template.adoc", new MockFileData("@@Document:Title()@@ @@DocuMent:abbreviAtion()@@ @@Document:identifier()@@ @@Document:template()@@ @@docUment:RoboClerkID()@@") },
+                { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+            });
+            IConfiguration config = Substitute.For<IConfiguration>();
+            config.MediaDir.Returns(@"c:\temp\media");
+            config.OutputDir.Returns(@"c:\out\");
+            DocumentConfig config2 = new DocumentConfig(
+                "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
+            config.Documents.Returns(new List<DocumentConfig>() { config2 });
+            IDataSources dataSources = Substitute.For<IDataSources>();
+            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            IFileSystem fs = fileSystem;
+
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core.GenerateDocs();
+            core.SaveDocumentsToDisk();
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
+            string content = fileSystem.File.ReadAllText(@"c:\out\template.adoc");
+            Assert.That(content == @"documentTitle ABR documentID c:\in\template.adoc roboclerkID");
+
+            fileSystem.File.WriteAllText(@"c:\in\template.adoc", "@@document:nonexistentID()@@");
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            Assert.Throws<Exception>(() => core.GenerateDocs());
+        }
+
+        [UnitTestAttribute(
+            Identifier = "E32049B1-F1EA-4D5E-A6EF-CEB9F1532FE4",
+            Purpose = "RoboClerk processes a document with a software requirement tag",
+            PostCondition = "Resulting processed document is as expected")]
+        [Test]
+        public void ProcessSoftwareRequirementTagDocument1()
+        {
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { @"c:\in\template.adoc", new MockFileData("@@SLMS:SWR(ItemID=14)@@") },
+                { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+            });
+            IConfiguration config = Substitute.For<IConfiguration>();
+            config.MediaDir.Returns(@"c:\temp\media");
+            config.OutputDir.Returns(@"c:\out\");
+            DocumentConfig config2 = new DocumentConfig(
+                "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
+            config.Documents.Returns(new List<DocumentConfig>() { config2 });
+
+            IDataSources dataSources = Substitute.For<IDataSources>();
+            var testRequirement = new RequirementItem(RequirementType.SoftwareRequirement);
+            testRequirement.RequirementTitle = "title";
+            testRequirement.RequirementDescription = "description";
+            testRequirement.ItemRevision = "rev1";
+            testRequirement.ItemID = "14";
+            dataSources.GetAllSoftwareRequirements().Returns(new List<RequirementItem> { testRequirement });
+            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            traceAnalysis.GetTraceEntityForAnyProperty("SWR").Returns(new TraceEntity("SoftwareRequirement", "typename", "SWR", TraceEntityType.Truth));
+            traceAnalysis.GetTraceEntityForID("SoftwareRequirement").Returns(new TraceEntity("SoftwareRequirement", "typename", "SWR", TraceEntityType.Truth));
+            IFileSystem fs = fileSystem;
+
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core.GenerateDocs();
+            core.SaveDocumentsToDisk();
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
+            string content = fileSystem.File.ReadAllText(@"c:\out\template.adoc");
+            Assert.That(content == "|====\n| typename ID: | 14\n\n| typename Revision: | rev1\n\n| typename Category: | \n\n| Parent ID: | N/A\n\n| Title: | title\n\n| Description: \na| description\n|====\n\n");
+
+            fileSystem.File.WriteAllText(@"c:\in\template.adoc", "@@SLMS:unknown(ItemID=33)@@");
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core.GenerateDocs();
+            core.SaveDocumentsToDisk();
+            content = fileSystem.File.ReadAllText(@"c:\out\template.adoc");
+            Assert.That(content == "UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS (unknown) IS KNOWN TO ROBOCLERK.\n");
+        }
+
+    }
+}

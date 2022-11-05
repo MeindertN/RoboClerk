@@ -10,7 +10,7 @@ namespace RoboClerk
         private string purpose;
         private string postcondition;
         private string identifier;
-        public string traceid;
+        private string traceid;
 
         public UnitTestAttribute()
         {

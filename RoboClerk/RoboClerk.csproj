@@ -66,4 +66,9 @@
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.deps.json" DestinationFolder="$(ProjectDir)../publish" />
 		<Copy SourceFiles="@(TemplateFiles)" DestinationFolder="$(ProjectDir)../publish/DocTemplates" />
 	</Target>
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>RoboClerk.Tests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
 </Project>

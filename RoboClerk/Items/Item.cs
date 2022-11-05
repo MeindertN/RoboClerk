@@ -8,6 +8,7 @@ namespace RoboClerk
         protected string type = string.Empty;
         protected string category = string.Empty;
         protected string revision = string.Empty;
+        protected string targetVersion = string.Empty;
         protected DateTime lastUpdated = DateTime.MinValue;
         protected Uri link = null;
 
@@ -32,6 +33,12 @@ namespace RoboClerk
         {
             set => revision = value;
             get => revision;
+        }
+
+        public string ItemTargetVersion
+        {
+            set => targetVersion = value;
+            get => targetVersion;
         }
 
         public DateTime ItemLastUpdated

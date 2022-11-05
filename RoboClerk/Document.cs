@@ -1,5 +1,7 @@
+using LibGit2Sharp;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace RoboClerk
@@ -12,9 +14,10 @@ namespace RoboClerk
 
         protected List<RoboClerkTag> roboclerkTags = new List<RoboClerkTag>();
 
-        public Document(string title)
+        public Document(string title,string templateFile)
         {
             this.title = title;
+            this.templateFile = templateFile;
         }
 
         public void FromString(string text)
@@ -34,10 +37,10 @@ namespace RoboClerk
             }
         }
 
-        public void FromFile(string textFile)
+        public void FromStream(Stream textStream)
         {
-            var fileText = File.ReadAllText(textFile);
-            templateFile = textFile;
+            var sr = new StreamReader(textStream, Encoding.UTF8);
+            var fileText = sr.ReadToEnd();
             FromString(fileText);
         }
 

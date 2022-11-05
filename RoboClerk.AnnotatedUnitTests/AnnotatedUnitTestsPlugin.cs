@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Linq;
+using System.IO.Abstractions;
 
 namespace RoboClerk.AnnotatedUnitTests
 {
@@ -94,6 +95,48 @@ namespace RoboClerk.AnnotatedUnitTests
             return -1;
         }
 
+        private Dictionary<string,string>  ParseParameterString(string pms, int startLine, string filename)
+        {
+            Dictionary<string, string> foundParameters = new Dictionary<string, string>();
+            //replace all = , inside the strings with non-printing replacement characters unlikely 
+            //to be used in practice
+            StringBuilder pmsSb = new StringBuilder(pms);
+            bool insideString = false;
+            for(int i = 0; i < pms.Length ; i++)
+            {
+                if(pms[i] == '"')
+                {
+                    insideString = !insideString;
+                }
+                if (pms[i] == '=' && insideString)
+                {
+                    pmsSb[i] = '\a';
+                }
+                if (pms[i] == ',' && insideString)
+                {
+                    pmsSb[i] = '\f';
+                }
+            }
+            string[] parameters = pmsSb.ToString().Split(parameterSeparator);
+            foreach (var parameter in parameters)
+            {
+                string[] values = parameter.Split('=', StringSplitOptions.TrimEntries);
+                if (values.Length != 2)
+                {
+                    throw new Exception($"Error parsing annotation starting on line {startLine} of \"{filename}\".");
+                }
+                var info = information.First(x => x.Value.KeyWord.ToUpper() == values[0].ToUpper());
+                if (info.Key != string.Empty)
+                {
+                    StringBuilder sb = new StringBuilder(values[1]);
+                    sb.Replace('\a', '=');
+                    sb.Replace('\f', ',');
+                    foundParameters[info.Key] = sb.ToString();
+                }
+            }
+            return foundParameters;
+        }
+
         private void FindAndProcessAnnotations(string[] lines, string filename)
         {
             StringBuilder foundAnnotation = new StringBuilder();
@@ -134,21 +177,8 @@ namespace RoboClerk.AnnotatedUnitTests
                         }
                     }
                     string parameterString = foundAnnotation.ToString().Substring(paramStartIndex+1, paramEndIndex - paramStartIndex - 1);
-                    string[] parameters = parameterString.Split(parameterSeparator);
-                    Dictionary<string, string> foundParameters = new Dictionary<string, string>();
-                    foreach(var parameter in parameters)
-                    {
-                        string[] values = parameter.Split('=',StringSplitOptions.TrimEntries);
-                        if(values.Length != 2)
-                        {
-                            throw new Exception($"Error parsing annotation starting on line {startLine} of \"{filename}\".");
-                        }
-                        var info = information.First(x => x.Value.KeyWord.ToUpper() == values[0].ToUpper());
-                        if ( info.Key != string.Empty )
-                        {
-                            foundParameters[info.Key] = values[1];
-                        }
-                    }
+                    foundAnnotation.Clear();
+                    Dictionary<string, string> foundParameters = ParseParameterString(parameterString,startLine,filename);
                     //check if any required parameters are missing
                     foreach( var info in information )
                     {

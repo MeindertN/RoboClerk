@@ -5,9 +5,9 @@ namespace RoboClerk
 {
     public class TestCaseItem : LinkedItem
     {
-        private string testCaseState = "";
-        private string testCaseTitle = "";
-        private string testCaseDescription = "";
+        private string testCaseState = string.Empty;
+        private string testCaseTitle = string.Empty;
+        private string testCaseDescription = string.Empty;
         private bool testCaseAutomated = false;
         private bool testCaseToUnitTest = false;
         private List<string[]> testCaseSteps = new List<string[]>();

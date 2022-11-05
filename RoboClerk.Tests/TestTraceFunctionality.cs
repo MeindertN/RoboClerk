@@ -6,7 +6,7 @@ using Tomlyn.Model;
 using System;
 using System.Linq;
 using NSubstitute.Extensions;
-using System.Runtime.InteropServices;
+using RoboClerk;
 
 namespace RoboClerk.Tests
 {
@@ -23,6 +23,8 @@ namespace RoboClerk.Tests
             List<TraceEntity> truth = new List<TraceEntity>();
             truth.Add(new TraceEntity("SystemRequirement", "SYS_name", "SYS",TraceEntityType.Truth));
             truth.Add(new TraceEntity("SoftwareRequirement", "SWR_name", "SWR", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("DocumentationRequirement", "DOC_name", "DOC", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("DocContent", "DCT_name", "DCT", TraceEntityType.Truth));
             truth.Add(new TraceEntity("SoftwareSystemTest", "TC_name", "TC", TraceEntityType.Truth));
             truth.Add(new TraceEntity("SoftwareUnitTest", "UT_name", "UT", TraceEntityType.Truth));
             truth.Add(new TraceEntity("Risk","RSK_name","RSK", TraceEntityType.Truth));
@@ -39,6 +41,7 @@ namespace RoboClerk.Tests
             List<TraceConfig> config2 = new List<TraceConfig>();
             config2.Add(new TraceConfig("SystemRequirement"));
             config2.Add(new TraceConfig("SoftwareRequirement"));
+            config2.Add(new TraceConfig("DocumentationRequirement"));
             TomlTable toml = new TomlTable();
             TomlTable temp = new TomlTable();
             temp["forward"] = new TomlArray() { "ALL" };
@@ -84,6 +87,17 @@ namespace RoboClerk.Tests
             temp["backwardLink"] = "DOC";
             toml2["RiskAssessmentRecord"] = temp;
             config2[1].AddTraces(toml2);
+
+            TomlTable toml3 = new TomlTable();
+            temp = new TomlTable();
+            temp["forward"] = new TomlArray() { "CategoryName" };
+            temp["backward"] = new TomlArray() { "ALL" };
+            temp["forwardLink"] = "Child";
+            temp["backwardLink"] = "Parent";
+            toml3["DocContent"] = temp;
+
+            config2[2].AddTraces(toml3);
+
             mockConfig.TraceConfig.Returns(config2);
 
             mockConfig.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin1", "testPlugin2" });
@@ -264,15 +278,16 @@ namespace RoboClerk.Tests
             DOCs[0].ItemID = "DOC_id1";
             DOCs[0].AddLinkedItem(new ItemLink(RISKs[0].ItemID, ItemLinkType.Related));
             DOCs[0].AddLinkedItem(new ItemLink("DOCCT_id2", ItemLinkType.Child));
+            DOCs[0].ItemCategory = "CategoryName";
             DOCs[1].RequirementTitle = "DOC_TestTitle2";
             DOCs[1].ItemID = "DOC_id2";
-            DOCs[1].ItemCategory = "CategoryName";
             mockPlugin.GetDocumentationRequirements().Returns(DOCs);
             DOCCTs = new List<DocContentItem> { new DocContentItem(), new DocContentItem() };
             DOCCTs[0].Contents = "DOCCT_Contents1";
             DOCCTs[0].ItemID = "DOCCT_id1";
             DOCCTs[1].Contents = "DOCCT_Contents2";
             DOCCTs[1].ItemID = "DOCCT_id2";
+            DOCCTs[1].ItemCategory = "CategoryName";
             DOCCTs[1].AddLinkedItem(new ItemLink(DOCs[0].ItemID, ItemLinkType.Parent));
             mockPlugin.GetDocContents().Returns(DOCCTs);
         }
@@ -344,6 +359,39 @@ namespace RoboClerk.Tests
             Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet2).Count());
             Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).Count());
             Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet3).Count());
+        }
+
+        [UnitTestAttribute(
+            Identifier = "B76EB79E-8D0D-4AD3-8270-8AAC5B72C2B7",
+            Purpose = "Selected category does not match for a truth to truth trace",
+            PostCondition = "Empty list (N/A) is returned for that item")]
+        [Test]
+        public void NoCategoryMatch()
+        {
+            ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
+            var tet = traceabilityAnalysis.GetTraceEntityForID("DocumentationRequirement");
+            IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
+                new List<TestCaseItem>(), new List<AnomalyItem>());
+
+            var tet1 = traceabilityAnalysis.GetTraceEntityForID("DocContent");
+
+            //add valid trace in from DocumentationRequirement to DocContent
+            traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("DocumentationRequirement"), "DOC_id1",
+                traceabilityAnalysis.GetTraceEntityForID("DocContent"), "DOCCT_id2");
+ 
+            var matrix = traceabilityAnalysis.PerformAnalysis(dataSources, tet);
+            Assert.AreEqual(2, matrix.Count);
+            Assert.AreEqual(2, matrix[tet].Count);
+            Assert.AreEqual(2, matrix[tet1].Count);
+
+            Assert.AreEqual(1, matrix[tet][0].Count);
+            Assert.AreEqual(1, matrix[tet][1].Count);
+            Assert.AreEqual("DOC_id1", matrix[tet][0][0].ItemID);
+            Assert.AreEqual("DOC_id2", matrix[tet][1][0].ItemID);
+
+            Assert.AreEqual(1, matrix[tet1][0].Count);
+            Assert.AreEqual(0, matrix[tet1][1].Count);//empty list returned
+            Assert.AreEqual("DOCCT_id2", matrix[tet1][0][0].ItemID);            
         }
 
         [Test]
