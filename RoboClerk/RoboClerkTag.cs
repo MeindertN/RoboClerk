@@ -126,9 +126,14 @@ namespace RoboClerk
             get => contentCreatorID;
         }
 
-        public Dictionary<string, string> Parameters
+        public IEnumerable<string> Parameters
         {
-            get => parameters;
+            get => parameters.Keys;
+        }
+
+        public bool HasParameter(string parameterName)
+        {
+            return parameters.ContainsKey(parameterName);
         }
 
         public DataSource Source
@@ -300,7 +305,7 @@ namespace RoboClerk
             return DataSource.Unknown;
         }
 
-        public string GetParameterOrDefault(string key, string defaultVal)
+        public string GetParameterOrDefault(string key, string defaultVal=default)
         {
             if (parameters.ContainsKey(key.ToUpper()))
             {

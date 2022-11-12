@@ -65,7 +65,7 @@ namespace RoboClerk.ContentCreators
             sb.AppendLine();
 
             sb.Append("| *Title:* ");
-            sb.AppendLine($"| {(item.TestCaseTitle==string.Empty ? "N/A" : item.TestCaseTitle)}");
+            sb.AppendLine($"| {(item.ItemTitle==string.Empty ? "N/A" : item.ItemTitle)}");
             sb.AppendLine("|====");
             sb.AppendLine();
             sb.AppendLine($"@@Post:REMOVEPARAGRAPH()@@");
@@ -73,7 +73,6 @@ namespace RoboClerk.ContentCreators
             
             sb.AppendLine("|====");
             sb.AppendLine(GenerateTestCaseStepsHeader(item.TestCaseAutomated));
-            sb.AppendLine();
             int stepNr = 1;
             foreach (var step in item.TestCaseSteps)
             {
@@ -98,34 +97,6 @@ namespace RoboClerk.ContentCreators
             return sb.ToString();
         }
 
-        private string GetParentField(TestCaseItem item, IDataSources data)
-        {
-            StringBuilder parentField = new StringBuilder();
-            var parents = item.LinkedItems.Where(x => x.LinkType == ItemLinkType.Parent);
-            if (parents.Count() > 0)
-            {
-                foreach (var parent in parents)
-                {
-                    if (parentField.Length > 0)
-                    {
-                        parentField.Append(" / ");
-                    }
-                    var parentItem = data.GetItem(parent.TargetID) as RequirementItem;
-                    if (parentItem != null)
-                    {
-                        parentField.Append(parentItem.HasLink ? $"{parentItem.Link}[{parentItem.ItemID}]" : parentItem.ItemID);
-                        parentField.Append($": \"{parentItem.RequirementTitle}\"");
-                    }
-                    else
-                    {
-                        parentField.Append(parent.TargetID);
-                    }
-                }
-                return parentField.ToString();
-            }
-            return "N/A";
-        }
-
         public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
         {
             var systemTests = data.GetAllSoftwareSystemTests();
@@ -140,7 +111,7 @@ namespace RoboClerk.ContentCreators
                     testCaseFound = true;
                     try
                     {
-                        output.AppendLine(GenerateADOC(test,data));
+                        output.AppendLine(GenerateADOC(test, data));
                     }
                     catch
                     {

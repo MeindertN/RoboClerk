@@ -7,11 +7,6 @@ namespace RoboClerk.ContentCreators
 {
     public class SOUP : ContentCreatorBase
     {
-        public SOUP()
-        {
-
-        }
-
         private string GenerateSoupCheck(IDataSources sources, string soupName)
         {
             var extDeps = sources.GetAllExternalDependencies();
@@ -167,7 +162,7 @@ namespace RoboClerk.ContentCreators
             var properties = typeof(SOUPItem).GetProperties();
             var sourceType = analysis.GetTraceEntityForID("SOUP");
 
-            if (tag.Parameters.ContainsKey("BRIEF") && tag.Parameters["BRIEF"].ToUpper() == "TRUE")
+            if (tag.HasParameter("BRIEF") && tag.GetParameterOrDefault("BRIEF").ToUpper() == "TRUE")
             {
                 //this will print a brief list of all soups and versions that Roboclerk knows about
                 if (soups.Count > 0)
@@ -176,7 +171,7 @@ namespace RoboClerk.ContentCreators
                     output.AppendLine(GenerateBriefADOC(soups, sourceType, tag, properties, analysis, analysis.GetTraceEntityForTitle(doc.DocumentTitle)));
                 }
             }
-            else if (tag.Parameters.ContainsKey("CHECKSOUP") && tag.Parameters["CHECKSOUP"].ToUpper() == "TRUE")
+            else if (tag.HasParameter("CHECKSOUP") && tag.GetParameterOrDefault("CHECKSOUP").ToUpper() == "TRUE")
             {
                 //this will retrieve a list of external dependencies (from a dependency manager like NuGet or Gradle)
                 //and compare them with the known SOUP items. Any discrepancies are listed.
@@ -188,15 +183,7 @@ namespace RoboClerk.ContentCreators
                 if (ShouldBeIncluded<SOUPItem>(tag, soup, properties) && CheckUpdateDateTime(tag, soup))
                 {
                     foundSOUP = true;
-                    try
-                    {
-                        output.AppendLine(GenerateADOC(soup, sourceType));
-                    }
-                    catch
-                    {
-                        logger.Error($"An error occurred while rendering {sourceType.Name} {soup.ItemID} in {doc.DocumentTitle}.");
-                        throw;
-                    }
+                    output.AppendLine(GenerateADOC(soup, sourceType));
                     analysis.AddTrace(sourceType, soup.ItemID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), soup.ItemID);
                 }
             }

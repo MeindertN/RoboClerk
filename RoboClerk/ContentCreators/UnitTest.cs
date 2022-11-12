@@ -75,7 +75,7 @@ namespace RoboClerk.ContentCreators
             var sourceType = analysis.GetTraceEntityForID("SoftwareUnitTest");
             var properties = typeof(UnitTestItem).GetProperties();
 
-            if (tag.Parameters.ContainsKey("BRIEF") && tag.Parameters["BRIEF"].ToUpper() == "TRUE")
+            if (tag.HasParameter("BRIEF") && tag.GetParameterOrDefault("BRIEF").ToUpper() == "TRUE")
             {
                 //this will print a brief list of all soups and versions that Roboclerk knows about
                 if (unitTests.Count > 0)

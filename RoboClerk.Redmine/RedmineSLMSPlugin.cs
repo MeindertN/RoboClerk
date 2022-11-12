@@ -182,7 +182,7 @@ namespace RoboClerk.Redmine
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
             resultItem.TestCaseState = redmineItem.Status.Name ?? string.Empty;
-            resultItem.TestCaseTitle = redmineItem.Subject ?? string.Empty;
+            resultItem.ItemTitle = redmineItem.Subject ?? string.Empty;
             if (redmineItem.FixedVersion != null)
             {
                 resultItem.ItemTargetVersion = redmineItem.FixedVersion.Name ?? string.Empty;
@@ -349,7 +349,7 @@ namespace RoboClerk.Redmine
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
             resultItem.AnomalyState = redmineItem.Status.Name ?? string.Empty;
-            resultItem.AnomalyTitle = redmineItem.Subject ?? string.Empty;
+            resultItem.ItemTitle = redmineItem.Subject ?? string.Empty;
             if (redmineItem.FixedVersion != null)
             {
                 resultItem.ItemTargetVersion = redmineItem.FixedVersion.Name ?? string.Empty;
@@ -499,7 +499,7 @@ namespace RoboClerk.Redmine
                 resultItem.ItemTargetVersion = redmineItem.FixedVersion.Name ?? string.Empty;
             }
             resultItem.RequirementState = redmineItem.Status.Name ?? string.Empty;
-            resultItem.RequirementTitle = redmineItem.Subject ?? string.Empty;
+            resultItem.ItemTitle = redmineItem.Subject ?? string.Empty;
             resultItem.TypeOfRequirement = requirementType;
             if (baseURL != "")
             {

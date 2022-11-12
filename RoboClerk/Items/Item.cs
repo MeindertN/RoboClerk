@@ -5,6 +5,7 @@ namespace RoboClerk
     public abstract class Item
     {
         protected string id = string.Empty;
+        protected string title = string.Empty;
         protected string type = string.Empty;
         protected string category = string.Empty;
         protected string revision = string.Empty;
@@ -16,6 +17,12 @@ namespace RoboClerk
         {
             get => id;
             set => id = value;
+        }
+
+        public string ItemTitle
+        {
+            get => title;
+            set => title = value;
         }
 
         public string ItemCategory

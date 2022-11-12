@@ -195,7 +195,7 @@ namespace RoboClerk.AzureDevOps
             item.ItemLastUpdated = Convert.ToDateTime(GetWorkItemField(workitem, "System.ChangedDate"));
             item.RequirementState = GetWorkItemField(workitem, "System.State");
             item.RequirementDescription = GetWorkItemField(workitem, "System.Description");
-            item.RequirementTitle = GetWorkItemField(workitem, "System.Title");
+            item.ItemTitle = GetWorkItemField(workitem, "System.Title");
             AddLinksToWorkItems(workitem.Relations, item);
             return item;
         }
@@ -258,7 +258,7 @@ namespace RoboClerk.AzureDevOps
             item.ItemRevision = workitem.Rev.ToString();
             item.ItemLastUpdated = Convert.ToDateTime(GetWorkItemField(workitem, "System.ChangedDate"));
             item.TestCaseState = GetWorkItemField(workitem, "System.State");
-            item.TestCaseTitle = GetWorkItemField(workitem, "System.Title");
+            item.ItemTitle = GetWorkItemField(workitem, "System.Title");
             item.TestCaseDescription = GetWorkItemField(workitem, "System.Description");
             item.TestCaseSteps = GetTestSteps(GetWorkItemField(workitem, "Microsoft.VSTS.TCM.Steps"));
             item.TestCaseAutomated = GetWorkItemField(workitem, "Microsoft.VSTS.TCM.AutomationStatus") != "Not Automated";
@@ -278,7 +278,7 @@ namespace RoboClerk.AzureDevOps
             item.AnomalyJustification = GetWorkItemField(workitem, "Microsoft.VSTS.CMMI.Justification");
             item.AnomalyAssignee = GetWorkItemField(workitem, "System.AssignedTo");
             item.AnomalySeverity = GetWorkItemField(workitem, "Microsoft.VSTS.Common.Priority");
-            item.AnomalyTitle = GetWorkItemField(workitem, "System.Title");
+            item.ItemTitle = GetWorkItemField(workitem, "System.Title");
             return item;
         }
     }

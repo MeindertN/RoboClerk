@@ -37,41 +37,13 @@ namespace RoboClerk.ContentCreators
             sb.AppendLine();
             
             sb.Append("| Title: ");
-            sb.AppendLine($"| {item.RequirementTitle}");
+            sb.AppendLine($"| {item.ItemTitle}");
             sb.AppendLine();
             
             sb.AppendLine("| Description: ");
             sb.AppendLine($"a| {item.RequirementDescription}");
             sb.AppendLine("|====");
             return sb.ToString();
-        }
-
-        private string GetParentField(RequirementItem item, IDataSources data)
-        {
-            StringBuilder parentField = new StringBuilder();
-            var parents = item.LinkedItems.Where(x => x.LinkType == ItemLinkType.Parent);
-            if (parents.Count() > 0)
-            {
-                foreach (var parent in parents)
-                {
-                    if (parentField.Length > 0)
-                    {
-                        parentField.Append(" / ");
-                    }
-                    var parentItem = data.GetItem(parent.TargetID) as RequirementItem;
-                    if (parentItem != null)
-                    {
-                        parentField.Append(parentItem.HasLink ? $"{parentItem.Link}[{parentItem.ItemID}]" : parentItem.ItemID);
-                        parentField.Append($": \"{parentItem.RequirementTitle}\"");
-                    }
-                    else
-                    {
-                        parentField.Append(parent.TargetID);
-                    }
-                }
-                return parentField.ToString();
-            }
-            return "N/A";
         }
 
         public override string GetContent(RoboClerkTag tag, IDataSources sources, ITraceabilityAnalysis analysis, DocumentConfig doc)

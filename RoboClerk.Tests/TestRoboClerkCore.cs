@@ -13,12 +13,18 @@ namespace RoboClerk.Tests
     internal class TestRoboClerkCore
     {
 
-        private string templateFile = string.Empty;
+        private IConfiguration config = null;
+        private IDataSources dataSources = null;
+        private ITraceabilityAnalysis traceAnalysis = null;
+        private IFileSystem fs = null;
 
         [SetUp]
         public void TestSetup()
         {
-
+            config = Substitute.For<IConfiguration>();
+            dataSources = Substitute.For<IDataSources>();
+            traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            fs = Substitute.For<IFileSystem>();
         }
 
         [UnitTestAttribute(
@@ -28,10 +34,6 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateRoboClerkCore()
         {
-            IConfiguration config = Substitute.For<IConfiguration>();
-            IDataSources dataSources = Substitute.For<IDataSources>();
-            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
-            IFileSystem fs = Substitute.For<IFileSystem>();
             var core = new RoboClerkCore(config,dataSources,traceAnalysis,fs);
         }
 
@@ -49,15 +51,11 @@ namespace RoboClerk.Tests
                 { @"c:\temp\media\.gitignore", new MockFileData("This is a gitignore file") },
                 { @"c:\out\media\junk.jpeg", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            IConfiguration config = Substitute.For<IConfiguration>();
             config.MediaDir.Returns(@"c:\temp\media");
             config.OutputDir.Returns(@"c:\out\");
             config.Documents.Returns(new List<DocumentConfig>());
-            IDataSources dataSources = Substitute.For<IDataSources>();
-            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
-            IFileSystem fs = fileSystem;
             
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             Assert.IsFalse(fileSystem.FileExists(@"c:\out\media\junk.jpeg"));
             Assert.IsTrue(fileSystem.FileExists(@"c:\temp\media\illustration.jpeg"));
@@ -82,15 +80,11 @@ namespace RoboClerk.Tests
                 { @"c:\temp\media\.gitignore", new MockFileData("This is a gitignore file") },
                 { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            IConfiguration config = Substitute.For<IConfiguration>();
             config.MediaDir.Returns(@"c:\temp\media");
             config.OutputDir.Returns(@"c:\out\");
             config.Documents.Returns(new List<DocumentConfig>());
-            IDataSources dataSources = Substitute.For<IDataSources>();
-            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
-            IFileSystem fs = fileSystem;
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             Assert.IsTrue(fileSystem.FileExists(@"c:\temp\media\illustration.jpeg"));
             Assert.IsTrue(fileSystem.FileExists(@"c:\temp\media\image.gif"));
@@ -112,13 +106,9 @@ namespace RoboClerk.Tests
             {
                 { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            IConfiguration config = Substitute.For<IConfiguration>();
             config.MediaDir.Returns(@"c:\temp\media");
             config.OutputDir.Returns(@"c:\out\");
             config.Documents.Returns(new List<DocumentConfig>());
-            IDataSources dataSources = Substitute.For<IDataSources>();
-            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
-            IFileSystem fs = fileSystem;
 
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
             core.GenerateDocs();
@@ -138,15 +128,11 @@ namespace RoboClerk.Tests
                 { @"c:\in\template.adoc", new MockFileData("@@Config:SoftwareName()@@") },
                 { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            IConfiguration config = Substitute.For<IConfiguration>();
             config.MediaDir.Returns(@"c:\temp\media");
             config.OutputDir.Returns(@"c:\out\");
             DocumentConfig config2 = new DocumentConfig(
                 "roboclerkID", "documentID", "documentTitle", "ABR", string.Empty);
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
-            IDataSources dataSources = Substitute.For<IDataSources>();
-            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
-            IFileSystem fs = fileSystem;
 
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
             core.GenerateDocs();
@@ -166,18 +152,14 @@ namespace RoboClerk.Tests
                 { @"c:\in\template.adoc", new MockFileData("@@Config:SoftwareName()@@") },
                 { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            IConfiguration config = Substitute.For<IConfiguration>();
             config.MediaDir.Returns(@"c:\temp\media");
             config.OutputDir.Returns(@"c:\out\");
             DocumentConfig config2 = new DocumentConfig(
                 "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
-            IDataSources dataSources = Substitute.For<IDataSources>();
             dataSources.GetConfigValue("SoftwareName").Returns("testvalue");
-            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
-            IFileSystem fs = fileSystem;
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
@@ -197,20 +179,16 @@ namespace RoboClerk.Tests
                 { @"c:\in\template.adoc", new MockFileData("@@Trace:SWR(id=89)@@ @@traCe:SWR(iD=19)@@") },
                 { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            IConfiguration config = Substitute.For<IConfiguration>();
             config.MediaDir.Returns(@"c:\temp\media");
             config.OutputDir.Returns(@"c:\out\");
             DocumentConfig config2 = new DocumentConfig(
                 "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
-            IDataSources dataSources = Substitute.For<IDataSources>();
             var item = new RequirementItem(RequirementType.SoftwareRequirement);
             item.Link = new Uri("http://localhost/");
             dataSources.GetItem("19").Returns(item);
-            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
-            IFileSystem fs = fileSystem;
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
@@ -218,7 +196,7 @@ namespace RoboClerk.Tests
             Assert.That(content == "(89) (http://localhost/[19])");
 
             fileSystem.File.WriteAllText(@"c:\in\template.adoc", "@@Trace:SWR()@@");
-            core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             Assert.Throws<TagInvalidException>(() => core.GenerateDocs());
         }
 
@@ -234,17 +212,13 @@ namespace RoboClerk.Tests
                 { @"c:\in\template.adoc", new MockFileData("remainder\n@@@Comment:general()\nthis is the comment\n@@@") },
                 { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            IConfiguration config = Substitute.For<IConfiguration>();
             config.MediaDir.Returns(@"c:\temp\media");
             config.OutputDir.Returns(@"c:\out\");
             DocumentConfig config2 = new DocumentConfig(
                 "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
-            IDataSources dataSources = Substitute.For<IDataSources>();
-            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
-            IFileSystem fs = fileSystem;
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
@@ -264,17 +238,13 @@ namespace RoboClerk.Tests
                 { @"c:\in\template.adoc", new MockFileData("@@PosT:PageBreak()@@ @@POSt:RemoveParagraph()@@ @@post:Toc()@@ @@post:unknown()@@") },
                 { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            IConfiguration config = Substitute.For<IConfiguration>();
             config.MediaDir.Returns(@"c:\temp\media");
             config.OutputDir.Returns(@"c:\out\");
             DocumentConfig config2 = new DocumentConfig(
                 "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
-            IDataSources dataSources = Substitute.For<IDataSources>();
-            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
-            IFileSystem fs = fileSystem;
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
@@ -294,18 +264,14 @@ namespace RoboClerk.Tests
                 { @"c:\in\template.adoc", new MockFileData("@@Ref:roboclerkID()@@ @@Ref:roboclerkID(short=true)@@") },
                 { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            IConfiguration config = Substitute.For<IConfiguration>();
             config.MediaDir.Returns(@"c:\temp\media");
             config.OutputDir.Returns(@"c:\out\");
             DocumentConfig config2 = new DocumentConfig(
                 "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
-            IDataSources dataSources = Substitute.For<IDataSources>();
-            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
             traceAnalysis.GetTraceEntityForID("roboclerkID").Returns(new TraceEntity("roboclerkID","documentTitle","ABR",TraceEntityType.Document));
-            IFileSystem fs = fileSystem;
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
@@ -313,7 +279,7 @@ namespace RoboClerk.Tests
             Assert.That(content == "documentTitle ABR");
 
             fileSystem.File.WriteAllText(@"c:\in\template.adoc", "@@Ref:nonexistentID()@@ @@Ref:nonexistentID(short=true)@@");
-            core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             Assert.Throws<TagInvalidException>(() => core.GenerateDocs());
         }
 
@@ -329,17 +295,13 @@ namespace RoboClerk.Tests
                 { @"c:\in\template.adoc", new MockFileData("@@Document:Title()@@ @@DocuMent:abbreviAtion()@@ @@Document:identifier()@@ @@Document:template()@@ @@docUment:RoboClerkID()@@") },
                 { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            IConfiguration config = Substitute.For<IConfiguration>();
             config.MediaDir.Returns(@"c:\temp\media");
             config.OutputDir.Returns(@"c:\out\");
             DocumentConfig config2 = new DocumentConfig(
                 "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
-            IDataSources dataSources = Substitute.For<IDataSources>();
-            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
-            IFileSystem fs = fileSystem;
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
@@ -347,7 +309,7 @@ namespace RoboClerk.Tests
             Assert.That(content == @"documentTitle ABR documentID c:\in\template.adoc roboclerkID");
 
             fileSystem.File.WriteAllText(@"c:\in\template.adoc", "@@document:nonexistentID()@@");
-            core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             Assert.Throws<Exception>(() => core.GenerateDocs());
         }
 
@@ -363,26 +325,22 @@ namespace RoboClerk.Tests
                 { @"c:\in\template.adoc", new MockFileData("@@SLMS:SWR(ItemID=14)@@") },
                 { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            IConfiguration config = Substitute.For<IConfiguration>();
             config.MediaDir.Returns(@"c:\temp\media");
             config.OutputDir.Returns(@"c:\out\");
             DocumentConfig config2 = new DocumentConfig(
                 "roboclerkID", "documentID", "documentTitle", "ABR", @"c:\in\template.adoc");
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
 
-            IDataSources dataSources = Substitute.For<IDataSources>();
             var testRequirement = new RequirementItem(RequirementType.SoftwareRequirement);
-            testRequirement.RequirementTitle = "title";
+            testRequirement.ItemTitle = "title";
             testRequirement.RequirementDescription = "description";
             testRequirement.ItemRevision = "rev1";
             testRequirement.ItemID = "14";
             dataSources.GetAllSoftwareRequirements().Returns(new List<RequirementItem> { testRequirement });
-            ITraceabilityAnalysis traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
             traceAnalysis.GetTraceEntityForAnyProperty("SWR").Returns(new TraceEntity("SoftwareRequirement", "typename", "SWR", TraceEntityType.Truth));
             traceAnalysis.GetTraceEntityForID("SoftwareRequirement").Returns(new TraceEntity("SoftwareRequirement", "typename", "SWR", TraceEntityType.Truth));
-            IFileSystem fs = fileSystem;
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
@@ -390,7 +348,7 @@ namespace RoboClerk.Tests
             Assert.That(content == "|====\n| typename ID: | 14\n\n| typename Revision: | rev1\n\n| typename Category: | \n\n| Parent ID: | N/A\n\n| Title: | title\n\n| Description: \na| description\n|====\n\n");
 
             fileSystem.File.WriteAllText(@"c:\in\template.adoc", "@@SLMS:unknown(ItemID=33)@@");
-            core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             content = fileSystem.File.ReadAllText(@"c:\out\template.adoc");

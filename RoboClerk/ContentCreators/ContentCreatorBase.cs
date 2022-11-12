@@ -1,6 +1,8 @@
 ﻿using RoboClerk.Configuration;
 using System;
+using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
@@ -15,9 +17,9 @@ namespace RoboClerk.ContentCreators
             {
                 foreach (var prop in properties)
                 {
-                    if (prop.Name.ToUpper() == param.Key)
+                    if (prop.Name.ToUpper() == param)
                     {
-                        if (prop.GetValue(item).ToString().ToUpper() != param.Value.ToUpper())
+                        if (prop.GetValue(item).ToString().ToUpper() != tag.GetParameterOrDefault(param,string.Empty).ToUpper())
                         {
                             return false;
                         }
@@ -31,16 +33,47 @@ namespace RoboClerk.ContentCreators
         {
             foreach (var param in tag.Parameters)
             {
-                if (param.Key.ToUpper() == "OLDERTHAN" && DateTime.Compare(item.ItemLastUpdated,Convert.ToDateTime(param.Value)) >= 0)
+                if (param.ToUpper() == "OLDERTHAN" && DateTime.Compare(item.ItemLastUpdated,Convert.ToDateTime(tag.GetParameterOrDefault(param))) >= 0)
                 {
                     return false;
                 }
-                if (param.Key.ToUpper() == "NEWERTHAN" && DateTime.Compare(item.ItemLastUpdated, Convert.ToDateTime(param.Value)) <= 0)
+                if (param.ToUpper() == "NEWERTHAN" && DateTime.Compare(item.ItemLastUpdated, Convert.ToDateTime(tag.GetParameterOrDefault(param))) <= 0)
                 {
                     return false;
                 }
             }
             return true;
+        }
+
+        protected string GetParentField(LinkedItem item, IDataSources data)
+        {
+            StringBuilder parentField = new StringBuilder();
+            var parents = item.LinkedItems.Where(x => x.LinkType == ItemLinkType.Parent);
+            if (parents.Count() > 0)
+            {
+                foreach (var parent in parents)
+                {
+                    if (parentField.Length > 0)
+                    {
+                        parentField.Append(" / ");
+                    }
+                    var parentItem = data.GetItem(parent.TargetID) as RequirementItem;
+                    if (parentItem != null)
+                    {
+                        parentField.Append(parentItem.HasLink ? $"{parentItem.Link}[{parentItem.ItemID}]" : parentItem.ItemID);
+                        if (parentItem.ItemTitle != string.Empty)
+                        {
+                            parentField.Append($": \"{parentItem.ItemTitle}\"");
+                        }
+                    }
+                    else
+                    {
+                        parentField.Append(parent.TargetID);
+                    }
+                }
+                return parentField.ToString();
+            }
+            return "N/A";
         }
 
     }

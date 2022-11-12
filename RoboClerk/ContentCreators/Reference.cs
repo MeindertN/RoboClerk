@@ -16,7 +16,7 @@ namespace RoboClerk.ContentCreators
                 throw ex;
             }
 
-            if (tag.Parameters.ContainsKey("SHORT") && tag.Parameters["SHORT"].ToUpper() == "TRUE")
+            if (tag.HasParameter("SHORT") && tag.GetParameterOrDefault("SHORT",string.Empty).ToUpper() == "TRUE")
             {
                 result = reference.Abbreviation;
             }

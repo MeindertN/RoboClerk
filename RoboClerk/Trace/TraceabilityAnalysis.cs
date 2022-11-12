@@ -272,7 +272,7 @@ namespace RoboClerk
 
         public void AddTraceTag(string docTitle, RoboClerkTag tag)
         {
-            if (!tag.Parameters.ContainsKey("ID"))
+            if (!tag.HasParameter("ID"))
             {
                 var ex = new TagInvalidException(tag.Contents, "Trace tag is missing \"ID\" parameter indicating the identity of the truth item");
                 ex.DocumentTitle = docTitle;
@@ -292,7 +292,7 @@ namespace RoboClerk
                 }
             }
 
-            TraceLink link = new TraceLink(tlt, tag.Parameters["ID"], GetTraceEntityForTitle(docTitle), tag.Parameters["ID"]);
+            TraceLink link = new TraceLink(tlt, tag.GetParameterOrDefault("ID",string.Empty), GetTraceEntityForTitle(docTitle), tag.GetParameterOrDefault("ID",string.Empty));
             documentTraceLinks[docTitle].Add(link);
         }
 

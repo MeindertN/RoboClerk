@@ -6,7 +6,6 @@ namespace RoboClerk
     public class AnomalyItem : LinkedItem
     {
         private string anomalyState = string.Empty;
-        private string anomalyTitle = string.Empty;
         private string anomalyAssignee = string.Empty;
         private string anomalySeverity = string.Empty;
         private string anomalyJustification = string.Empty;
@@ -21,12 +20,6 @@ namespace RoboClerk
         {
             get => anomalyState;
             set => anomalyState = value;
-        }
-
-        public string AnomalyTitle
-        {
-            get => anomalyTitle;
-            set => anomalyTitle = value;
         }
 
         public string AnomalyAssignee

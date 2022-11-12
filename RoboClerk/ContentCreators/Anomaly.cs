@@ -27,7 +27,7 @@ namespace RoboClerk.ContentCreators
             sb.AppendLine();
 
             sb.Append("| Title: ");
-            sb.AppendLine(item.AnomalyTitle == string.Empty ? "| MISSING" : $"| {item.AnomalyTitle}");
+            sb.AppendLine(item.ItemTitle == string.Empty ? "| MISSING" : $"| {item.ItemTitle}");
             sb.AppendLine();
 
             sb.Append("| Severity: ");

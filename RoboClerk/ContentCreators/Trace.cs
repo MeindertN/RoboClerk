@@ -11,13 +11,13 @@ namespace RoboClerk.ContentCreators
 
         public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
         {
-            if (tag.Parameters.ContainsKey("ID"))
+            if (tag.HasParameter("ID"))
             {
-                Item item = data.GetItem(tag.Parameters["ID"]);
-                string result = $"({tag.Parameters["ID"]})";
+                Item item = data.GetItem(tag.GetParameterOrDefault("ID"));
+                string result = $"({tag.GetParameterOrDefault("ID")})";
                 if (item != null && item.HasLink) 
                 {
-                    result = $"({item.Link}[{tag.Parameters["ID"]}])";
+                    result = $"({item.Link}[{tag.GetParameterOrDefault("ID")}])";
                 }
                 analysis.AddTraceTag(doc.DocumentTitle, tag);
                 return result;

@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using System;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -102,9 +103,9 @@ There is some text @@Foo:inline()@@ in this line.
         public void Parameters_Are_Successfully_Extracted_VERIFIES_Parameter_Values_Match_Expected_Values()
         {
             var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
-            Assert.IsTrue(tags[6].Parameters.Count == 2);
-            Assert.AreEqual("1234", tags[6].Parameters["ID"]);
-            Assert.AreEqual("test name", tags[6].Parameters["NAME"]);
+            Assert.IsTrue(tags[6].Parameters.Count() == 2);
+            Assert.AreEqual("1234", tags[6].GetParameterOrDefault("ID"));
+            Assert.AreEqual("test name", tags[6].GetParameterOrDefault("NAME"));
         }
 
         [Test]

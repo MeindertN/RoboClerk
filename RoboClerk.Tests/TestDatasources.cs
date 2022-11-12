@@ -75,27 +75,27 @@ namespace RoboClerk.Tests
         private void SetupSLMSPlugin()
         {
             SYSs = new List<RequirementItem> { new RequirementItem(RequirementType.SystemRequirement), new RequirementItem(RequirementType.SystemRequirement) };
-            SYSs[0].RequirementTitle = "SYS_TestTitle1";
+            SYSs[0].ItemTitle = "SYS_TestTitle1";
             SYSs[0].ItemID = "SYS_id1";
-            SYSs[1].RequirementTitle = "SYS_TestTitle2";
+            SYSs[1].ItemTitle = "SYS_TestTitle2";
             SYSs[1].ItemID = "SYS_id2";
             mockSLMSPlugin.GetSystemRequirements().Returns(SYSs);
             SWRs = new List<RequirementItem> { new RequirementItem(RequirementType.SoftwareRequirement), new RequirementItem(RequirementType.SoftwareRequirement) };
-            SWRs[0].RequirementTitle = "SWR_TestTitle1";
+            SWRs[0].ItemTitle = "SWR_TestTitle1";
             SWRs[0].ItemID = "SWR_id1";
-            SWRs[1].RequirementTitle = "SWR_TestTitle2";
+            SWRs[1].ItemTitle = "SWR_TestTitle2";
             SWRs[1].ItemID = "SWR_id2";
             mockSLMSPlugin.GetSoftwareRequirements().Returns(SWRs);
             DOCs = new List<RequirementItem> { new RequirementItem(RequirementType.DocumentationRequirement), new RequirementItem(RequirementType.DocumentationRequirement) };
-            DOCs[0].RequirementTitle = "DOC_TestTitle1";
+            DOCs[0].ItemTitle = "DOC_TestTitle1";
             DOCs[0].ItemID = "DOC_id1";
-            DOCs[1].RequirementTitle = "DOC_TestTitle2";
+            DOCs[1].ItemTitle = "DOC_TestTitle2";
             DOCs[1].ItemID = "DOC_id2";
             mockSLMSPlugin.GetDocumentationRequirements().Returns(DOCs);
             TCs = new List<TestCaseItem> { new TestCaseItem(), new TestCaseItem() };
-            TCs[0].TestCaseTitle = "TC_TestTitle1";
+            TCs[0].ItemTitle = "TC_TestTitle1";
             TCs[0].ItemID = "TC_id1";
-            TCs[1].TestCaseTitle = "TC_TestTitle2";
+            TCs[1].ItemTitle = "TC_TestTitle2";
             TCs[1].ItemID = "TC_id2";
             mockSLMSPlugin.GetSoftwareSystemTests().Returns(TCs);
             DOCCTs = new List<DocContentItem> { new DocContentItem(), new DocContentItem() };
@@ -105,9 +105,9 @@ namespace RoboClerk.Tests
             DOCCTs[1].ItemID = "DOCCT_id2";
             mockSLMSPlugin.GetDocContents().Returns(DOCCTs);
             ANOMALYs = new List<AnomalyItem> { new AnomalyItem(), new AnomalyItem() };
-            ANOMALYs[0].AnomalyTitle = "ANOMALY_TestTitle1";
+            ANOMALYs[0].ItemTitle = "ANOMALY_TestTitle1";
             ANOMALYs[0].ItemID = "ANOMALY_id1";
-            ANOMALYs[1].AnomalyTitle = "ANOMALY_TestTitle2";
+            ANOMALYs[1].ItemTitle = "ANOMALY_TestTitle2";
             ANOMALYs[1].ItemID = "ANOMALY_id2";
             mockSLMSPlugin.GetAnomalies().Returns(ANOMALYs);
             SLMSUTs = new List<UnitTestItem> { new UnitTestItem(), new UnitTestItem() };

@@ -6,7 +6,6 @@ namespace RoboClerk
     public class TestCaseItem : LinkedItem
     {
         private string testCaseState = string.Empty;
-        private string testCaseTitle = string.Empty;
         private string testCaseDescription = string.Empty;
         private bool testCaseAutomated = false;
         private bool testCaseToUnitTest = false;
@@ -21,12 +20,6 @@ namespace RoboClerk
         {
             get => testCaseState;
             set => testCaseState = value;
-        }
-
-        public string TestCaseTitle
-        {
-            get => testCaseTitle;
-            set => testCaseTitle = value;
         }
 
         public string TestCaseDescription
