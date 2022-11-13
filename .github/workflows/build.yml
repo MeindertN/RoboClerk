@@ -1,4 +1,4 @@
-name: Build RoboClerk
+name: BuildRoboClerk
 
 on: [push]
 
