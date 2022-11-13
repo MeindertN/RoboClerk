@@ -81,7 +81,7 @@ namespace RoboClerk
             }
             foreach (var documentationRequirementID in checkpointConfig.UpdatedDocumentationRequirementIDs)
             {
-                var documentationRequirement = pluginDatasource.GetSoftwareRequirement(documentationRequirementID);
+                var documentationRequirement = pluginDatasource.GetDocumentationRequirement(documentationRequirementID);
                 if (documentationRequirement != null)
                 {
                     //item still exists, update it

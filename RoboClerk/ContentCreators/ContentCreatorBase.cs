@@ -45,33 +45,33 @@ namespace RoboClerk.ContentCreators
             return true;
         }
 
-        protected string GetParentField(LinkedItem item, IDataSources data)
+        protected string GetLinkedField(LinkedItem sourceItem, IDataSources data, ItemLinkType linkType)
         {
-            StringBuilder parentField = new StringBuilder();
-            var parents = item.LinkedItems.Where(x => x.LinkType == ItemLinkType.Parent);
-            if (parents.Count() > 0)
+            StringBuilder field = new StringBuilder();
+            var linkedItems = sourceItem.LinkedItems.Where(x => x.LinkType == linkType);
+            if (linkedItems.Count() > 0)
             {
-                foreach (var parent in parents)
+                foreach (var item in linkedItems)
                 {
-                    if (parentField.Length > 0)
+                    if (field.Length > 0)
                     {
-                        parentField.Append(" / ");
+                        field.Append(" / ");
                     }
-                    var parentItem = data.GetItem(parent.TargetID) as RequirementItem;
-                    if (parentItem != null)
+                    var linkedItem = data.GetItem(item.TargetID);
+                    if (linkedItem != null)
                     {
-                        parentField.Append(parentItem.HasLink ? $"{parentItem.Link}[{parentItem.ItemID}]" : parentItem.ItemID);
-                        if (parentItem.ItemTitle != string.Empty)
+                        field.Append(linkedItem.HasLink ? $"{linkedItem.Link}[{linkedItem.ItemID}]" : linkedItem.ItemID);
+                        if (linkedItem.ItemTitle != string.Empty)
                         {
-                            parentField.Append($": \"{parentItem.ItemTitle}\"");
+                            field.Append($": \"{linkedItem.ItemTitle}\"");
                         }
                     }
                     else
                     {
-                        parentField.Append(parent.TargetID);
+                        field.Append(item.TargetID);
                     }
                 }
-                return parentField.ToString();
+                return field.ToString();
             }
             return "N/A";
         }

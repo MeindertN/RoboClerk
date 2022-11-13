@@ -5,7 +5,6 @@ using RoboClerk.Configuration;
 using System.IO.Abstractions;
 using RoboClerk.ContentCreators;
 using System;
-using DocumentFormat.OpenXml.Spreadsheet;
 using System.Text.RegularExpressions;
 
 namespace RoboClerk.Tests

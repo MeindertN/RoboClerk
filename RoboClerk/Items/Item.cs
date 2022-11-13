@@ -6,7 +6,9 @@ namespace RoboClerk
     {
         protected string id = string.Empty;
         protected string title = string.Empty;
-        protected string type = string.Empty;
+        //Note that the type must match the name of the truth item as defined in the projectConfig.
+        //E.g. the type of the software requirement item is "SoftwareRequirement"
+        protected string type = string.Empty;  
         protected string category = string.Empty;
         protected string revision = string.Empty;
         protected string targetVersion = string.Empty;

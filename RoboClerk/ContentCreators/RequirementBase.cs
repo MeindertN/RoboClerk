@@ -33,7 +33,7 @@ namespace RoboClerk.ContentCreators
             sb.AppendLine();
             
             sb.Append("| Parent ID: ");
-            sb.AppendLine($"| {GetParentField(item,sources)}");
+            sb.AppendLine($"| {GetLinkedField(item,sources,ItemLinkType.Parent)}");
             sb.AppendLine();
             
             sb.Append("| Title: ");

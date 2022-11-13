@@ -61,7 +61,7 @@ namespace RoboClerk.ContentCreators
             sb.AppendLine();
             
             sb.Append("| *Parent ID:* ");
-            sb.AppendLine($"| {GetParentField(item, data)}");
+            sb.AppendLine($"| {GetLinkedField(item, data,ItemLinkType.Parent)}");
             sb.AppendLine();
 
             sb.Append("| *Title:* ");

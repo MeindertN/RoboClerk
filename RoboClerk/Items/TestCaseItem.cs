@@ -12,7 +12,7 @@ namespace RoboClerk
         private List<string[]> testCaseSteps = new List<string[]>();
         public TestCaseItem()
         {
-            type = "TestCase";
+            type = "SoftwareSystemTest";
             id = Guid.NewGuid().ToString();
         }
 

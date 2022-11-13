@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
-    internal class UnitTest : ContentCreatorBase
+    public class UnitTest : ContentCreatorBase
     {
         private string GenerateBriefADOC(List<UnitTestItem> unitTests, TraceEntity sourceType, RoboClerkTag tag, System.Reflection.PropertyInfo[] properties, ITraceabilityAnalysis analysis, TraceEntity docTrace)
         {
@@ -30,7 +30,7 @@ namespace RoboClerk.ContentCreators
             return sb.ToString();
         }
 
-        private string GenerateADOC(UnitTestItem item, string name)
+        private string GenerateADOC(UnitTestItem item, string name, IDataSources data)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("|====");
@@ -47,15 +47,9 @@ namespace RoboClerk.ContentCreators
                 sb.AppendLine($"| *Last Updated* | {item.ItemLastUpdated.ToString("yyyy/MM/dd HH:mm:ss")}");
                 sb.AppendLine();
             }
-            if(item.LinkedItems.Count() != 0)
-            {
-                sb.Append($"| *Trace Link* | ");
-                foreach (var linkedItem in item.LinkedItems)
-                {
-                    sb.Append($"{linkedItem.TargetID}  ");
-                }
-                sb.AppendLine();
-            }
+            sb.Append("| *Trace Link:* ");
+            sb.AppendLine($"| {GetLinkedField(item, data, ItemLinkType.Related)}");
+            sb.AppendLine();
             string tempPurpose = item.UnitTestPurpose == string.Empty ? "N/A" : item.UnitTestPurpose;
             sb.AppendLine($"| *Purpose* | {tempPurpose}");
             sb.AppendLine();
@@ -89,26 +83,27 @@ namespace RoboClerk.ContentCreators
                 if (ShouldBeIncluded(tag, test, properties) && CheckUpdateDateTime(tag, test))
                 {
                     unitTestFound = true;
-                    try
-                    {
-                        output.AppendLine(GenerateADOC(test, sourceType.Name));
-                    }
-                    catch
-                    {
-                        logger.Error($"An error occurred while rendering unit test {test.ItemID} in {doc.DocumentTitle}.");
-                        throw;
-                    }
+                    output.AppendLine(GenerateADOC(test, sourceType.Name,data));
                     analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareUnitTest"), test.ItemID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), test.ItemID);
 
                     var links = test.LinkedItems.Where(x => x.LinkType == ItemLinkType.Related);
                     if (links.Count() == 0)
                     {
-                        //in case there are no parents, ensure that the broken trace is included
+                        //in case there are no parents, ensure that the broken trace is included, assume that unit tests link to software requirements
                         analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareRequirement"), null, analysis.GetTraceEntityForTitle(doc.DocumentTitle), test.ItemID);
                     }
                     else foreach (var link in links)
                     {
-                        analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareRequirement"), link.TargetID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), test.ItemID);
+                        Item item = data.GetItem(link.TargetID);
+                        if (item != null)
+                        {
+                            var te = analysis.GetTraceEntityForID(item.ItemType);
+                            analysis.AddTrace(te, link.TargetID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), test.ItemID);
+                        }
+                        else
+                        {
+                            throw new Exception($"Unable to find linked item with ID \"{link.TargetID}\" for unit test \"{test.ItemID}\" in \"{doc.DocumentTitle}\".");
+                        }
                     }
                 }
             }

@@ -8,7 +8,7 @@ namespace RoboClerk
 
         public PlaceholderItem()
         {
-            type = "PlaceholderItem";
+            type = "Placeholder";
             id = Guid.NewGuid().ToString();
         }
 

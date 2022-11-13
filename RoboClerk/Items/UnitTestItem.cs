@@ -12,7 +12,7 @@ namespace RoboClerk
         
         public UnitTestItem()
         {
-            type = "UnitTest";
+            type = "SoftwareUnitTest";
             id = Guid.NewGuid().ToString();
         }
 

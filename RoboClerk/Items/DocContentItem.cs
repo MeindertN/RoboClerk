@@ -7,6 +7,7 @@ namespace RoboClerk
         public DocContentItem()
         {
             id = Guid.NewGuid().ToString();
+            type = "DocContent";
         }
 
         public string Contents { get; set; }
