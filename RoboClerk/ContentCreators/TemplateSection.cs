@@ -4,7 +4,13 @@ namespace RoboClerk.ContentCreators
 {
     public class TemplateSection : ContentCreatorBase
     {
-        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public TemplateSection(IDataSources data, ITraceabilityAnalysis analysis)
+            : base(data, analysis)
+        {
+
+        }
+
+        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             string filename = tag.GetParameterOrDefault("FILENAME",string.Empty);
             if(filename == string.Empty)

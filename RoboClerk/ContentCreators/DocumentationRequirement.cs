@@ -6,9 +6,16 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RoboClerk.ContentCreators
-{    public class DocumentationRequirement : RequirementBase
+{    
+    public class DocumentationRequirement : RequirementBase
     {
-        public override string GetContent(RoboClerkTag tag, IDataSources sources, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public DocumentationRequirement(IDataSources data, ITraceabilityAnalysis analysis)
+            : base(data, analysis)
+        {
+
+        }
+
+        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             var te = analysis.GetTraceEntityForID("DocumentationRequirement");
             if (te == null)
@@ -17,8 +24,8 @@ namespace RoboClerk.ContentCreators
             }
             requirementName = te.Name;
             sourceType = te;
-            requirements = sources.GetAllDocumentationRequirements();
-            return base.GetContent(tag, sources, analysis, doc);
+            requirements = data.GetAllDocumentationRequirements();
+            return base.GetContent(tag, doc);
         }
     }
 }

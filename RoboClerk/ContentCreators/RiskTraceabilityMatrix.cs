@@ -4,10 +4,16 @@ namespace RoboClerk.ContentCreators
 {
     class RiskTraceabilityMatrix : TraceabilityMatrixBase
     {
-        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public RiskTraceabilityMatrix(IDataSources data, ITraceabilityAnalysis analysis)
+            :base(data, analysis)
+        {
+
+        }
+
+        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             truthSource = analysis.GetTraceEntityForID("Risk");
-            return base.GetContent(tag, data, analysis, doc);
+            return base.GetContent(tag, doc);
         }
     }
 }

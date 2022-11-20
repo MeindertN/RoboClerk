@@ -77,7 +77,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateSOUPCC()
         {
-            var soup = new SOUP();
+            var soup = new SOUP(dataSources, traceAnalysis);
         }
 
         [UnitTestAttribute(
@@ -87,10 +87,10 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent1()
         {
-            var soup = new SOUP();
+            var soup = new SOUP(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 22, "@@SLMS:SOUP(ItemID=21)@@",true);
             dataSources.GetAllSOUP().Returns(soupItems);
-            string content = soup.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string content = soup.GetContent(tag, documentConfig);
             string expectedContent = "|====\n| soup ID: | 21\n\n| soup Revision: | latest\n\n| soup Name and Version: | soupname soupversion\n\n| Is soup Critical for Performance: | performance text\n\n| Is soup Critical for Cyber Security: | cybersecurity text\n\n| Is soup Installed by End-User: | user install text\n\n| Detailed Description: a| detailed description\n\n| soup License: | license\n|====\n\n";
             
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
@@ -104,11 +104,11 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent2()
         {
-            var soup = new SOUP();
+            var soup = new SOUP(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 22, "@@SLMS:SOUP(ItemID=21)@@", true);
             soupItems[0].SOUPPerformanceCritical = true;
             dataSources.GetAllSOUP().Returns( soupItems );
-            string content = soup.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string content = soup.GetContent(tag, documentConfig);
             string expectedContent = "|====\n| soup ID: | 21\n\n| soup Revision: | latest\n\n| soup Name and Version: | soupname soupversion\n\n| Is soup Critical for Performance: | performance text\n\n| Is soup Critical for Cyber Security: | cybersecurity text\n\n| Result Anomaly List Examination: | No anomalies were found.\n\n| Is soup Installed by End-User: | user install text\n\n| Detailed Description: a| detailed description\n\n| soup License: | license\n|====\n\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
@@ -122,11 +122,11 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent3()
         {
-            var soup = new SOUP();
+            var soup = new SOUP(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 22, "@@SLMS:SOUP(ItemID=21)@@", true);
             soupItems[0].SOUPInstalledByUser = true;
             dataSources.GetAllSOUP().Returns( soupItems );
-            string content = soup.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string content = soup.GetContent(tag, documentConfig);
             string expectedContent = "|====\n| soup ID: | 21\n\n| soup Revision: | latest\n\n| soup Name and Version: | soupname soupversion\n\n| Is soup Critical for Performance: | performance text\n\n| Is soup Critical for Cyber Security: | cybersecurity text\n\n| Is soup Installed by End-User: | user install text\n\n| Required End-User Training: | Not required\n\n| Detailed Description: a| detailed description\n\n| soup License: | license\n|====\n\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
@@ -140,10 +140,10 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent4()
         {
-            var soup = new SOUP();
+            var soup = new SOUP(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 33, "@@SLMS:SOUP(ItemID=21,BrIeF=TruE)@@", true);
             dataSources.GetAllSOUP().Returns( soupItems );
-            string content = soup.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string content = soup.GetContent(tag, documentConfig);
             string expectedContent = "|====\n| soup ID | soup Name and Version\n\n| 21 | soupname soupversion\n\n|====\n\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
@@ -157,10 +157,10 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent5()
         {
-            var soup = new SOUP();
+            var soup = new SOUP(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 22, "@@SLMS:SOUP(itemid=23)@@", true);
             dataSources.GetAllSOUP().Returns( soupItems );
-            string content = soup.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string content = soup.GetContent(tag, documentConfig);
             string expectedContent = "Unable to find soup(s). Check if soups of the correct type are provided or if a valid soup identifier is specified.";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
@@ -184,11 +184,11 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent6()
         {
-            var soup = new SOUP();
+            var soup = new SOUP(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 37, "@@SLMS:SOUP(itemid=21,checksoup=true)@@", true);
             dataSources.GetAllSOUP().Returns(soupItems);
             dataSources.GetAllExternalDependencies().Returns(GetDependencies());   
-            string content = soup.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string content = soup.GetContent(tag, documentConfig);
             string expectedContent = "Roboclerk detected the following potential soup issues:\n\n* No soup related issues detected!\n\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
@@ -201,13 +201,13 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent7()
         {
-            var soup = new SOUP();
+            var soup = new SOUP(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 37, "@@SLMS:SOUP(itemid=21,checksoup=true)@@", true);
             dataSources.GetAllSOUP().Returns(soupItems);
             var deps = GetDependencies();
             deps.RemoveAt(1);  //remove the external dependency matching soupname2
             dataSources.GetAllExternalDependencies().Returns(deps);
-            string content = soup.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string content = soup.GetContent(tag, documentConfig);
             string expectedContent = "Roboclerk detected the following potential soup issues:\n\n* A soup item (i.e. \"soupname2 soupversion2\") that is marked as being linked into the software does not have a matching external dependency.\n\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
@@ -220,13 +220,13 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent8()
         {
-            var soup = new SOUP();
+            var soup = new SOUP(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 37, "@@SLMS:SOUP(itemid=21,checksoup=true)@@", true);
             dataSources.GetAllSOUP().Returns(soupItems);
             var deps = GetDependencies();
             deps.Add(new ExternalDependency("soupname3", "soupversion3", false));
             dataSources.GetAllExternalDependencies().Returns(deps);
-            string content = soup.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string content = soup.GetContent(tag, documentConfig);
             string expectedContent = "Roboclerk detected the following potential soup issues:\n\n* An external dependency soupname3 soupversion3 does not seem to have a matching soup item.\n\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
@@ -239,13 +239,13 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent9()
         {
-            var soup = new SOUP();
+            var soup = new SOUP(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 37, "@@SLMS:SOUP(itemid=21,checksoup=true)@@", true);
             soupItems[1].SOUPVersion = "wrong";
             dataSources.GetAllSOUP().Returns(soupItems);
             var deps = GetDependencies();
             dataSources.GetAllExternalDependencies().Returns(deps);
-            string content = soup.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string content = soup.GetContent(tag, documentConfig);
             string expectedContent = "Roboclerk detected the following potential soup issues:\n\n* An external dependency (soupname2) has a matching soup item with a mismatched version (\"wrong\" instead of \"soupversion2\").\n\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform

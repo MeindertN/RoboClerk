@@ -4,7 +4,14 @@ namespace RoboClerk.ContentCreators
 {
     internal class Reference : IContentCreator
     {
-        public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        private ITraceabilityAnalysis analysis = null;
+
+        public Reference(ITraceabilityAnalysis analysis)
+        {
+            this.analysis = analysis;
+        }
+
+        public string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             string result = string.Empty;
             var reference = analysis.GetTraceEntityForID(tag.ContentCreatorID);

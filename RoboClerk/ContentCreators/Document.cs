@@ -5,7 +5,7 @@ namespace RoboClerk.ContentCreators
 {
     internal class Document : IContentCreator
     {
-        public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             if(tag.ContentCreatorID.ToUpper() == "TITLE")
             {

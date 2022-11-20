@@ -8,6 +8,12 @@ namespace RoboClerk.ContentCreators
 {
     public class UnitTest : ContentCreatorBase
     {
+        public UnitTest(IDataSources data, ITraceabilityAnalysis analysis)
+            : base(data, analysis)
+        {
+
+        }
+
         private string GenerateBriefADOC(List<UnitTestItem> unitTests, TraceEntity sourceType, RoboClerkTag tag, System.Reflection.PropertyInfo[] properties, ITraceabilityAnalysis analysis, TraceEntity docTrace)
         {
             StringBuilder sb = new StringBuilder();
@@ -30,7 +36,7 @@ namespace RoboClerk.ContentCreators
             return sb.ToString();
         }
 
-        private string GenerateADOC(UnitTestItem item, string name, IDataSources data)
+        private string GenerateADOC(UnitTestItem item, string name)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("|====");
@@ -48,7 +54,7 @@ namespace RoboClerk.ContentCreators
                 sb.AppendLine();
             }
             sb.Append("| *Trace Link:* ");
-            sb.AppendLine($"| {GetLinkedField(item, data, ItemLinkType.Related)}");
+            sb.AppendLine($"| {GetLinkedField(item, ItemLinkType.Related)}");
             sb.AppendLine();
             string tempPurpose = item.UnitTestPurpose == string.Empty ? "N/A" : item.UnitTestPurpose;
             sb.AppendLine($"| *Purpose* | {tempPurpose}");
@@ -61,7 +67,7 @@ namespace RoboClerk.ContentCreators
             return sb.ToString();
         }
 
-        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             var unitTests = data.GetAllSoftwareUnitTests();
             StringBuilder output = new StringBuilder();
@@ -83,7 +89,7 @@ namespace RoboClerk.ContentCreators
                 if (ShouldBeIncluded(tag, test, properties) && CheckUpdateDateTime(tag, test))
                 {
                     unitTestFound = true;
-                    output.AppendLine(GenerateADOC(test, sourceType.Name,data));
+                    output.AppendLine(GenerateADOC(test, sourceType.Name));
                     analysis.AddTrace(analysis.GetTraceEntityForID("SoftwareUnitTest"), test.ItemID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), test.ItemID);
 
                     var links = test.LinkedItems.Where(x => x.LinkType == ItemLinkType.Related);

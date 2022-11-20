@@ -1,17 +1,8 @@
-﻿using DocumentFormat.OpenXml.EMMA;
-using LibGit2Sharp;
-using NSubstitute;
-using NUnit.Framework;
-using RoboClerk.Configuration;
-using RoboClerk.ContentCreators;
-using System;
+﻿using NUnit.Framework;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RoboClerk.Tests
 {

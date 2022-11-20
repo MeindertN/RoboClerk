@@ -5,6 +5,11 @@ namespace RoboClerk.ContentCreators
 {
     class Anomaly : ContentCreatorBase
     {
+        public Anomaly(IDataSources data, ITraceabilityAnalysis analysis)
+            : base(data, analysis)
+        {
+
+        }
 
         private string GenerateADoc(AnomalyItem item, TraceEntity tet)
         {
@@ -40,7 +45,7 @@ namespace RoboClerk.ContentCreators
             return sb.ToString();
         }
 
-        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             var anomalies = data.GetAllAnomalies();
             StringBuilder output = new StringBuilder();

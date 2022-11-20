@@ -4,7 +4,13 @@ namespace RoboClerk.ContentCreators
 {
     public class TraceMatrix : TraceabilityMatrixBase
     {
-        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public TraceMatrix(IDataSources data, ITraceabilityAnalysis analysis)
+            : base(data, analysis)
+        {
+            
+        }
+
+        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             string ts = tag.GetParameterOrDefault("source", "not_found");
             if(ts == "not_found")
@@ -13,7 +19,7 @@ namespace RoboClerk.ContentCreators
             }
             truthSource = analysis.GetTraceEntityForID(ts);
 
-            return base.GetContent(tag, data, analysis, doc);
+            return base.GetContent(tag, doc);
         }
     }
 }

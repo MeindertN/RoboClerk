@@ -4,12 +4,16 @@ namespace RoboClerk.ContentCreators
 {
     public class Trace : IContentCreator
     {
-        public Trace()
-        {
+        private ITraceabilityAnalysis analysis = null;
+        private IDataSources data = null;
 
+        public Trace(IDataSources data, ITraceabilityAnalysis analysis)
+        {
+            this.analysis = analysis;
+            this.data = data;
         }
 
-        public string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             if (tag.HasParameter("ID"))
             {

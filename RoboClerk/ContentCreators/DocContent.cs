@@ -6,7 +6,14 @@ namespace RoboClerk.ContentCreators
 {
     internal class DocContent : ContentCreatorBase
     {
-        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
+
+        public DocContent(IDataSources data, ITraceabilityAnalysis analysis)
+            : base(data, analysis)
+        {
+
+        }
+
+        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             var te = analysis.GetTraceEntityForID("DocContent");
             if (te == null)

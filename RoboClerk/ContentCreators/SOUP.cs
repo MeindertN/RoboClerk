@@ -7,6 +7,13 @@ namespace RoboClerk.ContentCreators
 {
     public class SOUP : ContentCreatorBase
     {
+
+        public SOUP(IDataSources data, ITraceabilityAnalysis analysis)
+            : base(data, analysis)
+        {
+
+        }
+
         private string GenerateSoupCheck(IDataSources sources, string soupName)
         {
             var extDeps = sources.GetAllExternalDependencies();
@@ -153,10 +160,10 @@ namespace RoboClerk.ContentCreators
             return sb.ToString();
         }
 
-        public override string GetContent(RoboClerkTag tag, IDataSources sources, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             bool foundSOUP = false;
-            var soups = sources.GetAllSOUP();
+            var soups = data.GetAllSOUP();
             //No selection needed, we return everything
             StringBuilder output = new StringBuilder();
             var properties = typeof(SOUPItem).GetProperties();
@@ -176,7 +183,7 @@ namespace RoboClerk.ContentCreators
                 //this will retrieve a list of external dependencies (from a dependency manager like NuGet or Gradle)
                 //and compare them with the known SOUP items. Any discrepancies are listed.
                 foundSOUP= true;
-                output.AppendLine(GenerateSoupCheck(sources,sourceType.Name));
+                output.AppendLine(GenerateSoupCheck(data,sourceType.Name));
             }
             else foreach (var soup in soups)
             {

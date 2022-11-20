@@ -5,7 +5,13 @@ namespace RoboClerk.ContentCreators
 {
     public class SystemRequirement : RequirementBase
     {
-        public override string GetContent(RoboClerkTag tag, IDataSources sources, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public SystemRequirement(IDataSources data, ITraceabilityAnalysis analysis)
+            : base(data, analysis)
+        {
+
+        }
+
+        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             var te = analysis.GetTraceEntityForID("SystemRequirement");
             if (te == null)
@@ -14,8 +20,8 @@ namespace RoboClerk.ContentCreators
             }
             requirementName = te.Name;
             sourceType = te;
-            requirements = sources.GetAllSystemRequirements();
-            return base.GetContent(tag, sources, analysis, doc);
+            requirements = data.GetAllSystemRequirements();
+            return base.GetContent(tag, doc);
         }
     }
 }

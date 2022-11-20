@@ -61,8 +61,8 @@ namespace RoboClerk
                         {
                             logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID", "ERROR")}");
                             //grab trace tag and add to the trace analysis
-                            IContentCreator contentCreator = new Trace();
-                            tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, doc);
+                            IContentCreator contentCreator = new Trace(dataSources,traceAnalysis);
+                            tag.Contents = contentCreator.GetContent(tag, doc);
                             continue;
                         }
                         if (tag.Source != DataSource.Unknown)
@@ -79,17 +79,17 @@ namespace RoboClerk
                             else if (tag.Source == DataSource.Post)
                             {
                                 IContentCreator cc = new PostLayout();
-                                tag.Contents = cc.GetContent(tag, dataSources, traceAnalysis, doc);
+                                tag.Contents = cc.GetContent(tag, doc);
                             }
                             else if (tag.Source == DataSource.Reference)
                             {
-                                IContentCreator cc = new Reference();
-                                tag.Contents = cc.GetContent(tag, dataSources, traceAnalysis, doc);
+                                IContentCreator cc = new Reference(traceAnalysis);
+                                tag.Contents = cc.GetContent(tag, doc);
                             }
                             else if (tag.Source == DataSource.Document)
                             {
                                 IContentCreator cc = new ContentCreators.Document();
-                                tag.Contents = cc.GetContent(tag, dataSources, traceAnalysis, doc);
+                                tag.Contents = cc.GetContent(tag, doc);
                             }
                             else
                             {
@@ -100,7 +100,7 @@ namespace RoboClerk
                                 if (contentCreator != null)
                                 {
                                     logger.Debug($"Content creator {tag.ContentCreatorID} found.");
-                                    tag.Contents = contentCreator.GetContent(tag, dataSources, traceAnalysis, doc);
+                                    tag.Contents = contentCreator.GetContent(tag, doc);
                                     continue;
                                 }
                                 logger.Warn($"Content creator {tag.ContentCreatorID} not found.");
@@ -172,7 +172,7 @@ namespace RoboClerk
             {
                 if (contentType.Name == contentCreatorID)
                 {
-                    return Activator.CreateInstance(contentType) as IContentCreator;
+                    return Activator.CreateInstance(contentType, dataSources, traceAnalysis) as IContentCreator;
                 }
             }
             return null;

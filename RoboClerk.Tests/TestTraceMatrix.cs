@@ -75,7 +75,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateTraceMatrix()
         {
-            var trace = new TraceMatrix();
+            var trace = new TraceMatrix(dataSources, traceAnalysis);
         }
 
         [UnitTestAttribute(
@@ -85,9 +85,9 @@ namespace RoboClerk.Tests
         [Test]
         public void TestTraceMatrix1()
         {
-            var trace = new TraceMatrix();
+            var trace = new TraceMatrix(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
-            string result = trace.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string result = trace.GetContent(tag, documentConfig);
             string expectedValue = "|====\n| Requirements | Specifications | SRS \n| SYS1 | SYS1_SWR1, SYS1_SWR2 | SYS1 \n| SYS2 | SYS2_SWR3 | SYS2 \n|====\n\n\nTrace issues:\n\n* No Requirement level trace problems detected!\n";
 
             Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedValue));
@@ -100,9 +100,9 @@ namespace RoboClerk.Tests
         [Test]
         public void TestTraceMatrix2()
         {
-            var trace = new TraceMatrix();
+            var trace = new TraceMatrix(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 36, "@@SLMS:TraceMatrix(source=Unknown)@@", true);
-            var ex = Assert.Throws<Exception>(()=>trace.GetContent(tag, dataSources, traceAnalysis, documentConfig));
+            var ex = Assert.Throws<Exception>(()=>trace.GetContent(tag, documentConfig));
             Assert.That(ex.Message.Contains("Truth source is null"));
         }
 
@@ -113,9 +113,9 @@ namespace RoboClerk.Tests
         [Test]
         public void TestTraceMatrix3()
         {
-            var trace = new TraceMatrix();
+            var trace = new TraceMatrix(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 22, "@@SLMS:TraceMatrix()@@", true);
-            var ex = Assert.Throws<Exception>(() => trace.GetContent(tag, dataSources, traceAnalysis, documentConfig));
+            var ex = Assert.Throws<Exception>(() => trace.GetContent(tag, documentConfig));
             Assert.That(ex.Message.Contains("Unable to find trace source"));
         }
 
@@ -126,10 +126,10 @@ namespace RoboClerk.Tests
         [Test]
         public void TestTraceMatrix4()
         {
-            var trace = new TraceMatrix();
+            var trace = new TraceMatrix(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
             matrix.Clear();
-            var ex = Assert.Throws<Exception>(() => trace.GetContent(tag, dataSources, traceAnalysis, documentConfig));
+            var ex = Assert.Throws<Exception>(() => trace.GetContent(tag, documentConfig));
             Assert.That(ex.Message.Contains("Requirement level trace matrix is empty"));
         }
 
@@ -140,11 +140,11 @@ namespace RoboClerk.Tests
         [Test]
         public void TestTraceMatrix5()
         {
-            var trace = new TraceMatrix();
+            var trace = new TraceMatrix(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
             var te = traceAnalysis.GetTraceEntityForID("SoftwareRequirement");
             matrix[te][1].Clear();
-            string result = trace.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string result = trace.GetContent(tag, documentConfig);
             string expectedValue = "|====\n| Requirements | Specifications | SRS \n| SYS1 | SYS1_SWR1, SYS1_SWR2 | SYS1 \n| SYS2 | N/A | SYS2 \n|====\n\n\nTrace issues:\n\n* No Requirement level trace problems detected!\n";
 
             Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedValue));
@@ -157,12 +157,12 @@ namespace RoboClerk.Tests
         [Test]
         public void TestTraceMatrix6()
         {
-            var trace = new TraceMatrix();
+            var trace = new TraceMatrix(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
             var te = traceAnalysis.GetTraceEntityForID("SoftwareRequirement");
             matrix[te][0].Clear();
             matrix[te][0].Add(null);
-            string result = trace.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string result = trace.GetContent(tag, documentConfig);
             string expectedValue = "|====\n| Requirements | Specifications | SRS \n| SYS1 | MISSING | SYS1 \n| SYS2 | SYS2_SWR3 | SYS2 \n|====\n\n\nTrace issues:\n\n* No Requirement level trace problems detected!\n";
 
             Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedValue));
@@ -175,13 +175,13 @@ namespace RoboClerk.Tests
         [Test]
         public void TestTraceMatrix7()
         {
-            var trace = new TraceMatrix();
+            var trace = new TraceMatrix(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
             var te = traceAnalysis.GetTraceEntityForID("SystemRequirement");
             var teSWR = traceAnalysis.GetTraceEntityForID("SoftwareRequirement");
             TraceIssue trcissue = new TraceIssue(te, "SYS1", teSWR, "SWR5", TraceIssueType.Missing);
             traceAnalysis.GetTraceIssuesForTruth(te).Returns(new List<TraceIssue>() { trcissue });
-            string result = trace.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string result = trace.GetContent(tag, documentConfig);
             string expectedValue = "|====\n| Requirements | Specifications | SRS \n| SYS1 | SYS1_SWR1, SYS1_SWR2 | SYS1 \n| SYS2 | SYS2_SWR3 | SYS2 \n|====\n\n\nTrace issues:\n\n. Requirement SYS1 is potentially missing a corresponding Specification.\n";
 
             Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedValue));
@@ -194,7 +194,7 @@ namespace RoboClerk.Tests
         [Test]
         public void TestTraceMatrix8()
         {
-            var trace = new TraceMatrix();
+            var trace = new TraceMatrix(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
             var te = traceAnalysis.GetTraceEntityForID("SystemRequirement");
             var teSWR = traceAnalysis.GetTraceEntityForID("SoftwareRequirement");
@@ -208,7 +208,7 @@ namespace RoboClerk.Tests
             TraceIssue trcissue7 = new TraceIssue(teDOC, "docID", te, null, TraceIssueType.Incorrect);
 
             traceAnalysis.GetTraceIssuesForDocument(teDOC).Returns(new List<TraceIssue>() { trcissue1, trcissue2, trcissue3, trcissue4, trcissue5, trcissue6, trcissue7 });
-            string result = trace.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string result = trace.GetContent(tag, documentConfig);
             string expectedValue = "|====\n| Requirements | Specifications | SRS \n| SYS1 | SYS1_SWR1, SYS1_SWR2 | SYS1 \n| SYS2 | SYS2_SWR3 | SYS2 \n|====\n\n\nTrace issues:\n\n. An expected trace from SYS1 in Requirement to System Requirements Specification is missing.\n. An item with identifier docID appeared in System Requirements Specification without tracing to Requirement.\n. An incorrect trace was found in System Requirements Specification from docID to SYS1 where SYS1 was expected in Requirement but was not found.\n. A possibly extra item with identifier docID appeared in System Requirements Specification without appearing in Requirement.\n. A possibly expected trace from SYS1 in Requirement to System Requirements Specification is missing.\n. An incorrect trace was found in System Requirements Specification from docID to SYS5 where SYS5 was expected in Requirement but was not a valid identifier.\n. A missing trace was detected in System Requirements Specification. The item with ID docID does not have a parent while it was expected to trace to Requirement.\n";
 
             Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedValue));

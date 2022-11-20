@@ -1,16 +1,18 @@
 ﻿using ClosedXML.Excel;
 using RoboClerk.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace RoboClerk.ContentCreators
 {
     public class ExcelTable : ContentCreatorBase
     {
-        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public ExcelTable(IDataSources data, ITraceabilityAnalysis analysis)
+            :base(data,analysis)
+        {
+
+        }
+
+        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             string excelFilename = tag.GetParameterOrDefault("FILENAME", string.Empty);
             string excelWorkSheetName = tag.GetParameterOrDefault("WORKSHEET", "Sheet1");

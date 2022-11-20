@@ -9,7 +9,16 @@ namespace RoboClerk.ContentCreators
     public abstract class ContentCreatorBase : IContentCreator
     {
         protected static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        public abstract string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc);
+        protected ITraceabilityAnalysis analysis = null;
+        protected IDataSources data = null;
+
+        public ContentCreatorBase(IDataSources data, ITraceabilityAnalysis analysis)
+        {
+            this.data = data;
+            this.analysis = analysis;
+        }
+                
+        public abstract string GetContent(RoboClerkTag tag, DocumentConfig doc);
 
         protected bool ShouldBeIncluded<T>(RoboClerkTag tag, T item, PropertyInfo[] properties)
         {
@@ -45,7 +54,7 @@ namespace RoboClerk.ContentCreators
             return true;
         }
 
-        protected string GetLinkedField(LinkedItem sourceItem, IDataSources data, ItemLinkType linkType)
+        protected string GetLinkedField(LinkedItem sourceItem, ItemLinkType linkType)
         {
             StringBuilder field = new StringBuilder();
             var linkedItems = sourceItem.LinkedItems.Where(x => x.LinkType == linkType);

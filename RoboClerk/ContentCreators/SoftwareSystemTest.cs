@@ -7,6 +7,12 @@ namespace RoboClerk.ContentCreators
 {
     public class SoftwareSystemTest : ContentCreatorBase
     {
+        public SoftwareSystemTest(IDataSources data, ITraceabilityAnalysis analysis)
+            : base(data, analysis)
+        {
+
+        }
+
         private string GenerateTestCaseStepsHeader(bool automated)
         {
             StringBuilder sb = new StringBuilder();
@@ -48,7 +54,7 @@ namespace RoboClerk.ContentCreators
             return sb.ToString();
         }
 
-        private string GenerateADOC(TestCaseItem item, IDataSources data)
+        private string GenerateADOC(TestCaseItem item)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("|====");
@@ -61,7 +67,7 @@ namespace RoboClerk.ContentCreators
             sb.AppendLine();
             
             sb.Append("| *Parent ID:* ");
-            sb.AppendLine($"| {GetLinkedField(item, data,ItemLinkType.Parent)}");
+            sb.AppendLine($"| {GetLinkedField(item, ItemLinkType.Parent)}");
             sb.AppendLine();
 
             sb.Append("| *Title:* ");
@@ -97,7 +103,7 @@ namespace RoboClerk.ContentCreators
             return sb.ToString();
         }
 
-        public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             var systemTests = data.GetAllSoftwareSystemTests();
             StringBuilder output = new StringBuilder();
@@ -111,7 +117,7 @@ namespace RoboClerk.ContentCreators
                     testCaseFound = true;
                     try
                     {
-                        output.AppendLine(GenerateADOC(test, data));
+                        output.AppendLine(GenerateADOC(test));
                     }
                     catch
                     {

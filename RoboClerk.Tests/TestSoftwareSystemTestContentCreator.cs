@@ -74,7 +74,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateSoftwareSystemTestCC()
         {
-            var sst = new SoftwareSystemTest();
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis);
         }
 
         [UnitTestAttribute(
@@ -84,10 +84,10 @@ namespace RoboClerk.Tests
         [Test]
         public void SoftwareSystemRenderTest1()
         {
-            var sst = new SoftwareSystemTest();
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 13, "@@SLMS:TC()@@", true);
             dataSources.GetAllSoftwareSystemTests().Returns(testcaseItems);
-            string content = sst.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "|====\n| *Test Case ID:* | tcid1\n\n| *Test Case Revision:* | tcrev1\n\n| *Parent ID:* | target1\n\n| *Title:* | title1\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n| *Step* | *Action* | *Expected Result* \n\n| 1 | input11 | expected result11 \n\n| 2 | input12 | expected result12 \n\n|====\n\n|====\n| *Test Case ID:* | http://localhost/[tcid2]\n\n| *Test Case Revision:* | tcrev2\n\n| *Parent ID:* | target2\n\n| *Title:* | title2\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n| *Step* | *Action* | *Expected Result* | *Actual Result* | *Test Status*\n\n| 1 | input21 | expected result21 |  | Pass / Fail\n\n| 2 | input22 | expected result22 |  | Pass / Fail\n\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n| Initial: | Date: | Asset ID: \n|====\n\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
@@ -102,13 +102,13 @@ namespace RoboClerk.Tests
         [Test]
         public void SoftwareSystemRenderTest2()
         {
-            var sst = new SoftwareSystemTest();
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 25, "@@SLMS:TC(itemid=tcid2)@@", true);
             testcaseItems[1].ClearTestCaseSteps();
             testcaseItems[1].AddTestCaseStep(new string[2] { "input21", "expected result21" });
             testcaseItems[1].AddTestCaseStep(new string[2] { "input22", "" } );
             dataSources.GetAllSoftwareSystemTests().Returns(testcaseItems);
-            string content = sst.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "|====\n| *Test Case ID:* | http://localhost/[tcid2]\n\n| *Test Case Revision:* | tcrev2\n\n| *Parent ID:* | target2\n\n| *Title:* | title2\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n| *Step* | *Action* | *Expected Result* | *Actual Result* | *Test Status*\n\n| 1 | input21 | expected result21 |  | Pass / Fail\n\n| 2 | input22 |  |  | \n\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n| Initial: | Date: | Asset ID: \n|====\n\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
@@ -122,12 +122,12 @@ namespace RoboClerk.Tests
         [Test]
         public void SoftwareSystemRenderTest3()
         {
-            var sst = new SoftwareSystemTest();
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 25, "@@SLMS:TC(itemid=tcid2)@@", true);
             testcaseItems[1].AddTestCaseStep(new string[2] { "input21", "expected result21" });
             testcaseItems[1].AddTestCaseStep(new string[1] { "input22" } );
             dataSources.GetAllSoftwareSystemTests().Returns(testcaseItems);
-            Assert.Throws<ArgumentException>(()=>sst.GetContent(tag, dataSources, traceAnalysis, documentConfig));
+            Assert.Throws<ArgumentException>(()=>sst.GetContent(tag, documentConfig));
         }
 
         [UnitTestAttribute(
@@ -137,13 +137,13 @@ namespace RoboClerk.Tests
         [Test]
         public void SoftwareSystemRenderTest4()
         {
-            var sst = new SoftwareSystemTest();
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 25, "@@SLMS:TC(itemid=tcid3)@@", true);
             var testcaseItem = new TestCaseItem();
             testcaseItem.ItemID = "tcid3";
             testcaseItems.Add(testcaseItem);
             dataSources.GetAllSoftwareSystemTests().Returns(testcaseItems);
-            string content = sst.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string content = sst.GetContent(tag, documentConfig);
             Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), null, Arg.Any<TraceEntity>(), "tcid3"));
         }
 
@@ -154,10 +154,10 @@ namespace RoboClerk.Tests
         [Test]
         public void SoftwareSystemRenderTest5()
         {
-            var sst = new SoftwareSystemTest();
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 25, "@@SLMS:TC(itemid=tcid5)@@", true);
             dataSources.GetAllSoftwareSystemTests().Returns(testcaseItems);
-            string content = sst.GetContent(tag, dataSources, traceAnalysis, documentConfig);
+            string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "Unable to find specified test case(s). Check if test cases are provided or if a valid test case identifier is specified.";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));

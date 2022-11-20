@@ -1,6 +1,5 @@
 ﻿using RoboClerk.Configuration;
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace RoboClerk.ContentCreators
@@ -8,13 +7,16 @@ namespace RoboClerk.ContentCreators
     public abstract class TraceabilityMatrixBase : IContentCreator
     {
         protected TraceEntity truthSource = null;
+        protected IDataSources data = null;
+        protected ITraceabilityAnalysis analysis = null;
 
-        public TraceabilityMatrixBase()
+        public TraceabilityMatrixBase(IDataSources data, ITraceabilityAnalysis analysis)
         {
-
+            this.data = data;
+            this.analysis = analysis;
         }
 
-        public virtual string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public virtual string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             if(truthSource == null)
             {

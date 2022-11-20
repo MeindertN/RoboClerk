@@ -11,12 +11,13 @@ namespace RoboClerk.ContentCreators
         protected string requirementName = string.Empty;
         protected TraceEntity sourceType = null;
 
-        public RequirementBase()
+        public RequirementBase(IDataSources data, ITraceabilityAnalysis analysis)
+            : base(data, analysis)
         {
 
         }
 
-        private string GenerateADOC(RequirementItem item, IDataSources sources)
+        private string GenerateADOC(RequirementItem item)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("|====");
@@ -33,7 +34,7 @@ namespace RoboClerk.ContentCreators
             sb.AppendLine();
             
             sb.Append("| Parent ID: ");
-            sb.AppendLine($"| {GetLinkedField(item,sources,ItemLinkType.Parent)}");
+            sb.AppendLine($"| {GetLinkedField(item,ItemLinkType.Parent)}");
             sb.AppendLine();
             
             sb.Append("| Title: ");
@@ -46,7 +47,7 @@ namespace RoboClerk.ContentCreators
             return sb.ToString();
         }
 
-        public override string GetContent(RoboClerkTag tag, IDataSources sources, ITraceabilityAnalysis analysis, DocumentConfig doc)
+        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             bool foundRequirement = false;
             //No selection needed, we return everything
@@ -59,7 +60,7 @@ namespace RoboClerk.ContentCreators
                     foundRequirement = true;
                     try
                     {
-                        output.AppendLine(GenerateADOC(requirement,sources));
+                        output.AppendLine(GenerateADOC(requirement));
                     }
                     catch
                     {
