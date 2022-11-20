@@ -2,7 +2,7 @@
 
 namespace RoboClerk.ContentCreators
 {
-    class TraceMatrix : TraceabilityMatrixBase
+    public class TraceMatrix : TraceabilityMatrixBase
     {
         public override string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
         {

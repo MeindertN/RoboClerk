@@ -71,5 +71,10 @@ namespace RoboClerk
         {
             get => items.Count;
         }
+
+        public void Clear()
+        {
+            items.Clear();
+        }
     }
 }

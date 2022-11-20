@@ -260,7 +260,11 @@ namespace RoboClerk.AzureDevOps
             item.TestCaseState = GetWorkItemField(workitem, "System.State");
             item.ItemTitle = GetWorkItemField(workitem, "System.Title");
             item.TestCaseDescription = GetWorkItemField(workitem, "System.Description");
-            item.TestCaseSteps = GetTestSteps(GetWorkItemField(workitem, "Microsoft.VSTS.TCM.Steps"));
+            var testSteps = GetTestSteps(GetWorkItemField(workitem, "Microsoft.VSTS.TCM.Steps"));
+            foreach(var testStep in testSteps)
+            {
+                item.AddTestCaseStep(testStep);
+            }
             item.TestCaseAutomated = GetWorkItemField(workitem, "Microsoft.VSTS.TCM.AutomationStatus") != "Not Automated";
             AddLinksToWorkItems(workitem.Relations, item);
             return item;

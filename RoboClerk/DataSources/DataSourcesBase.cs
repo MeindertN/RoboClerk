@@ -213,6 +213,8 @@ namespace RoboClerk
             CheckpointDataStorage storage = new CheckpointDataStorage();
             storage.SystemRequirements = GetAllSystemRequirements();
             storage.SoftwareRequirements = GetAllSoftwareRequirements();
+            storage.DocumentationRequirements = GetAllDocumentationRequirements();
+            storage.DocContents = GetAllDocContents();
             storage.Risks = GetAllRisks().ToList();
             storage.UnitTests = GetAllSoftwareUnitTests();
             storage.SoftwareSystemTests = GetAllSoftwareSystemTests();

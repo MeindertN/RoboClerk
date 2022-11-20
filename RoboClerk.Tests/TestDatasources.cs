@@ -8,6 +8,10 @@ using System.IO.Abstractions;
 using System;
 using System.IO.Abstractions.TestingHelpers;
 using System.IO;
+using System.Text.Json;
+using NUnit.Framework.Internal;
+using System.Text;
+using System.Linq;
 
 namespace RoboClerk.Tests
 {
@@ -185,6 +189,36 @@ namespace RoboClerk.Tests
         }
 
         [Test]
+        public void Documentation_Requirements_Can_Be_Retrieved_VERIFIES_Supplied_Requirements_Are_Returned()
+        {
+            SetupSLMSPlugin();
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var returnedReqs = ds.GetAllDocumentationRequirements();
+            Assert.AreSame(DOCs[0], returnedReqs[0]);
+            Assert.AreSame(DOCs[1], returnedReqs[1]);
+            Assert.AreSame(DOCs[1], ds.GetDocumentationRequirement("DOC_id2"));
+            Assert.AreSame(DOCs[0], ds.GetItem("DOC_id1"));
+            var returnedItems = ds.GetItems(new TraceEntity("DocumentationRequirement", "Requirement", "DOC", TraceEntityType.Truth));
+            Assert.That(returnedItems[0].ItemID, Is.EqualTo(DOCs[0].ItemID));
+            Assert.That(returnedItems[1].ItemID, Is.EqualTo(DOCs[1].ItemID));
+        }
+
+        [Test]
+        public void DocContents_Can_Be_Retrieved_VERIFIES_Supplied_DocContents_Are_Returned()
+        {
+            SetupSLMSPlugin();
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var returnedDCTs = ds.GetAllDocContents();
+            Assert.AreSame(DOCCTs[0], returnedDCTs[0]);
+            Assert.AreSame(DOCCTs[1], returnedDCTs[1]);
+            Assert.AreSame(DOCCTs[1], ds.GetDocContent("DOCCT_id2"));
+            Assert.AreSame(DOCCTs[0], ds.GetItem("DOCCT_id1"));
+            var returnedItems = ds.GetItems(new TraceEntity("DocContent", "Content", "DOCCT", TraceEntityType.Truth));
+            Assert.That(returnedItems[0].ItemID, Is.EqualTo(DOCCTs[0].ItemID));
+            Assert.That(returnedItems[1].ItemID, Is.EqualTo(DOCCTs[1].ItemID));
+        }
+
+        [Test]
         public void Test_Cases_Can_Be_Retrieved_VERIFIES_Supplied_Test_Cases_Are_Returned()
         {
             SetupSLMSPlugin();
@@ -336,6 +370,59 @@ namespace RoboClerk.Tests
             Stream s = ds.GetFileStreamFromTemplateDir(@"myfile.txt");
             StreamReader reader = new StreamReader(s);
             Assert.That(reader.ReadToEnd(), Is.EqualTo("This is a \nmultiline text file."));
+        }
+
+        private bool CompareObjects<T>(List<T> obj1, List<T> obj2)
+        {
+            var properties = typeof(T).GetProperties();
+            if(obj1.Count != obj2.Count)
+            {
+                return false;
+            }
+            for (int i = 0; i < obj1.Count; i++)
+            {
+                foreach (var prop in properties)
+                {
+                    if (prop.GetValue(obj1[i]) as IEnumerable<dynamic> == null) 
+                    {
+                        if (prop.GetValue(obj1[i]) != null && prop.GetValue(obj2[i]) != null) //skip items that are null
+                            if (!prop.GetValue(obj1[i]).Equals(prop.GetValue(obj2[i])))
+                            {
+                                return false;
+                            }
+                    }
+                    else
+                    {
+                        if((prop.GetValue(obj1[i]) as IEnumerable<dynamic>).Count() != (prop.GetValue(obj2[i]) as IEnumerable<dynamic>).Count())
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        [Test]
+        public void Datasources_Are_Converted_To_JSON_VERIFIES_The_Correct_JSON_Is_Generated()
+        {
+            SetupSLMSPlugin();
+            SetupSrcCodePlugin();
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            string jsonString = ds.ToJSON();
+            byte[] byteArray = Encoding.ASCII.GetBytes(jsonString);
+            MemoryStream stream = new MemoryStream(byteArray);
+            var dataStorage = JsonSerializer.Deserialize<CheckpointDataStorage>(stream);
+
+            Assert.That(CompareObjects(dataStorage.SystemRequirements, ds.GetAllSystemRequirements()));
+            Assert.That(CompareObjects(dataStorage.SoftwareRequirements, ds.GetAllSoftwareRequirements()));
+            Assert.That(CompareObjects(dataStorage.DocumentationRequirements, ds.GetAllDocumentationRequirements()));
+            Assert.That(CompareObjects(dataStorage.DocContents, ds.GetAllDocContents()));
+            Assert.That(CompareObjects(dataStorage.Risks, ds.GetAllRisks()));
+            Assert.That(CompareObjects(dataStorage.Anomalies, ds.GetAllAnomalies()));
+            Assert.That(CompareObjects(dataStorage.SOUPs, ds.GetAllSOUP()));
+            Assert.That(CompareObjects(dataStorage.SoftwareSystemTests, ds.GetAllSoftwareSystemTests()));
+            Assert.That(CompareObjects(dataStorage.UnitTests, ds.GetAllSoftwareUnitTests()));
         }
     }
 }

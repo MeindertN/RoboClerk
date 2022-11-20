@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
-    abstract class TraceabilityMatrixBase : IContentCreator
+    public abstract class TraceabilityMatrixBase : IContentCreator
     {
         protected TraceEntity truthSource = null;
 
@@ -16,11 +16,16 @@ namespace RoboClerk.ContentCreators
 
         public virtual string GetContent(RoboClerkTag tag, IDataSources data, ITraceabilityAnalysis analysis, DocumentConfig doc)
         {
+            if(truthSource == null)
+            {
+                throw new Exception("Truth source is null, unclear where to start tracing.");
+            }
+
             var traceMatrix = analysis.PerformAnalysis(data, truthSource);
 
             if (traceMatrix.Count == 0)
             {
-                throw new Exception($"{truthSource} level trace matrix is empty.");
+                throw new Exception($"{truthSource.Name} level trace matrix is empty.");
             }
 
             StringBuilder matrix = new StringBuilder();
@@ -73,8 +78,8 @@ namespace RoboClerk.ContentCreators
             matrix.AppendLine("\nTrace issues:\n");
             bool traceIssuesFound = false;
             //now visualize the trace issues, first the truth
-            var truthIssues = analysis.GetTraceIssuesForTruth(truthSource);
-            foreach (var issue in truthIssues)
+            var truthTraceIssues = analysis.GetTraceIssuesForTruth(truthSource);
+            foreach (var issue in truthTraceIssues)
             {
                 traceIssuesFound = true;
                 Item item = data.GetItem(issue.SourceID);
@@ -85,7 +90,9 @@ namespace RoboClerk.ContentCreators
             {
                 if (tet.Key.ID == "SystemRequirement" || tet.Key.ID == "SoftwareRequirement" ||
                     tet.Key.ID == "SoftwareSystemTest" || tet.Key.ID == "SoftwareUnitTest" ||
-                    tet.Key.ID == "Anomaly") //skip the truth entity types
+                    tet.Key.ID == "Anomaly" || tet.Key.ID == "Risk" || 
+                    tet.Key.ID == "DocumentationRequirement" || tet.Key.ID == "DocContent" ||
+                    tet.Key.ID == "SOUP") //skip the truth entity types
                 {
                     continue;
                 }

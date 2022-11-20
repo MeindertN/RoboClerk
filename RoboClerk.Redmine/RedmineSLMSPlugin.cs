@@ -192,7 +192,11 @@ namespace RoboClerk.Redmine
                 resultItem.Link = new Uri($"{baseURL}{resultItem.ItemID}");
             }
             logger.Debug($"Getting test steps for item: {redmineItem.Id}");
-            resultItem.TestCaseSteps = GetTestSteps(redmineItem.Description ?? string.Empty);
+            var testCaseSteps = GetTestSteps(redmineItem.Description ?? string.Empty);
+            foreach( var testCaseStep in testCaseSteps)
+            {
+                resultItem.AddTestCaseStep(testCaseStep);
+            }
             resultItem.TestCaseAutomated = false;
             if (redmineItem.CustomFields != null)
             {

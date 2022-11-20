@@ -68,7 +68,7 @@ namespace RoboClerk.Configuration
             }
             catch (IOException)
             {
-                throw new Exception($"Unable to read config file: {configFile}");
+                throw new FileNotFoundException($"Unable to read config file: {configFile}");
             }
             try
             {
@@ -76,7 +76,7 @@ namespace RoboClerk.Configuration
             }
             catch (IOException)
             {
-                throw new Exception($"Unable to read project config file {projectConfigFile}");
+                throw new FileNotFoundException($"Unable to read project config file {projectConfigFile}");
             }
             return (config, projectConfig);
         }

@@ -28,10 +28,9 @@ namespace RoboClerk
             set => testCaseDescription = value;
         }
 
-        public List<string[]> TestCaseSteps
+        public IEnumerable<string[]> TestCaseSteps
         {
             get => testCaseSteps;
-            set => testCaseSteps = value;
         }
 
         public bool TestCaseAutomated
@@ -44,6 +43,16 @@ namespace RoboClerk
         {
             get => testCaseToUnitTest;
             set => testCaseToUnitTest = value;
+        }
+
+        public void AddTestCaseStep(string[] step)
+        {
+            testCaseSteps.Add(step);
+        }
+
+        public void ClearTestCaseSteps()
+        {
+            testCaseSteps.Clear();
         }
     }
 }

@@ -46,7 +46,8 @@ namespace RoboClerk.Tests
             testcaseItem.TestCaseAutomated = false;
             testcaseItem.TestCaseAutomated = true;
             testcaseItem.TestCaseDescription = "description1";
-            testcaseItem.TestCaseSteps = new List<string[]> { new string[2] { "input11","expected result11" }, new string[2] { "input12", "expected result12" } };
+            testcaseItem.AddTestCaseStep(new string[2] { "input11", "expected result11" });
+            testcaseItem.AddTestCaseStep(new string[2] { "input12", "expected result12" });
             testcaseItems.Add(testcaseItem);
             testcaseItem = new TestCaseItem();
             testcaseItem.ItemID = "tcid2";
@@ -60,7 +61,8 @@ namespace RoboClerk.Tests
             testcaseItem.TestCaseAutomated = false;
             testcaseItem.TestCaseAutomated = false;
             testcaseItem.TestCaseDescription = "description2";
-            testcaseItem.TestCaseSteps = new List<string[]> { new string[2] { "input21", "expected result21" }, new string[2] { "input22", "expected result22" } };
+            testcaseItem.AddTestCaseStep(new string[2] { "input21", "expected result21" });
+            testcaseItem.AddTestCaseStep(new string[2] { "input22", "expected result22" });
             testcaseItem.Link = new Uri("http://localhost/");
             testcaseItems.Add(testcaseItem);
         }
@@ -102,7 +104,9 @@ namespace RoboClerk.Tests
         {
             var sst = new SoftwareSystemTest();
             var tag = new RoboClerkTag(0, 25, "@@SLMS:TC(itemid=tcid2)@@", true);
-            testcaseItems[1].TestCaseSteps = new List<string[]> { new string[2] { "input21", "expected result21" }, new string[2] { "input22", "" } };
+            testcaseItems[1].ClearTestCaseSteps();
+            testcaseItems[1].AddTestCaseStep(new string[2] { "input21", "expected result21" });
+            testcaseItems[1].AddTestCaseStep(new string[2] { "input22", "" } );
             dataSources.GetAllSoftwareSystemTests().Returns(testcaseItems);
             string content = sst.GetContent(tag, dataSources, traceAnalysis, documentConfig);
             string expectedContent = "|====\n| *Test Case ID:* | http://localhost/[tcid2]\n\n| *Test Case Revision:* | tcrev2\n\n| *Parent ID:* | target2\n\n| *Title:* | title2\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n| *Step* | *Action* | *Expected Result* | *Actual Result* | *Test Status*\n\n| 1 | input21 | expected result21 |  | Pass / Fail\n\n| 2 | input22 |  |  | \n\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n| Initial: | Date: | Asset ID: \n|====\n\n";
@@ -120,7 +124,8 @@ namespace RoboClerk.Tests
         {
             var sst = new SoftwareSystemTest();
             var tag = new RoboClerkTag(0, 25, "@@SLMS:TC(itemid=tcid2)@@", true);
-            testcaseItems[1].TestCaseSteps = new List<string[]> { new string[2] { "input21", "expected result21" }, new string[1] { "input22" } };
+            testcaseItems[1].AddTestCaseStep(new string[2] { "input21", "expected result21" });
+            testcaseItems[1].AddTestCaseStep(new string[1] { "input22" } );
             dataSources.GetAllSoftwareSystemTests().Returns(testcaseItems);
             Assert.Throws<ArgumentException>(()=>sst.GetContent(tag, dataSources, traceAnalysis, documentConfig));
         }
