@@ -1,4 +1,4 @@
-![buildbadge](https://img.shields.io/github/workflow/status/MeindertN/RoboClerk/BuildRoboClerk) [![Coverage Status](https://coveralls.io/repos/github/MeindertN/RoboClerk/badge.svg?branch=main)](https://coveralls.io/github/MeindertN/RoboClerk?branch=main) ![Open issues](https://img.shields.io/github/issues-raw/MeindertN/RoboClerk) ![license](https://img.shields.io/github/license/MeindertN/RoboClerk)
+![buildbadge](https://img.shields.io/github/workflow/status/MeindertN/RoboClerk/BuildRoboClerk) [![Coverage Status](https://coveralls.io/repos/github/MeindertN/RoboClerk/badge.svg?branch=main&kill_cache=1)](https://coveralls.io/github/MeindertN/RoboClerk?branch=main&kill_cache=1) ![Open issues](https://img.shields.io/github/issues-raw/MeindertN/RoboClerk) ![license](https://img.shields.io/github/license/MeindertN/RoboClerk)
 
 # RoboClerk
 
