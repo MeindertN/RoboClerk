@@ -43,7 +43,7 @@ namespace RoboClerk.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "4F67920C-16DA-4D0A-A29A-AC0D1869B38D",
+        Identifier = "A69CB2DF-445B-4C77-B8A5-E185E3D51448",
         Purpose = "Checkpoint Data Storage is created, and items are stored and retrieved",
         PostCondition = "The stored and retrieved items are the same")]
         [Test]

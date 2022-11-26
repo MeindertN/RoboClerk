@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using Tomlyn;
 using RoboClerk.Configuration;
+using System.IO.Abstractions;
 
 namespace RoboClerk.AzureDevOps
 {
@@ -19,7 +20,8 @@ namespace RoboClerk.AzureDevOps
         private bool ignoreNewProductReqs = false;
         private WorkItemTrackingHttpClient witClient;
 
-        public AzureDevOpsSLMSPlugin()
+        public AzureDevOpsSLMSPlugin(IFileSystem fileSystem)
+            :base(fileSystem)
         {
             logger.Debug("Azure DevOps SLMS plugin created");
             name = "AzureDevOpsSLMSPlugin";

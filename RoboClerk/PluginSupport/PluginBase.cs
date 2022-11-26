@@ -1,7 +1,6 @@
-﻿using LibGit2Sharp;
-using RoboClerk.Configuration;
+﻿using RoboClerk.Configuration;
 using System;
-using System.IO;
+using System.IO.Abstractions;
 using System.Reflection;
 using Tomlyn;
 using Tomlyn.Model;
@@ -13,6 +12,12 @@ namespace RoboClerk
         protected string name = string.Empty;
         protected string description = string.Empty;
         protected static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        protected IFileSystem fileSystem = null;
+
+        public PluginBase(IFileSystem fileSystem)
+        {
+            this.fileSystem = fileSystem;
+        }
 
         public string Name 
         {
@@ -56,12 +61,12 @@ namespace RoboClerk
         protected TomlTable GetConfigurationTable(string pluginConfDir, string confFileName)
         {
             var assembly = Assembly.GetAssembly(this.GetType());
-            var configFileLocation = $"{Path.GetDirectoryName(assembly?.Location)}/Configuration/{confFileName}";
+            var configFileLocation = $"{fileSystem.Path.GetDirectoryName(assembly?.Location)}/Configuration/{confFileName}";
             if (pluginConfDir != string.Empty)
             {
-                configFileLocation = Path.Combine(pluginConfDir, confFileName);
+                configFileLocation = fileSystem.Path.Combine(pluginConfDir, confFileName);
             }
-            return Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
+            return Toml.Parse(fileSystem.File.ReadAllText(configFileLocation)).ToModel();
         }
     }
 }

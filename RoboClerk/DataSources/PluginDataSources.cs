@@ -10,14 +10,12 @@ namespace RoboClerk
         private List<IDependencyManagementPlugin> dependencyManagementPlugins = new List<IDependencyManagementPlugin>();
         private List<ISourceCodeAnalysisPlugin> sourceCodeAnalysisPlugins = new List<ISourceCodeAnalysisPlugin>();
 
-        private readonly IConfiguration configuration = null;
         private readonly IPluginLoader pluginLoader = null;
 
         public PluginDataSources(IConfiguration configuration, IPluginLoader pluginLoader, IFileSystem fileSystem) 
             : base(configuration,fileSystem)
         {
             this.pluginLoader = pluginLoader;  
-            this.configuration = configuration;
 
             LoadPlugins();
         }
@@ -28,7 +26,7 @@ namespace RoboClerk
             {
                 foreach (var dir in configuration.PluginDirs)
                 {
-                    var plugin = pluginLoader.LoadPlugin<IPlugin>((string)val, dir);
+                    var plugin = pluginLoader.LoadPlugin<IPlugin>((string)val, dir, fileSystem);
                     if (plugin != null)
                     {
                         plugin.Initialize(configuration);

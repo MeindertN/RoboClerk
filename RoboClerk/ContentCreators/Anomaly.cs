@@ -1,9 +1,10 @@
-﻿using RoboClerk.Configuration;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using RoboClerk.Configuration;
 using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
-    class Anomaly : ContentCreatorBase
+    public class Anomaly : ContentCreatorBase
     {
         public Anomaly(IDataSources data, ITraceabilityAnalysis analysis)
             : base(data, analysis)
@@ -47,6 +48,8 @@ namespace RoboClerk.ContentCreators
 
         public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
+            bool foundAnomaly = false;
+            var sourceTraceEntity = analysis.GetTraceEntityForID("Anomaly");
             var anomalies = data.GetAllAnomalies();
             StringBuilder output = new StringBuilder();
             var properties = typeof(AnomalyItem).GetProperties();
@@ -60,18 +63,22 @@ namespace RoboClerk.ContentCreators
                     }
                     try
                     {
+                        foundAnomaly = true;
                         output.AppendLine(GenerateADoc(anomaly, analysis.GetTraceEntityForID("Anomaly")));
+                        analysis.AddTrace(sourceTraceEntity, anomaly.ItemID, 
+                            analysis.GetTraceEntityForTitle(doc.DocumentTitle), anomaly.ItemID);
                     }
                     catch
                     {
                         logger.Error($"An error occurred while rendering anomaly {anomaly.ItemID} in {doc.DocumentTitle}.");
                         throw;
                     }
+
                 }
             }
-            if (anomalies.Count == 0)
+            if (!foundAnomaly)
             {
-                return $"No outstanding bugs found.";
+                return $"No outstanding {sourceTraceEntity.Name} found.";
             }
             return output.ToString();
         }

@@ -17,7 +17,7 @@ namespace RoboClerk.Tests
     [Description("These tests test the RoboClerk Checkpoint Datasources")]
     internal class TestCheckpointDataSources
     {
-        private IFileSystem fs = null;
+        private IFileSystem mockFileSystem = null;
         private ISLMSPlugin mockSLMSPlugin = null;
         private IDependencyManagementPlugin mockDepMgmtPlugin = null;
         private ISourceCodeAnalysisPlugin mockSrcCodePlugin = null;
@@ -78,7 +78,7 @@ namespace RoboClerk.Tests
     }
 ]
 }";
-            fs = new MockFileSystem(new Dictionary<string, MockFileData>
+            mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
                 { @"c:\temp\fake.json", new MockFileData(filecontent2) },
                 { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
@@ -100,10 +100,10 @@ namespace RoboClerk.Tests
             mockConfiguration.PluginDirs.ReturnsForAnyArgs(new List<string> { "c:\\temp\\does_not_exist", "c:\\temp\\" });
             mockConfiguration.TemplateDir.Returns(@"c:\\temp");
             mockConfiguration.CheckpointConfig.Returns(new CheckpointConfig());
-            mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>()).Returns<IPlugin>(l => null);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist")).Returns(mockSLMSPlugin);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testDepPlugin"), Arg.Is("c:\\temp\\does_not_exist")).Returns(mockDepMgmtPlugin);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testSrcPlugin"), Arg.Is("c:\\temp\\does_not_exist")).Returns(mockSrcCodePlugin);
+            mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>(), mockFileSystem).Returns<IPlugin>(l => null);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist"), mockFileSystem).Returns(mockSLMSPlugin);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testDepPlugin"), Arg.Is("c:\\temp\\does_not_exist"), mockFileSystem).Returns(mockDepMgmtPlugin);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testSrcPlugin"), Arg.Is("c:\\temp\\does_not_exist"), mockFileSystem).Returns(mockSrcCodePlugin);
         }
 
         [UnitTestAttribute(
@@ -113,7 +113,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateCheckpointDatasources()
         {
-            var cpds = new CheckpointDataSources(mockConfiguration,mockPluginLoader,fs,"fake.json");
+            var cpds = new CheckpointDataSources(mockConfiguration,mockPluginLoader,mockFileSystem,"fake.json");
         }
 
         [UnitTestAttribute(
@@ -123,7 +123,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateCheckpointDatasources2()
         {
-            Assert.Throws<Exception>(()=>new CheckpointDataSources(mockConfiguration, mockPluginLoader, fs, "does_not_exist.json"));
+            Assert.Throws<Exception>(()=>new CheckpointDataSources(mockConfiguration, mockPluginLoader, mockFileSystem, "does_not_exist.json"));
         }
 
         [UnitTestAttribute(
@@ -157,7 +157,7 @@ namespace RoboClerk.Tests
             
             mockSrcCodePlugin.GetUnitTests().Returns(new List<UnitTestItem>());
 
-            var cpds = new CheckpointDataSources(mockConfiguration, mockPluginLoader, fs, "fake.json");
+            var cpds = new CheckpointDataSources(mockConfiguration, mockPluginLoader, mockFileSystem, "fake.json");
             
             Assert.That(cpds.GetAllSystemRequirements().Count,Is.EqualTo(0));
             Assert.That(cpds.GetAllSoftwareRequirements().Count, Is.EqualTo(0));
@@ -228,7 +228,7 @@ namespace RoboClerk.Tests
 
             mockSrcCodePlugin.GetUnitTests().Returns(new List<UnitTestItem>());
 
-            var cpds = new CheckpointDataSources(mockConfiguration, mockPluginLoader, fs, "fake.json");
+            var cpds = new CheckpointDataSources(mockConfiguration, mockPluginLoader, mockFileSystem, "fake.json");
 
             Assert.That(cpds.GetAllSystemRequirements().Count, Is.EqualTo(1));
             Assert.That(cpds.GetAllSoftwareRequirements().Count, Is.EqualTo(1));
@@ -263,7 +263,7 @@ namespace RoboClerk.Tests
                 new ExternalDependency("ext","ver",false)
             });
 
-            var cpds = new CheckpointDataSources(mockConfiguration, mockPluginLoader, fs, "fake.json");
+            var cpds = new CheckpointDataSources(mockConfiguration, mockPluginLoader, mockFileSystem, "fake.json");
 
             var extdep = cpds.GetAllExternalDependencies();
             

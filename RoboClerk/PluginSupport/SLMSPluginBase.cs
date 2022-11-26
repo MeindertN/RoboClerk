@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO.Abstractions;
 
 namespace RoboClerk
 {
@@ -12,6 +13,12 @@ namespace RoboClerk
         protected List<RiskItem> risks = new List<RiskItem>();
         protected List<SOUPItem> soup = new List<SOUPItem>();
         protected List<DocContentItem> docContents = new List<DocContentItem>(); 
+
+        public SLMSPluginBase(IFileSystem fileSystem)
+            :base(fileSystem)
+        {
+
+        }
 
         public List<AnomalyItem> GetAnomalies()
         {

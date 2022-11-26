@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Tomlyn.Model;
 using RoboClerk.Configuration;
+using System.IO.Abstractions;
 
 namespace RoboClerk.Redmine
 {
@@ -24,7 +25,8 @@ namespace RoboClerk.Redmine
         private TomlArray ignoreList = new TomlArray();
         private RestClient client = null;
 
-        public RedmineSLMSPlugin()
+        public RedmineSLMSPlugin(IFileSystem fileSystem)
+            :base(fileSystem)
         {
             logger.Debug("Redmine SLMS plugin created");
             name = "RedmineSLMSPlugin";

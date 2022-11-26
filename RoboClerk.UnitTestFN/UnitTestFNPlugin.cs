@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 
@@ -13,7 +14,8 @@ namespace RoboClerk.SourceCode
         private List<string> functionMaskElements = new List<string>();
         private string sectionSeparator = string.Empty;
 
-        public UnitTestFNPlugin()
+        public UnitTestFNPlugin(IFileSystem fileSystem)
+            :base(fileSystem)
         {
             name = "UnitTestFNPlugin";
             description = "A plugin that analyzes a project's source code to extract unit test information for RoboClerk.";
@@ -260,7 +262,7 @@ namespace RoboClerk.SourceCode
         {
             foreach(var sourceFile in sourceFiles)
             {
-                var lines = File.ReadAllLines(sourceFile);
+                var lines = fileSystem.File.ReadAllLines(sourceFile);
                 FindAndProcessFunctions(lines,sourceFile);
             }
         }

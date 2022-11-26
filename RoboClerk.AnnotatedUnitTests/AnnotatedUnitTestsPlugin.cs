@@ -15,10 +15,11 @@ namespace RoboClerk.AnnotatedUnitTests
         private string parameterStartDelimiter = string.Empty;
         private string parameterEndDelimiter = string.Empty;
         private string parameterSeparator = string.Empty;
-
+        
         private Dictionary<string,UTInformation> information = new Dictionary<string,UTInformation>();
 
-        public AnnotatedUnitTestsPlugin()
+        public AnnotatedUnitTestsPlugin(IFileSystem fileSystem)
+            :base(fileSystem)
         {
             name = "AnnotatedUnitTestPlugin";
             description = "A plugin that analyzes a project's source code to extract unit test information for RoboClerk.";
@@ -242,7 +243,7 @@ namespace RoboClerk.AnnotatedUnitTests
         {
             foreach (var sourceFile in sourceFiles)
             {
-                var lines = File.ReadAllLines(sourceFile);
+                var lines = fileSystem.File.ReadAllLines(sourceFile);
                 FindAndProcessAnnotations(lines, sourceFile);
             }
         }

@@ -29,6 +29,7 @@ namespace RoboClerk.Tests
         [SetUp]
         public void TestSetup()
         {
+            mockFileSystem = Substitute.For<IFileSystem>();
             mockSLMSPlugin = Substitute.For<ISLMSPlugin>();
             mockSLMSPlugin.Name.Returns("SLMS Test Plugin");
             mockSLMSPlugin.Description.Returns("SLMS Test Plugin Description");
@@ -43,10 +44,10 @@ namespace RoboClerk.Tests
 
             mockConfiguration.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin1", "testPlugin2", "testDepPlugin", "testSrcPlugin" });
             mockConfiguration.PluginDirs.ReturnsForAnyArgs(new List<string> { "c:\\temp\\does_not_exist", "c:\\temp\\" });
-            mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>()).Returns<IPlugin>(l => null);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist")).Returns(mockSLMSPlugin);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testDepPlugin"), Arg.Is("c:\\temp\\does_not_exist")).Returns(mockDepMgmtPlugin);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testSrcPlugin"), Arg.Is("c:\\temp\\does_not_exist")).Returns(mockSrcCodePlugin);
+            mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>(),mockFileSystem).Returns<IPlugin>(l => null);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist"),mockFileSystem).Returns(mockSLMSPlugin);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testDepPlugin"), Arg.Is("c:\\temp\\does_not_exist"),mockFileSystem).Returns(mockDepMgmtPlugin);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testSrcPlugin"), Arg.Is("c:\\temp\\does_not_exist"),mockFileSystem).Returns(mockSrcCodePlugin);
         }
 
         [Test]
@@ -59,10 +60,10 @@ namespace RoboClerk.Tests
         public void Plugin_Search_Functionality_Works_Correctly_VERIFIES_DataSources_Traverses_All_Plugins_And_All_Directories()
         {
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin1"), Arg.Is<string>("c:\\temp\\does_not_exist")));
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin1"), Arg.Is<string>("c:\\temp\\")));
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin2"), Arg.Is<string>("c:\\temp\\does_not_exist")));
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin2"), Arg.Is<string>("c:\\temp\\")));
+            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin1"), Arg.Is<string>("c:\\temp\\does_not_exist"), mockFileSystem));
+            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin1"), Arg.Is<string>("c:\\temp\\"),mockFileSystem));
+            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin2"), Arg.Is<string>("c:\\temp\\does_not_exist"),mockFileSystem));
+            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin2"), Arg.Is<string>("c:\\temp\\"),mockFileSystem));
         }
 
         private List<RequirementItem> SYSs = null;

@@ -1,22 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 using System.Reflection;
 
 namespace RoboClerk
 {
     public class PluginLoader : IPluginLoader
     {
-        public T LoadPlugin<T>(string name, string pluginDir) where T : class
+        public T LoadPlugin<T>(string name, string pluginDir, IFileSystem fileSystem) where T : class
         {
             //get all the potential plugin dlls
             foreach (string file in Directory.GetFiles(pluginDir, "RoboClerk.*.dll", SearchOption.AllDirectories))
             {
                 //go over all the plugins and try to load them as the appropriate type
                 PluginLoadContext loadContext = new PluginLoadContext(file);
-                var assembly = loadContext.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(file)));
+                var assembly = loadContext.LoadFromAssemblyName(new AssemblyName(fileSystem.Path.GetFileNameWithoutExtension(file)));
                 //check the name of the plugin and return if found
-                foreach (var plugin in CreatePlugins<T>(assembly))
+                foreach (var plugin in CreatePlugins<T>(assembly, fileSystem))
                 {
                     if ((plugin as IPlugin).Name == name)
                     {
@@ -29,7 +30,7 @@ namespace RoboClerk
             return null;
         }
 
-        private IEnumerable<T> CreatePlugins<T>(Assembly assembly) where T : class
+        private IEnumerable<T> CreatePlugins<T>(Assembly assembly, IFileSystem fileSystem) where T : class
         {
             int count = 0;
 
@@ -37,7 +38,7 @@ namespace RoboClerk
             {
                 if (typeof(T).IsAssignableFrom(type))
                 {
-                    T result = Activator.CreateInstance(type) as T;
+                    T result = Activator.CreateInstance(type, fileSystem) as T;
                     if (result != null)
                     {
                         count++;

@@ -11,8 +11,8 @@ namespace RoboClerk
 {
     public abstract class DataSourcesBase : IDataSources
     {
-        private readonly IConfiguration configuration = null;
-        private readonly IFileSystem fileSystem = null;
+        protected readonly IConfiguration configuration = null;
+        protected readonly IFileSystem fileSystem = null;
         protected static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public DataSourcesBase(IConfiguration configuration, IFileSystem fileSystem)

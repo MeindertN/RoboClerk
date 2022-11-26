@@ -8,8 +8,6 @@ namespace RoboClerk
 {
     public class CheckpointDataSources : DataSourcesBase
     {
-        private IConfiguration configuration = null;
-        private IFileSystem fileSystem = null;
         private CheckpointDataStorage dataStorage = new CheckpointDataStorage();
         private IDataSources pluginDatasource = null;
 
@@ -17,8 +15,6 @@ namespace RoboClerk
             : base(configuration, fileSystem)
         {
             logger.Info($"RoboClerk is using the following checkpoint file in the template directory to read its input data: {checkpointFile}");
-            this.configuration = configuration;
-            this.fileSystem = fileSystem;
             pluginDatasource = new PluginDataSources(configuration,pluginLoader,fileSystem);
             SetFileSource(checkpointFile);
             ChangeUpdatedItems();

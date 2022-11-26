@@ -81,7 +81,7 @@ namespace RoboClerk.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "5C0A13ED-92D8-45F7-869C-CA3CDC428086",
+        Identifier = "EC1711BA-9462-42DD-A865-332536A7A05A",
         Purpose = "Soup content creator is provided a SOUP item and visualizes it",
         PostCondition = "Expected string content is returned and trace is set")]
         [Test]

@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using NSubstitute.Extensions;
 using RoboClerk;
+using System.IO.Abstractions;
 
 namespace RoboClerk.Tests
 {
@@ -15,6 +16,7 @@ namespace RoboClerk.Tests
     internal class TestTraceFunctionality
     {
         IConfiguration mockConfig = null;
+        IFileSystem mockFileSystem = null;
 
         [SetUp]
         public void TestSetup()
@@ -102,6 +104,7 @@ namespace RoboClerk.Tests
 
             mockConfig.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin1", "testPlugin2" });
             mockConfig.PluginDirs.ReturnsForAnyArgs(new List<string> { "c:\\temp\\does_not_exist", "c:\\temp\\" });
+            mockFileSystem = Substitute.For<IFileSystem>();
         }
 
         [Test]
@@ -298,9 +301,9 @@ namespace RoboClerk.Tests
         {
             SetupPlugin();
             IPluginLoader mockPluginLoader = Substitute.For<IPluginLoader>();
-            mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>()).Returns<IPlugin>(l => null);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist")).Returns(mockPlugin);
-            IDataSources dataSources = new PluginDataSources(mockConfig, mockPluginLoader, null);
+            mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>(), mockFileSystem).Returns<IPlugin>(l => null);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist"), mockFileSystem).Returns(mockPlugin);
+            IDataSources dataSources = new PluginDataSources(mockConfig, mockPluginLoader, mockFileSystem);
             SYSs.AddRange(systemReqs);
             SWRs.AddRange(softwareReqs);
             TCs.AddRange(tcs);

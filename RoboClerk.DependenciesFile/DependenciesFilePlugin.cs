@@ -1,7 +1,7 @@
 ﻿using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.IO.Abstractions;
 using Tomlyn.Model;
 
 namespace RoboClerk.DependenciesFile
@@ -13,7 +13,8 @@ namespace RoboClerk.DependenciesFile
 
         private List<ExternalDependency> externalDependencies = new List<ExternalDependency>();
 
-        public DependenciesFilePlugin()
+        public DependenciesFilePlugin(IFileSystem fileSystem)
+            :base(fileSystem)
         {
             name = "DependenciesFilePlugin";
             description = "A plugin that retrieves project dependencies via one or more files.";
@@ -71,12 +72,12 @@ namespace RoboClerk.DependenciesFile
 
         private void ParseGradleFile(string filename)
         {
-            if(!File.Exists(filename))
+            if(!fileSystem.File.Exists(filename))
             {
                 logger.Warn($"Cannot find Gradle file \"{filename}\" no dependencies will be loaded from this file.");
                 return;
             }
-            foreach (string line in File.ReadLines(filename))
+            foreach (string line in fileSystem.File.ReadLines(filename))
             {
                 if (line.StartsWith("+---") || line.StartsWith("\\---"))
                 {

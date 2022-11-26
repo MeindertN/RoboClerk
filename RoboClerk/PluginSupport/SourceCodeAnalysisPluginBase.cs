@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 using Tomlyn.Model;
 
 namespace RoboClerk
@@ -14,6 +15,11 @@ namespace RoboClerk
         protected List<string> sourceFiles = new List<string>();
         protected List<UnitTestItem> unitTests = new List<UnitTestItem>();
         protected GitRepoInformation gitInfo = null;
+ 
+        public SourceCodeAnalysisPluginBase(IFileSystem fileSystem)
+            :base(fileSystem)
+        {
+        }
 
         public List<UnitTestItem> GetUnitTests()
         {
@@ -55,12 +61,12 @@ namespace RoboClerk
             sourceFiles.Clear();
             foreach (var testDirectory in directories)
             {
-                DirectoryInfo dir = new DirectoryInfo(testDirectory);
+                IDirectoryInfo dir = fileSystem.DirectoryInfo.FromDirectoryName(testDirectory);
                 try
                 {
                     foreach (var fileMask in fileMasks)
                     {
-                        FileInfo[] files = dir.GetFiles(fileMask, subDir ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+                        IFileInfo[] files = dir.GetFiles(fileMask, subDir ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
                         foreach (var file in files)
                         {
                             sourceFiles.Add(file.FullName);
