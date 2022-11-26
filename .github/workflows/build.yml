@@ -23,9 +23,10 @@ jobs:
       - name: Test
         run: dotnet test --no-restore --verbosity normal
           /p:CollectCoverage=true 
+          /p:CoverletOutput=coverage.info
           /p:CoverletOutputFormat=lcov
       - name: Publish coverage report to coveralls.io   
         uses: coverallsapp/github-action@master   
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }} 
-          path-to-lcov: ./RoboClerk.Tests/coverage.json
+          path-to-lcov: ./RoboClerk.Tests/coverage.info
