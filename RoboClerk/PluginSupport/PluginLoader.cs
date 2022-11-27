@@ -11,7 +11,7 @@ namespace RoboClerk
         public T LoadPlugin<T>(string name, string pluginDir, IFileSystem fileSystem) where T : class
         {
             //get all the potential plugin dlls
-            foreach (string file in Directory.GetFiles(pluginDir, "RoboClerk.*.dll", SearchOption.AllDirectories))
+            foreach (string file in fileSystem.Directory.GetFiles(pluginDir, "RoboClerk.*.dll", SearchOption.AllDirectories))
             {
                 //go over all the plugins and try to load them as the appropriate type
                 PluginLoadContext loadContext = new PluginLoadContext(file);
