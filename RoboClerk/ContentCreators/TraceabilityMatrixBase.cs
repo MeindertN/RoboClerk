@@ -91,7 +91,7 @@ namespace RoboClerk.ContentCreators
             foreach (var tet in traceMatrix)
             {
                 if (tet.Key.ID == "SystemRequirement" || tet.Key.ID == "SoftwareRequirement" ||
-                    tet.Key.ID == "SoftwareSystemTest" || tet.Key.ID == "SoftwareUnitTest" ||
+                    tet.Key.ID == "SoftwareSystemTest" || tet.Key.ID == "UnitTest" ||
                     tet.Key.ID == "Anomaly" || tet.Key.ID == "Risk" || 
                     tet.Key.ID == "DocumentationRequirement" || tet.Key.ID == "DocContent" ||
                     tet.Key.ID == "SOUP") //skip the truth entity types

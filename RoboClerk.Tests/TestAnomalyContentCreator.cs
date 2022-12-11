@@ -5,6 +5,7 @@ using RoboClerk.Configuration;
 using RoboClerk.ContentCreators;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
@@ -20,7 +21,7 @@ namespace RoboClerk.Tests
         private IDataSources dataSources = null;
         private ITraceabilityAnalysis traceAnalysis = null;
         private DocumentConfig documentConfig = null;
-        private List<AnomalyItem> anomalyItems = new List<AnomalyItem>();
+        private List<LinkedItem> anomalyItems = new List<LinkedItem>();
 
         [SetUp]
         public void TestSetup()
@@ -32,6 +33,7 @@ namespace RoboClerk.Tests
             traceAnalysis.GetTraceEntityForID("Anomaly").Returns(te);
             traceAnalysis.GetTraceEntityForID("docID").Returns(teDoc);
             traceAnalysis.GetTraceEntityForTitle("docTitle").Returns(teDoc);
+            traceAnalysis.GetTraceEntityForAnyProperty("Anomaly").Returns(te);
             documentConfig = new DocumentConfig("BugReport", "docID", "docTitle", "docAbbr", @"c:\in\template.adoc");
 
             anomalyItems.Clear();
@@ -46,8 +48,8 @@ namespace RoboClerk.Tests
             anomalyItem.AnomalyAssignee = "tester mc testee";
             anomalyItem.AnomalySeverity = "critical";
             anomalyItem.AnomalyJustification = "it's all good";
-
             anomalyItems.Add(anomalyItem);
+
             anomalyItem = new AnomalyItem();
             anomalyItem.ItemID = "tcid2";
             anomalyItem.ItemRevision = "tcrev2";
@@ -58,7 +60,10 @@ namespace RoboClerk.Tests
             anomalyItem.Link = new Uri("http://localhost/");
             anomalyItems.Add(anomalyItem);
 
-            dataSources.GetAllAnomalies().Returns(anomalyItems);
+            dataSources.GetItems(te).Returns(anomalyItems);
+            dataSources.GetItem("tcid1").Returns(anomalyItems[0]);
+            dataSources.GetItem("tcid2").Returns(anomalyItems[1]);
+            dataSources.GetTemplateFile("./ItemTemplates/Anomaly.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/Anomaly.adoc"));
         }
 
         [UnitTestAttribute(
@@ -82,7 +87,7 @@ namespace RoboClerk.Tests
             var tag = new RoboClerkTag(0, 18, "@@SLMS:Anomaly()@@", true);
 
             string result = anomaly.GetContent(tag, documentConfig);
-            string expectedResult = "|====\n| Anomaly ID: | tcid1\n\n| Revision: | tcrev1\n\n| State: | deferred\n\n| Assigned To: | tester mc testee\n\n| Title: | title1\n\n| Severity: | critical\n\n| Justification: \na| it's all good\n|====\n\n|====\n| Anomaly ID: | http://localhost/[tcid2]\n\n| Revision: | tcrev2\n\n| State: | N/A\n\n| Assigned To: | NOT ASSIGNED\n\n| Title: | title2\n\n| Severity: | N/A\n\n| Justification: \n| N/A\n|====\n\n";
+            string expectedResult = "\n|====\n| Anomaly ID: | tcid1\n\n| Anomaly Revision: | tcrev1\n\n| State: | deferred\n\n| Assigned To: | tester mc testee\n\n| Title: | title1\n\n| Severity: | critical\n\n| Justification: | it's all good\n|====\n\n|====\n| Anomaly ID: | http://localhost/[tcid2]\n\n| Anomaly Revision: | tcrev2\n\n| State: | N/A\n\n| Assigned To: | NOT ASSIGNED\n\n| Title: | title2\n\n| Severity: | N/A\n\n| Justification: | N/A\n|====\n";
 
             Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedResult)); 
             Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), "tcid1", Arg.Any<TraceEntity>(), "tcid1"));
@@ -92,16 +97,16 @@ namespace RoboClerk.Tests
         [UnitTestAttribute(
         Identifier = "0CCC57E4-FD87-4ED3-86C7-0B14AF2CD6C1",
         Purpose = "Anomaly content creator is created, a tag requesting all anomalies is supplied, one anomaly is closed",
-        PostCondition = "Expected content is returned, closed anomaly is ignored and trace is set")]
+        PostCondition = "Expected content is returned, closed anomaly is ignored and trace is set only for non-closed anomaly.")]
         [Test]
         public void TestAnomaly2()
         {
             var anomaly = new Anomaly(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 18, "@@SLMS:Anomaly()@@", true);
-            anomalyItems[0].AnomalyState = "Closed";
+            ((AnomalyItem)anomalyItems[0]).AnomalyState = "Closed";
 
             string result = anomaly.GetContent(tag, documentConfig);
-            string expectedResult = "|====\n| Anomaly ID: | http://localhost/[tcid2]\n\n| Revision: | tcrev2\n\n| State: | N/A\n\n| Assigned To: | NOT ASSIGNED\n\n| Title: | title2\n\n| Severity: | N/A\n\n| Justification: \n| N/A\n|====\n\n";
+            string expectedResult = "\n|====\n| Anomaly ID: | http://localhost/[tcid2]\n\n| Anomaly Revision: | tcrev2\n\n| State: | N/A\n\n| Assigned To: | NOT ASSIGNED\n\n| Title: | title2\n\n| Severity: | N/A\n\n| Justification: | N/A\n|====\n";
 
             Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedResult));
             Assert.DoesNotThrow(() => traceAnalysis.DidNotReceive().AddTrace(Arg.Any<TraceEntity>(), "tcid1", Arg.Any<TraceEntity>(), "tcid1"));
@@ -117,7 +122,7 @@ namespace RoboClerk.Tests
         {
             var anomaly = new Anomaly(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 18, "@@SLMS:Anomaly()@@", true);
-            anomalyItems[0].AnomalyState = "Closed";
+            ((AnomalyItem)anomalyItems[0]).AnomalyState = "Closed";
             anomalyItems.RemoveAt(1);
 
             string result = anomaly.GetContent(tag, documentConfig);

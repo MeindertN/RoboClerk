@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
+using DocumentFormat.OpenXml.Bibliography;
+using Microsoft.CodeAnalysis.Scripting;
 
 namespace RoboClerk.ContentCreators
 {
-    public class SOUP : ContentCreatorBase
+    public class SOUP : MultiItemContentCreator
     {
 
         public SOUP(IDataSources data, ITraceabilityAnalysis analysis)
@@ -14,10 +16,10 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        private string GenerateSoupCheck(IDataSources sources, string soupName)
+        private string GenerateSoupCheck(string soupName)
         {
-            var extDeps = sources.GetAllExternalDependencies();
-            var soups = sources.GetAllSOUP();
+            var extDeps = data.GetAllExternalDependencies();
+            var soups = data.GetAllSOUP();
 
             StringBuilder output = new StringBuilder();
             output.AppendLine($"Roboclerk detected the following potential {soupName} issues:");
@@ -87,119 +89,47 @@ namespace RoboClerk.ContentCreators
             return output.ToString();
         }
 
-        private string GenerateBriefADOC(List<SOUPItem> items, TraceEntity sourceType, RoboClerkTag tag, PropertyInfo[] properties, ITraceabilityAnalysis analysis, TraceEntity docType)
+        protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("|====");
-            sb.AppendLine($"| {sourceType.Name} ID | {sourceType.Name} Name and Version");
-            sb.AppendLine();
-
-            foreach (var item in items)
-            {
-                if (ShouldBeIncluded<SOUPItem>(tag, item, properties) && CheckUpdateDateTime(tag, item))
-                {
-                    sb.Append(item.HasLink ? $"| {item.Link}[{item.ItemID}]" : $"| {item.ItemID} ");
-                    sb.AppendLine($"| {item.SOUPName} {item.SOUPVersion}");
-                    sb.AppendLine();
-                    analysis.AddTrace(sourceType, item.ItemID, docType, item.ItemID);
-                }
-            }
-            sb.AppendLine("|====");
-            return sb.ToString();
-        }
-
-        private string GenerateADOC(SOUPItem item, TraceEntity sourceType)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("|====");
-            sb.Append($"| {sourceType.Name} ID: ");
-            sb.AppendLine(item.HasLink ? $"| {item.Link}[{item.ItemID}]" : $"| {item.ItemID}");
-            sb.AppendLine();
-
-            sb.Append($"| {sourceType.Name} Revision: ");
-            sb.AppendLine($"| {item.ItemRevision}");
-            sb.AppendLine();
-
-            sb.Append($"| {sourceType.Name} Name and Version: ");
-            sb.AppendLine($"| {item.SOUPName} {item.SOUPVersion}");
-            sb.AppendLine();
-
-            sb.Append($"| Is {sourceType.Name} Critical for Performance: ");
-            sb.AppendLine($"| {item.SOUPPerformanceCriticalText}");
-            sb.AppendLine();
-
-            sb.Append($"| Is {sourceType.Name} Critical for Cyber Security: ");
-            sb.AppendLine($"| {item.SOUPCybersecurityCriticalText}");
-            sb.AppendLine();
-
-            if (item.SOUPPerformanceCritical)
-            {
-                sb.Append("| Result Anomaly List Examination: ");
-                sb.AppendLine($"| {item.SOUPAnomalyListDescription}");
-                sb.AppendLine();
-            }
-
-            sb.Append($"| Is {sourceType.Name} Installed by End-User: ");
-            sb.AppendLine($"| {item.SOUPInstalledByUserText}");
-            sb.AppendLine();
-
-            if (item.SOUPInstalledByUser)
-            {
-                sb.Append("| Required End-User Training: ");
-                sb.AppendLine($"| {item.SOUPEnduserTraining}");
-                sb.AppendLine();
-            }
-
-            sb.Append("| Detailed Description: ");
-            sb.AppendLine($"a| {item.SOUPDetailedDescription}");
-            sb.AppendLine();
-
-            sb.Append($"| {sourceType.Name} License: ");
-            sb.AppendLine($"| {item.SOUPLicense}");
-            sb.AppendLine("|====");
-            return sb.ToString();
-        }
-
-        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
-        {
-            bool foundSOUP = false;
-            var soups = data.GetAllSOUP();
-            //No selection needed, we return everything
-            StringBuilder output = new StringBuilder();
-            var properties = typeof(SOUPItem).GetProperties();
-            var sourceType = analysis.GetTraceEntityForID("SOUP");
-
+            var dataShare = new ScriptingBridge(data, analysis, sourceTE);
             if (tag.HasParameter("BRIEF") && tag.GetParameterOrDefault("BRIEF").ToUpper() == "TRUE")
             {
                 //this will print a brief list of all soups and versions that Roboclerk knows about
-                if (soups.Count > 0)
-                {
-                    foundSOUP = true;
-                    output.AppendLine(GenerateBriefADOC(soups, sourceType, tag, properties, analysis, analysis.GetTraceEntityForTitle(doc.DocumentTitle)));
-                }
+                dataShare.Items = items;
+                var file = data.GetTemplateFile(@"./ItemTemplates/SOUP_brief.adoc");
+                var renderer = new ItemTemplateRenderer(file);
+                var result = renderer.RenderItemTemplate(dataShare); 
+                ProcessTraces(docTE, dataShare);
+                return result;
             }
             else if (tag.HasParameter("CHECKSOUP") && tag.GetParameterOrDefault("CHECKSOUP").ToUpper() == "TRUE")
             {
                 //this will retrieve a list of external dependencies (from a dependency manager like NuGet or Gradle)
                 //and compare them with the known SOUP items. Any discrepancies are listed.
-                foundSOUP= true;
-                output.AppendLine(GenerateSoupCheck(data,sourceType.Name));
+                return GenerateSoupCheck(sourceTE.Name);
             }
-            else foreach (var soup in soups)
+            else
             {
-                if (ShouldBeIncluded<SOUPItem>(tag, soup, properties) && CheckUpdateDateTime(tag, soup))
+                var file = data.GetTemplateFile(@"./ItemTemplates/SOUP.adoc");
+                var renderer = new ItemTemplateRenderer(file);
+                StringBuilder output = new StringBuilder();
+                foreach (var item in items)
                 {
-                    foundSOUP = true;
-                    output.AppendLine(GenerateADOC(soup, sourceType));
-                    analysis.AddTrace(sourceType, soup.ItemID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), soup.ItemID);
+                    dataShare.Item = item;
+                    try
+                    {
+                        var result = renderer.RenderItemTemplate(dataShare);
+                        output.Append(result);
+                    }
+                    catch (CompilationErrorException e)
+                    {
+                        logger.Error($"A compilation error occurred while compiling SOUP.adoc script: {e.Message}");
+                        throw;
+                    }
                 }
+                ProcessTraces(docTE, dataShare);
+                return output.ToString();
             }
-            if (!foundSOUP)
-            {
-                string soupName = sourceType.Name;
-                return $"Unable to find {soupName}(s). Check if {soupName}s of the correct type are provided or if a valid {soupName} identifier is specified.";
-            }
-            return output.ToString();
         }
     }
 }

@@ -141,7 +141,7 @@ namespace RoboClerk.Tests
             cpc.UpdatedRiskIDs.Add("15");
             cpc.UpdatedSOUPIDs.Add("17");
             cpc.UpdatedSoftwareSystemTestIDs.Add("20");
-            cpc.UpdatedSoftwareUnitTestIDs.Add("TestDatasources.cs:49");
+            cpc.UpdatedUnitTestIDs.Add("TestDatasources.cs:49");
             cpc.UpdatedAnomalyIDs.Add("19");
             mockConfiguration.CheckpointConfig.Returns(cpc);
 
@@ -164,7 +164,7 @@ namespace RoboClerk.Tests
             Assert.That(cpds.GetAllDocumentationRequirements().Count, Is.EqualTo(0));
             Assert.That(cpds.GetAllDocContents().Count, Is.EqualTo(0));
             Assert.That(cpds.GetAllAnomalies().Count, Is.EqualTo(0));
-            Assert.That(cpds.GetAllSoftwareUnitTests().Count, Is.EqualTo(0));
+            Assert.That(cpds.GetAllUnitTests().Count, Is.EqualTo(0));
             Assert.That(cpds.GetAllSoftwareSystemTests().Count, Is.EqualTo(0));
             Assert.That(cpds.GetAllSOUP().Count, Is.EqualTo(0));
             Assert.That(cpds.GetAllRisks().Count, Is.EqualTo(0));
@@ -185,7 +185,7 @@ namespace RoboClerk.Tests
             cpc.UpdatedRiskIDs.Add("15");
             cpc.UpdatedSOUPIDs.Add("17");
             cpc.UpdatedSoftwareSystemTestIDs.Add("20");
-            cpc.UpdatedSoftwareUnitTestIDs.Add("TestDatasources.cs:49");
+            cpc.UpdatedUnitTestIDs.Add("TestDatasources.cs:49");
             cpc.UpdatedAnomalyIDs.Add("19");
             mockConfiguration.CheckpointConfig.Returns(cpc);
 
@@ -235,7 +235,7 @@ namespace RoboClerk.Tests
             Assert.That(cpds.GetAllDocumentationRequirements().Count, Is.EqualTo(1));
             Assert.That(cpds.GetAllDocContents().Count, Is.EqualTo(1));
             Assert.That(cpds.GetAllAnomalies().Count, Is.EqualTo(1));
-            Assert.That(cpds.GetAllSoftwareUnitTests().Count, Is.EqualTo(1));
+            Assert.That(cpds.GetAllUnitTests().Count, Is.EqualTo(1));
             Assert.That(cpds.GetAllSoftwareSystemTests().Count, Is.EqualTo(1));
             Assert.That(cpds.GetAllSOUP().Count, Is.EqualTo(1));
             Assert.That(cpds.GetAllRisks().Count, Is.EqualTo(1));
@@ -244,7 +244,7 @@ namespace RoboClerk.Tests
             Assert.That(cpds.GetAllDocumentationRequirements()[0].ItemCategory, Is.EqualTo("new"));
             Assert.That(cpds.GetAllDocContents()[0].ItemCategory, Is.EqualTo("new"));
             Assert.That(cpds.GetAllAnomalies()[0].ItemCategory, Is.EqualTo("new"));
-            Assert.That(cpds.GetAllSoftwareUnitTests()[0].ItemCategory, Is.EqualTo("new"));
+            Assert.That(cpds.GetAllUnitTests()[0].ItemCategory, Is.EqualTo("new"));
             Assert.That(cpds.GetAllSoftwareSystemTests()[0].ItemCategory, Is.EqualTo("new"));
             Assert.That(cpds.GetAllSOUP()[0].ItemCategory, Is.EqualTo("new"));
             Assert.That(cpds.GetAllRisks()[0].ItemCategory, Is.EqualTo("new"));

@@ -93,11 +93,11 @@ namespace RoboClerk
                 truth.Find(x => x.ID == "SystemRequirement") == null ||
                 truth.Find(x => x.ID == "SoftwareRequirement") == null ||
                 truth.Find(x => x.ID == "SoftwareSystemTest") == null ||
-                truth.Find(x => x.ID == "SoftwareUnitTest") == null ||
+                truth.Find(x => x.ID == "UnitTest") == null ||
                 truth.Find(x => x.ID == "Risk") == null ||
                 truth.Find(x => x.ID == "Anomaly") == null )
             {
-                throw new Exception("Not all types of Truth entities were found in the project config file. Make sure the following are present: SystemRequirement, SoftwareRequirement, SoftwareSystemTest, SoftwareUnitTest, Risk, Anomaly");
+                throw new Exception("Not all types of Truth entities were found in the project config file. Make sure the following are present: SystemRequirement, SoftwareRequirement, SoftwareSystemTest, UnitTest, Risk, Anomaly");
             }
         }
 

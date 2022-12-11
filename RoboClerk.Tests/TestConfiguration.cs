@@ -59,7 +59,7 @@ CheckpointFile = ""C:/chkpt.json""
 UpdatedSystemRequirementIDs = [""test1""]
 UpdatedSoftwareRequirementIDs = [""test2""]
 UpdatedSoftwareSystemTestIDs = [""test3""]
-UpdatedSoftwareUnitTestIDs = [""test4""]
+UpdatedUnitTestIDs = [""test4""]
 UpdatedRiskIDs = [""test5""]
 UpdatedAnomalyIDs = [""test6"",""test8""]
 UpdatedSOUPIDs = [""test7""]
@@ -142,8 +142,8 @@ CompanyName = ""Acme Inc.""
             Assert.That(checkPointCfg.UpdatedSoftwareRequirementIDs[0], Is.EqualTo("test2"));
             Assert.That(checkPointCfg.UpdatedSoftwareSystemTestIDs.Count, Is.EqualTo(1));
             Assert.That(checkPointCfg.UpdatedSoftwareSystemTestIDs[0], Is.EqualTo("test3"));
-            Assert.That(checkPointCfg.UpdatedSoftwareUnitTestIDs.Count, Is.EqualTo(1));
-            Assert.That(checkPointCfg.UpdatedSoftwareUnitTestIDs[0], Is.EqualTo("test4"));
+            Assert.That(checkPointCfg.UpdatedUnitTestIDs.Count, Is.EqualTo(1));
+            Assert.That(checkPointCfg.UpdatedUnitTestIDs[0], Is.EqualTo("test4"));
             Assert.That(checkPointCfg.UpdatedRiskIDs.Count, Is.EqualTo(1));
             Assert.That(checkPointCfg.UpdatedRiskIDs[0], Is.EqualTo("test5"));
             Assert.That(checkPointCfg.UpdatedAnomalyIDs.Count, Is.EqualTo(2));

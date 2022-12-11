@@ -10,6 +10,6 @@ namespace RoboClerk
             type = "DocContent";
         }
 
-        public string Contents { get; set; }
+        public string DocContent { get; set; }
     }
 }

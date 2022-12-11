@@ -1,0 +1,25 @@
+﻿[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+
+using RoboClerk; //must be included or nothing will work
+
+TraceEntity te = SourceTraceEntity;
+AnomalyItem item = (AnomalyItem)Item;
+AddTrace(item.ItemID);
+]
+|====
+| [csx:te.Name] ID: | [csx:GetItemLinkString(item)]
+
+| [csx:te.Name] Revision: | [csx:GetValOrDef(item.ItemRevision,"N/A")]
+
+| State: | [csx:GetValOrDef(item.AnomalyState,"N/A")]
+
+| Assigned To: | [csx:GetValOrDef(item.AnomalyAssignee,"NOT ASSIGNED")]
+
+| Title: | [csx:GetValOrDef(item.ItemTitle,"MISSING")]
+
+| Severity: | [csx:GetValOrDef(item.AnomalySeverity,"N/A")]
+
+| Justification: | [csx:GetValOrDef(item.AnomalyJustification,"N/A")]
+|====

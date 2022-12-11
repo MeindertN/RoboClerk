@@ -1,11 +1,12 @@
-﻿using RoboClerk.Configuration;
+﻿using Microsoft.CodeAnalysis.Scripting;
+using RoboClerk.Configuration;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
-    abstract public class RequirementBase : ContentCreatorBase
+    abstract public class RequirementBase : MultiItemContentCreator
     {
         protected List<RequirementItem> requirements = null;
         protected string requirementName = string.Empty;
@@ -17,63 +18,27 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        private string GenerateADOC(RequirementItem item)
+        protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity te, TraceEntity docTE)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("|====");
-            sb.Append($"| {sourceType.Name} ID: ");
-            sb.AppendLine(item.HasLink ? $"| {item.Link}[{item.ItemID}]" : $"| {item.ItemID}");
-            sb.AppendLine();
-            
-            sb.Append($"| {sourceType.Name} Revision: ");
-            sb.AppendLine($"| {item.ItemRevision}");
-            sb.AppendLine();
-            
-            sb.Append($"| {sourceType.Name} Category: ");
-            sb.AppendLine($"| {item.ItemCategory}");
-            sb.AppendLine();
-            
-            sb.Append("| Parent ID: ");
-            sb.AppendLine($"| {GetLinkedField(item,ItemLinkType.Parent)}");
-            sb.AppendLine();
-            
-            sb.Append("| Title: ");
-            sb.AppendLine($"| {item.ItemTitle}");
-            sb.AppendLine();
-            
-            sb.AppendLine("| Description: ");
-            sb.AppendLine($"a| {item.RequirementDescription}");
-            sb.AppendLine("|====");
-            return sb.ToString();
-        }
-
-        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
-        {
-            bool foundRequirement = false;
-            //No selection needed, we return everything
             StringBuilder output = new StringBuilder();
-            var properties = typeof(RequirementItem).GetProperties();
-            foreach (var requirement in requirements)
+            var dataShare = new ScriptingBridge(data, analysis, te);
+            var file = data.GetTemplateFile(@"./ItemTemplates/Requirement.adoc");
+            var renderer = new ItemTemplateRenderer(file);
+            foreach (var item in items)
             {
-                if (ShouldBeIncluded(tag, requirement, properties) && CheckUpdateDateTime(tag, requirement))
+                dataShare.Item = item;
+                try
                 {
-                    foundRequirement = true;
-                    try
-                    {
-                        output.AppendLine(GenerateADOC(requirement));
-                    }
-                    catch
-                    {
-                        logger.Error($"An error occurred while rendering requirement {requirement.ItemID} in {doc.DocumentTitle}.");
-                        throw;
-                    }
-                    analysis.AddTrace(sourceType, requirement.ItemID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), requirement.ItemID);
+                    var result = renderer.RenderItemTemplate(dataShare);
+                    output.Append(result);
+                }
+                catch (CompilationErrorException e)
+                {
+                    logger.Error($"A compilation error occurred while compiling Requirement.adoc script: {e.Message}");
+                    throw;
                 }
             }
-            if (!foundRequirement)
-            {
-                return $"Unable to find {requirementName}(s). Check if {requirementName}s of the correct type are provided or if a valid {requirementName} identifier is specified.";
-            }
+            ProcessTraces(docTE, dataShare);
             return output.ToString();
         }
     }

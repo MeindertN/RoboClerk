@@ -17,7 +17,7 @@ namespace RoboClerk.ContentCreators
             this.data = data;
             this.analysis = analysis;
         }
-                
+
         public abstract string GetContent(RoboClerkTag tag, DocumentConfig doc);
 
         protected bool ShouldBeIncluded<T>(RoboClerkTag tag, T item, PropertyInfo[] properties)
@@ -83,6 +83,24 @@ namespace RoboClerk.ContentCreators
                 return field.ToString();
             }
             return "N/A";
+        }
+
+        protected void ProcessTraces(TraceEntity docTE, ScriptingBridge dataShare)
+        {
+            foreach (var trace in dataShare.Traces)
+            {
+                var item = data.GetItem(trace);
+                if (item != null)
+                {
+                    TraceEntity sourceTE = analysis.GetTraceEntityForID(item.ItemType);
+                    analysis.AddTrace(sourceTE, trace, docTE, trace);
+                }
+                else
+                {
+                    logger.Warn($"Cannot find item with ID \"{trace}\" as referenced in {docTE.Name}. Possible trace issue.");
+                    analysis.AddTrace(null, trace, docTE, trace);
+                }
+            }
         }
 
     }

@@ -7,6 +7,8 @@ namespace RoboClerk
         private string primaryHazard = string.Empty;
         private string failureMode = string.Empty;
         private string causeOfFailure = string.Empty;
+        private string methodOfDetection = string.Empty;
+
         private int severityScore = int.MaxValue;
         private int occurenceScore = int.MaxValue;
         private int detectabilityScore = int.MaxValue;
@@ -39,6 +41,12 @@ namespace RoboClerk
         {
             get { return causeOfFailure; }
             set { causeOfFailure = value; }
+        }
+
+        public string MethodOfDetection
+        {
+            get { return methodOfDetection; }
+            set { methodOfDetection = value; }
         }
 
         public int OccurenceScore

@@ -336,16 +336,36 @@ namespace RoboClerk.Tests
             testRequirement.RequirementDescription = "description";
             testRequirement.ItemRevision = "rev1";
             testRequirement.ItemID = "14";
-            dataSources.GetAllSoftwareRequirements().Returns(new List<RequirementItem> { testRequirement });
-            traceAnalysis.GetTraceEntityForAnyProperty("SWR").Returns(new TraceEntity("SoftwareRequirement", "typename", "SWR", TraceEntityType.Truth));
-            traceAnalysis.GetTraceEntityForID("SoftwareRequirement").Returns(new TraceEntity("SoftwareRequirement", "typename", "SWR", TraceEntityType.Truth));
+            var te = new TraceEntity("SoftwareRequirement", "typename", "SWR", TraceEntityType.Truth);
+            dataSources.GetItems(te).Returns(new List<LinkedItem> { testRequirement });
+            dataSources.GetTemplateFile(@"./ItemTemplates/Requirement.adoc").Returns(@"[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+using RoboClerk;
+
+TraceEntity te = SourceTraceEntity;
+RequirementItem item = (RequirementItem)Item;
+string pl = GetLinkedField(item, ItemLinkType.Parent);
+AddTrace(item.ItemID);
+]
+|====
+| [csx:te.Name] ID: | [csx:GetItemLinkString(item)]
+| [csx:te.Name] Revision: | [csx:item.ItemRevision]
+| [csx:te.Name] Category: | [csx:item.ItemCategory]
+| Parent ID: | [csx:pl]
+| Title: | [csx:item.ItemTitle]
+| Description: a| [csx:item.RequirementDescription]
+|====");
+            dataSources.GetItem("14").Returns(testRequirement);
+            traceAnalysis.GetTraceEntityForAnyProperty("SWR").Returns(te);
+            traceAnalysis.GetTraceEntityForID("SoftwareRequirement").Returns(te);
 
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             Assert.IsTrue(fileSystem.FileExists(@"c:\out\template.adoc"));
             string content = fileSystem.File.ReadAllText(@"c:\out\template.adoc");
-            Assert.That(content == "|====\n| typename ID: | 14\n\n| typename Revision: | rev1\n\n| typename Category: | \n\n| Parent ID: | N/A\n\n| Title: | title\n\n| Description: \na| description\n|====\n\n");
+            Assert.That(content == "\n|====\n| typename ID: | 14\n| typename Revision: | rev1\n| typename Category: | \n| Parent ID: | N/A\n| Title: | title\n| Description: a| description\n|====");
 
             fileSystem.File.WriteAllText(@"c:\in\template.adoc", "@@SLMS:unknown(ItemID=33)@@");
             core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);

@@ -5,6 +5,7 @@ using System.Linq;
 using Tomlyn.Model;
 using RoboClerk.Configuration;
 using System.IO.Abstractions;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace RoboClerk.Redmine
 {
@@ -240,7 +241,7 @@ namespace RoboClerk.Redmine
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
-            resultItem.Contents = redmineItem.Description.ToString();
+            resultItem.DocContent = redmineItem.Description.ToString();
             if (redmineItem.FixedVersion != null)
             {
                 resultItem.ItemTargetVersion = redmineItem.FixedVersion.Name ?? string.Empty;
@@ -411,6 +412,7 @@ namespace RoboClerk.Redmine
                 ItemLink link = resultItem.LinkedItems.Where(x => x.LinkType == ItemLinkType.Related).First();
                 if (link != null)
                 {
+                    link.LinkType = ItemLinkType.RiskControl;
                     var issue = GetIssue(int.Parse(link.TargetID));
 
                     if (issue != null)

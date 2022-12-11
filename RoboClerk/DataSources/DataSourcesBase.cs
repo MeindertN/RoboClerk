@@ -27,7 +27,7 @@ namespace RoboClerk
 
         public abstract List<ExternalDependency> GetAllExternalDependencies();
 
-        public abstract List<UnitTestItem> GetAllSoftwareUnitTests();
+        public abstract List<UnitTestItem> GetAllUnitTests();
 
         public abstract List<RequirementItem> GetAllSoftwareRequirements();
 
@@ -55,9 +55,9 @@ namespace RoboClerk
             {
                 return GetAllSoftwareSystemTests().Cast<LinkedItem>().ToList();
             }
-            else if (te.ID == "SoftwareUnitTest")
+            else if (te.ID == "UnitTest")
             {
-                return GetAllSoftwareUnitTests().Cast<LinkedItem>().ToList();
+                return GetAllUnitTests().Cast<LinkedItem>().ToList();
             }
             else if (te.ID == "Risk")
             {
@@ -97,9 +97,9 @@ namespace RoboClerk
             return list.Find(f => (f.ItemID == id));
         }
 
-        public UnitTestItem GetSoftwareUnitTest(string id)
+        public UnitTestItem GetUnitTest(string id)
         {
-            var items = GetAllSoftwareUnitTests();
+            var items = GetAllUnitTests();
             return items.Find(f => (f.ItemID == id));
         }
 
@@ -167,7 +167,7 @@ namespace RoboClerk
             {
                 return tcase[idx];
             }
-            var utest = GetAllSoftwareUnitTests();
+            var utest = GetAllUnitTests();
             if ((idx = utest.FindIndex(o => o.ItemID == id)) >= 0)
             {
                 return utest[idx];
@@ -197,14 +197,12 @@ namespace RoboClerk
 
         public string GetTemplateFile(string fileName)
         {
-            string fn = fileSystem.Path.GetFileName(fileName);
-            return fileSystem.File.ReadAllText(fileSystem.Path.Join(configuration.TemplateDir, fn));
+            return fileSystem.File.ReadAllText(fileSystem.Path.Join(configuration.TemplateDir, fileName));
         }
 
         public Stream GetFileStreamFromTemplateDir(string fileName)
         {
-            string fn = fileSystem.Path.GetFileName(fileName);
-            var stream = fileSystem.FileStream.Create(fileSystem.Path.Join(configuration.TemplateDir, fn), FileMode.Open);
+            var stream = fileSystem.FileStream.Create(fileSystem.Path.Join(configuration.TemplateDir, fileName), FileMode.Open);
             return stream;
         }
 
@@ -216,7 +214,7 @@ namespace RoboClerk
             storage.DocumentationRequirements = GetAllDocumentationRequirements();
             storage.DocContents = GetAllDocContents();
             storage.Risks = GetAllRisks().ToList();
-            storage.UnitTests = GetAllSoftwareUnitTests();
+            storage.UnitTests = GetAllUnitTests();
             storage.SoftwareSystemTests = GetAllSoftwareSystemTests();
             storage.SOUPs = GetAllSOUP();
             storage.Anomalies = GetAllAnomalies();

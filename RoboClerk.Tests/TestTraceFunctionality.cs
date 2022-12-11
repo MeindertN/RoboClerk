@@ -28,7 +28,7 @@ namespace RoboClerk.Tests
             truth.Add(new TraceEntity("DocumentationRequirement", "DOC_name", "DOC", TraceEntityType.Truth));
             truth.Add(new TraceEntity("DocContent", "DCT_name", "DCT", TraceEntityType.Truth));
             truth.Add(new TraceEntity("SoftwareSystemTest", "TC_name", "TC", TraceEntityType.Truth));
-            truth.Add(new TraceEntity("SoftwareUnitTest", "UT_name", "UT", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("UnitTest", "UT_name", "UT", TraceEntityType.Truth));
             truth.Add(new TraceEntity("Risk","RSK_name","RSK", TraceEntityType.Truth));
             truth.Add(new TraceEntity("Anomaly", "ANOMALY_name", "ANOMALY", TraceEntityType.Truth));
             mockConfig.TruthEntities.Returns(truth);
@@ -286,9 +286,9 @@ namespace RoboClerk.Tests
             DOCs[1].ItemID = "DOC_id2";
             mockPlugin.GetDocumentationRequirements().Returns(DOCs);
             DOCCTs = new List<DocContentItem> { new DocContentItem(), new DocContentItem() };
-            DOCCTs[0].Contents = "DOCCT_Contents1";
+            DOCCTs[0].DocContent = "DOCCT_Contents1";
             DOCCTs[0].ItemID = "DOCCT_id1";
-            DOCCTs[1].Contents = "DOCCT_Contents2";
+            DOCCTs[1].DocContent = "DOCCT_Contents2";
             DOCCTs[1].ItemID = "DOCCT_id2";
             DOCCTs[1].ItemCategory = "CategoryName";
             DOCCTs[1].AddLinkedItem(new ItemLink(DOCs[0].ItemID, ItemLinkType.Parent));
@@ -589,7 +589,7 @@ namespace RoboClerk.Tests
             truth.Add(new TraceEntity("SystemRequirement", "SYS_name", "SYS", TraceEntityType.Truth));
             truth.Add(new TraceEntity("SoftwareRequirement", "SWR_name", "SWR", TraceEntityType.Truth));
             truth.Add(new TraceEntity("SoftwareSystemTest", "TC_name", "TC", TraceEntityType.Truth));
-            truth.Add(new TraceEntity("SoftwareUnitTest", "UT_name", "UT", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("UnitTest", "UT_name", "UT", TraceEntityType.Truth));
             truth.Add(new TraceEntity("Risk", "SWR_name", "RSK", TraceEntityType.Truth));
             truth.Add(new TraceEntity("Anomaly", "ANOMALY_name", "ANOMALY", TraceEntityType.Truth));
             mockConfig.TruthEntities.Returns(truth);
@@ -604,7 +604,7 @@ namespace RoboClerk.Tests
             truth.Add(new TraceEntity("SystemRequirement", "SYS_name", "SYS", TraceEntityType.Truth));
             truth.Add(new TraceEntity("SoftwareRequirement", "SWR_name", "SWR", TraceEntityType.Truth));
             truth.Add(new TraceEntity("SoftwareSystemTest", "TC_name", "TC", TraceEntityType.Truth));
-            truth.Add(new TraceEntity("SoftwareUnitTest", "UT_name", "UT", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("UnitTest", "UT_name", "UT", TraceEntityType.Truth));
             truth.Add(new TraceEntity("Risk", "RSK_name", "RSK", TraceEntityType.Truth));
             truth.Add(new TraceEntity("Anomaly", "ANOMALY_name", "SYS", TraceEntityType.Truth));
             mockConfig.TruthEntities.Returns(truth);
@@ -683,7 +683,7 @@ namespace RoboClerk.Tests
             truth.Add(new TraceEntity("SystemRequirement", "SYS_name", "SYS", TraceEntityType.Truth));
             truth.Add(new TraceEntity("SoftwareRequirement", "SWR_name", "SWR", TraceEntityType.Truth));
             truth.Add(new TraceEntity("SoftwareSystemTest", "TC_name", "TC", TraceEntityType.Truth));
-            truth.Add(new TraceEntity("SoftwareUnitTest", "UT_name", "UT", TraceEntityType.Truth));
+            truth.Add(new TraceEntity("UnitTest", "UT_name", "UT", TraceEntityType.Truth));
             truth.Add(new TraceEntity("Anomaly", "ANOMALY_name", "ANOMALY", TraceEntityType.Truth));
             mockConfig.TruthEntities.Returns(truth);
 

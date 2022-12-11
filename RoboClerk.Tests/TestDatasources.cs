@@ -104,9 +104,9 @@ namespace RoboClerk.Tests
             TCs[1].ItemID = "TC_id2";
             mockSLMSPlugin.GetSoftwareSystemTests().Returns(TCs);
             DOCCTs = new List<DocContentItem> { new DocContentItem(), new DocContentItem() };
-            DOCCTs[0].Contents = "DOCCT_TestContents";
+            DOCCTs[0].DocContent = "DOCCT_TestContents";
             DOCCTs[0].ItemID = "DOCCT_id1";
-            DOCCTs[1].Contents = "DOCCT_TestContents2";
+            DOCCTs[1].DocContent = "DOCCT_TestContents2";
             DOCCTs[1].ItemID = "DOCCT_id2";
             mockSLMSPlugin.GetDocContents().Returns(DOCCTs);
             ANOMALYs = new List<AnomalyItem> { new AnomalyItem(), new AnomalyItem() };
@@ -272,14 +272,14 @@ namespace RoboClerk.Tests
             SetupSLMSPlugin();
             SetupSrcCodePlugin();
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
-            var returnedUTs = ds.GetAllSoftwareUnitTests();
+            var returnedUTs = ds.GetAllUnitTests();
             Assert.AreSame(SLMSUTs[0], returnedUTs[0]);
             Assert.AreSame(SLMSUTs[1], returnedUTs[1]);
             Assert.AreSame(SRCUTs[0], returnedUTs[2]);
             Assert.AreSame(SRCUTs[1], returnedUTs[3]);
-            Assert.AreSame(returnedUTs[2], ds.GetSoftwareUnitTest("UT_id3"));
+            Assert.AreSame(returnedUTs[2], ds.GetUnitTest("UT_id3"));
             Assert.AreSame(returnedUTs[0], ds.GetItem("UT_id1"));
-            var returnedItems = ds.GetItems(new TraceEntity("SoftwareUnitTest", "Unit Test", "UT", TraceEntityType.Truth));
+            var returnedItems = ds.GetItems(new TraceEntity("UnitTest", "Unit Test", "UT", TraceEntityType.Truth));
             Assert.That(returnedItems[0].ItemID, Is.EqualTo(SLMSUTs[0].ItemID));
             Assert.That(returnedItems[2].ItemID, Is.EqualTo(SRCUTs[0].ItemID));
         }
@@ -423,7 +423,7 @@ namespace RoboClerk.Tests
             Assert.That(CompareObjects(dataStorage.Anomalies, ds.GetAllAnomalies()));
             Assert.That(CompareObjects(dataStorage.SOUPs, ds.GetAllSOUP()));
             Assert.That(CompareObjects(dataStorage.SoftwareSystemTests, ds.GetAllSoftwareSystemTests()));
-            Assert.That(CompareObjects(dataStorage.UnitTests, ds.GetAllSoftwareUnitTests()));
+            Assert.That(CompareObjects(dataStorage.UnitTests, ds.GetAllUnitTests()));
         }
     }
 }

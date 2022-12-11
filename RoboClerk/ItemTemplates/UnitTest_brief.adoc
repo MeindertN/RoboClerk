@@ -1,0 +1,24 @@
+﻿[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+using RoboClerk;
+
+TraceEntity te = SourceTraceEntity;
+
+string CreateRows()
+{
+	System.Text.StringBuilder sb = new System.Text.StringBuilder();
+	foreach( var item in Items)
+	{
+		UnitTestItem ut = (UnitTestItem)item;
+		AddTrace(ut.ItemID);
+		sb.Append($"| {GetItemLinkString(ut)} | {ut.UnitTestPurpose} | {ut.UnitTestAcceptanceCriteria} \n\n");
+	}
+	return sb.ToString();
+}]
+
+|====
+| [csx:te.Name] ID | [csx:te.Name] Purpose | Acceptance Criteria
+
+[csx:CreateRows()]
+|====

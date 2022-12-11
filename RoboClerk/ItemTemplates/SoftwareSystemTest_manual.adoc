@@ -1,0 +1,57 @@
+﻿[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+// These tables are pretty complex and since the intended end document is
+// Microsoft Word we have to insert the ~REMOVEPARAGRAPH tags. These are 
+// removed in post processing and Word then merges the tables into one. 
+using RoboClerk;
+
+TraceEntity te = SourceTraceEntity;
+TestCaseItem item = (TestCaseItem)Item;
+string pl = GetLinkedField(item, ItemLinkType.Parent);
+AddTrace(item.ItemID);
+
+string RenderTestSteps()
+{
+    System.Text.StringBuilder sb = new System.Text.StringBuilder();
+    int stepNr = 1;
+    foreach (var step in item.TestCaseSteps)
+    {	
+        if (step.Length < 2)
+        {
+            throw new System.ArgumentException("Not enough information to build step line.");
+        }
+                
+        sb.Append($"| {stepNr.ToString()} ");
+        sb.Append($"| {step[0].Replace("\n", "").Replace("\r", "")} ");
+        sb.Append($"| {step[1].Replace("\n", "").Replace("\r", "")} ");
+        sb.Append($"{(step[1] == string.Empty ? "|  | " : " |  | Pass / Fail")} \n\n");
+        stepNr++;
+    }
+    return sb.ToString();
+}
+
+]
+|====
+| *[csx:te.Name] ID:* | [csx:GetItemLinkString(item)]
+
+| *[csx:te.Name] Revision:* | [csx:item.ItemRevision]
+
+| *Parent ID:* | [csx:pl]
+
+| *Title:* | [csx:item.ItemTitle]
+|====
+
+~REMOVEPARAGRAPH
+
+|====
+| *Step* | *Action* | *Expected Result* | *Actual Result* | *Test Status*
+
+[csx:RenderTestSteps()]
+|====
+
+~REMOVEPARAGRAPH
+
+|====
+| Initial: | Date: | Asset ID: 
+|====

@@ -1,0 +1,23 @@
+﻿[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+using RoboClerk;
+
+TraceEntity te = SourceTraceEntity;
+RequirementItem item = (RequirementItem)Item;
+string pl = GetLinkedField(item, ItemLinkType.Parent);
+AddTrace(item.ItemID);
+]
+|====
+| [csx:te.Name] ID: | [csx:GetItemLinkString(item)]
+
+| [csx:te.Name] Revision: | [csx:item.ItemRevision]
+
+| [csx:te.Name] Category: | [csx:item.ItemCategory]
+
+| Parent ID: | [csx:pl]
+
+| Title: | [csx:item.ItemTitle]
+
+| Description: a| [csx:item.RequirementDescription]
+|====

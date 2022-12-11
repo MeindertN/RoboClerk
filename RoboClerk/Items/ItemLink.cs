@@ -14,6 +14,8 @@ namespace RoboClerk
         Duplicate,
         Affects,
         AffectedBy,
+        RiskControl, //links from a risk to a risk control
+        Risk, //links from a risk control to a risk
         DOC,   //a special link type for linking to a document
         None
     };

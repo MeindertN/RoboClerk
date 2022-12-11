@@ -20,7 +20,7 @@ namespace RoboClerk.Configuration
 
         public List<string> UpdatedSoftwareSystemTestIDs { get; set; } = new List<string>();
 
-        public List<string> UpdatedSoftwareUnitTestIDs { get; set; } = new List<string>();
+        public List<string> UpdatedUnitTestIDs { get; set; } = new List<string>();
 
         public List<string> UpdatedRiskIDs { get; set; } = new List<string>();
 
@@ -60,10 +60,10 @@ namespace RoboClerk.Configuration
                             UpdatedSoftwareSystemTestIDs.Add((string)id);
                         }
                         break;
-                    case "UpdatedSoftwareUnitTestIDs":
+                    case "UpdatedUnitTestIDs":
                         foreach (var id in (TomlArray)val.Value)
                         {
-                            UpdatedSoftwareUnitTestIDs.Add((string)id);
+                            UpdatedUnitTestIDs.Add((string)id);
                         }
                         break;
                     case "UpdatedRiskIDs":

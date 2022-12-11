@@ -27,9 +27,9 @@ namespace RoboClerk.Tests
             dataSources = Substitute.For<IDataSources>();
             
             traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
-            var te = new TraceEntity("SoftwareUnitTest", "unittest", "ut", TraceEntityType.Truth);
+            var te = new TraceEntity("UnitTest", "unittest", "ut", TraceEntityType.Truth);
             var teDoc = new TraceEntity("docID", "docTitle", "docAbbr", TraceEntityType.Document);
-            traceAnalysis.GetTraceEntityForID("SoftwareUnitTest").Returns(te);
+            traceAnalysis.GetTraceEntityForID("UnitTest").Returns(te);
             traceAnalysis.GetTraceEntityForID("docID").Returns(teDoc);
             fs = Substitute.For<IFileSystem>();
             documentConfig = new DocumentConfig("UnitLevelTestPlan", "docID", "docTitle", "docAbbr", @"c:\in\template.adoc");
@@ -72,7 +72,7 @@ namespace RoboClerk.Tests
         {
             var sst = new UnitTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 31, "@@SLMS:UnitTest(ItemID=tcid1)@@", true);
-            dataSources.GetAllSoftwareUnitTests().Returns(unittestItems);
+            dataSources.GetAllUnitTests().Returns(unittestItems);
             //make sure we can find the item linked to this test
             dataSources.GetItem("target1").Returns(new RequirementItem(RequirementType.SystemRequirement) { ItemID = "target1" });
             string content = sst.GetContent(tag, documentConfig);
@@ -92,7 +92,7 @@ namespace RoboClerk.Tests
         {
             var sst = new UnitTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 31, "@@SLMS:UnitTest(ItemID=tcid1)@@", true);
-            dataSources.GetAllSoftwareUnitTests().Returns(unittestItems);
+            dataSources.GetAllUnitTests().Returns(unittestItems);
             
             Assert.Throws<Exception>(()=>sst.GetContent(tag, documentConfig));
         }
@@ -106,7 +106,7 @@ namespace RoboClerk.Tests
         {
             var sst = new UnitTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 31, "@@SLMS:UnitTest(ItemID=tcid2)@@", true);
-            dataSources.GetAllSoftwareUnitTests().Returns(unittestItems);
+            dataSources.GetAllUnitTests().Returns(unittestItems);
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "|====\n| *unittest ID* | http://localhost/[tcid2]\n\n| *Trace Link:* | N/A\n\n| *Purpose* | N/A\n\n| *Acceptance Criteria* | N/A\n\n|====\n\n";
 
@@ -123,7 +123,7 @@ namespace RoboClerk.Tests
         {
             var sst = new UnitTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 31, "@@SLMS:UnitTest(ItemID=tcid3)@@", true);
-            dataSources.GetAllSoftwareUnitTests().Returns(unittestItems);
+            dataSources.GetAllUnitTests().Returns(unittestItems);
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "Unable to find specified unit test(s). Check if unit tests are provided or if a valid unit test identifier is specified.";
 
@@ -139,7 +139,7 @@ namespace RoboClerk.Tests
         {
             var sst = new UnitTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 29, "@@SLMS:UnitTest(brief=true)@@", true);
-            dataSources.GetAllSoftwareUnitTests().Returns(unittestItems);
+            dataSources.GetAllUnitTests().Returns(unittestItems);
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "|====\n| unittest ID | Purpose | Acceptance Criteria\n\n| tcid1 | purpose1 | accept1\n\n| http://localhost/[tcid2]|  | \n\n|====\n\n";
 

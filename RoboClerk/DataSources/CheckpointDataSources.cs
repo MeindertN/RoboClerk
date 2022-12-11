@@ -117,18 +117,18 @@ namespace RoboClerk
                     dataStorage.RemoveSoftwareSystemTest(softwareSystemTestID);
                 }
             }
-            foreach (var softwareUnitTestID in checkpointConfig.UpdatedSoftwareUnitTestIDs)
+            foreach (var unitTestID in checkpointConfig.UpdatedUnitTestIDs)
             {
-                var softwareUnitTest = pluginDatasource.GetSoftwareUnitTest(softwareUnitTestID);
-                if (softwareUnitTest != null)
+                var unitTest = pluginDatasource.GetUnitTest(unitTestID);
+                if (unitTest != null)
                 {
                     //item still exists, update it
-                    dataStorage.UpdateUnitTest(softwareUnitTest);
+                    dataStorage.UpdateUnitTest(unitTest);
                 }
                 else
                 {
                     //item no longer exists, should remove from checkpoint data
-                    dataStorage.RemoveUnitTest(softwareUnitTestID);
+                    dataStorage.RemoveUnitTest(unitTestID);
                 }
             }
             foreach (var anomalyID in checkpointConfig.UpdatedAnomalyIDs)
@@ -186,7 +186,7 @@ namespace RoboClerk
             return dataStorage.SoftwareSystemTests;
         }
 
-        public override List<UnitTestItem> GetAllSoftwareUnitTests()
+        public override List<UnitTestItem> GetAllUnitTests()
         {
             return dataStorage.UnitTests;
         }

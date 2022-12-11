@@ -8,7 +8,7 @@ namespace RoboClerk
         List<LinkedItem> GetItems(TraceEntity te);
         List<AnomalyItem> GetAllAnomalies();
         List<RequirementItem> GetAllSoftwareRequirements();
-        List<UnitTestItem> GetAllSoftwareUnitTests();
+        List<UnitTestItem> GetAllUnitTests();
         List<TestCaseItem> GetAllSoftwareSystemTests();
         List<RequirementItem> GetAllSystemRequirements();
         List<ExternalDependency> GetAllExternalDependencies();
@@ -21,7 +21,7 @@ namespace RoboClerk
         Item GetItem(string id);
         RequirementItem GetSoftwareRequirement(string id);
         TestCaseItem GetSoftwareSystemTest(string id);
-        UnitTestItem GetSoftwareUnitTest(string id);
+        UnitTestItem GetUnitTest(string id);
         RequirementItem GetSystemRequirement(string id);
         RequirementItem GetDocumentationRequirement(string id);
         DocContentItem GetDocContent(string id);

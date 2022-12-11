@@ -1,10 +1,12 @@
-﻿using RoboClerk.Configuration;
+﻿using Microsoft.CodeAnalysis.Scripting;
+using RoboClerk.Configuration;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
-    internal class DocContent : ContentCreatorBase
+    internal class DocContent : MultiItemContentCreator
     {
 
         public DocContent(IDataSources data, ITraceabilityAnalysis analysis)
@@ -13,39 +15,27 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
+        protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
-            var te = analysis.GetTraceEntityForID("DocContent");
-            if (te == null)
-            {
-                throw new Exception("DocContent trace entity is missing, this trace entity must be present for RoboClerk to function.");
-            }
-            bool foundContent = false;
-            var docContents = data.GetAllDocContents();
-            //No selection needed, we return everything
             StringBuilder output = new StringBuilder();
-            var properties = typeof(DocContentItem).GetProperties();
-            foreach (var content in docContents)
+            var dataShare = new ScriptingBridge(data, analysis, sourceTE);
+            var file = data.GetTemplateFile(@"./ItemTemplates/DocContent.adoc");
+            var renderer = new ItemTemplateRenderer(file);
+            foreach (var item in items)
             {
-                if (ShouldBeIncluded(tag, content, properties) && CheckUpdateDateTime(tag, content))
+                dataShare.Item = item;
+                try
                 {
-                    foundContent = true;
-                    try
-                    {
-                        output.AppendLine(content.Contents);
-                    }
-                    catch
-                    {
-                        logger.Error($"An error occurred while rendering docContent {content.ItemID} in {doc.DocumentTitle}.");
-                        throw;
-                    }
-                    analysis.AddTrace(te, content.ItemID, analysis.GetTraceEntityForTitle(doc.DocumentTitle), content.ItemID);
+                    var result = renderer.RenderItemTemplate(dataShare);
+                    output.Append(result);
+                }
+                catch (CompilationErrorException e)
+                {
+                    logger.Error($"A compilation error occurred while compiling DocContent.adoc script: {e.Message}");
+                    throw;
                 }
             }
-            if (!foundContent)
-            {
-                return $"WARNING: Unable to find DocContent(s). Check if DocContents of the correct type are provided or if a valid DocContent identifier is specified.";
-            }
+            ProcessTraces(docTE, dataShare);
             return output.ToString();
         }
     }

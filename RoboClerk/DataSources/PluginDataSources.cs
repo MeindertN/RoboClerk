@@ -86,7 +86,7 @@ namespace RoboClerk
             return dependencies;
         }
 
-        public override List<UnitTestItem> GetAllSoftwareUnitTests()
+        public override List<UnitTestItem> GetAllUnitTests()
         {
             var unitTests = new List<UnitTestItem>();
             foreach(var plugin in slmsPlugins)
