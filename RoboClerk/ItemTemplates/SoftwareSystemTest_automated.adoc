@@ -2,7 +2,7 @@
 // this first scripting block can be used to set up any prerequisites
 // pre-calculate fields for later use etc.
 // These tables are pretty complex and since the intended end document is
-// Microsoft Word we have to insert the ~REMOVEPARAGRAPH tags. These are 
+// Microsoft Word we have to insert the REMOVEPARAGRAPH tags. These are 
 // removed in post processing and Word then merges the two tables into one. 
 using RoboClerk;
 
@@ -41,11 +41,10 @@ string RenderTestSteps()
 | *Title:* | [csx:item.ItemTitle]
 |====
 
-~REMOVEPARAGRAPH
+@@Post:REMOVEPARAGRAPH()@@
 
 |====
+
 | *Step* | *Action* | *Expected Result* 
 
-[csx:RenderTestSteps()]
-
-|====
+[csx:RenderTestSteps()]|====

@@ -6,9 +6,7 @@ using RoboClerk;
 TraceEntity te = SourceTraceEntity;
 SOUPItem item = (SOUPItem)Item;
 AddTrace(item.ItemID);
-]
-
-|====
+]|====
 | [csx:te.Name] ID: | [csx:GetItemLinkString(item)]
 
 | [csx:te.Name] Revision: | [csx:item.ItemRevision]
@@ -19,11 +17,11 @@ AddTrace(item.ItemID);
 
 | Is [csx:te.Name] Critical for Cyber Security: | [csx:item.SOUPCybersecurityCriticalText]
 
-[csx:item.SOUPPerformanceCritical?$"| Result Anomaly List Examination: | {item.SOUPAnomalyListDescription}":""
+[csx:item.SOUPPerformanceCritical?$"| Result Anomaly List Examination: | {item.SOUPAnomalyListDescription}\n":""
 ]
-| Is [csx:te.Name] Installed by End-User: | [csx:item.SOUPInstalledByUserText]
-
-[csx:item.SOUPInstalledByUser?$"| Required End-User Training: | {item.SOUPEnduserTraining} ":""
+| Is [csx:te.Name] Installed by End-User: | [csx:item.SOUPInstalledByUserText
+]
+[csx:item.SOUPInstalledByUser?$"| Required End-User Training: | {item.SOUPEnduserTraining}\n":""
 ]
 | Detailed Description: a| [csx:item.SOUPDetailedDescription]
 

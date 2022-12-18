@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Vml.Office;
+using Microsoft.Extensions.Logging.Configuration;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace RoboClerk
         private ITraceabilityAnalysis trace = null;
         private List<string> traces = new List<string>();
         private List<LinkedItem> items = new List<LinkedItem>();
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public ScriptingBridge(IDataSources data, ITraceabilityAnalysis trace, TraceEntity sourceTraceEntity)
         {
@@ -82,7 +84,8 @@ namespace RoboClerk
                     }
                     else
                     {
-                        field.Append(item.TargetID);
+                        logger.Error($"Item with ID {li.ItemID} has a trace link to item with ID {item.TargetID} but that item does not exist.");
+                        throw new System.Exception("Item with invalid trace link encountered.");
                     }
                 }
                 return field.ToString();

@@ -8,16 +8,16 @@ UnitTestItem item = (UnitTestItem)Item;
 AddTrace(item.ItemID);
 ]
 |====
-| [csx:te.Name] ID | [csx:GetItemLinkString(item)] 
+| *[csx:te.Name] ID:* | [csx:GetItemLinkString(item)] 
 
-| Revision | [csx:item.ItemRevision]
+| *Revision:* | [csx:item.ItemRevision]
 
-[csx:item.ItemLastUpdated != System.DateTime.MinValue?$"| Last Updated: | {item.ItemLastUpdated.ToString("yyyy/MM/dd HH:mm:ss")}":""
+[csx:item.ItemLastUpdated != System.DateTime.MinValue?$"| *Last Updated:* | {item.ItemLastUpdated.ToString("yyyy/MM/dd HH:mm:ss")}":""
 ]
-| Trace Link: | [csx:GetLinkedField(item, ItemLinkType.Related)]
+| *Trace Link:* | [csx:GetLinkedField(item, ItemLinkType.Related)]
 
-| Purpose | [csx:GetValOrDef(item.UnitTestPurpose,"N/A")]
+| *Purpose:* | [csx:GetValOrDef(item.UnitTestPurpose,"N/A")]
 
-| Acceptance Criteria | [csx:GetValOrDef(item.UnitTestAcceptanceCriteria,"N/A")]
+| *Acceptance Criteria:* | [csx:GetValOrDef(item.UnitTestAcceptanceCriteria,"N/A")]
 
 |====

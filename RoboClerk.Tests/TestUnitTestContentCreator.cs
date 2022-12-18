@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace RoboClerk.Tests
 {
@@ -18,7 +19,7 @@ namespace RoboClerk.Tests
         private ITraceabilityAnalysis traceAnalysis = null;
         private IFileSystem fs = null;
         private DocumentConfig documentConfig = null;
-        private List<UnitTestItem> unittestItems = new List<UnitTestItem>();
+        private List<LinkedItem> unittestItems = new List<LinkedItem>();
 
         [SetUp]
         public void TestSetup()
@@ -31,7 +32,9 @@ namespace RoboClerk.Tests
             var teDoc = new TraceEntity("docID", "docTitle", "docAbbr", TraceEntityType.Document);
             traceAnalysis.GetTraceEntityForID("UnitTest").Returns(te);
             traceAnalysis.GetTraceEntityForID("docID").Returns(teDoc);
+            traceAnalysis.GetTraceEntityForTitle("docTitle").Returns(teDoc);
             fs = Substitute.For<IFileSystem>();
+            traceAnalysis.GetTraceEntityForAnyProperty("UnitTest").Returns(te);
             documentConfig = new DocumentConfig("UnitLevelTestPlan", "docID", "docTitle", "docAbbr", @"c:\in\template.adoc");
 
             unittestItems.Clear();
@@ -51,6 +54,12 @@ namespace RoboClerk.Tests
             unittestItem.ItemTitle = "title2";
             unittestItem.Link = new Uri("http://localhost/");
             unittestItems.Add(unittestItem);
+            dataSources.GetItems(te).Returns(unittestItems);
+            dataSources.GetItem("tcid1").Returns(unittestItems[0]);
+            dataSources.GetItem("tcid2").Returns(unittestItems[1]);
+
+            dataSources.GetTemplateFile("./ItemTemplates/UnitTest.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/UnitTest.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/UnitTest_brief.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/UnitTest_brief.adoc"));
         }
 
         [UnitTestAttribute(
@@ -72,15 +81,13 @@ namespace RoboClerk.Tests
         {
             var sst = new UnitTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 31, "@@SLMS:UnitTest(ItemID=tcid1)@@", true);
-            dataSources.GetAllUnitTests().Returns(unittestItems);
             //make sure we can find the item linked to this test
             dataSources.GetItem("target1").Returns(new RequirementItem(RequirementType.SystemRequirement) { ItemID = "target1" });
             string content = sst.GetContent(tag, documentConfig);
-            string expectedContent = "|====\n| *unittest ID* | tcid1 \n\n| *Revision* | tcrev1\n\n| *Last Updated* | 1999/10/10 00:00:00\n\n| *Trace Link:* | target1\n\n| *Purpose* | purpose1\n\n| *Acceptance Criteria* | accept1\n\n|====\n\n";
+            string expectedContent = "\n|====\n| *unittest ID:* | tcid1 \n\n| *Revision:* | tcrev1\n\n| *Last Updated:* | 1999/10/10 00:00:00\n| *Trace Link:* | target1\n\n| *Purpose:* | purpose1\n\n| *Acceptance Criteria:* | accept1\n\n|====";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
             Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), "tcid1", Arg.Any<TraceEntity>(), "tcid1"));
-            Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), "target1", Arg.Any<TraceEntity>(), "tcid1"));
         }
 
         [UnitTestAttribute(
@@ -92,26 +99,24 @@ namespace RoboClerk.Tests
         {
             var sst = new UnitTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 31, "@@SLMS:UnitTest(ItemID=tcid1)@@", true);
-            dataSources.GetAllUnitTests().Returns(unittestItems);
             
-            Assert.Throws<Exception>(()=>sst.GetContent(tag, documentConfig));
+            Assert.Throws<AggregateException>(()=>sst.GetContent(tag, documentConfig));
         }
 
         [UnitTestAttribute(
         Identifier = "473FEA42-E37C-4CD0-9F51-6E8FE59EB360",
         Purpose = "Unit Test content creator is created and is supplied with a tag for a single unit test without a linked item",
-        PostCondition = "The appropriate string response is provided and broken trace is set.")]
+        PostCondition = "The appropriate string response is provided and trace is set.")]
         [Test]
         public void CreateUnitTestCC3()
         {
             var sst = new UnitTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 31, "@@SLMS:UnitTest(ItemID=tcid2)@@", true);
-            dataSources.GetAllUnitTests().Returns(unittestItems);
             string content = sst.GetContent(tag, documentConfig);
-            string expectedContent = "|====\n| *unittest ID* | http://localhost/[tcid2]\n\n| *Trace Link:* | N/A\n\n| *Purpose* | N/A\n\n| *Acceptance Criteria* | N/A\n\n|====\n\n";
+            string expectedContent = "\n|====\n| *unittest ID:* | http://localhost/[tcid2] \n\n| *Revision:* | \n\n\n| *Trace Link:* | N/A\n\n| *Purpose:* | N/A\n\n| *Acceptance Criteria:* | N/A\n\n|====";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
-            Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), null, Arg.Any<TraceEntity>(), "tcid2"));
+            Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), "tcid2", Arg.Any<TraceEntity>(), "tcid2"));
         }
 
         [UnitTestAttribute(
@@ -123,9 +128,8 @@ namespace RoboClerk.Tests
         {
             var sst = new UnitTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 31, "@@SLMS:UnitTest(ItemID=tcid3)@@", true);
-            dataSources.GetAllUnitTests().Returns(unittestItems);
             string content = sst.GetContent(tag, documentConfig);
-            string expectedContent = "Unable to find specified unit test(s). Check if unit tests are provided or if a valid unit test identifier is specified.";
+            string expectedContent = "Unable to find specified unittest(s). Check if unittests are provided or if a valid unittest identifier is specified.";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
         }
@@ -139,9 +143,8 @@ namespace RoboClerk.Tests
         {
             var sst = new UnitTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 29, "@@SLMS:UnitTest(brief=true)@@", true);
-            dataSources.GetAllUnitTests().Returns(unittestItems);
             string content = sst.GetContent(tag, documentConfig);
-            string expectedContent = "|====\n| unittest ID | Purpose | Acceptance Criteria\n\n| tcid1 | purpose1 | accept1\n\n| http://localhost/[tcid2]|  | \n\n|====\n\n";
+            string expectedContent = "|====\n| unittest ID | unittest Purpose | Acceptance Criteria\n\n| tcid1 | purpose1 | accept1 \n\n| http://localhost/[tcid2] |  |  \n\n|====\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
             Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), "tcid1", Arg.Any<TraceEntity>(), "tcid1"));

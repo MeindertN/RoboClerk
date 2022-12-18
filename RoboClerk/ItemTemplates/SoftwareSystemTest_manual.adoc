@@ -2,7 +2,7 @@
 // this first scripting block can be used to set up any prerequisites
 // pre-calculate fields for later use etc.
 // These tables are pretty complex and since the intended end document is
-// Microsoft Word we have to insert the ~REMOVEPARAGRAPH tags. These are 
+// Microsoft Word we have to insert the REMOVEPARAGRAPH tags. These are 
 // removed in post processing and Word then merges the tables into one. 
 using RoboClerk;
 
@@ -25,7 +25,7 @@ string RenderTestSteps()
         sb.Append($"| {stepNr.ToString()} ");
         sb.Append($"| {step[0].Replace("\n", "").Replace("\r", "")} ");
         sb.Append($"| {step[1].Replace("\n", "").Replace("\r", "")} ");
-        sb.Append($"{(step[1] == string.Empty ? "|  | " : " |  | Pass / Fail")} \n\n");
+        sb.Append($"{(step[1] == string.Empty ? "|  | " : " |  | Pass / Fail")}\n\n");
         stepNr++;
     }
     return sb.ToString();
@@ -42,15 +42,14 @@ string RenderTestSteps()
 | *Title:* | [csx:item.ItemTitle]
 |====
 
-~REMOVEPARAGRAPH
+@@Post:REMOVEPARAGRAPH()@@
 
 |====
 | *Step* | *Action* | *Expected Result* | *Actual Result* | *Test Status*
 
-[csx:RenderTestSteps()]
-|====
+[csx:RenderTestSteps()]|====
 
-~REMOVEPARAGRAPH
+@@Post:REMOVEPARAGRAPH()@@
 
 |====
 | Initial: | Date: | Asset ID: 

@@ -15,10 +15,7 @@ string CreateRows()
 		sb.Append($"| {GetItemLinkString(ut)} | {ut.UnitTestPurpose} | {ut.UnitTestAcceptanceCriteria} \n\n");
 	}
 	return sb.ToString();
-}]
-
-|====
+}]|====
 | [csx:te.Name] ID | [csx:te.Name] Purpose | Acceptance Criteria
 
-[csx:CreateRows()]
-|====
+[csx:CreateRows()]|====

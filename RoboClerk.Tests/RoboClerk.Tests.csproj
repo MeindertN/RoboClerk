@@ -5,6 +5,9 @@
     <Configurations>Debug;Release;ReleasePublish</Configurations>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="TestSOUPContentCreator.cs~RF419ef34.TMP" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="coverlet.msbuild" Version="3.2.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

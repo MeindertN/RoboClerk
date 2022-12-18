@@ -20,5 +20,4 @@ string CreateRows()
 |====
 | [csx:te.Name] ID | [csx:te.Name] Name and Version
 
-[csx:CreateRows()]
-|====
+[csx:CreateRows()]|====

@@ -42,15 +42,21 @@ namespace RoboClerk.ContentCreators
                     includedItems.Add(item);
                 }
             }
+            string content = string.Empty;
             try
             {
-                return GenerateADocContent(tag, includedItems, te, analysis.GetTraceEntityForTitle(doc.DocumentTitle));
+                content = GenerateADocContent(tag, includedItems, te, analysis.GetTraceEntityForTitle(doc.DocumentTitle));
             }
             catch
             {
                 logger.Error($"An error occurred while rendering {te.Name} in {doc.DocumentTitle}.");
                 throw;
             }
+            if (!foundContent) 
+            {
+                content = $"Unable to find specified {te.Name}(s). Check if {te.Name}s are provided or if a valid {te.Name} identifier is specified.";
+            }
+            return content;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace RoboClerk
         public string RenderItemTemplate(ScriptingBridge bridge)
         {
             StringBuilder sb = new StringBuilder(fileContent);
-            if(parser.StartSegment.Item2 < 0 || parser.StartSegment.Item2 < 0)
+            if(parser.StartSegment.Item2 < 0 || parser.StartSegment.Item3 < 0)
             {
                 return sb.ToString();
             }
