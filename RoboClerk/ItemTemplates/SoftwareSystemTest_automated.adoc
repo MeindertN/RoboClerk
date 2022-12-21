@@ -14,18 +14,11 @@ AddTrace(item.ItemID);
 string RenderTestSteps()
 {
     System.Text.StringBuilder sb = new System.Text.StringBuilder();
-    int stepNr = 1;
     foreach (var step in item.TestCaseSteps)
-    {	
-        if (step.Length < 2)
-        {
-            throw new System.ArgumentException("Not enough information to build step line.");
-        }
-                
-        sb.Append($"| {stepNr.ToString()} ");
-        sb.Append($"| {step[0].Replace("\n", "").Replace("\r", "")} ");
-        sb.Append($"| {step[1].Replace("\n", "").Replace("\r", "")} \n\n");
-        stepNr++;
+    {	                
+        sb.Append($"| {step.Step} ");
+        sb.Append($"| {step.Action.Replace("\n", "").Replace("\r", "")} ");
+        sb.Append($"| {step.ExpectedResult.Replace("\n", "").Replace("\r", "")} \n\n");
     }
     return sb.ToString();
 }

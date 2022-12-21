@@ -9,7 +9,8 @@ namespace RoboClerk
         private string testCaseDescription = string.Empty;
         private bool testCaseAutomated = false;
         private bool testCaseToUnitTest = false;
-        private List<string[]> testCaseSteps = new List<string[]>();
+        private List<TestStep> testCaseSteps = new List<TestStep>();
+
         public TestCaseItem()
         {
             type = "SoftwareSystemTest";
@@ -28,7 +29,7 @@ namespace RoboClerk
             set => testCaseDescription = value;
         }
 
-        public IEnumerable<string[]> TestCaseSteps
+        public IEnumerable<TestStep> TestCaseSteps
         {
             get => testCaseSteps;
         }
@@ -45,7 +46,7 @@ namespace RoboClerk
             set => testCaseToUnitTest = value;
         }
 
-        public void AddTestCaseStep(string[] step)
+        public void AddTestCaseStep(TestStep step)
         {
             testCaseSteps.Add(step);
         }

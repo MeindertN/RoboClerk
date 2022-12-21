@@ -128,12 +128,13 @@ namespace RoboClerk
                 fileSystem.Directory.Delete(targetDir, true);
             }
             fileSystem.Directory.CreateDirectory(targetDir);
-            string[] files = fileSystem.Directory.GetFiles(configuration.MediaDir);
+            string[] files = fileSystem.Directory.GetFiles(configuration.MediaDir,"*",SearchOption.AllDirectories);
             foreach (string file in files)
             {
                 if (!file.Contains(".gitignore"))
                 {
-                    fileSystem.File.Copy(file, fileSystem.Path.Combine(targetDir,fileSystem.Path.GetFileName(file)));
+                    var relPath = fileSystem.Path.GetRelativePath(configuration.MediaDir, file);
+                    fileSystem.File.Copy(file, fileSystem.Path.Combine(targetDir,relPath));
                 }
             }
         }

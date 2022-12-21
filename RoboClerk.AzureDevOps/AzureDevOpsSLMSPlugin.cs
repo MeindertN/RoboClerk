@@ -117,7 +117,7 @@ namespace RoboClerk.AzureDevOps
             foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, bugQuery))
             {
                 var item = ConvertToBugItem(workitem);
-                bugs.Add(item);
+                anomalies.Add(item);
             }
 
             /*var productRequirementLinksQuery = new Wiql()
@@ -202,9 +202,9 @@ namespace RoboClerk.AzureDevOps
             return item;
         }
 
-        private List<string[]> GetTestSteps(string xml)
+        private List<TestStep> GetTestSteps(string xml, int offset=0)
         {
-            var result = new List<string[]>();
+            var result = new List<TestStep>();
             XmlReaderSettings settings = new XmlReaderSettings();
             settings.IgnoreWhitespace = true;
 
@@ -227,7 +227,7 @@ namespace RoboClerk.AzureDevOps
                                 if (reader.Name == "compref")
                                 {
                                     WorkItem workitem = witClient.GetWorkItemAsync(int.Parse(reader.GetAttribute("ref")), expand: WorkItemExpand.All).Result;
-                                    var steps = GetTestSteps(GetWorkItemField(workitem, "Microsoft.VSTS.TCM.Steps"));
+                                    var steps = GetTestSteps(GetWorkItemField(workitem, "Microsoft.VSTS.TCM.Steps"),result.Count);
                                     result.AddRange(steps);
                                 }
                             }
@@ -240,7 +240,7 @@ namespace RoboClerk.AzureDevOps
                                 index++;
                                 if (index == stepData.Length)
                                 {
-                                    result.Add(stepData);
+                                    result.Add(new TestStep((result.Count+offset+1).ToString(), stepData[0], stepData[1]));
                                     stepData = new string[2];
                                 }
                             }

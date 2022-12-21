@@ -9,7 +9,7 @@ namespace RoboClerk
         protected List<RequirementItem> softwareRequirements = new List<RequirementItem>();
         protected List<RequirementItem> documentationRequirements = new List<RequirementItem>();
         protected List<TestCaseItem> testCases = new List<TestCaseItem>();
-        protected List<AnomalyItem> bugs = new List<AnomalyItem>();
+        protected List<AnomalyItem> anomalies = new List<AnomalyItem>();
         protected List<RiskItem> risks = new List<RiskItem>();
         protected List<SOUPItem> soup = new List<SOUPItem>();
         protected List<DocContentItem> docContents = new List<DocContentItem>(); 
@@ -22,7 +22,7 @@ namespace RoboClerk
 
         public List<AnomalyItem> GetAnomalies()
         {
-            return bugs;
+            return anomalies;
         }
 
         public List<RequirementItem> GetSystemRequirements()

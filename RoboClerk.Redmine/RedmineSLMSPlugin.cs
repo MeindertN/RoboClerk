@@ -6,6 +6,7 @@ using Tomlyn.Model;
 using RoboClerk.Configuration;
 using System.IO.Abstractions;
 using DocumentFormat.OpenXml.Wordprocessing;
+using RoboClerk.ContentCreators;
 
 namespace RoboClerk.Redmine
 {
@@ -88,6 +89,7 @@ namespace RoboClerk.Redmine
 
             logger.Debug($"Retrieving the issues from the redmine server...");
             var redmineIssues = PullAllIssuesFromServer(GetTrackerList());
+            List<string> retrievedIDs = new List<string>();
 
             foreach (var redmineIssue in redmineIssues)
             {
@@ -96,6 +98,7 @@ namespace RoboClerk.Redmine
                     logger.Debug($"Ignoring redmine issue {redmineIssue.Id}");
                     continue;
                 }
+                retrievedIDs.Add(redmineIssue.Id.ToString());
                 if (redmineIssue.Tracker.Name == prsTrackerName)
                 {
                     logger.Debug($"System level requirement found: {redmineIssue.Id}");
@@ -114,7 +117,7 @@ namespace RoboClerk.Redmine
                 else if (redmineIssue.Tracker.Name == bugTrackerName)
                 {
                     logger.Debug($"Bug item found: {redmineIssue.Id}");
-                    bugs.Add(CreateBug(redmineIssue));
+                    anomalies.Add(CreateBug(redmineIssue));
                 }
                 else if (redmineIssue.Tracker.Name == riskTrackerName)
                 {
@@ -136,13 +139,42 @@ namespace RoboClerk.Redmine
                     logger.Debug($"DocContent item found: {redmineIssue.Id}");
                     docContents.Add(CreateDocContent(redmineIssue));
                 }
+                RemoveIgnoredLinks(retrievedIDs); //go over all items and remove any links to ignored items
             }
         }
 
-        private List<string[]> GetTestSteps(string testDescription)
+        private void RemoveIgnoredLinks(List<string> retrievedIDs)
+        {
+            TrimLinkedItems(systemRequirements, retrievedIDs);
+            TrimLinkedItems(softwareRequirements, retrievedIDs);
+            TrimLinkedItems(documentationRequirements, retrievedIDs);
+            TrimLinkedItems(testCases, retrievedIDs);
+            TrimLinkedItems(anomalies, retrievedIDs);
+            TrimLinkedItems(risks, retrievedIDs);
+            TrimLinkedItems(soup, retrievedIDs);
+            TrimLinkedItems(docContents, retrievedIDs);
+        }
+
+        private void TrimLinkedItems<T>(List<T> items, List<string> retrievedIDs)
+        {
+            foreach (var item in items)
+            {
+                LinkedItem linkedItem = item as LinkedItem;
+                foreach (var itemLink in linkedItem.LinkedItems)
+                {
+                    if (!retrievedIDs.Contains(itemLink.TargetID))
+                    {
+                        logger.Warn($"Removing a {itemLink.LinkType} link to item with ID \"{itemLink.TargetID}\" because that item has a status that causes it to be ignored.");
+                        linkedItem.RemoveLinkedItem(itemLink); //remove the link to an ignored item
+                    }
+                }
+            }
+        }
+
+        private List<TestStep> GetTestSteps(string testDescription)
         {
             string[] lines = testDescription.Split('\n');
-            List<string[]> output = new List<string[]>();
+            List<TestStep> output = new List<TestStep>();
             bool thenFound = false;
             foreach (var line in lines)
             {
@@ -152,24 +184,22 @@ namespace RoboClerk.Redmine
                 }
                 if (!line.ToUpper().Contains("THEN:") && !thenFound)
                 {
-                    string[] ln = new string[2] { line, string.Empty };
-                    output.Add(ln);
+                    output.Add(new TestStep((output.Count + 1).ToString(),line,string.Empty));
                 }
                 else
                 {
                     if (!thenFound)
                     {
                         thenFound = true;
-                        output[output.Count - 1][1] = line;
+                        output[output.Count - 1].ExpectedResult = line;
                     }
                     else if(!line.ToUpper().Contains("AND:"))
                     {
-                        output[output.Count - 1][1] = output[output.Count - 1][1] + '\n' + line;
+                        output[output.Count - 1].ExpectedResult = output[output.Count - 1].ExpectedResult + '\n' + line;
                     }
                     else
                     {
-                        string[] ln = new string[2] { string.Empty, line };
-                        output.Add(ln);
+                        output.Add(new TestStep((output.Count + 1).ToString(),string.Empty, line));
                     }
                 }
             }

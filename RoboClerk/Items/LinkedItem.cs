@@ -27,6 +27,11 @@ namespace RoboClerk
             linkedItems.Add(itemLink);
         }
 
+        public void RemoveLinkedItem(ItemLink itemLink)
+        {
+            linkedItems.Remove(itemLink);
+        }
+
         public ItemLinkType GetItemLinkType(LinkedItem item)
         {
             var result = from s in linkedItems where s.TargetID == item.ItemID select s.LinkType;
