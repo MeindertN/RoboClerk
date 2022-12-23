@@ -15,12 +15,7 @@ string RenderTestSteps()
 {
     System.Text.StringBuilder sb = new System.Text.StringBuilder();
     foreach (var step in item.TestCaseSteps)
-    {	
-        if (step.Length < 2)
-        {
-            throw new System.ArgumentException("Not enough information to build step line.");
-        }
-                
+    {	    
         sb.Append($"| {step.Step} ");
         sb.Append($"| {step.Action.Replace("\n", "").Replace("\r", "")} ");
         sb.Append($"| {step.ExpectedResult.Replace("\n", "").Replace("\r", "")} ");
