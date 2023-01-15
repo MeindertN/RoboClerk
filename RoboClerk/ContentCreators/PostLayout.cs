@@ -6,15 +6,15 @@ namespace RoboClerk.ContentCreators
     {
         public string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
-            if(tag.ContentCreatorID.ToUpper() == "TOC")
+            if (tag.ContentCreatorID.ToUpper() == "TOC")
             {
                 return "~TOC";
             }
-            else if(tag.ContentCreatorID.ToUpper() == "REMOVEPARAGRAPH")
+            else if (tag.ContentCreatorID.ToUpper() == "REMOVEPARAGRAPH")
             {
                 return "~REMOVEPARAGRAPH";
             }
-            else if(tag.ContentCreatorID.ToUpper() == "PAGEBREAK")
+            else if (tag.ContentCreatorID.ToUpper() == "PAGEBREAK")
             {
                 return "~PAGEBREAK";
             }

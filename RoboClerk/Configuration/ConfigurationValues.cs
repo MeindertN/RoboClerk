@@ -14,7 +14,7 @@ namespace RoboClerk.Configuration
 
         public void FromToml(TomlTable toml)
         {
-            if( !toml.ContainsKey("ConfigValues"))
+            if (!toml.ContainsKey("ConfigValues"))
             {
                 throw new Exception("Required configuration element \"ConfigValues\" is missing from project configuration file. Cannot continue.");
             }

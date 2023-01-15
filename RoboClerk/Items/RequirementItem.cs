@@ -25,15 +25,15 @@ namespace RoboClerk
             get => requirementType;
             set
             {
-                if(value == RequirementType.SystemRequirement)
+                if (value == RequirementType.SystemRequirement)
                 {
                     type = "SystemRequirement";
                 }
-                if(value == RequirementType.SoftwareRequirement)
+                if (value == RequirementType.SoftwareRequirement)
                 {
                     type = "SoftwareRequirement";
                 }
-                if(requirementType == RequirementType.DocumentationRequirement)
+                if (requirementType == RequirementType.DocumentationRequirement)
                 {
                     type = "DocumentationRequirement";
                 }

@@ -1,7 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.Scripting;
-using RoboClerk.Configuration;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
 namespace RoboClerk.ContentCreators

@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Abstractions;
 using Tomlyn;
 using Tomlyn.Model;
-using System.Linq;
 
 namespace RoboClerk.Configuration
 {
@@ -12,7 +11,7 @@ namespace RoboClerk.Configuration
     {
         private readonly IFileSystem fileSystem = null;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        
+
         //The information contained in the general configuration file
         private List<string> dataSourcePlugins = new List<string>();
         private List<string> pluginDirs = new List<string>();
@@ -32,9 +31,9 @@ namespace RoboClerk.Configuration
         private string projectRoot = string.Empty;
 
         //The information supplied on the commandline
-        private Dictionary<string, string> commandLineOptions = new Dictionary<string,string>();
+        private Dictionary<string, string> commandLineOptions = new Dictionary<string, string>();
 
-        public Configuration(IFileSystem fileSystem, string configFileName, string projectConfigFileName, Dictionary<string,string> commandLineOptions)
+        public Configuration(IFileSystem fileSystem, string configFileName, string projectConfigFileName, Dictionary<string, string> commandLineOptions)
         {
             this.commandLineOptions = commandLineOptions;
             this.fileSystem = fileSystem;
@@ -49,7 +48,7 @@ namespace RoboClerk.Configuration
         public string LogLevel => logLevel;
         public List<TraceEntity> TruthEntities => truthEntities;
         public List<DocumentConfig> Documents => documents;
-        public List<TraceConfig > TraceConfig => traceConfig;
+        public List<TraceConfig> TraceConfig => traceConfig;
         public CheckpointConfig CheckpointConfig => checkpointConfig;
         public ConfigurationValues ConfigVals => configVals;
         public string PluginConfigDir => pluginConfigDir;
@@ -90,18 +89,18 @@ namespace RoboClerk.Configuration
         private void ReadGeneralConfigFile(string configFile)
         {
             var toml = Toml.Parse(configFile).ToModel();
-            foreach( var obj in (TomlArray)toml["DataSourcePlugin"])
+            foreach (var obj in (TomlArray)toml["DataSourcePlugin"])
             {
                 dataSourcePlugins.Add((string)obj);
             }
-            foreach( var obj in (TomlArray)toml["PluginDirs"])
+            foreach (var obj in (TomlArray)toml["PluginDirs"])
             {
-                pluginDirs.Add((string)obj);    
+                pluginDirs.Add((string)obj);
             }
             pluginConfigDir = CommandLineOptionOrDefault("PluginConfigurationDir", (string)toml["PluginConfigurationDir"]);
-            outputDir = CommandLineOptionOrDefault("OutputDirectory",(string)toml["OutputDirectory"]);
+            outputDir = CommandLineOptionOrDefault("OutputDirectory", (string)toml["OutputDirectory"]);
             clearOutput = CommandLineOptionOrDefault("ClearOutputDir", (string)toml["ClearOutputDir"]).ToUpper() == "TRUE";
-            logLevel = CommandLineOptionOrDefault("LogLevel",(string)toml["LogLevel"]);
+            logLevel = CommandLineOptionOrDefault("LogLevel", (string)toml["LogLevel"]);
         }
 
         private void ReadProjectConfigFile(string projectConfig)
@@ -144,7 +143,7 @@ namespace RoboClerk.Configuration
                 conf.AddTraces((TomlTable)table.Value);
                 traceConfig.Add(conf);
             }
-        }         
+        }
 
         private void ReadDocuments(TomlTable toml)
         {
@@ -180,14 +179,14 @@ namespace RoboClerk.Configuration
                     throw new Exception($"Error while reading {entityTable.Key} truth entity from project config file. Check if all required elements (\"name\" and \"abbreviation\") are present.");
                 }
                 TraceEntity entity = new TraceEntity(entityTable.Key, (string)elements["name"], (string)elements["abbreviation"], TraceEntityType.Truth);
-                
+
                 truthEntities.Add(entity);
             }
         }
 
         public string CommandLineOptionOrDefault(string name, string defaultValue)
         {
-            if(commandLineOptions.ContainsKey(name))
+            if (commandLineOptions.ContainsKey(name))
             {
                 return commandLineOptions[name];
             }

@@ -12,10 +12,10 @@ namespace RoboClerk
         protected List<AnomalyItem> anomalies = new List<AnomalyItem>();
         protected List<RiskItem> risks = new List<RiskItem>();
         protected List<SOUPItem> soup = new List<SOUPItem>();
-        protected List<DocContentItem> docContents = new List<DocContentItem>(); 
+        protected List<DocContentItem> docContents = new List<DocContentItem>();
 
         public SLMSPluginBase(IFileSystem fileSystem)
-            :base(fileSystem)
+            : base(fileSystem)
         {
 
         }

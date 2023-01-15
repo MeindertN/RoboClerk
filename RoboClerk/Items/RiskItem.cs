@@ -87,7 +87,7 @@ namespace RoboClerk
 
         public int ModifiedOccScore
         {
-            get {  return modifiedOccScore; }
+            get { return modifiedOccScore; }
             set { modifiedOccScore = value; }
         }
 

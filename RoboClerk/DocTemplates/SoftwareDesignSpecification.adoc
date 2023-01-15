@@ -19,17 +19,19 @@ be shared with the client/user and other stakeholders whose UI input/approval is
 contained in the document by listing the software requirement ID with the design implementation in the text. 
 
 === Definitions
+
 *SOFTWARE ITEM* – Any identifiable part of a computer program. All levels of composition, including the top and bottom
 levels, can be called software items. (See IEC62304.)
 
 *SOFTWARE UNIT* – The lowest level of software item. This level is not further decomposed.
 
 == Testing Section
+
 Here we will test a variety of in document trace tags referring to software requirements.
 
 @@Trace:SWR(id=9)@@ The text that has the trace link
 @@Trace:SWR(Id=1234321)@@ the parameter names are case insensitive
-@@Trace:SWR(id=10)@@ And the second trace linke
+@@Trace:SWR(id=10)@@ And the second trace link
 Just a line of text.
 @@Trace:SWR(id=11)@@ @@Trace:SR(id=12)@@ Two more trace links
 
@@ -44,7 +46,7 @@ The above just tests to see if we can include a single product requirement
 
 @@@Comment:general()
 Things that are in comment tags will be removed when the document is processed. These comment blocks, when placed
-in templates, can help authors with using hte template in the right way.
+in templates, can help authors with using the template in the right way.
 @@@
 
 Here is a reference to a document @@Ref:RandomTestDocument()@@

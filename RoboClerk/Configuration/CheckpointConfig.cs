@@ -10,7 +10,7 @@ namespace RoboClerk.Configuration
 
         public string CheckpointFile { get; set; } = string.Empty;
 
-        public List<string> UpdatedSystemRequirementIDs {  get; set; } = new List<string>();
+        public List<string> UpdatedSystemRequirementIDs { get; set; } = new List<string>();
 
         public List<string> UpdatedSoftwareRequirementIDs { get; set; } = new List<string>();
 
@@ -37,13 +37,13 @@ namespace RoboClerk.Configuration
             }
             foreach (var val in (TomlTable)toml["CheckpointConfiguration"])
             {
-                switch(val.Key)
+                switch (val.Key)
                 {
-                    case "CheckpointFile": 
-                        CheckpointFile = (string)val.Value; 
+                    case "CheckpointFile":
+                        CheckpointFile = (string)val.Value;
                         break;
                     case "UpdatedSystemRequirementIDs":
-                        foreach(var sysid in (TomlArray)val.Value)
+                        foreach (var sysid in (TomlArray)val.Value)
                         {
                             UpdatedSystemRequirementIDs.Add((string)sysid);
                         }

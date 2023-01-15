@@ -196,7 +196,7 @@ namespace RoboClerk
             //verify required elements are present and in the right order
             if (tagContents.Count(f => (f == '(')) != 1 ||
                 tagContents.Count(f => (f == ')')) != 1 ||
-                tagContents.Substring(0,tagContents.IndexOf('(')).Count(f => (f == ':')) != 1 ||
+                tagContents.Substring(0, tagContents.IndexOf('(')).Count(f => (f == ':')) != 1 ||
                 tagContents.IndexOf(')') < tagContents.IndexOf('(') ||
                 tagContents.IndexOf(':') > tagContents.IndexOf('('))
             {
@@ -204,7 +204,7 @@ namespace RoboClerk
             }
             //verify the preamble
             string temp = Regex.Replace(tagContents, @"\s+", ""); //remove whitespace
-            string[] preamble = temp.Split('(')[0].Split(':',StringSplitOptions.RemoveEmptyEntries);
+            string[] preamble = temp.Split('(')[0].Split(':', StringSplitOptions.RemoveEmptyEntries);
             if (preamble.Length != 2)
             {
                 throw new TagInvalidException(tagContents, "Preamble section in RoboClerk tag not formatted correctly");
@@ -305,7 +305,7 @@ namespace RoboClerk
             return DataSource.Unknown;
         }
 
-        public string GetParameterOrDefault(string key, string defaultVal=default)
+        public string GetParameterOrDefault(string key, string defaultVal = default)
         {
             if (parameters.ContainsKey(key.ToUpper()))
             {

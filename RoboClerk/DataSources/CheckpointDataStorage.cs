@@ -14,8 +14,8 @@ namespace RoboClerk
         private List<AnomalyItem> anomalies = new List<AnomalyItem>();
         private List<DocContentItem> docContents = new List<DocContentItem>();
 
-        public List<RequirementItem> SystemRequirements 
-        { 
+        public List<RequirementItem> SystemRequirements
+        {
             get
             {
                 return systemRequirements;
@@ -26,8 +26,8 @@ namespace RoboClerk
             }
         }
 
-        public List<RequirementItem> SoftwareRequirements 
-        { 
+        public List<RequirementItem> SoftwareRequirements
+        {
             get
             {
                 return softwareRequirements;
@@ -52,13 +52,13 @@ namespace RoboClerk
 
         public List<DocContentItem> DocContents
         {
-            get 
-            { 
-                return docContents; 
+            get
+            {
+                return docContents;
             }
-            set 
-            { 
-                docContents = value; 
+            set
+            {
+                docContents = value;
             }
         }
 
@@ -126,7 +126,7 @@ namespace RoboClerk
         public void UpdateSystemRequirement(RequirementItem item)
         {
             RemoveSystemRequirement(item.ItemID);
-            systemRequirements.Add(item);            
+            systemRequirements.Add(item);
         }
 
         public void RemoveSystemRequirement(string itemID)

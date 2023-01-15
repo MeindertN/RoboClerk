@@ -10,7 +10,7 @@ namespace RoboClerk.AnnotatedUnitTests
 
         public void FromToml(TomlTable input)
         {
-            if(!input.ContainsKey("Keyword") || !input.ContainsKey("Optional"))
+            if (!input.ContainsKey("Keyword") || !input.ContainsKey("Optional"))
             {
                 throw new System.Exception($"AnnotatedUnitTestPlugin: Configuration file does not contain \"KeyWord\" and/or \"Optional\" for item ");
             }

@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
+﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
+using System.Reflection;
+using System.Text;
 
 namespace RoboClerk
 {
@@ -19,12 +19,12 @@ namespace RoboClerk
         public string RenderItemTemplate(ScriptingBridge bridge)
         {
             StringBuilder sb = new StringBuilder(fileContent);
-            if(parser.StartSegment.Item2 < 0 || parser.StartSegment.Item3 < 0)
+            if (parser.StartSegment.Item2 < 0 || parser.StartSegment.Item3 < 0)
             {
                 return sb.ToString();
             }
             ScriptState<object> beginState = CSharpScript.RunAsync(parser.StartSegment.Item1, ScriptOptions.Default.WithReferences(Assembly.GetExecutingAssembly()), globals: bridge).Result;
-            foreach( var segment in parser.Segments)
+            foreach (var segment in parser.Segments)
             {
                 var state = beginState.ContinueWithAsync<string>(segment.Item1).Result;
                 string result = state.ReturnValue;

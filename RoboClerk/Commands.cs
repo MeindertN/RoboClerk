@@ -48,9 +48,9 @@ namespace RoboClerk
                 {
                     temp = outputDir;
                 }
-                workingDirectories.Add(ReplaceVariables(temp,currentDateTime));
+                workingDirectories.Add(ReplaceVariables(temp, currentDateTime));
                 temp = (string)command["arguments"];
-                arguments.Add(ReplaceVariables(temp,currentDateTime));
+                arguments.Add(ReplaceVariables(temp, currentDateTime));
                 ignoreErrors.Add((string)command["ignoreErrors"] == "True");
             }
         }

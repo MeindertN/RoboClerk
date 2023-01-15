@@ -13,7 +13,7 @@ namespace RoboClerk
         private Dictionary<string, List<TraceLink>> documentTraceLinks = new Dictionary<string, List<TraceLink>>();
         private Dictionary<string, List<TraceIssue>> documentTraceIssues = new Dictionary<string, List<TraceIssue>>();
         private Dictionary<TraceEntity, List<TraceIssue>> truthTraceIssues = new Dictionary<TraceEntity, List<TraceIssue>>();
-        private readonly Dictionary<TraceEntity, List<TraceSpecification>> traces = new Dictionary<TraceEntity,List<TraceSpecification>>();
+        private readonly Dictionary<TraceEntity, List<TraceSpecification>> traces = new Dictionary<TraceEntity, List<TraceSpecification>>();
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public TraceabilityAnalysis(IConfiguration config)
@@ -89,13 +89,13 @@ namespace RoboClerk
 
         private static void CheckTruthEntities(List<TraceEntity> truth)
         {
-            if( truth == null ||
+            if (truth == null ||
                 truth.Find(x => x.ID == "SystemRequirement") == null ||
                 truth.Find(x => x.ID == "SoftwareRequirement") == null ||
                 truth.Find(x => x.ID == "SoftwareSystemTest") == null ||
                 truth.Find(x => x.ID == "UnitTest") == null ||
                 truth.Find(x => x.ID == "Risk") == null ||
-                truth.Find(x => x.ID == "Anomaly") == null )
+                truth.Find(x => x.ID == "Anomaly") == null)
             {
                 throw new Exception("Not all types of Truth entities were found in the project config file. Make sure the following are present: SystemRequirement, SoftwareRequirement, SoftwareSystemTest, UnitTest, Risk, Anomaly");
             }
@@ -134,7 +134,7 @@ namespace RoboClerk
                         items.Add(data.GetItem(item.TargetID));
                     }
                     //TODO: need to add support for exclusive traces where only traces of a certain type are allowed to trace (e.g. only Risk Controls can trace to RAR)
-                    traceData.Add(items); 
+                    traceData.Add(items);
                 }
                 else
                 {
@@ -154,7 +154,7 @@ namespace RoboClerk
                 }
             }
             //now we need to go over the tracelinks to see if trace in the other direction is ok as well
-            foreach (var tl in tls) 
+            foreach (var tl in tls)
             {
                 if (tl.Source == tet)
                 {
@@ -182,25 +182,25 @@ namespace RoboClerk
 
         public RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>> PerformAnalysis(IDataSources data, TraceEntity truth)
         {
-            if(!traces.ContainsKey(truth))
+            if (!traces.ContainsKey(truth))
             {
                 throw new Exception($"No trace specification for traces starting with {GetTitleForTraceEntity(truth.ID)}");
             }
 
             //if the user calls this function multiple times, we have to reset issue tracking state
-            if (truth.EntityType == TraceEntityType.Document && documentTraceIssues.ContainsKey(truth.Name)) 
+            if (truth.EntityType == TraceEntityType.Document && documentTraceIssues.ContainsKey(truth.Name))
             {
                 documentTraceIssues.Remove(truth.Name);
             }
-            if(truth.EntityType == TraceEntityType.Truth && truthTraceIssues.ContainsKey(truth))
+            if (truth.EntityType == TraceEntityType.Truth && truthTraceIssues.ContainsKey(truth))
             {
                 truthTraceIssues.Remove(truth);
             }
 
             RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>> result = new RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>>();
             List<TraceSpecification> specifiedTraces = traces[truth];
-            
-            if(truth.EntityType == TraceEntityType.Truth)
+
+            if (truth.EntityType == TraceEntityType.Truth)
             {
                 List<LinkedItem> truthItems = data.GetItems(truth);
                 result[truth] = new List<List<Item>>();
@@ -236,7 +236,7 @@ namespace RoboClerk
                             else
                             {
                                 //this is a N/A, selected categories do not match so link is not important
-                                result[ts.Target].Add(new List<Item>()); 
+                                result[ts.Target].Add(new List<Item>());
                             }
                         }
                         continue;
@@ -249,7 +249,7 @@ namespace RoboClerk
                 }
                 return result;
             }
-            else if(truth.EntityType == TraceEntityType.Document)
+            else if (truth.EntityType == TraceEntityType.Document)
             {
                 throw new NotImplementedException("Tracing from document not implemented");
             }
@@ -303,7 +303,7 @@ namespace RoboClerk
                 }
             }
 
-            TraceLink link = new TraceLink(tlt, tag.GetParameterOrDefault("ID",string.Empty), GetTraceEntityForTitle(docTitle), tag.GetParameterOrDefault("ID",string.Empty));
+            TraceLink link = new TraceLink(tlt, tag.GetParameterOrDefault("ID", string.Empty), GetTraceEntityForTitle(docTitle), tag.GetParameterOrDefault("ID", string.Empty));
             if (!documentTraceLinks[docTitle].Contains(link))
             {
                 documentTraceLinks[docTitle].Add(link);
@@ -313,7 +313,7 @@ namespace RoboClerk
         public void AddTrace(TraceEntity source, string sourceID, TraceEntity target, string targetID)
         {
             string docTitle = GetTitleForTraceEntity(target.ID);
-            TraceLink link = new TraceLink(source,sourceID,target,targetID);
+            TraceLink link = new TraceLink(source, sourceID, target, targetID);
             if (!documentTraceLinks.ContainsKey(docTitle))
             {
                 documentTraceLinks[docTitle] = new List<TraceLink>();

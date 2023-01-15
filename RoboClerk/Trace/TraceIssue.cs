@@ -27,7 +27,7 @@
 
         public override int GetHashCode()
         {
-            return source.GetHashCode() ^ target.GetHashCode() ^ SourceID.GetHashCode() ^ TargetID.GetHashCode() ;
+            return source.GetHashCode() ^ target.GetHashCode() ^ SourceID.GetHashCode() ^ TargetID.GetHashCode();
         }
 
 

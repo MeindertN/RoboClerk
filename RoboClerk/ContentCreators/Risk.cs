@@ -5,8 +5,8 @@ namespace RoboClerk.ContentCreators
 {
     public class Risk : MultiItemContentCreator
     {
-        public Risk(IDataSources data, ITraceabilityAnalysis analysis) 
-            :base(data, analysis)
+        public Risk(IDataSources data, ITraceabilityAnalysis analysis)
+            : base(data, analysis)
         {
         }
 

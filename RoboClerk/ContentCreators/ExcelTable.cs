@@ -7,7 +7,7 @@ namespace RoboClerk.ContentCreators
     public class ExcelTable : ContentCreatorBase
     {
         public ExcelTable(IDataSources data, ITraceabilityAnalysis analysis)
-            :base(data,analysis)
+            : base(data, analysis)
         {
 
         }
@@ -32,14 +32,14 @@ namespace RoboClerk.ContentCreators
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("|===");
-            foreach( var row in ws.Range(excelRange).Rows() )
+            foreach (var row in ws.Range(excelRange).Rows())
             {
-                foreach( var cell in row.Cells() )
+                foreach (var cell in row.Cells())
                 {
                     sb.Append("| ");
                     if (cell.HasHyperlink)
                     {
-                        
+
                         sb.Append($"{cell.GetHyperlink().ExternalAddress}[{cell.GetRichText().Text}] ");
                     }
                     else

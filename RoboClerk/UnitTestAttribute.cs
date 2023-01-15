@@ -14,7 +14,7 @@ namespace RoboClerk
 
         public UnitTestAttribute()
         {
-           
+
         }
 
         public string Purpose

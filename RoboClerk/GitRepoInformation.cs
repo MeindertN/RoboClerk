@@ -24,7 +24,7 @@ namespace RoboClerk
             FileUnderProjectRoot(filename);
             var lastCommit = GetLastCommit(filename);
 
-            if(lastCommit != null)
+            if (lastCommit != null)
             {
                 return lastCommit.Sha.Substring(0, 7);
             }
@@ -57,11 +57,11 @@ namespace RoboClerk
             var mdFile = Path.GetRelativePath(configuration.ProjectRoot, filename);
             mdFile = mdFile.Replace("\\", "/");
             var filestatus = repo.RetrieveStatus(new StatusOptions { IncludeUnaltered = true });
-            foreach(var status in filestatus)
+            foreach (var status in filestatus)
             {
-                if( mdFile == status.FilePath )
+                if (mdFile == status.FilePath)
                 {
-                    if( status.State == FileStatus.Unaltered )
+                    if (status.State == FileStatus.Unaltered)
                     {
                         return false;
                     }
@@ -84,7 +84,7 @@ namespace RoboClerk
 
             var commits = repo.Commits.Where(filter).OrderByDescending(c => c.Author.When);
             //return the one that is most recent and only has a single parent
-            foreach(var commit in commits)
+            foreach (var commit in commits)
             {
                 if (commit.Parents?.Count() < 2)
                 {
@@ -99,7 +99,7 @@ namespace RoboClerk
         {
             var file = Directory.GetFiles(configuration.ProjectRoot, Path.GetFileName(filename), SearchOption.AllDirectories)
                                 .FirstOrDefault();
-            if(file == null)
+            if (file == null)
             {
                 logger.Error($"GitRepoInformation: File {filename} is not located under the project root {configuration.ProjectRoot}");
                 throw new Exception($"Unable to find file {filename} under project root {configuration.ProjectRoot}. Check if file exists and was not deleted.");

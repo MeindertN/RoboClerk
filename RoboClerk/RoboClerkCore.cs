@@ -30,9 +30,9 @@ namespace RoboClerk
         public void GenerateDocs()
         {
             logger.Info("Starting document generation.");
-            if(configuration.MediaDir != string.Empty)
+            if (configuration.MediaDir != string.Empty)
             {
-                if(fileSystem.Directory.Exists(configuration.MediaDir))
+                if (fileSystem.Directory.Exists(configuration.MediaDir))
                 {
                     CleanAndCopyMediaDirectory();
                 }
@@ -47,7 +47,7 @@ namespace RoboClerk
                 if (doc.DocumentTemplate == string.Empty)
                     continue;  //skip documents without template
                 logger.Info($"Reading document template: {doc.RoboClerkID}");
-                Document document = new Document(doc.DocumentTitle,doc.DocumentTemplate);
+                Document document = new Document(doc.DocumentTitle, doc.DocumentTemplate);
                 document.FromStream(fileSystem.FileStream.Create(fileSystem.Path.Join(configuration.TemplateDir, doc.DocumentTemplate), FileMode.Open));
                 logger.Info($"Generating document: {doc.RoboClerkID}");
                 int nrOfLevels = 0;
@@ -61,7 +61,7 @@ namespace RoboClerk
                         {
                             logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID", "ERROR")}");
                             //grab trace tag and add to the trace analysis
-                            IContentCreator contentCreator = new Trace(dataSources,traceAnalysis);
+                            IContentCreator contentCreator = new Trace(dataSources, traceAnalysis);
                             tag.Contents = contentCreator.GetContent(tag, doc);
                             continue;
                         }
@@ -123,12 +123,12 @@ namespace RoboClerk
             logger.Info("Cleaning the media directory and copying the media files.");
             string toplineDir = fileSystem.Path.GetFileName(configuration.MediaDir);
             string targetDir = fileSystem.Path.Combine(configuration.OutputDir, toplineDir);
-            if(fileSystem.Directory.Exists(targetDir))
+            if (fileSystem.Directory.Exists(targetDir))
             {
                 fileSystem.Directory.Delete(targetDir, true);
             }
             fileSystem.Directory.CreateDirectory(targetDir);
-            string[] files = fileSystem.Directory.GetFiles(configuration.MediaDir,"*",SearchOption.AllDirectories);
+            string[] files = fileSystem.Directory.GetFiles(configuration.MediaDir, "*", SearchOption.AllDirectories);
             foreach (string file in files)
             {
                 if (!file.Contains(".gitignore"))
@@ -159,7 +159,7 @@ namespace RoboClerk
                 {
                     logger.Warn($"No commands found for {doc.Title}. Ensure this is intended.");
                 }
-                fileSystem.File.WriteAllText(fileSystem.Path.Combine(configuration.OutputDir, "DataSourceData.json"),dataSources.ToJSON());
+                fileSystem.File.WriteAllText(fileSystem.Path.Combine(configuration.OutputDir, "DataSourceData.json"), dataSources.ToJSON());
             }
         }
 

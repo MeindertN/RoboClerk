@@ -15,9 +15,9 @@ namespace RoboClerk
         protected List<string> sourceFiles = new List<string>();
         protected List<UnitTestItem> unitTests = new List<UnitTestItem>();
         protected GitRepoInformation gitInfo = null;
- 
+
         public SourceCodeAnalysisPluginBase(IFileSystem fileSystem)
-            :base(fileSystem)
+            : base(fileSystem)
         {
         }
 

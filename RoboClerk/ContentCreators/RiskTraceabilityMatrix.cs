@@ -5,7 +5,7 @@ namespace RoboClerk.ContentCreators
     class RiskTraceabilityMatrix : TraceabilityMatrixBase
     {
         public RiskTraceabilityMatrix(IDataSources data, ITraceabilityAnalysis analysis)
-            :base(data, analysis)
+            : base(data, analysis)
         {
 
         }

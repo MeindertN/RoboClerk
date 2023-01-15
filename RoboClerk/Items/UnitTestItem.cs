@@ -9,7 +9,7 @@ namespace RoboClerk
         private string unitTestPurpose = "";
         private string unitTestAcceptanceCriteria = "";
         private string unitTestFileLocation = "";
-        
+
         public UnitTestItem()
         {
             type = "UnitTest";

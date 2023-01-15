@@ -6,13 +6,6 @@
       "remoteDebugEnabled": false,
       "authenticationMode": "None",
       "remoteDebugMachine": "IVS-7961:4026"
-    },
-    "RoboClerk-remote": {
-      "commandName": "Project",
-      "hotReloadEnabled": false,
-      "remoteDebugEnabled": true,
-      "authenticationMode": "None",
-      "remoteDebugMachine": "192.168.4.68:4026"
     }
   }
 }

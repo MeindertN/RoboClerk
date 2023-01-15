@@ -1,4 +1,3 @@
-using LibGit2Sharp;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -14,7 +13,7 @@ namespace RoboClerk
 
         protected List<RoboClerkTag> roboclerkTags = new List<RoboClerkTag>();
 
-        public Document(string title,string templateFile)
+        public Document(string title, string templateFile)
         {
             this.title = title;
             this.templateFile = templateFile;
@@ -24,7 +23,7 @@ namespace RoboClerk
         {
             //normalize the line endings in the string
             rawText = Regex.Replace(text, @"\r\n", "\n");
-            
+
             try
             {
                 roboclerkTags.Clear();

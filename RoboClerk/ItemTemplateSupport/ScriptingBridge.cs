@@ -1,7 +1,4 @@
-﻿using DocumentFormat.OpenXml.Vml.Office;
-using Microsoft.Extensions.Logging.Configuration;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -24,10 +21,10 @@ namespace RoboClerk
 
         public LinkedItem Item { get; set; }
 
-        public IEnumerable<LinkedItem> Items 
-        { 
-            get { return items; } 
-            set { items = (List<LinkedItem>)value; } 
+        public IEnumerable<LinkedItem> Items
+        {
+            get { return items; }
+            set { items = (List<LinkedItem>)value; }
         }
 
         public void AddTrace(string id)
@@ -48,12 +45,12 @@ namespace RoboClerk
 
         public IEnumerable<LinkedItem> GetLinkedItems(LinkedItem li, ItemLinkType linkType)
         {
-            List<LinkedItem> results = new List<LinkedItem> ();
+            List<LinkedItem> results = new List<LinkedItem>();
             var linkedItems = li.LinkedItems.Where(x => x.LinkType == linkType);
-            foreach(var item in linkedItems)
+            foreach (var item in linkedItems)
             {
                 var linkedItem = (LinkedItem)data.GetItem(item.TargetID);
-                if(linkedItem != null)
+                if (linkedItem != null)
                 {
                     results.Add(linkedItem);
                 }
@@ -101,7 +98,7 @@ namespace RoboClerk
 
         public string GetValOrDef(string value, string defaultValue)
         {
-            if(value == string.Empty)
+            if (value == string.Empty)
             {
                 return defaultValue;
             }

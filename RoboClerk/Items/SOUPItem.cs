@@ -23,7 +23,7 @@ namespace RoboClerk
             type = "SOUP";
             id = Guid.NewGuid().ToString();
         }
-        
+
         public string SOUPName
         {
             get { return soupName; }
@@ -32,7 +32,7 @@ namespace RoboClerk
 
         public string SOUPVersion
         {
-            get { return soupVersion; } 
+            get { return soupVersion; }
             set { soupVersion = value; }
         }
 

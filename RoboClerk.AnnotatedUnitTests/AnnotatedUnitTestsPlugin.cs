@@ -1,11 +1,11 @@
-﻿using System;
-using RoboClerk.Configuration;
-using Tomlyn.Model;
+﻿using RoboClerk.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using System.Linq;
 using System.IO.Abstractions;
+using System.Linq;
+using System.Text;
+using Tomlyn.Model;
 
 namespace RoboClerk.AnnotatedUnitTests
 {
@@ -15,11 +15,11 @@ namespace RoboClerk.AnnotatedUnitTests
         private string parameterStartDelimiter = string.Empty;
         private string parameterEndDelimiter = string.Empty;
         private string parameterSeparator = string.Empty;
-        
-        private Dictionary<string,UTInformation> information = new Dictionary<string,UTInformation>();
+
+        private Dictionary<string, UTInformation> information = new Dictionary<string, UTInformation>();
 
         public AnnotatedUnitTestsPlugin(IFileSystem fileSystem)
-            :base(fileSystem)
+            : base(fileSystem)
         {
             name = "AnnotatedUnitTestPlugin";
             description = "A plugin that analyzes a project's source code to extract unit test information for RoboClerk.";
@@ -96,16 +96,16 @@ namespace RoboClerk.AnnotatedUnitTests
             return -1;
         }
 
-        private Dictionary<string,string>  ParseParameterString(string pms, int startLine, string filename)
+        private Dictionary<string, string> ParseParameterString(string pms, int startLine, string filename)
         {
             Dictionary<string, string> foundParameters = new Dictionary<string, string>();
             //replace all = , inside the strings with non-printing replacement characters unlikely 
             //to be used in practice
             StringBuilder pmsSb = new StringBuilder(pms);
             bool insideString = false;
-            for(int i = 0; i < pms.Length ; i++)
+            for (int i = 0; i < pms.Length; i++)
             {
-                if(pms[i] == '"')
+                if (pms[i] == '"')
                 {
                     insideString = !insideString;
                 }
@@ -141,7 +141,7 @@ namespace RoboClerk.AnnotatedUnitTests
         private void FindAndProcessAnnotations(string[] lines, string filename)
         {
             StringBuilder foundAnnotation = new StringBuilder();
-            for(int i=0; i<lines.Length; i++)
+            for (int i = 0; i < lines.Length; i++)
             {
                 int index = lines[i].IndexOf(decorationMarker, StringComparison.OrdinalIgnoreCase);
                 int paramStartIndex = -1;
@@ -155,20 +155,20 @@ namespace RoboClerk.AnnotatedUnitTests
                     for (int j = i; j < lines.Length; j++)
                     {
                         paramStartIndex = foundAnnotation.ToString().IndexOf(parameterStartDelimiter);
-                        if(paramStartIndex < 0)
+                        if (paramStartIndex < 0)
                         {
                             foundAnnotation.Append(lines[j]);
                         }
                         else
                         {
-                            i = j+1;
+                            i = j + 1;
                             break;
                         }
                     }
                     for (int j = i; j < lines.Length; j++)
                     {
                         paramEndIndex = ParameterEnd(foundAnnotation.ToString());
-                        if(paramEndIndex >= 0)
+                        if (paramEndIndex >= 0)
                         {
                             break;
                         }
@@ -177,23 +177,23 @@ namespace RoboClerk.AnnotatedUnitTests
                             foundAnnotation.Append(lines[j]);
                         }
                     }
-                    string parameterString = foundAnnotation.ToString().Substring(paramStartIndex+1, paramEndIndex - paramStartIndex - 1);
+                    string parameterString = foundAnnotation.ToString().Substring(paramStartIndex + 1, paramEndIndex - paramStartIndex - 1);
                     foundAnnotation.Clear();
-                    Dictionary<string, string> foundParameters = ParseParameterString(parameterString,startLine,filename);
+                    Dictionary<string, string> foundParameters = ParseParameterString(parameterString, startLine, filename);
                     //check if any required parameters are missing
-                    foreach( var info in information )
+                    foreach (var info in information)
                     {
-                        if(!info.Value.Optional && !foundParameters.ContainsKey(info.Key))
+                        if (!info.Value.Optional && !foundParameters.ContainsKey(info.Key))
                         {
                             throw new Exception($"Required parameter {info.Key} missing from unit test anotation starting on {startLine} of \"{filename}\".");
                         }
                     }
-                    AddUnitTest(filename,startLine,foundParameters);
+                    AddUnitTest(filename, startLine, foundParameters);
                 }
             }
         }
 
-        private void AddUnitTest(string fileName, int lineNumber, Dictionary<string,string> parameterValues)
+        private void AddUnitTest(string fileName, int lineNumber, Dictionary<string, string> parameterValues)
         {
             var unitTest = new UnitTestItem();
             bool identified = false;
@@ -232,7 +232,7 @@ namespace RoboClerk.AnnotatedUnitTests
                 unitTest.ItemLastUpdated = File.GetLastWriteTime(fileName);
                 unitTest.ItemRevision = File.GetLastWriteTime(fileName).ToString("yyyy/MM/dd HH:mm:ss");
             }
-            if( unitTests.FindIndex(x => x.ItemID == unitTest.ItemID) != -1 )
+            if (unitTests.FindIndex(x => x.ItemID == unitTest.ItemID) != -1)
             {
                 throw new Exception($"Duplicate unit test identifier detected in {shortFileName} in the annotation starting on line {lineNumber}. Check other unit tests to ensure all unit tests have a unique identifier.");
             }

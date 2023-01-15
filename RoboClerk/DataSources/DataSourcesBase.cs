@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Drawing;
-using RoboClerk.Configuration;
+﻿using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -15,7 +15,7 @@ namespace RoboClerk
             : base(configuration, fileSystem)
         {
             logger.Info($"RoboClerk is using the following checkpoint file in the template directory to read its input data: {checkpointFile}");
-            pluginDatasource = new PluginDataSources(configuration,pluginLoader,fileSystem);
+            pluginDatasource = new PluginDataSources(configuration, pluginLoader, fileSystem);
             SetFileSource(checkpointFile);
             ChangeUpdatedItems();
         }
@@ -33,7 +33,7 @@ namespace RoboClerk
         private void ChangeUpdatedItems()
         {
             var checkpointConfig = configuration.CheckpointConfig;
-            foreach(var riskID in checkpointConfig.UpdatedRiskIDs)
+            foreach (var riskID in checkpointConfig.UpdatedRiskIDs)
             {
                 var sourceRiskItem = pluginDatasource.GetRisk(riskID);
                 if (sourceRiskItem != null)

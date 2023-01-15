@@ -18,7 +18,7 @@ namespace RoboClerk.ContentCreators
 
         public virtual string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
-            if(truthSource == null)
+            if (truthSource == null)
             {
                 throw new Exception("Truth source is null, unclear where to start tracing.");
             }
@@ -92,7 +92,7 @@ namespace RoboClerk.ContentCreators
             {
                 if (tet.Key.ID == "SystemRequirement" || tet.Key.ID == "SoftwareRequirement" ||
                     tet.Key.ID == "SoftwareSystemTest" || tet.Key.ID == "UnitTest" ||
-                    tet.Key.ID == "Anomaly" || tet.Key.ID == "Risk" || 
+                    tet.Key.ID == "Anomaly" || tet.Key.ID == "Risk" ||
                     tet.Key.ID == "DocumentationRequirement" || tet.Key.ID == "DocContent" ||
                     tet.Key.ID == "SOUP") //skip the truth entity types
                 {
@@ -136,7 +136,7 @@ namespace RoboClerk.ContentCreators
                             targetID = (targetItem.HasLink ? $"{targetItem.Link}[{targetItem.ItemID}]" : targetItem.ItemID);
                             matrix.AppendLine($". An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not found.");
                         }
-                        else if(targetID != null)
+                        else if (targetID != null)
                         {
                             matrix.AppendLine($". An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not a valid identifier.");
                         }

@@ -43,7 +43,7 @@ namespace RoboClerk
         public List<string> SelectedCategoriesForward
         {
             get => selCatForward;
-            
+
             set
             {
                 completeTraceForward = false;
@@ -54,7 +54,7 @@ namespace RoboClerk
         public List<string> SelectedCategoriesBackward
         {
             get => selCatBackward;
-            
+
             set
             {
                 completeTraceBackward = false;

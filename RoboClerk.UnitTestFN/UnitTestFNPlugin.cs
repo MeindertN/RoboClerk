@@ -8,14 +8,14 @@ using System.Text;
 
 namespace RoboClerk.SourceCode
 {
-    public class UnitTestFNPlugin : SourceCodeAnalysisPluginBase 
+    public class UnitTestFNPlugin : SourceCodeAnalysisPluginBase
     {
         private string testFunctionDecoration = string.Empty;
         private List<string> functionMaskElements = new List<string>();
         private string sectionSeparator = string.Empty;
 
         public UnitTestFNPlugin(IFileSystem fileSystem)
-            :base(fileSystem)
+            : base(fileSystem)
         {
             name = "UnitTestFNPlugin";
             description = "A plugin that analyzes a project's source code to extract unit test information for RoboClerk.";
@@ -28,12 +28,12 @@ namespace RoboClerk.SourceCode
             {
                 base.Initialize(configuration);
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-                                
-                testFunctionDecoration = configuration.CommandLineOptionOrDefault("TestFunctionDecoration", GetStringForKey(config,"TestFunctionDecoration",false)); 
-                var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", GetStringForKey(config,"FunctionMask",true));
+
+                testFunctionDecoration = configuration.CommandLineOptionOrDefault("TestFunctionDecoration", GetStringForKey(config, "TestFunctionDecoration", false));
+                var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", GetStringForKey(config, "FunctionMask", true));
                 functionMaskElements = ParseFunctionMask(functionMask);
                 ValidateFunctionMaskElements(functionMaskElements);
-                sectionSeparator = configuration.CommandLineOptionOrDefault("SectionSeparator", GetStringForKey(config,"SectionSeparator",true));
+                sectionSeparator = configuration.CommandLineOptionOrDefault("SectionSeparator", GetStringForKey(config, "SectionSeparator", true));
             }
             catch (Exception e)
             {
@@ -49,23 +49,23 @@ namespace RoboClerk.SourceCode
             List<string> elements = new List<string>();
             bool inElement = false;
             StringBuilder sb = new StringBuilder();
-            foreach(char c in functionMask)
+            foreach (char c in functionMask)
             {
-                if(c == '<' && !inElement)
+                if (c == '<' && !inElement)
                 {
                     inElement = true;
-                    if(sb.Length > 0)
+                    if (sb.Length > 0)
                     {
                         elements.Add(sb.ToString());
                         sb.Clear();
                     }
                 }
-                if(inElement)
+                if (inElement)
                 {
                     sb.Append(c);
-                    if(c == '>')
+                    if (c == '>')
                     {
-                        inElement=false;
+                        inElement = false;
                         elements.Add(sb.ToString());
                         sb.Clear();
                     }
@@ -80,15 +80,15 @@ namespace RoboClerk.SourceCode
 
         private void ValidateFunctionMaskElements(List<string> elements)
         {
-            if(!elements.First().StartsWith('<'))
+            if (!elements.First().StartsWith('<'))
             {
                 throw new Exception("Error in UnitTestFNPlugin, Function Mask must start with an element identifier (e.g. <IGNORE>)");
             }
-            foreach(string element in elements)
+            foreach (string element in elements)
             {
-                if(element.StartsWith('<'))
+                if (element.StartsWith('<'))
                 {
-                    if(element.ToUpper() != "<PURPOSE>" &&
+                    if (element.ToUpper() != "<PURPOSE>" &&
                         element.ToUpper() != "<POSTCONDITION>" &&
                         element.ToUpper() != "<IDENTIFIER>" &&
                         element.ToUpper() != "<TRACEID>" &&
@@ -109,21 +109,21 @@ namespace RoboClerk.SourceCode
 
         private string SeparateSection(string section)
         {
-            if(sectionSeparator.ToUpper() == "CAMELCASE")
+            if (sectionSeparator.ToUpper() == "CAMELCASE")
             {
                 StringBuilder sb = new StringBuilder();
                 bool first = true;
                 //don't care if the first word is capitalized
-                foreach(char c in section)
+                foreach (char c in section)
                 {
-                    if(first)
+                    if (first)
                     {
                         sb.Append(c);
                         first = false;
                     }
                     else
                     {
-                        if(Char.IsUpper(c))
+                        if (Char.IsUpper(c))
                         {
                             sb.Append(' ');
                             sb.Append(c);
@@ -142,7 +142,7 @@ namespace RoboClerk.SourceCode
             }
         }
 
-        private List<(string,string)> ApplyFunctionNameMask(string line)
+        private List<(string, string)> ApplyFunctionNameMask(string line)
         {
             List<(string, string)> resultingElements = new List<(string, string)>();
             var strings = line.Trim().Split(' ');
@@ -155,12 +155,12 @@ namespace RoboClerk.SourceCode
                     foundMatch = foundMatch && longestString.Contains(functionMaskElement);
                 }
             }
-            if(foundMatch)
+            if (foundMatch)
             {
                 string remainingLine = longestString;
-                for (int i = 1; i < functionMaskElements.Count ; i+=2)
+                for (int i = 1; i < functionMaskElements.Count; i += 2)
                 {
-                    if(remainingLine == string.Empty)
+                    if (remainingLine == string.Empty)
                     {
                         foundMatch = false;
                         break;
@@ -170,7 +170,7 @@ namespace RoboClerk.SourceCode
                         throw new Exception("Error in UnitTestFNPlugin element identifier in unexpected position. Check FunctionMask.");
                     }
                     var items = remainingLine.Split(functionMaskElements[i]);
-                    resultingElements.Add((functionMaskElements[i-1], items[0]));
+                    resultingElements.Add((functionMaskElements[i - 1], items[0]));
                     if (items.Length - 1 != 0)
                     {
                         remainingLine = String.Join(functionMaskElements[i], items, 1, items.Length - 1);
@@ -181,35 +181,35 @@ namespace RoboClerk.SourceCode
                     }
                 }
             }
-            if(!foundMatch)
+            if (!foundMatch)
             {
                 resultingElements.Clear();
             }
             return resultingElements;
         }
 
-        private void AddUnitTest(List<(string,string)> els,string fileName, int lineNumber)
+        private void AddUnitTest(List<(string, string)> els, string fileName, int lineNumber)
         {
             var unitTest = new UnitTestItem();
             bool identified = false;
             string shortFileName = Path.GetFileName(fileName);
             foreach (var el in els)
             {
-                switch(el.Item1.ToUpper())
+                switch (el.Item1.ToUpper())
                 {
                     case "<PURPOSE>": unitTest.UnitTestPurpose = SeparateSection(el.Item2); break;
                     case "<POSTCONDITION>": unitTest.UnitTestAcceptanceCriteria = SeparateSection(el.Item2); break;
                     case "<IDENTIFIER>": unitTest.ItemID = SeparateSection(el.Item2); identified = true; break;
                     case "<TRACEID>": unitTest.AddLinkedItem(new ItemLink(el.Item2, ItemLinkType.Related)); break;
                     case "<IGNORE>": break;
-                    default: throw new Exception($"Unknown element identifier in FunctionMask: {el.Item1.ToUpper()}"); 
+                    default: throw new Exception($"Unknown element identifier in FunctionMask: {el.Item1.ToUpper()}");
                 }
             }
-            if(!identified)
+            if (!identified)
             {
                 unitTest.ItemID = $"{shortFileName}:{lineNumber}";
             }
-            if(gitInfo != null && !gitInfo.GetFileLocallyUpdated(fileName))
+            if (gitInfo != null && !gitInfo.GetFileLocallyUpdated(fileName))
             {
                 //if gitInfo is not null, this means some item data elements should be collected through git
                 unitTest.ItemLastUpdated = gitInfo.GetFileLastUpdated(fileName);
@@ -218,7 +218,7 @@ namespace RoboClerk.SourceCode
             else
             {
                 //the last time the local file was updated is our best guess
-                unitTest.ItemLastUpdated = File.GetLastWriteTime(fileName); 
+                unitTest.ItemLastUpdated = File.GetLastWriteTime(fileName);
                 unitTest.ItemRevision = File.GetLastWriteTime(fileName).ToString("yyyy/MM/dd HH:mm:ss");
             }
             if (unitTests.FindIndex(x => x.ItemID == unitTest.ItemID) != -1)
@@ -235,22 +235,22 @@ namespace RoboClerk.SourceCode
             foreach (var line in lines)
             {
                 currentLineNumber++;
-                if(nextLineIsFunction)
+                if (nextLineIsFunction)
                 {
-                    if(line.Trim().Length > 3)
+                    if (line.Trim().Length > 3)
                     {
                         var els = ApplyFunctionNameMask(line);
-                        if(els.Count > 0)
+                        if (els.Count > 0)
                         {
                             //Create unit test
-                            AddUnitTest(els,fileName,currentLineNumber);
+                            AddUnitTest(els, fileName, currentLineNumber);
                         }
                         nextLineIsFunction = false || testFunctionDecoration == string.Empty;
                     }
                 }
                 else
                 {
-                    if(line.Contains(testFunctionDecoration))
+                    if (line.Contains(testFunctionDecoration))
                     {
                         nextLineIsFunction = true;
                     }
@@ -260,10 +260,10 @@ namespace RoboClerk.SourceCode
 
         public override void RefreshItems()
         {
-            foreach(var sourceFile in sourceFiles)
+            foreach (var sourceFile in sourceFiles)
             {
                 var lines = fileSystem.File.ReadAllLines(sourceFile);
-                FindAndProcessFunctions(lines,sourceFile);
+                FindAndProcessFunctions(lines, sourceFile);
             }
         }
     }

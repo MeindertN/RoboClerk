@@ -46,7 +46,7 @@ namespace RoboClerk.Configuration
     public class TraceConfig
     {
         private string id = string.Empty;
-        private RoboClerkOrderedDictionary<string,TraceConfigElement> traces = new RoboClerkOrderedDictionary<string, TraceConfigElement>();
+        private RoboClerkOrderedDictionary<string, TraceConfigElement> traces = new RoboClerkOrderedDictionary<string, TraceConfigElement>();
 
         public TraceConfig(string ID)
         {
@@ -75,6 +75,6 @@ namespace RoboClerk.Configuration
             }
         }
         public string ID => id;
-        public RoboClerkOrderedDictionary<string,TraceConfigElement> Traces => traces;
+        public RoboClerkOrderedDictionary<string, TraceConfigElement> Traces => traces;
     }
 }

@@ -13,22 +13,22 @@
             this.conflict = conflict;
         }
 
-        public string Name 
-        { 
-            get { return name; } 
-            set { name = value; } 
+        public string Name
+        {
+            get { return name; }
+            set { name = value; }
         }
 
-        public string Version 
-        { 
-            get { return version; } 
-            set { version = value; } 
+        public string Version
+        {
+            get { return version; }
+            set { version = value; }
         }
 
-        public bool Conflict 
-        { 
-            get { return conflict; } 
-            set { conflict = value; } 
+        public bool Conflict
+        {
+            get { return conflict; }
+            set { conflict = value; }
         }
     }
 }

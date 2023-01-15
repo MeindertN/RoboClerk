@@ -12,8 +12,8 @@ namespace RoboClerk.ContentCreators
 
         public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
-            string filename = tag.GetParameterOrDefault("FILENAME",string.Empty);
-            if(filename == string.Empty)
+            string filename = tag.GetParameterOrDefault("FILENAME", string.Empty);
+            if (filename == string.Empty)
             {
                 throw new TagInvalidException(tag.Contents, $"TemplateSection tag without valid fileName parameter found in {doc.DocumentTitle}");
             }

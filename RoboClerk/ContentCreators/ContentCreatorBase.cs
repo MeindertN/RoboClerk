@@ -1,8 +1,6 @@
 ﻿using RoboClerk.Configuration;
 using System;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace RoboClerk.ContentCreators
 {
@@ -28,7 +26,7 @@ namespace RoboClerk.ContentCreators
                 {
                     if (prop.Name.ToUpper() == param)
                     {
-                        if (prop.GetValue(item).ToString().ToUpper() != tag.GetParameterOrDefault(param,string.Empty).ToUpper())
+                        if (prop.GetValue(item).ToString().ToUpper() != tag.GetParameterOrDefault(param, string.Empty).ToUpper())
                         {
                             return false;
                         }
@@ -42,7 +40,7 @@ namespace RoboClerk.ContentCreators
         {
             foreach (var param in tag.Parameters)
             {
-                if (param.ToUpper() == "OLDERTHAN" && DateTime.Compare(item.ItemLastUpdated,Convert.ToDateTime(tag.GetParameterOrDefault(param))) >= 0)
+                if (param.ToUpper() == "OLDERTHAN" && DateTime.Compare(item.ItemLastUpdated, Convert.ToDateTime(tag.GetParameterOrDefault(param))) >= 0)
                 {
                     return false;
                 }

@@ -19,7 +19,7 @@ namespace RoboClerk.ContentCreators
             {
                 Item item = data.GetItem(tag.GetParameterOrDefault("ID"));
                 string result = $"({tag.GetParameterOrDefault("ID")})";
-                if (item != null && item.HasLink) 
+                if (item != null && item.HasLink)
                 {
                     result = $"({item.Link}[{tag.GetParameterOrDefault("ID")}])";
                 }

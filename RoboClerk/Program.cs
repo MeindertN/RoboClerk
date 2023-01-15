@@ -1,13 +1,13 @@
-﻿using NLog;
+﻿using CommandLine;
+using Microsoft.Extensions.DependencyInjection;
+using NLog;
+using RoboClerk.Configuration;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 using System.Reflection;
 using Tomlyn;
-using Microsoft.Extensions.DependencyInjection;
-using RoboClerk.Configuration;
-using System.IO.Abstractions;
-using CommandLine;
-using System.Collections.Generic;
 
 [assembly: AssemblyVersion("0.9.*")]
 
@@ -42,15 +42,15 @@ namespace RoboClerk
             LogManager.Configuration = config;
         }
 
-        private static Dictionary<string,string> GetConfigOptions(IEnumerable<string> commandlineOptions, ILogger logger)
+        private static Dictionary<string, string> GetConfigOptions(IEnumerable<string> commandlineOptions, ILogger logger)
         {
-            Dictionary<string,string> options = new Dictionary<string, string>();
-            foreach(var commandlineOption in commandlineOptions)
+            Dictionary<string, string> options = new Dictionary<string, string>();
+            foreach (var commandlineOption in commandlineOptions)
             {
-                if(commandlineOption != ",")
+                if (commandlineOption != ",")
                 {
                     var elements = commandlineOption.Split('=');
-                    if(elements.Length != 2)
+                    if (elements.Length != 2)
                     {
                         logger.Error($"Commandline option can not be parsed: {commandlineOption}. Please check commandline call, it should be in the form of <IDENTIFIER>=<VALUE>");
                         Console.WriteLine($"An error occurred parsing commandline option: {commandlineOption}. Expected syntax is <IDENTIFIER>=<VALUE>.");
@@ -116,14 +116,14 @@ namespace RoboClerk
                            serviceCollection.AddTransient<IPluginLoader, PluginLoader>();
                            serviceCollection.AddSingleton<ITraceabilityAnalysis, TraceabilityAnalysis>();
                            serviceCollection.AddSingleton<IRoboClerkCore, RoboClerkCore>();
-                           
+
                            var serviceProvider = serviceCollection.BuildServiceProvider();
 
                            //clean the output directory before we start working
                            var config = serviceProvider.GetService<IConfiguration>();
-                           if(config != null && config.ClearOutputDir)
+                           if (config != null && config.ClearOutputDir)
                            {
-                               CleanOutputDirectory(config.OutputDir,logger);
+                               CleanOutputDirectory(config.OutputDir, logger);
                            }
                            if (config.CheckpointConfig.CheckpointFile == string.Empty) //check if we are not using a checkpoint
                            {

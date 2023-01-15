@@ -1,18 +1,15 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
-using RoboClerk.Configuration;
+﻿using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace RoboClerk.ContentCreators
 {
     public abstract class MultiItemContentCreator : ContentCreatorBase
     {
-        public MultiItemContentCreator(IDataSources data, ITraceabilityAnalysis analysis) 
-            :base(data, analysis)
+        public MultiItemContentCreator(IDataSources data, ITraceabilityAnalysis analysis)
+            : base(data, analysis)
         {
         }
 
@@ -29,7 +26,7 @@ namespace RoboClerk.ContentCreators
             var items = data.GetItems(te);
             StringBuilder output = new StringBuilder();
             PropertyInfo[] properties = null;
-            if(items.Count > 0)
+            if (items.Count > 0)
             {
                 properties = items[0].GetType().GetProperties();
             }
@@ -52,7 +49,7 @@ namespace RoboClerk.ContentCreators
                 logger.Error($"An error occurred while rendering {te.Name} in {doc.DocumentTitle}.");
                 throw;
             }
-            if (!foundContent) 
+            if (!foundContent)
             {
                 content = $"Unable to find specified {te.Name}(s). Check if {te.Name}s are provided or if a valid {te.Name} identifier is specified.";
             }

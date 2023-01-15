@@ -33,7 +33,7 @@ namespace RoboClerk.Redmine
         public DateTime? CreatedOn { get; set; }
 
         [JsonPropertyName("updated_on")]
-        public DateTime?  UpdatedOn { get; set; }
+        public DateTime? UpdatedOn { get; set; }
 
         [JsonPropertyName("parent")]
         public Parent Parent { get; set; }

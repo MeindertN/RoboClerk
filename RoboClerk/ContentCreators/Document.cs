@@ -7,27 +7,27 @@ namespace RoboClerk.ContentCreators
     {
         public string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
-            if(tag.ContentCreatorID.ToUpper() == "TITLE")
+            if (tag.ContentCreatorID.ToUpper() == "TITLE")
             {
                 return doc.DocumentTitle;
             }
-            else if(tag.ContentCreatorID.ToUpper() == "ABBREVIATION")
+            else if (tag.ContentCreatorID.ToUpper() == "ABBREVIATION")
             {
                 return doc.DocumentAbbreviation;
             }
-            else if(tag.ContentCreatorID.ToUpper() == "IDENTIFIER")
+            else if (tag.ContentCreatorID.ToUpper() == "IDENTIFIER")
             {
                 return doc.DocumentID;
             }
-            else if(tag.ContentCreatorID.ToUpper() == "TEMPLATE")
+            else if (tag.ContentCreatorID.ToUpper() == "TEMPLATE")
             {
                 return doc.DocumentTemplate;
             }
-            else if(tag.ContentCreatorID.ToUpper() == "ROBOCLERKID")
+            else if (tag.ContentCreatorID.ToUpper() == "ROBOCLERKID")
             {
                 return doc.RoboClerkID;
             }
-            else if(tag.ContentCreatorID.ToUpper() == "GENDATETIME")
+            else if (tag.ContentCreatorID.ToUpper() == "GENDATETIME")
             {
                 return DateTime.Now.ToString("yyyy/MM/dd HH:mm");
             }

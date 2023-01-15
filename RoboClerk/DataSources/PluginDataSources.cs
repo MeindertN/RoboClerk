@@ -4,7 +4,7 @@ using System.IO.Abstractions;
 
 namespace RoboClerk
 {
-    public class PluginDataSources : DataSourcesBase,IDataSources
+    public class PluginDataSources : DataSourcesBase, IDataSources
     {
         private List<ISLMSPlugin> slmsPlugins = new List<ISLMSPlugin>();
         private List<IDependencyManagementPlugin> dependencyManagementPlugins = new List<IDependencyManagementPlugin>();
@@ -12,10 +12,10 @@ namespace RoboClerk
 
         private readonly IPluginLoader pluginLoader = null;
 
-        public PluginDataSources(IConfiguration configuration, IPluginLoader pluginLoader, IFileSystem fileSystem) 
-            : base(configuration,fileSystem)
+        public PluginDataSources(IConfiguration configuration, IPluginLoader pluginLoader, IFileSystem fileSystem)
+            : base(configuration, fileSystem)
         {
-            this.pluginLoader = pluginLoader;  
+            this.pluginLoader = pluginLoader;
 
             LoadPlugins();
         }
@@ -89,11 +89,11 @@ namespace RoboClerk
         public override List<UnitTestItem> GetAllUnitTests()
         {
             var unitTests = new List<UnitTestItem>();
-            foreach(var plugin in slmsPlugins)
+            foreach (var plugin in slmsPlugins)
             {
                 unitTests.AddRange(plugin.GetUnitTests());
             }
-            foreach(var plugin in sourceCodeAnalysisPlugins)
+            foreach (var plugin in sourceCodeAnalysisPlugins)
             {
                 unitTests.AddRange(plugin.GetUnitTests());
             }

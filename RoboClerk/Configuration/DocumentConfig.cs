@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using Tomlyn.Model;
-
-namespace RoboClerk.Configuration
+﻿namespace RoboClerk.Configuration
 {
     public class DocumentConfig
     {
@@ -32,6 +29,6 @@ namespace RoboClerk.Configuration
         public string DocumentTitle => documentTitle;
         public string DocumentAbbreviation => documentAbbreviation;
         public string DocumentTemplate => documentTemplate;
-        public Commands Commands => commands; 
+        public Commands Commands => commands;
     }
 }

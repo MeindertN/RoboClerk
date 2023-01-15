@@ -14,7 +14,7 @@ namespace RoboClerk.DependenciesFile
         private List<ExternalDependency> externalDependencies = new List<ExternalDependency>();
 
         public DependenciesFilePlugin(IFileSystem fileSystem)
-            :base(fileSystem)
+            : base(fileSystem)
         {
             name = "DependenciesFilePlugin";
             description = "A plugin that retrieves project dependencies via one or more files.";
@@ -31,19 +31,19 @@ namespace RoboClerk.DependenciesFile
             try
             {
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-                foreach( var item in (TomlArray)config["FileLocations"])
+                foreach (var item in (TomlArray)config["FileLocations"])
                 {
                     fileLocations.Add((string)item);
                 }
-                foreach( var item in (TomlArray)config["FileFormats"])
+                foreach (var item in (TomlArray)config["FileFormats"])
                 {
                     fileFormats.Add((string)item);
                 }
 
-                if(fileLocations.Count != fileFormats.Count)
+                if (fileLocations.Count != fileFormats.Count)
                 {
                     throw new Exception("The number of file locations and file formats provided in the configuration file should be the same.");
-                }   
+                }
             }
             catch (Exception e)
             {
@@ -57,14 +57,14 @@ namespace RoboClerk.DependenciesFile
         {
             logger.Info("Refreshing the external dependencies from file.");
             externalDependencies.Clear();
-            for(int i = 0; i < fileLocations.Count; i++)
+            for (int i = 0; i < fileLocations.Count; i++)
             {
-                switch(fileFormats[i])
+                switch (fileFormats[i])
                 {
                     case "GRADLE":
                         ParseGradleFile(fileLocations[i]);
                         break;
-                    default: 
+                    default:
                         throw new Exception("Unknown file format indicated in Dependencies File Plugin congfiguration file.");
                 }
             }
@@ -72,7 +72,7 @@ namespace RoboClerk.DependenciesFile
 
         private void ParseGradleFile(string filename)
         {
-            if(!fileSystem.File.Exists(filename))
+            if (!fileSystem.File.Exists(filename))
             {
                 logger.Warn($"Cannot find Gradle file \"{filename}\" no dependencies will be loaded from this file.");
                 return;
@@ -93,7 +93,7 @@ namespace RoboClerk.DependenciesFile
                         version = version.Split("->")[0].Trim();
                         conflict = true;
                     }
-                    externalDependencies.Add(new ExternalDependency($"{elements[0]}:{elements[1]}",version, conflict));
+                    externalDependencies.Add(new ExternalDependency($"{elements[0]}:{elements[1]}", version, conflict));
                 }
             }
         }

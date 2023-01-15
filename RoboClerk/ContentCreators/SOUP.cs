@@ -1,9 +1,6 @@
-﻿using RoboClerk.Configuration;
+﻿using Microsoft.CodeAnalysis.Scripting;
 using System.Collections.Generic;
 using System.Text;
-using System.Reflection;
-using DocumentFormat.OpenXml.Bibliography;
-using Microsoft.CodeAnalysis.Scripting;
 
 namespace RoboClerk.ContentCreators
 {
@@ -25,15 +22,15 @@ namespace RoboClerk.ContentCreators
             output.AppendLine($"Roboclerk detected the following potential {soupName} issues:");
             output.AppendLine();
             bool issueDetected = false;
-            foreach(var extDep in extDeps)
+            foreach (var extDep in extDeps)
             {
                 bool soupNameMatch = false;
                 bool soupVersionMatch = false;
                 string soupVersion = string.Empty;
 
-                foreach(var soup in soups)
+                foreach (var soup in soups)
                 {
-                    if(soup.SOUPName == extDep.Name)
+                    if (soup.SOUPName == extDep.Name)
                     {
                         soupNameMatch = true;
                         soupVersion = soup.SOUPVersion;
@@ -45,7 +42,7 @@ namespace RoboClerk.ContentCreators
                     }
                 }
 
-                if(soupNameMatch)
+                if (soupNameMatch)
                 {
                     if (!soupVersionMatch)
                     {
@@ -61,20 +58,20 @@ namespace RoboClerk.ContentCreators
                     issueDetected = true;
                 }
             }
-            foreach(var soup in soups)
+            foreach (var soup in soups)
             {
-                if(soup.SOUPLinkedLib)
+                if (soup.SOUPLinkedLib)
                 {
                     bool depNameMatch = false;
                     foreach (var extDep in extDeps)
                     {
-                        if(extDep.Name == soup.SOUPName)
+                        if (extDep.Name == soup.SOUPName)
                         {
                             depNameMatch = true;
                             break;
                         }
                     }
-                    if(!depNameMatch)
+                    if (!depNameMatch)
                     {
                         output.AppendLine($"* A {soupName} item (i.e. \"{soup.SOUPName} {soup.SOUPVersion}\") that is marked as being linked into " +
                             $"the software does not have a matching external dependency.");
@@ -82,7 +79,7 @@ namespace RoboClerk.ContentCreators
                     }
                 }
             }
-            if(!issueDetected)
+            if (!issueDetected)
             {
                 output.AppendLine($"* No {soupName} related issues detected!");
             }
@@ -98,7 +95,7 @@ namespace RoboClerk.ContentCreators
                 dataShare.Items = items;
                 var file = data.GetTemplateFile(@"./ItemTemplates/SOUP_brief.adoc");
                 var renderer = new ItemTemplateRenderer(file);
-                var result = renderer.RenderItemTemplate(dataShare); 
+                var result = renderer.RenderItemTemplate(dataShare);
                 ProcessTraces(docTE, dataShare);
                 return result;
             }

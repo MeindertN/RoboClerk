@@ -1,15 +1,13 @@
 ﻿using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
+using System.IO.Abstractions;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
-using Tomlyn;
-using RoboClerk.Configuration;
-using System.IO.Abstractions;
 
 namespace RoboClerk.AzureDevOps
 {
@@ -21,7 +19,7 @@ namespace RoboClerk.AzureDevOps
         private WorkItemTrackingHttpClient witClient;
 
         public AzureDevOpsSLMSPlugin(IFileSystem fileSystem)
-            :base(fileSystem)
+            : base(fileSystem)
         {
             logger.Debug("Azure DevOps SLMS plugin created");
             name = "AzureDevOpsSLMSPlugin";
@@ -34,10 +32,10 @@ namespace RoboClerk.AzureDevOps
             try
             {
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-                organizationName = configuration.CommandLineOptionOrDefault("OrganizationName",(string)config["OrganizationName"]);
-                projectName = configuration.CommandLineOptionOrDefault("ProjectName",(string)config["ProjectName"]);
-                witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName, 
-                    configuration.CommandLineOptionOrDefault("AccessToken",(string)config["AccessToken"]));
+                organizationName = configuration.CommandLineOptionOrDefault("OrganizationName", (string)config["OrganizationName"]);
+                projectName = configuration.CommandLineOptionOrDefault("ProjectName", (string)config["ProjectName"]);
+                witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName,
+                    configuration.CommandLineOptionOrDefault("AccessToken", (string)config["AccessToken"]));
                 ignoreNewProductReqs = (bool)config["IgnoreNewSystemRequirements"];
             }
             catch (Exception e)
@@ -202,7 +200,7 @@ namespace RoboClerk.AzureDevOps
             return item;
         }
 
-        private List<TestStep> GetTestSteps(string xml, int offset=0)
+        private List<TestStep> GetTestSteps(string xml, int offset = 0)
         {
             var result = new List<TestStep>();
             XmlReaderSettings settings = new XmlReaderSettings();
@@ -227,7 +225,7 @@ namespace RoboClerk.AzureDevOps
                                 if (reader.Name == "compref")
                                 {
                                     WorkItem workitem = witClient.GetWorkItemAsync(int.Parse(reader.GetAttribute("ref")), expand: WorkItemExpand.All).Result;
-                                    var steps = GetTestSteps(GetWorkItemField(workitem, "Microsoft.VSTS.TCM.Steps"),result.Count);
+                                    var steps = GetTestSteps(GetWorkItemField(workitem, "Microsoft.VSTS.TCM.Steps"), result.Count);
                                     result.AddRange(steps);
                                 }
                             }
@@ -240,7 +238,7 @@ namespace RoboClerk.AzureDevOps
                                 index++;
                                 if (index == stepData.Length)
                                 {
-                                    result.Add(new TestStep((result.Count+offset+1).ToString(), stepData[0], stepData[1]));
+                                    result.Add(new TestStep((result.Count + offset + 1).ToString(), stepData[0], stepData[1]));
                                     stepData = new string[2];
                                 }
                             }
@@ -263,7 +261,7 @@ namespace RoboClerk.AzureDevOps
             item.ItemTitle = GetWorkItemField(workitem, "System.Title");
             item.TestCaseDescription = GetWorkItemField(workitem, "System.Description");
             var testSteps = GetTestSteps(GetWorkItemField(workitem, "Microsoft.VSTS.TCM.Steps"));
-            foreach(var testStep in testSteps)
+            foreach (var testStep in testSteps)
             {
                 item.AddTestCaseStep(testStep);
             }

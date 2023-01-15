@@ -15,15 +15,15 @@ namespace RoboClerk.ContentCreators
         {
             string result = string.Empty;
             var reference = analysis.GetTraceEntityForID(tag.ContentCreatorID);
-                
-            if(reference == null)
+
+            if (reference == null)
             {
                 var ex = new TagInvalidException(tag.Contents, $"Reference tag is referencing an unknown document: {tag.ContentCreatorID}");
                 ex.DocumentTitle = doc.DocumentTitle;
                 throw ex;
             }
 
-            if (tag.HasParameter("SHORT") && tag.GetParameterOrDefault("SHORT",string.Empty).ToUpper() == "TRUE")
+            if (tag.HasParameter("SHORT") && tag.GetParameterOrDefault("SHORT", string.Empty).ToUpper() == "TRUE")
             {
                 result = reference.Abbreviation;
             }
