@@ -186,6 +186,17 @@ namespace RoboClerk
             {
                 throw new Exception($"No trace specification for traces starting with {GetTitleForTraceEntity(truth.ID)}");
             }
+
+            //if the user calls this function multiple times, we have to reset issue tracking state
+            if (truth.EntityType == TraceEntityType.Document && documentTraceIssues.ContainsKey(truth.Name)) 
+            {
+                documentTraceIssues.Remove(truth.Name);
+            }
+            if(truth.EntityType == TraceEntityType.Truth && truthTraceIssues.ContainsKey(truth))
+            {
+                truthTraceIssues.Remove(truth);
+            }
+
             RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>> result = new RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>>();
             List<TraceSpecification> specifiedTraces = traces[truth];
             
