@@ -293,7 +293,10 @@ namespace RoboClerk
             }
 
             TraceLink link = new TraceLink(tlt, tag.GetParameterOrDefault("ID",string.Empty), GetTraceEntityForTitle(docTitle), tag.GetParameterOrDefault("ID",string.Empty));
-            documentTraceLinks[docTitle].Add(link);
+            if (!documentTraceLinks[docTitle].Contains(link))
+            {
+                documentTraceLinks[docTitle].Add(link);
+            }
         }
 
         public void AddTrace(TraceEntity source, string sourceID, TraceEntity target, string targetID)
@@ -304,7 +307,10 @@ namespace RoboClerk
             {
                 documentTraceLinks[docTitle] = new List<TraceLink>();
             }
-            documentTraceLinks[docTitle].Add(link);
+            if (!documentTraceLinks[docTitle].Contains(link))
+            {
+                documentTraceLinks[docTitle].Add(link);
+            }
         }
 
         public string GetTitleForTraceEntity(string ID)

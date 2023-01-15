@@ -134,7 +134,9 @@ namespace RoboClerk
                 if (!file.Contains(".gitignore"))
                 {
                     var relPath = fileSystem.Path.GetRelativePath(configuration.MediaDir, file);
-                    fileSystem.File.Copy(file, fileSystem.Path.Combine(targetDir,relPath));
+                    string destPath = fileSystem.Path.Combine(targetDir, relPath);
+                    fileSystem.Directory.CreateDirectory(fileSystem.Path.GetDirectoryName(destPath));
+                    fileSystem.File.Copy(file, destPath);
                 }
             }
         }

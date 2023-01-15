@@ -39,7 +39,7 @@ namespace RoboClerk.Tests
 
         [UnitTestAttribute(
             Identifier = "9A3258CF-F9EE-4A1A-95E6-B49EF25FB200",
-            Purpose = "RoboClerk Processes the media directory, output media directory exists",
+            Purpose = "RoboClerk Processes the media directory including subdirs, output media directory exists including subdirs",
             PostCondition = "Media directory is deleted, recreated and files are copied (except .gitignore)")]
         [Test]
         public void CheckMediaDirectory()
@@ -47,7 +47,7 @@ namespace RoboClerk.Tests
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
                 { @"c:\temp\media\illustration.jpeg", new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
-                { @"c:\temp\media\image.gif", new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
+                { @"c:\temp\media\subdir\image.gif", new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
                 { @"c:\temp\media\.gitignore", new MockFileData("This is a gitignore file") },
                 { @"c:\out\media\junk.jpeg", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
@@ -59,10 +59,10 @@ namespace RoboClerk.Tests
             core.GenerateDocs();
             Assert.IsFalse(fileSystem.FileExists(@"c:\out\media\junk.jpeg"));
             Assert.IsTrue(fileSystem.FileExists(@"c:\temp\media\illustration.jpeg"));
-            Assert.IsTrue(fileSystem.FileExists(@"c:\temp\media\image.gif"));
+            Assert.IsTrue(fileSystem.FileExists(@"c:\temp\media\subdir\image.gif"));
             Assert.IsTrue(fileSystem.FileExists(@"c:\temp\media\.gitignore"));
             Assert.IsTrue(fileSystem.FileExists(@"c:\out\media\illustration.jpeg"));
-            Assert.IsTrue(fileSystem.FileExists(@"c:\out\media\image.gif"));
+            Assert.IsTrue(fileSystem.FileExists(@"c:\out\media\subdir\image.gif"));
             Assert.IsFalse(fileSystem.FileExists(@"c:\out\media\.gitignore"));
         }
 

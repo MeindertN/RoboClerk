@@ -33,5 +33,13 @@
         {
             get => valid;
         }
+
+        public override bool Equals(object obj)
+        {
+            if(obj as TraceLink == null)
+                return false;
+            TraceLink other = obj as TraceLink;
+            return (other.SourceID == this.SourceID && other.TargetID == this.TargetID);
+        }
     }
 }

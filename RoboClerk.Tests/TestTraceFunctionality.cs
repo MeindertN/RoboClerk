@@ -464,11 +464,7 @@ namespace RoboClerk.Tests
             IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
                 new List<TestCaseItem>(), new List<AnomalyItem>());
 
-            //add valid trace in PRS / SRS / RAR
-            //traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"), "SYS_id1",
-            //    traceabilityAnalysis.GetTraceEntityForID("SystemRequirementsSpecification"), "SYS_id1");
-            //traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"), "SYS_id2",
-            //    traceabilityAnalysis.GetTraceEntityForID("SystemRequirementsSpecification"), "SYS_id2");
+            //add valid trace in PRS
             traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"), "SYS_id2",
                 traceabilityAnalysis.GetTraceEntityForID("RiskAssessmentRecord"), "SYS_id2");
 

@@ -10,7 +10,7 @@ namespace RoboClerk
     public class ScriptingBridge
     {
         private IDataSources data = null;
-        private ITraceabilityAnalysis trace = null;
+        private ITraceabilityAnalysis analysis = null;
         private List<string> traces = new List<string>();
         private List<LinkedItem> items = new List<LinkedItem>();
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
@@ -18,7 +18,7 @@ namespace RoboClerk
         public ScriptingBridge(IDataSources data, ITraceabilityAnalysis trace, TraceEntity sourceTraceEntity)
         {
             this.data = data;
-            this.trace = trace;
+            this.analysis = trace;
             SourceTraceEntity = sourceTraceEntity;
         }
 
@@ -44,7 +44,7 @@ namespace RoboClerk
 
         public IDataSources Sources { get { return data; } }
 
-        public ITraceabilityAnalysis TraceabilityAnalysis { get { return trace; } }
+        public ITraceabilityAnalysis TraceabilityAnalysis { get { return analysis; } }
 
         public IEnumerable<LinkedItem> GetLinkedItems(LinkedItem li, ItemLinkType linkType)
         {
@@ -76,6 +76,7 @@ namespace RoboClerk
                     var linkedItem = data.GetItem(item.TargetID);
                     if (linkedItem != null)
                     {
+                        AddTrace(linkedItem.ItemID);
                         field.Append(linkedItem.HasLink ? $"{linkedItem.Link}[{linkedItem.ItemID}]" : linkedItem.ItemID);
                         if (linkedItem.ItemTitle != string.Empty)
                         {

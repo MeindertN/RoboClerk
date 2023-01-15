@@ -139,8 +139,8 @@ namespace RoboClerk.Redmine
                     logger.Debug($"DocContent item found: {redmineIssue.Id}");
                     docContents.Add(CreateDocContent(redmineIssue));
                 }
-                RemoveIgnoredLinks(retrievedIDs); //go over all items and remove any links to ignored items
             }
+            RemoveIgnoredLinks(retrievedIDs); //go over all items and remove any links to ignored items
         }
 
         private void RemoveIgnoredLinks(List<string> retrievedIDs)
@@ -160,13 +160,18 @@ namespace RoboClerk.Redmine
             foreach (var item in items)
             {
                 LinkedItem linkedItem = item as LinkedItem;
+                List<ItemLink> linkedItemsToRemove = new List<ItemLink>();
                 foreach (var itemLink in linkedItem.LinkedItems)
                 {
                     if (!retrievedIDs.Contains(itemLink.TargetID))
                     {
                         logger.Warn($"Removing a {itemLink.LinkType} link to item with ID \"{itemLink.TargetID}\" because that item has a status that causes it to be ignored.");
-                        linkedItem.RemoveLinkedItem(itemLink); //remove the link to an ignored item
+                        linkedItemsToRemove.Add(itemLink);
                     }
+                }
+                foreach (var itemLink in linkedItemsToRemove)
+                {
+                    linkedItem.RemoveLinkedItem(itemLink); //remove the link to an ignored item
                 }
             }
         }
@@ -214,6 +219,7 @@ namespace RoboClerk.Redmine
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
+            resultItem.ItemStatus = redmineItem.Status.Name ?? string.Empty;
             resultItem.TestCaseState = redmineItem.Status.Name ?? string.Empty;
             resultItem.ItemTitle = redmineItem.Subject ?? string.Empty;
             if (redmineItem.FixedVersion != null)
@@ -271,6 +277,7 @@ namespace RoboClerk.Redmine
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
+            resultItem.ItemStatus = redmineItem.Status.Name ?? string.Empty;
             resultItem.DocContent = redmineItem.Description.ToString();
             if (redmineItem.FixedVersion != null)
             {
@@ -303,6 +310,7 @@ namespace RoboClerk.Redmine
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
+            resultItem.ItemStatus = redmineItem.Status.Name ?? string.Empty;
             resultItem.SOUPName = redmineItem.Subject ?? string.Empty;
             if (redmineItem.FixedVersion != null)
             {
@@ -386,6 +394,7 @@ namespace RoboClerk.Redmine
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
             resultItem.AnomalyState = redmineItem.Status.Name ?? string.Empty;
+            resultItem.ItemStatus = redmineItem.Status.Name ?? string.Empty;
             resultItem.ItemTitle = redmineItem.Subject ?? string.Empty;
             if (redmineItem.FixedVersion != null)
             {
@@ -405,6 +414,7 @@ namespace RoboClerk.Redmine
             logger.Debug($"Creating risk item: {redmineItem.Id}");
             RiskItem resultItem = new RiskItem();
             resultItem.ItemCategory = "Unknown";
+            resultItem.ItemStatus = redmineItem.Status.Name ?? string.Empty;
             resultItem.ItemID = redmineItem.Id.ToString();
             if (baseURL != "")
             {
@@ -536,6 +546,7 @@ namespace RoboClerk.Redmine
             {
                 resultItem.ItemTargetVersion = redmineItem.FixedVersion.Name ?? string.Empty;
             }
+            resultItem.ItemStatus = redmineItem.Status.Name ?? string.Empty;
             resultItem.RequirementState = redmineItem.Status.Name ?? string.Empty;
             resultItem.ItemTitle = redmineItem.Subject ?? string.Empty;
             resultItem.TypeOfRequirement = requirementType;

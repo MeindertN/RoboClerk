@@ -2,12 +2,13 @@
 // this first scripting block can be used to set up any prerequisites
 // pre-calculate fields for later use etc.
 using RoboClerk;
+using System.Linq;
 
 TraceEntity te = SourceTraceEntity;
 
 string CreateRows()
 {
-	StringBuilder sb = new StringBuilder();
+	System.Text.StringBuilder sb = new System.Text.StringBuilder();
 	foreach(var item in Items)
 	{
 		RiskItem risk = (RiskItem)item;
@@ -16,16 +17,16 @@ string CreateRows()
 		sb.Append($"{risk.CauseOfFailure} | {risk.OccurenceScore} | {risk.MethodOfDetection} | ");
 		sb.Append($"{risk.DetectabilityScore} | {risk.SeverityScore * risk.OccurenceScore * risk.DetectabilityScore} | ");
 		var linkedItem = GetLinkedItems(item,ItemLinkType.RiskControl).FirstOrDefault();
-		if(risk.riskControlMeasure == string.Empty)
+		if(risk.RiskControlMeasure == string.Empty)
 		{
 			sb.Append($"NONE | N/A | N/A | N/A | N/A\n\n");
 		}
 		else
 		{
 			if( linkedItem != null) { AddTrace(linkedItem.ItemID); }  //add trace for linked risk control
-			sb.Append($"{risk.riskControlMeasure} | {risk.ModifiedOccScore} | {risk.ModifiedDetScore} | ");
+			sb.Append($"{risk.RiskControlMeasure} | {risk.ModifiedOccScore} | {risk.ModifiedDetScore} | ");
 			sb.Append($"{risk.SeverityScore*risk.ModifiedOccScore*risk.ModifiedDetScore} | ");
-			sb.Append($"{linkedItem == null?"N/A":linkedItem.ItemID}\n\n");
+			sb.Append($"{(linkedItem == null?"N/A":linkedItem.ItemID)}\n\n");
 		}
 	}
 	return sb.ToString();

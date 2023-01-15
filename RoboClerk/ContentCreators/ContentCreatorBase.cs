@@ -54,37 +54,6 @@ namespace RoboClerk.ContentCreators
             return true;
         }
 
-        protected string GetLinkedField(LinkedItem sourceItem, ItemLinkType linkType)
-        {
-            StringBuilder field = new StringBuilder();
-            var linkedItems = sourceItem.LinkedItems.Where(x => x.LinkType == linkType);
-            if (linkedItems.Count() > 0)
-            {
-                foreach (var item in linkedItems)
-                {
-                    if (field.Length > 0)
-                    {
-                        field.Append(" / ");
-                    }
-                    var linkedItem = data.GetItem(item.TargetID);
-                    if (linkedItem != null)
-                    {
-                        field.Append(linkedItem.HasLink ? $"{linkedItem.Link}[{linkedItem.ItemID}]" : linkedItem.ItemID);
-                        if (linkedItem.ItemTitle != string.Empty)
-                        {
-                            field.Append($": \"{linkedItem.ItemTitle}\"");
-                        }
-                    }
-                    else
-                    {
-                        field.Append(item.TargetID);
-                    }
-                }
-                return field.ToString();
-            }
-            return "N/A";
-        }
-
         protected void ProcessTraces(TraceEntity docTE, ScriptingBridge dataShare)
         {
             foreach (var trace in dataShare.Traces)

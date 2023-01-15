@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace RoboClerk.ContentCreators
 {
-    public class FMEA : MultiItemContentCreator
+    public class Risk : MultiItemContentCreator
     {
-        public FMEA(IDataSources data, ITraceabilityAnalysis analysis) 
+        public Risk(IDataSources data, ITraceabilityAnalysis analysis) 
             :base(data, analysis)
         {
         }
@@ -13,6 +13,7 @@ namespace RoboClerk.ContentCreators
         protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             var dataShare = new ScriptingBridge(data, analysis, sourceTE);
+            dataShare.Items = items;
             var file = data.GetTemplateFile(@"./ItemTemplates/Risk.adoc");
             var renderer = new ItemTemplateRenderer(file);
             try
