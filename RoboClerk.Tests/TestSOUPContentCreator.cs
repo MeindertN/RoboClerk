@@ -99,7 +99,7 @@ namespace RoboClerk.Tests
             var tag = new RoboClerkTag(0, 22, "@@SLMS:SOUP(ItemID=21)@@",true);
             dataSources.GetItem("21").Returns(soupItems[0]);
             string content = soup.GetContent(tag, documentConfig);
-            string expectedContent = "|====\n| soup ID: | 21\n\n| soup Revision: | latest\n\n| soup Name and Version: | soupname soupversion\n\n| Is soup Critical for Performance: | performance text\n\n| Is soup Critical for Cyber Security: | cybersecurity text\n\n\n| Is soup Installed by End-User: | user install text\n\n| Detailed Description: a| detailed description\n\n| soup License: | license\n|====";
+            string expectedContent = "|====\n| soup ID: | 21\n\n| soup Revision: | latest\n\n| soup Name and Version: | soupname soupversion\n\n| Is soup Critical for Performance: | performance text\n\n| Is soup Critical for Cyber Security: | cybersecurity text\n\n\n| Is soup Installed by End-User: | user install text\n\n| Detailed Description: a| detailed description\n\n| soup License: | license\n|====\n";
             
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
             Assert.DoesNotThrow(()=>traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), "21", Arg.Any<TraceEntity>(), "21"));
@@ -117,7 +117,7 @@ namespace RoboClerk.Tests
             dataSources.GetItem("21").Returns(soupItems[0]);
             ((SOUPItem)soupItems[0]).SOUPPerformanceCritical = true;
             string content = soup.GetContent(tag, documentConfig);
-            string expectedContent = "|====\n| soup ID: | 21\n\n| soup Revision: | latest\n\n| soup Name and Version: | soupname soupversion\n\n| Is soup Critical for Performance: | performance text\n\n| Is soup Critical for Cyber Security: | cybersecurity text\n\n| Result Anomaly List Examination: | No anomalies were found.\n\n| Is soup Installed by End-User: | user install text\n\n| Detailed Description: a| detailed description\n\n| soup License: | license\n|====";
+            string expectedContent = "|====\n| soup ID: | 21\n\n| soup Revision: | latest\n\n| soup Name and Version: | soupname soupversion\n\n| Is soup Critical for Performance: | performance text\n\n| Is soup Critical for Cyber Security: | cybersecurity text\n\n| Result Anomaly List Examination: | No anomalies were found.\n\n| Is soup Installed by End-User: | user install text\n\n| Detailed Description: a| detailed description\n\n| soup License: | license\n|====\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
             Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), "21", Arg.Any<TraceEntity>(), "21"));
@@ -135,7 +135,7 @@ namespace RoboClerk.Tests
             dataSources.GetItem("21").Returns(soupItems[0]);
             ((SOUPItem)soupItems[0]).SOUPInstalledByUser = true;
             string content = soup.GetContent(tag, documentConfig);
-            string expectedContent = "|====\n| soup ID: | 21\n\n| soup Revision: | latest\n\n| soup Name and Version: | soupname soupversion\n\n| Is soup Critical for Performance: | performance text\n\n| Is soup Critical for Cyber Security: | cybersecurity text\n\n\n| Is soup Installed by End-User: | user install text\n| Required End-User Training: | Not required\n\n| Detailed Description: a| detailed description\n\n| soup License: | license\n|====";
+            string expectedContent = "|====\n| soup ID: | 21\n\n| soup Revision: | latest\n\n| soup Name and Version: | soupname soupversion\n\n| Is soup Critical for Performance: | performance text\n\n| Is soup Critical for Cyber Security: | cybersecurity text\n\n\n| Is soup Installed by End-User: | user install text\n| Required End-User Training: | Not required\n\n| Detailed Description: a| detailed description\n\n| soup License: | license\n|====\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
             Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), "21", Arg.Any<TraceEntity>(), "21"));
