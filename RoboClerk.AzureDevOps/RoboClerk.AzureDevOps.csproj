@@ -11,6 +11,7 @@
 	<Product>AzureDevOps plugin</Product>
 	<Configurations>Debug;Release;ReleasePublish</Configurations>
 	<DebugType>portable</DebugType>
+	<BaseOutputPath>bin</BaseOutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -32,20 +33,30 @@
 		<ExcludeAssets>runtime</ExcludeAssets>
 	</ProjectReference>
   </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Configuration\AzureDevOpsSLMSPlugin.toml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
 	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
 		<ItemGroup>
 			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
 		</ItemGroup>
 
-		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/AzureDevOpsSLMSPlugin.toml" DestinationFolder="$(ProjectDir)../publish/plugins/Configuration" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AzureDevOps.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AzureDevOps.deps.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../Publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AzureDevOps.runtimeconfig.json" DestinationFolder="$(ProjectDir)../Publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AzureDevOps.deps.json" DestinationFolder="$(ProjectDir)../Publish/plugins" />
+	</Target>
+	<Target Name="CopyPlugin" AfterTargets="Build">
+		<ItemGroup>
+			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+		</ItemGroup>
+		<Copy SourceFiles="$(ProjectDir)Configuration/AzureDevOpsSLMSPlugin.toml" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig" />
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)plugins" />
+	</Target>
+	<Target Name="AdaptConfigFiles" AfterTargets="Build">
+		<ReplaceFileText
+			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/AzureDevOpsSLMSPlugin.toml"
+			MatchExpression="{DOCUMENTATIONROOT}"
+			ReplacementText="$(ProjectDir)../RoboClerk/$(OutDir)" />
+		<ReplaceFileText
+			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/AzureDevOpsSLMSPlugin.toml"
+			MatchExpression="{PROJECTROOT}"
+			ReplacementText="$(ProjectDir)../" />
 	</Target>
 </Project>

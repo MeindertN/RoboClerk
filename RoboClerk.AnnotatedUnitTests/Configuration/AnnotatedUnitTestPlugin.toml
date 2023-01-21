@@ -3,12 +3,12 @@
 # assumes that the test plan can be created from information extracted from the
 # function annotation. This plugin is general enough to be configure for use with
 # annotations/attributes/decorations in languages like C#, Java, Python etc.
-# Note that RoboClerk has a UnitTestAttribute class that works well with this 
-# plugin.
+# Note that RoboClerk comes with a UnitTestAttribute class that can serve as an
+# example of an annotation that works well with this plugin.
 
 # Directories where RoboClerk should search for unit tests
 
-TestDirectories = ["I:\\code\\RoboClerk\\RoboClerk.Tests"]
+TestDirectories = ["{PROJECTROOT}RoboClerk.Tests"]
 
 # set to true to include subdirs 
 
@@ -47,8 +47,8 @@ ParameterSeparator = ","
 # Identifier	= a unique identifier for the unit test, if no unique identifier
 #                 is supplied, Roboclerk will generate one based on the filename
 #                 and line number of the test.
-# TraceID		= a traceable link from this test to a trace entity (i.e. the
-#				  trace entity's ItemID)
+# TraceID		= a traceable link from this test to a trace entity, for example
+#				  a requirement. The trace would be to the trace entity's ItemID.
 
 [Purpose]
 	Keyword = "Purpose"

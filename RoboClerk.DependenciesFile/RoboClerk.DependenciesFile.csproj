@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
       <TargetFramework>net6.0</TargetFramework>
@@ -11,6 +11,7 @@
 	  <Product>Dependencies File Plugin</Product>
 	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 	  <Configurations>Debug;Release;ReleasePublish</Configurations>
+	  <BaseOutputPath>bin</BaseOutputPath>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
@@ -24,20 +25,30 @@
 	  </ProjectReference>
   </ItemGroup>
 
-	<ItemGroup>
-		<None Update="Configuration\DependenciesFilePlugin.toml">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
 	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
 		<ItemGroup>
 			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
 		</ItemGroup>
 
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/DependenciesFilePlugin.toml" DestinationFolder="$(ProjectDir)../publish/plugins/Configuration" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.DependenciesFile.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.DependenciesFile.deps.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
 	</Target>
-
+	<Target Name="CopyPlugin" AfterTargets="Build">
+		<ItemGroup>
+			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+		</ItemGroup>
+		<Copy SourceFiles="$(ProjectDir)Configuration/DependenciesFilePlugin.toml" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig" />
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)plugins" />
+	</Target>
+	<Target Name="AdaptConfigFiles" AfterTargets="Build">
+		<ReplaceFileText
+			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/DependenciesFilePlugin.toml"
+			MatchExpression="{DOCUMENTATIONROOT}"
+			ReplacementText="$(ProjectDir)../RoboClerk/$(OutDir)" />
+		<ReplaceFileText
+			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/DependenciesFilePlugin.toml"
+			MatchExpression="{PROJECTROOT}"
+			ReplacementText="$(ProjectDir)../" />
+	</Target>
 </Project>

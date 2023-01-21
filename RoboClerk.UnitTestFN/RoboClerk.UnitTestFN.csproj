@@ -11,6 +11,7 @@
 	  <Product>Unit Test FN plugin</Product>
 	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 	  <Configurations>Debug;Release;ReleasePublish</Configurations>
+	  <BaseOutputPath>bin</BaseOutputPath>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
@@ -23,21 +24,30 @@
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</ProjectReference>
 	</ItemGroup>
-
-	<ItemGroup>
-		<None Update="Configuration\UnitTestFNPlugin.toml">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
 	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
 		<ItemGroup>
 			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
 		</ItemGroup>
-
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/UnitTestFNPlugin.toml" DestinationFolder="$(ProjectDir)../publish/plugins/Configuration" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.UnitTestFN.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.UnitTestFN.deps.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
+	</Target>
+	<Target Name="CopyPlugin" AfterTargets="Build">
+		<ItemGroup>
+			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+		</ItemGroup>
+		<Copy SourceFiles="$(ProjectDir)Configuration/UnitTestFNPlugin.toml" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig" />
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)plugins" />
+	</Target>
+	<Target Name="AdaptConfigFiles" AfterTargets="Build">
+		<ReplaceFileText
+			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/UnitTestFNPlugin.toml"
+			MatchExpression="{DOCUMENTATIONROOT}"
+			ReplacementText="$(ProjectDir)../RoboClerk/$(OutDir)" />
+		<ReplaceFileText
+			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/UnitTestFNPlugin.toml"
+			MatchExpression="{PROJECTROOT}"
+			ReplacementText="$(ProjectDir)../" />
 	</Target>
 
 </Project>

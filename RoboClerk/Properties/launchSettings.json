@@ -2,10 +2,9 @@
   "profiles": {
     "RoboClerk": {
       "commandName": "Project",
+      "commandLineArgs": "",
       "hotReloadEnabled": false,
-      "remoteDebugEnabled": false,
-      "authenticationMode": "None",
-      "remoteDebugMachine": "IVS-7961:4026"
+      "remoteDebugEnabled": false
     }
   }
 }

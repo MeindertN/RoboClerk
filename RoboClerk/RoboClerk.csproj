@@ -26,46 +26,55 @@
     <PackageReference Include="Tomlyn" Version="0.14.3" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Configuration\Project\projectConfig.toml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Configuration\RoboClerk\RoboClerk.toml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="DocTemplates\ResidualAnomaliesRecord.adoc">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="DocTemplates\SystemRequirementSpecification.adoc">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="DocTemplates\SoftwareDesignSpecification.adoc">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="DocTemplates\SoftwareRequirementSpecification.adoc">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="DocTemplates\SystemLevelTestPlan.adoc">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="DocTemplates\TraceabilityAnalysisRecord.adoc">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
+	<Target Name="CopyResources" AfterTargets="Build" >
+		<ItemGroup>
+			<TemplateFiles Include="$(ProjectDir)/DocTemplates/*.*" />
+			<ItemTemplateFiles Include="$(ProjectDir)/ItemTemplates/*.*" />
+			<DocxProcessingScripts Include="$(ProjectDir)../DocxProcessingScripts/*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="$(ProjectDir)Configuration/Project/projectConfig.toml" DestinationFolder="$(ProjectDir)$(OutDir)RoboClerk_input/RoboClerkConfig" />
+		<Copy SourceFiles="$(ProjectDir)Configuration/RoboClerk/RoboClerk.toml" DestinationFolder="$(ProjectDir)$(OutDir)RoboClerk_input/RoboClerkConfig" />
+		<Copy SourceFiles="@(TemplateFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input" />
+		<Copy SourceFiles="@(ItemTemplateFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/ItemTemplates" />
+		<Copy SourceFiles="@(DocxProcessingScripts)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/DocxProcessingScripts" />
+	</Target>
 	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
 		<ItemGroup>
 			<RoboClerkFiles Include="$(ProjectDir)$(OutDir)*.dll;$(ProjectDir)$(OutDir)*.exe" />
-			<TemplateFiles Include="$(ProjectDir)$(OutDir)/DocTemplates/*.*" />
 		</ItemGroup>
-		
-		<Copy SourceFiles="@(RoboClerkFiles)" DestinationFolder="$(ProjectDir)../publish/" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/Project/projectConfig.toml" DestinationFolder="$(ProjectDir)../publish/Configuration/Project" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)Configuration/RoboClerk/RoboClerk.toml" DestinationFolder="$(ProjectDir)../publish/Configuration/RoboClerk" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.deps.json" DestinationFolder="$(ProjectDir)../publish" />
-		<Copy SourceFiles="@(TemplateFiles)" DestinationFolder="$(ProjectDir)../publish/DocTemplates" />
+		<Copy SourceFiles="@(RoboClerkFiles)" DestinationFolder="$(ProjectDir)../Publish/" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.runtimeconfig.json" DestinationFolder="$(ProjectDir)../Publish" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.deps.json" DestinationFolder="$(ProjectDir)../Publish" />
+	</Target>
+	<Target Name="AdaptConfigFiles" AfterTargets="Build">
+		<ReplaceFileText 
+			InputFileName="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml"
+			MatchExpression="{DOCUMENTATIONROOT}"
+			ReplacementText="$(ProjectDir)$(OutDir)" />
+		<ReplaceFileText
+			InputFileName="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml"
+			MatchExpression="{PROJECTROOT}"
+			ReplacementText="$(ProjectDir)../" />
+		<ReplaceFileText
+			InputFileName="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml"
+			MatchExpression="{DOCUMENTATIONROOT}"
+			ReplacementText="$(ProjectDir)$(OutDir)" />
+		<ReplaceFileText
+			InputFileName="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml"
+			MatchExpression="{PROJECTOUTPUT}"
+			ReplacementText="$(ProjectDir)$(OutDir)RoboClerk_output" />
+	</Target>
+	<Target Name="CreateDirectory" AfterTargets="Build">
+        <MakeDir
+            Directories="$(ProjectDir)$(OutDir)RoboClerk_input\media"/>
+		<MakeDir
+            Directories="$(ProjectDir)$(OutDir)RoboClerk_output"/>
+    </Target>
+	<Target Name="GenerateDependenciesList" AfterTargets="Build">
+		<!-- get list of dependencies-->
+		<Exec Command="dotnet list package > dependencies.txt" WorkingDirectory="$(ProjectDir)/.."/>
 	</Target>
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">

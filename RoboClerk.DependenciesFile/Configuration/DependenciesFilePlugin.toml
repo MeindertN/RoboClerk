@@ -4,10 +4,11 @@
 
 # Dependencies file locations array, supports multiple files
 
-FileLocations = ["I:\\temp\\Roboclerk_input\\dependencies.txt"]
+FileLocations = ["{PROJECTROOT}dependencies.txt"]
 
 # Dependencies file formats array, needs to be the same size are the file locations array. 
 # The following formats are supported:
-# GRADLE - parses the output of a gradle call "gradle dependencies --configuration <CONFIGURATION_NAME>"
+# GRADLE - parses the output of a gradle call" "gradle dependencies --configuration <CONFIGURATION_NAME>"
+# DOTNET - parses the output of a dotnet package call: "dotnet list package" 
 
-FileFormats = ["GRADLE"]
+FileFormats = ["DOTNET"]

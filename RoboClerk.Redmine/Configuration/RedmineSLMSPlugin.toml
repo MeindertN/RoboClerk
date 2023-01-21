@@ -1,6 +1,6 @@
 ﻿# This is the RoboClerk Redmine plugin configuration
 
-RedmineAPIEndpoint = "http://192.168.4.40:3001/"
+RedmineAPIEndpoint = "http://localhost:3001/"
 RedmineAPIKey = "014a75c443c18891c3baf8f7f2d2ce37aa27b94c"
 
 # The name of the project that we will be pulling from Redmine
@@ -10,11 +10,11 @@ RedmineProject = "TestProject"
 # The following allows you to indicate the redmine trackers that map
 # to various entities in the RoboClerk software
 
-SystemRequirement = "Specification"
-SoftwareRequirement = "Feature"
+SystemRequirement = "SystemRequirement"
+SoftwareRequirement = "SoftwareRequirement"
 DocumentationRequirement = "Documentation"
 DocContent = "DocContent"
-SoftwareSystemTest = "Validation"
+SoftwareSystemTest = "SoftwareSystemTest"
 UnitTest = "NA"
 Risk = "Risk"
 Anomaly = "Bug"

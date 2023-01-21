@@ -6,16 +6,16 @@ DataSourcePlugin = [ "RedmineSLMSPlugin", "DependenciesFilePlugin", "UnitTestFNP
 
 # RoboClerk will search for plugins in the subdirectories of the plugin dirs.
 # For example: PluginDirs = [ "c:/temp/plugins" ]
-PluginDirs = [ "I:/code/RoboClerk/RoboClerk.Redmine/bin/Debug/net6.0","I:/code/RoboClerk/RoboClerk.DependenciesFile/bin/Debug/net6.0", "I:/code/RoboClerk/RoboClerk.UnitTestFN/bin/Debug/net6.0", "I:/code/RoboClerk/RoboClerk.AnnotatedUnitTests/bin/Debug/net6.0" ]
+PluginDirs = [ "{DOCUMENTATIONROOT}/plugins" ]
 
 # The configuration files for the plugins may be in a different location than the 
 # plugins themselves. E.g. when executing RoboClerk in a docker environment. If
 # the following configuration item is empty, then the standard location 
 # in the Configuration subdir of the plugins directory is assumed.
-PluginConfigurationDir = ""
+PluginConfigurationDir = "{DOCUMENTATIONROOT}Roboclerk_input/PluginConfig"
 
 # The output directory is where the output files and logs are placed
-OutputDirectory = "I:/temp/Roboclerk_output"
+OutputDirectory = "{DOCUMENTATIONROOT}Roboclerk_output"
 
 # Clear output directory before creating new output files.
 ClearOutputDir = "True"

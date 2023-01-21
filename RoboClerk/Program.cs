@@ -9,7 +9,7 @@ using System.IO.Abstractions;
 using System.Reflection;
 using Tomlyn;
 
-[assembly: AssemblyVersion("0.9.*")]
+[assembly: AssemblyVersion("1.0.*")]
 
 namespace RoboClerk
 {
@@ -85,8 +85,8 @@ namespace RoboClerk
                    {
                        //set up logging first
                        var assembly = Assembly.GetExecutingAssembly();
-                       var projectConfigFile = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/Project/projectConfig.toml";
-                       var roboClerkConfigFile = $"{Path.GetDirectoryName(assembly.Location)}/Configuration/RoboClerk/RoboClerk.toml";
+                       var projectConfigFile = $"{Path.GetDirectoryName(assembly.Location)}/RoboClerk_input/RoboClerkConfig/projectConfig.toml";
+                       var roboClerkConfigFile = $"{Path.GetDirectoryName(assembly.Location)}/RoboClerk_input/RoboClerkConfig/RoboClerk.toml";
                        if (options.ConfigurationFile != null)
                        {
                            roboClerkConfigFile = options.ConfigurationFile;

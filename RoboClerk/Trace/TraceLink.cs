@@ -1,4 +1,6 @@
-﻿namespace RoboClerk
+﻿using System;
+
+namespace RoboClerk
 {
     public class TraceLink : TraceBase
     {
@@ -40,6 +42,11 @@
                 return false;
             TraceLink other = obj as TraceLink;
             return (other.SourceID == this.SourceID && other.TargetID == this.TargetID);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(this.SourceID, this.TargetID);
         }
     }
 }

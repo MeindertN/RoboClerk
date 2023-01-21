@@ -6,7 +6,7 @@
 
 # Directories where RoboClerk should search for unit tests
 
-TestDirectories = ["I:\\code\\RoboClerk\\RoboClerk.Tests"]
+TestDirectories = ["{PROJECTROOT}RoboClerk.Tests"]
 
 # set to true to include subdirs 
 

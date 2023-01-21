@@ -64,8 +64,33 @@ namespace RoboClerk.DependenciesFile
                     case "GRADLE":
                         ParseGradleFile(fileLocations[i]);
                         break;
+                    case "DOTNET":
+                        ParseDotnetFile(fileLocations[i]);
+                        break;
                     default:
                         throw new Exception("Unknown file format indicated in Dependencies File Plugin congfiguration file.");
+                }
+            }
+        }
+
+        private void ParseDotnetFile(string filename)
+        {
+            if (!fileSystem.File.Exists(filename))
+            {
+                logger.Warn($"Cannot find Gradle file \"{filename}\" no dependencies will be loaded from this file.");
+                return;
+            }
+            foreach (string line in fileSystem.File.ReadLines(filename))
+            {
+                string trimmedLine = line.Trim();
+                if(trimmedLine.StartsWith("> "))
+                {
+                    string[] elements = trimmedLine.Split(' ',StringSplitOptions.RemoveEmptyEntries);
+                    if(elements.Length < 4)
+                    {
+                        throw new Exception($"DOTNET dependencies file does not match expected format. Error in line \"{trimmedLine}\". Cannot continue.");
+                    }
+                    externalDependencies.Add(new ExternalDependency(elements[1], elements[3], elements[2] != elements[3]));
                 }
             }
         }
