@@ -21,5 +21,7 @@ AddTrace(item.ItemID);
 
 | Severity: | [csx:GetValOrDef(item.AnomalySeverity,"N/A")]
 
+| Description: | [csx:GetValOrDef(item.AnomalyDetailedDescription,"MISSING")]
+
 | Justification: | [csx:GetValOrDef(item.AnomalyJustification,"N/A")]
 |====

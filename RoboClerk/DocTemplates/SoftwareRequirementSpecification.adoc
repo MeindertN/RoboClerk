@@ -9,46 +9,54 @@ NOT FOUND
 @@@
 
 == Introduction
+
 === Purpose
+
 The purpose of this document is to specify the software requirements of @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. 
 
 === Document Conventions
+
 This document contains the following types of requirements:
-- Functional Software Requirements - requirements specifying how the software behaves and functions
-- Risk Control Software Requirements - requirements specifying how a risk is controlled using the software
-- Transfer To Production Software Requirements - requirements specifying how software that is used to transfer the software to production (e.g. devOps software) behaves and functions
-- Documentation Requirements - requirements specifying contents of "external" documentation (e.g. user manual, transfer to production work order etc.)
+
+* Functional Software Requirements - requirements specifying how the software behaves and functions
+* Risk Control Software Requirements - requirements specifying how a risk is controlled using the software
+* Transfer To Production Software Requirements - requirements specifying how software that is used to transfer the software to production (e.g. devOps software) behaves and functions
+* Documentation Requirements - requirements specifying contents of "external" documentation (e.g. user manual, transfer to production work order etc.)
  
 === Intended Audience
+
 This document is intended for the software developers at @@Config:CompanyName()@@. It is also prepared as a record of the breakdown of system level requirements into lower level (software) requirements according to the SDLC. This document is also intended to be reviewed by regulatory agencies and auditors.
 
 == Requirements
 
 === Functional Software Requirements
-@@@SLMS:SWR(itemCategory=Functional Requirement)
+
+@@@SLMS:SWR(itemCategory=Functional)
 
 @@@
+
 === Risk Control Software Requirements
-@@@SLMS:SWR(itemCategory=Risk Control)
+
+@@@SLMS:SWR(itemCategory=Risk Control Measure)
 
 @@@
+
 === Transfer to Production Software Requirements
+
+This project does not have software requirements of this category. If you still have RoboClerk search for it it'll warn you as follows:
+
 @@@SLMS:SWR(itemCategory=Transfer to Production)
 
 @@@
-=== Documentation Software Requirements
-@@@SLMS:DOC()
+
+=== Next are only software requirements changed before 2023/02/04 03:07:12 PM:
+
+@@@SLMS:SWR(OlderThan=2023/02/04 03:07:12 PM)
 
 @@@
 
-=== Next are only software requirements from before 2022/03/29 02:07:14 AM:
+=== Next are only functional software requirements changed after 2023/02/04 03:07:12 PM:
 
-@@@SLMS:SWR(OlderThan=2022/03/29 02:07:14 AM)
-
-@@@
-
-=== Next are only software requirements from before 2022/03/29 02:07:12 AM:
-
-@@@SLMS:SWR(NewerThan=2022/03/29 02:07:12 AM)
+@@@SLMS:SWR(itemCategory=Functional,NewerThan=2023/02/04 03:07:12 PM)
 
 @@@

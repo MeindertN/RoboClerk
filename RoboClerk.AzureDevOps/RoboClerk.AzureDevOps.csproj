@@ -24,6 +24,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack.NetCore" Version="1.5.0.1" />
     <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="16.170.0" />
   </ItemGroup>
 
@@ -50,13 +51,7 @@
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)plugins" />
 	</Target>
 	<Target Name="AdaptConfigFiles" AfterTargets="Build">
-		<ReplaceFileText
-			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/AzureDevOpsSLMSPlugin.toml"
-			MatchExpression="{DOCUMENTATIONROOT}"
-			ReplacementText="$(ProjectDir)../RoboClerk/$(OutDir)" />
-		<ReplaceFileText
-			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/AzureDevOpsSLMSPlugin.toml"
-			MatchExpression="{PROJECTROOT}"
-			ReplacementText="$(ProjectDir)../" />
+		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/AzureDevOpsSLMSPlugin.toml" MatchExpression="{DOCUMENTATIONROOT}" ReplacementText="$(ProjectDir)../RoboClerk/$(OutDir)" />
+		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/AzureDevOpsSLMSPlugin.toml" MatchExpression="{PROJECTROOT}" ReplacementText="$(ProjectDir)../" />
 	</Target>
 </Project>

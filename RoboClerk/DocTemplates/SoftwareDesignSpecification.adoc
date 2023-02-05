@@ -9,14 +9,16 @@ NOT FOUND
 @@@
 
 == Introduction
+
 === Purpose
+
 The purpose of this document is to specify the architecture and system design of 
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. 
 It tracks the information required to define architecture and system design, in order to give the development 
 team guidance on architecture of the system to be developed. The intended audience is the project manager, 
 project team, and development team. Some portions of this document such as the user interface (UI) may, on occasion, 
-be shared with the client/user and other stakeholders whose UI input/approval is needed. Traceability information is 
-contained in the document by listing the software requirement ID with the design implementation in the text. 
+be shared with the client/user and other stakeholders whose UI input/approval is needed. If trace to this document is desired
+Traceability information can be created by listing the software requirement ID with the design implementation in the text. 
 
 === Definitions
 
@@ -35,18 +37,20 @@ Here we will test a variety of in document trace tags referring to software requ
 Just a line of text.
 @@Trace:SWR(id=11)@@ @@Trace:SR(id=12)@@ Two more trace links
 
-@@Trace:SYS(id=7)@@ An a random product requirement trace link, is not supposed to show up in the document
+@@Trace:SYS(id=7)@@ And a random product requirement trace link, is not supposed to show up in the document
 
 @@Trace:SWR(id=89)@@ non existent software trace
 
-@@@SLMS:SYS(requirementID=7)
+@@@SLMS:SYS(itemID=7)
 
 @@@
+
 The above just tests to see if we can include a single product requirement
 
 @@@Comment:general()
 Things that are in comment tags will be removed when the document is processed. These comment blocks, when placed
-in templates, can help authors with using the template in the right way.
+in templates, can help authors with using the template in the right way. Alternatively, you can use asciidoc
+comment tags too.
 @@@
 
 Here is a reference to a document @@Ref:RandomTestDocument()@@
@@ -70,6 +74,6 @@ This shows a summary table for all the SOUP that are installed by the user
 
 Next is a docContent statement. These are required statements that must show up in documentation (usually the user manual)
 
-@@@SLMS:DCT(ItemID=22)
+@@@SLMS:DCT(ItemID=27)
 This will be replaced by the content in the specified documentation content item.
 @@@

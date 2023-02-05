@@ -8,6 +8,7 @@ namespace RoboClerk
         private string anomalyAssignee = string.Empty;
         private string anomalySeverity = string.Empty;
         private string anomalyJustification = string.Empty;
+        private string anomalyDetailedDescription = string.Empty;
 
         public AnomalyItem()
         {
@@ -37,6 +38,12 @@ namespace RoboClerk
         {
             get => anomalyJustification;
             set => anomalyJustification = value;
+        }
+
+        public string AnomalyDetailedDescription
+        {
+            get => anomalyDetailedDescription;
+            set => anomalyDetailedDescription = value;
         }
     }
 }

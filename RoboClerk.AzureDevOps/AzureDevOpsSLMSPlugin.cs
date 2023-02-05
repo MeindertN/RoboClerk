@@ -1,10 +1,12 @@
-﻿using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -13,9 +15,8 @@ namespace RoboClerk.AzureDevOps
 {
     class AzureDevOpsSLMSPlugin : SLMSPluginBase
     {
-        private string organizationName;
-        private string projectName;
-        private bool ignoreNewProductReqs = false;
+        private string organizationName = string.Empty;
+        private string projectName = string.Empty;
         private WorkItemTrackingHttpClient witClient;
 
         public AzureDevOpsSLMSPlugin(IFileSystem fileSystem)
@@ -29,6 +30,7 @@ namespace RoboClerk.AzureDevOps
         public override void Initialize(IConfiguration configuration)
         {
             logger.Info("Initializing the Azure DevOps SLMS Plugin");
+            base.Initialize(configuration);
             try
             {
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
@@ -36,7 +38,6 @@ namespace RoboClerk.AzureDevOps
                 projectName = configuration.CommandLineOptionOrDefault("ProjectName", (string)config["ProjectName"]);
                 witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName,
                     configuration.CommandLineOptionOrDefault("AccessToken", (string)config["AccessToken"]));
-                ignoreNewProductReqs = (bool)config["IgnoreNewSystemRequirements"];
             }
             catch (Exception e)
             {
@@ -45,78 +46,110 @@ namespace RoboClerk.AzureDevOps
                 throw new Exception("The Azure DevOps SLMS plugin could not read its configuration. Aborting...");
             }
         }
+        private IEnumerable<WorkItem> GetWorkItems(string itemName)
+        {
+            var itemQuery = new Wiql()
+            {
+                Query = $"SELECT [Id] FROM WorkItems WHERE [Work Item Type] = '{itemName}' AND [System.TeamProject] = '{projectName}'",
+            };
+            return AzureDevOpsUtilities.PerformWorkItemQuery(witClient, itemQuery);
+        }
+
+        private bool IgnoreItem(WorkItem workitem)
+        {
+            string state = GetWorkItemField<string>(workitem, "System.State");
+            return ignoreList.Contains(state);
+        }
 
         public override void RefreshItems()
         {
-            //re-initialize 
-            systemRequirements.Clear();
-            softwareRequirements.Clear();
-            testCases.Clear();
+            ClearAllSLMSItems();
+            List<string> retrievedIDs = new List<string>();
 
-            logger.Info("Retrieving and processing product level requirements.");
-            var systemRequirementQuery = new Wiql()
+            logger.Info("Retrieving and processing system level requirements.");
+            foreach (var workitem in GetWorkItems(prsName))
             {
-                Query = $"SELECT [Id] FROM WorkItems WHERE [Work Item Type] = 'Epic' AND [System.TeamProject] = '{projectName}'",
-            };
-
-            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, systemRequirementQuery))
-            {
-                string state = GetWorkItemField(workitem, "System.State").ToUpper();
-                if ((ignoreNewProductReqs && state == "NEW") || state == "REMOVED")
-                {
-                    continue;
-                }
+                if (IgnoreItem(workitem)) continue;
+                retrievedIDs.Add(workitem.Id.ToString());
                 var item = ConvertToRequirementItem(workitem, RequirementType.SystemRequirement);
-                item.TypeOfRequirement = RequirementType.SystemRequirement;
-                item.ItemCategory = GetWorkItemField(workitem, "Custom.TypeofSystemRequirement");
-                if (item.ItemCategory == String.Empty) //default sometimes comes back as empty
-                {
-                    item.ItemCategory = "Product Requirement";
-                }
                 systemRequirements.Add(item);
             }
 
             logger.Info("Retrieving and processing software level requirements.");
-            var softwareRequirementQuery = new Wiql()
+            foreach (var workitem in GetWorkItems(srsName))
             {
-                Query = $"Select [Id] From WorkItems Where [Work Item Type] = 'User Story' And [System.TeamProject] = '{projectName}'",
-            };
-
-            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, softwareRequirementQuery))
-            {
+                if (IgnoreItem(workitem)) continue;
+                retrievedIDs.Add(workitem.Id.ToString());
                 var item = ConvertToRequirementItem(workitem, RequirementType.SoftwareRequirement);
-                item.TypeOfRequirement = RequirementType.SoftwareRequirement;
-                item.ItemCategory = GetWorkItemField(workitem, "Custom.SoftwareRequirementType");
-                if (item.ItemCategory == String.Empty) //default sometimes comes back as empty
-                {
-                    item.ItemCategory = "Software Requirement";
-                }
                 softwareRequirements.Add(item);
             }
 
-            logger.Info("Retrieving and processing testcases.");
-            var testCaseQuery = new Wiql()
+            logger.Info("Retrieving and processing documentation requirements.");
+            foreach (var workitem in GetWorkItems(docName))
             {
-                Query = $"Select [Id] From WorkItems Where [Work Item Type] = 'Test Case' And [System.TeamProject] = '{projectName}'",
-            };
+                if (IgnoreItem(workitem)) continue;
+                retrievedIDs.Add(workitem.Id.ToString());
+                var item = ConvertToRequirementItem(workitem, RequirementType.DocumentationRequirement);
+                documentationRequirements.Add(item);
+            }
 
-            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, testCaseQuery))
+            logger.Info("Retrieving and processing docContent requirements.");
+            foreach (var workitem in GetWorkItems(cntName))
             {
+                if (IgnoreItem(workitem)) continue;
+                retrievedIDs.Add(workitem.Id.ToString());
+                var item = ConvertToDocContentItem(workitem);
+                docContents.Add(item);
+            }
+
+            logger.Info("Retrieving and SOUP items.");
+            foreach (var workitem in GetWorkItems(soupName))
+            {
+                if (IgnoreItem(workitem)) continue;
+                retrievedIDs.Add(workitem.Id.ToString());
+                var item = ConvertToSOUPItem(workitem);
+                soup.Add(item);
+            }
+
+            logger.Info("Retrieving test cases.");
+            foreach (var workitem in GetWorkItems(tcName))
+            {
+                if (IgnoreItem(workitem)) continue;
+                retrievedIDs.Add(workitem.Id.ToString());
                 var item = ConvertToTestCaseItem(workitem);
                 testCases.Add(item);
             }
 
-            logger.Info("Retrieving and processing bugs and issues.");
-            var bugQuery = new Wiql()
+            logger.Info("Retrieving and processing bugs.");
+            
+            foreach (var workitem in GetWorkItems(bugName))
             {
-                Query = $"Select [Id] From WorkItems Where ( [Work Item Type] = 'Issue' Or [Work Item Type] = 'Bug' ) And [System.TeamProject] = '{projectName}'",
-            };
-
-            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, bugQuery))
-            {
+                if (IgnoreItem(workitem)) continue;
+                retrievedIDs.Add(workitem.Id.ToString());
                 var item = ConvertToBugItem(workitem);
                 anomalies.Add(item);
             }
+
+            logger.Info("Retrieving and processing risks.");
+            //Note that to gather all information about the risk item, this code relies on the 
+            //system level requirements having been retrieved already.
+            foreach (var workitem in GetWorkItems(riskName))
+            {
+                if (IgnoreItem(workitem)) continue;
+                retrievedIDs.Add(workitem.Id.ToString());
+                var item = ConvertToRiskItem(workitem);
+                risks.Add(item);
+            }
+
+            // go over all linked items and remove any links to items that we don't know about
+            TrimLinkedItems(systemRequirements, retrievedIDs);
+            TrimLinkedItems(softwareRequirements, retrievedIDs);
+            TrimLinkedItems(documentationRequirements, retrievedIDs);
+            TrimLinkedItems(testCases, retrievedIDs);
+            TrimLinkedItems(anomalies, retrievedIDs);
+            TrimLinkedItems(risks, retrievedIDs);
+            TrimLinkedItems(soup, retrievedIDs);
+            TrimLinkedItems(docContents, retrievedIDs);
 
             /*var productRequirementLinksQuery = new Wiql()
             {
@@ -128,14 +161,7 @@ namespace RoboClerk.AzureDevOps
                 $"       AND [Target].[System.State] != 'Removed' " +
                 $"       AND [Target].[System.TeamProject] = '{projectName}' ) " +
                 $"MODE (MustContain)",
-            };
-
-            foreach (var workitem in AzureDevOpsUtilities.PerformWorkItemQuery(witClient, productRequirementLinksQuery))
-            {
-                var item = ConvertToRequirementItem(workitem);
-                item.TypeOfRequirement = RequirementType.SoftwareRequirement;
-                softwareRequirements.Add(item);
-            }*/
+            };*/
         }
 
         private void AddLinksToWorkItems(IList<WorkItemRelation> links, LinkedItem item)
@@ -161,11 +187,20 @@ namespace RoboClerk.AzureDevOps
                         item.AddLinkedItem(new ItemLink(id, ItemLinkType.Parent));
                         continue;
                     }
+                    if (rel.Rel.Contains(".Related"))
+                    {
+                        //this is a related link
+                        var id = AzureDevOpsUtilities.GetWorkItemIDFromURL(rel.Url);
+                        logger.Debug($"Parent link found: {id}");
+                        item.AddLinkedItem(new ItemLink(id, ItemLinkType.Related));
+                        continue;
+                    }
+                    logger.Warn($"Unknown link type encountered in workitem {item.ItemID}: {rel.Rel}");
                 }
             }
         }
 
-        private string GetWorkItemField(WorkItem workitem, string field)
+        private dynamic GetWorkItemField<T>(WorkItem workitem, string field)
         {
             if (workitem.Fields.ContainsKey(field))
             {
@@ -176,27 +211,144 @@ namespace RoboClerk.AzureDevOps
                 }
                 else
                 {
-                    return workitem.Fields[field].ToString();
+                    return (T)workitem.Fields[field];
                 }
             }
             else
             {
-                return String.Empty;
+                //this can also happen if a field does exist on a workitem but it has no value (i.e. the user didn't enter anything) 
+                logger.Warn($"Failed to retrieve field \"{field}\" from workitem {workitem.Id} of type \"{GetWorkItemField<string>(workitem, "System.WorkItemType")}\".");
+                if (typeof(T) == typeof(string)) //ensure we return empty string instead of null
+                    return string.Empty;
+                return default(T);
             }
         }
 
         private RequirementItem ConvertToRequirementItem(WorkItem workitem, RequirementType rt)
         {
-            logger.Debug($"Creating requirement item for: {workitem.Id.ToString()}");
+            logger.Debug($"Creating requirement item for: {workitem.Id}");
             RequirementItem item = new RequirementItem(rt);
             item.ItemID = workitem.Id.ToString();
             item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
             item.ItemRevision = workitem.Rev.ToString();
-            item.ItemLastUpdated = Convert.ToDateTime(GetWorkItemField(workitem, "System.ChangedDate"));
-            item.RequirementState = GetWorkItemField(workitem, "System.State");
-            item.RequirementDescription = GetWorkItemField(workitem, "System.Description");
-            item.ItemTitle = GetWorkItemField(workitem, "System.Title");
+            item.ItemLastUpdated = GetWorkItemField<DateTime>(workitem, "System.ChangedDate");
+            item.RequirementState = GetWorkItemField<string>(workitem, "System.State");
+            item.ItemStatus = GetWorkItemField<string>(workitem, "System.State");
+            item.RequirementDescription = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "System.Description"));
+            item.ItemTitle = GetWorkItemField<string>(workitem, "System.Title");
+            item.ItemCategory = GetWorkItemField<string>(workitem, "Custom.CategoryofRequirement");
             AddLinksToWorkItems(workitem.Relations, item);
+            return item;
+        }
+
+        private DocContentItem ConvertToDocContentItem(WorkItem workitem)
+        {
+            logger.Debug($"Creating doccontent item for: {workitem.Id}");
+            DocContentItem item = new DocContentItem();
+            item.ItemID = workitem.Id.ToString();
+            item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
+            item.ItemRevision = workitem.Rev.ToString();
+            item.ItemLastUpdated = GetWorkItemField<DateTime>(workitem, "System.ChangedDate");
+            item.ItemStatus = GetWorkItemField<string>(workitem, "System.State");
+            item.DocContent = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "System.Description"));
+            item.ItemCategory = GetWorkItemField<string>(workitem, "Custom.CategoryofContent");
+            AddLinksToWorkItems(workitem.Relations, item);
+            return item;
+        }
+
+        private RequirementItem GetRequirementItem(string ID)
+        {
+            foreach (var ri in systemRequirements)
+            {
+                if (ri.ItemID == ID)
+                {
+                    return ri;
+                }
+            }
+            return null;
+        }
+
+        //this function ensures that if a score is not set, it gets the maximum value
+        private int ProcessRiskScores(Int64 rawScore)
+        {
+            if(rawScore <= 0)
+            {
+                return int.MaxValue;
+            }
+            else
+            {
+                return (int)rawScore;
+            }
+        }
+
+        private RiskItem ConvertToRiskItem(WorkItem workitem)
+        {
+            logger.Debug($"Creating doccontent item for: {workitem.Id}");
+            RiskItem item = new RiskItem();
+            item.ItemID = workitem.Id.ToString();
+            item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
+            item.ItemRevision = workitem.Rev.ToString();
+            item.ItemLastUpdated = GetWorkItemField<DateTime>(workitem, "System.ChangedDate");
+            item.ItemStatus = GetWorkItemField<string>(workitem, "System.State");
+            item.RiskCauseOfFailure = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "System.Description"));
+            item.ItemCategory = GetWorkItemField<string>(workitem, "Custom.RiskType");
+            item.RiskPrimaryHazard = GetWorkItemField<string>(workitem, "Custom.Hazard");
+            item.RiskSeverityScore = ProcessRiskScores(GetWorkItemField<Int64>(workitem, "Custom.HazardSeverity"));
+            item.RiskOccurenceScore = ProcessRiskScores(GetWorkItemField<Int64>(workitem, "Custom.HazardProbability"));
+            item.RiskModifiedOccScore = ProcessRiskScores(GetWorkItemField<Int64>(workitem, "Custom.ResidualProbability"));
+            item.RiskModifiedDetScore = ProcessRiskScores(GetWorkItemField<Int64>(workitem, "Custom.ResidualDetectability"));
+            item.RiskMethodOfDetection = GetWorkItemField<string>(workitem, "Custom.DetectionMethod");
+            item.RiskDetectabilityScore = ProcessRiskScores(GetWorkItemField<Int64>(workitem, "Custom.Detection"));
+            item.RiskControlMeasureType = GetWorkItemField<string>(workitem, "Custom.RiskControlCategory");
+            item.RiskFailureMode = GetWorkItemField<string>(workitem, "System.Title");
+            
+            AddLinksToWorkItems(workitem.Relations, item);
+            int nrOfResults = 0;
+            if ((nrOfResults = item.LinkedItems.Where(x => x.LinkType == ItemLinkType.Related).Count()) > 1)
+            {
+                logger.Warn($"Expected 1 related link for risk item \"{item.ItemID}\". Multiple related items linked. Please check the item in AzureDevOps.");
+            }
+            else if (nrOfResults == 1)
+            {
+                ItemLink link = item.LinkedItems.Where(x => x.LinkType == ItemLinkType.Related).First();
+                link.LinkType = ItemLinkType.RiskControl;
+                var ri = GetRequirementItem(link.TargetID);
+
+                if (ri != null)
+                {
+                    item.RiskControlMeasure = ri.ItemTitle;
+                    item.RiskControlImplementation = ri.RequirementDescription;
+                }
+                else
+                {
+                    logger.Warn($"RoboClerk is unable the find the Azure Devops workitem {link.TargetID} that is linked to Risk workitem {item.ItemID}. Please check the Risk workitem in AzureDevops and its related workitems.");
+                }         
+            }
+            return item;
+        }
+
+        private SOUPItem ConvertToSOUPItem(WorkItem workitem)
+        {
+            logger.Debug($"Creating SOUP item for: {workitem.Id}");
+            SOUPItem item = new SOUPItem();
+            item.ItemID = workitem.Id.ToString();
+            item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
+            item.ItemRevision = workitem.Rev.ToString();
+            item.ItemLastUpdated = GetWorkItemField<DateTime>(workitem, "System.ChangedDate");
+            item.ItemStatus = GetWorkItemField<string>(workitem, "System.State");
+            item.SOUPDetailedDescription = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "System.Description"));
+            item.SOUPName = GetWorkItemField<string>(workitem, "System.Title");
+            item.SOUPLicense = GetWorkItemField<string>(workitem, "Custom.License");
+            item.SOUPAnomalyListDescription = GetWorkItemField<string>(workitem, "Custom.AnomalyListExamination");
+            item.SOUPCybersecurityCriticalText = GetWorkItemField<string>(workitem, "Custom.CriticalforCybersecurity");
+            item.SOUPCybersecurityCritical = !item.SOUPCybersecurityCriticalText.Contains(" not ");
+            item.SOUPPerformanceCriticalText = GetWorkItemField<string>(workitem, "Custom.CriticalforPerformance");
+            item.SOUPPerformanceCritical = !item.SOUPPerformanceCriticalText.Contains(" not ");
+            item.SOUPVersion = GetWorkItemField<string>(workitem, "Custom.Version");
+            item.SOUPLinkedLib = GetWorkItemField<bool>(workitem, "Custom.LinkedLibrary");
+            item.SOUPEnduserTraining = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "Custom.EndUserTraining"));
+            item.SOUPInstalledByUserText = GetWorkItemField<string>(workitem, "Custom.EndUserInstallationRequired");
+            item.SOUPInstalledByUser = !item.SOUPInstalledByUserText.Contains(" not ");
             return item;
         }
 
@@ -225,7 +377,7 @@ namespace RoboClerk.AzureDevOps
                                 if (reader.Name == "compref")
                                 {
                                     WorkItem workitem = witClient.GetWorkItemAsync(int.Parse(reader.GetAttribute("ref")), expand: WorkItemExpand.All).Result;
-                                    var steps = GetTestSteps(GetWorkItemField(workitem, "Microsoft.VSTS.TCM.Steps"), result.Count);
+                                    var steps = GetTestSteps(GetWorkItemField<string>(workitem, "Microsoft.VSTS.TCM.Steps"), result.Count);
                                     result.AddRange(steps);
                                 }
                             }
@@ -251,38 +403,40 @@ namespace RoboClerk.AzureDevOps
 
         private TestCaseItem ConvertToTestCaseItem(WorkItem workitem)
         {
-            logger.Debug($"Creating testcase item for: {workitem.Id.ToString()}");
+            logger.Debug($"Creating testcase item for: {workitem.Id}");
             TestCaseItem item = new TestCaseItem();
             item.ItemID = workitem.Id.ToString();
             item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
             item.ItemRevision = workitem.Rev.ToString();
-            item.ItemLastUpdated = Convert.ToDateTime(GetWorkItemField(workitem, "System.ChangedDate"));
-            item.TestCaseState = GetWorkItemField(workitem, "System.State");
-            item.ItemTitle = GetWorkItemField(workitem, "System.Title");
-            item.TestCaseDescription = GetWorkItemField(workitem, "System.Description");
-            var testSteps = GetTestSteps(GetWorkItemField(workitem, "Microsoft.VSTS.TCM.Steps"));
+            item.ItemLastUpdated = GetWorkItemField<DateTime>(workitem, "System.ChangedDate");
+            item.TestCaseState = GetWorkItemField<string>(workitem, "System.State");
+            item.ItemStatus = GetWorkItemField<string>(workitem, "System.State");
+            item.ItemTitle = GetWorkItemField<string>(workitem, "System.Title");
+            var testSteps = GetTestSteps(GetWorkItemField<string>(workitem, "Microsoft.VSTS.TCM.Steps"));
             foreach (var testStep in testSteps)
             {
                 item.AddTestCaseStep(testStep);
             }
-            item.TestCaseAutomated = GetWorkItemField(workitem, "Microsoft.VSTS.TCM.AutomationStatus") != "Not Automated";
+            item.TestCaseAutomated = GetWorkItemField<string>(workitem, "Microsoft.VSTS.TCM.AutomationStatus") != "Not Automated";
             AddLinksToWorkItems(workitem.Relations, item);
             return item;
         }
 
         private AnomalyItem ConvertToBugItem(WorkItem workitem)
         {
-            logger.Debug($"Creating bug item for: {workitem.Id.ToString()}");
+            logger.Debug($"Creating bug item for: {workitem.Id}");
             AnomalyItem item = new AnomalyItem();
             item.ItemID = workitem.Id.ToString();
             item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
             item.ItemRevision = workitem.Rev.ToString();
-            item.ItemLastUpdated = Convert.ToDateTime(GetWorkItemField(workitem, "System.ChangedDate"));
-            item.AnomalyState = GetWorkItemField(workitem, "System.State");
-            item.AnomalyJustification = GetWorkItemField(workitem, "Microsoft.VSTS.CMMI.Justification");
-            item.AnomalyAssignee = GetWorkItemField(workitem, "System.AssignedTo");
-            item.AnomalySeverity = GetWorkItemField(workitem, "Microsoft.VSTS.Common.Priority");
-            item.ItemTitle = GetWorkItemField(workitem, "System.Title");
+            item.ItemLastUpdated = GetWorkItemField<DateTime>(workitem, "System.ChangedDate");
+            item.AnomalyState = GetWorkItemField<string>(workitem, "System.State");
+            item.ItemStatus = GetWorkItemField<string>(workitem, "System.State");
+            item.AnomalyJustification = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "Microsoft.VSTS.CMMI.Justification"));
+            item.AnomalyAssignee = GetWorkItemField<string>(workitem, "System.AssignedTo");
+            item.AnomalySeverity = GetWorkItemField<string>(workitem, "Microsoft.VSTS.Common.Severity");
+            item.AnomalyDetailedDescription = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "Microsoft.VSTS.TCM.ReproSteps"));
+            item.ItemTitle = GetWorkItemField<string>(workitem, "System.Title");
             return item;
         }
     }

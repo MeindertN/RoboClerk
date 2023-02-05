@@ -13,9 +13,9 @@ string CreateRows()
 	{
 		RiskItem risk = (RiskItem)item;
 		AddTrace(risk.ItemID); //add trace for primary item
-		sb.Append($"|{risk.FailureMode} | {risk.PrimaryHazard} | {risk.SeverityScore} | ");
-		sb.Append($"{risk.CauseOfFailure} | {risk.OccurenceScore} | {risk.MethodOfDetection} | ");
-		sb.Append($"{risk.DetectabilityScore} | {risk.SeverityScore * risk.OccurenceScore * risk.DetectabilityScore} | ");
+		sb.Append($"|{risk.RiskFailureMode} | {risk.RiskPrimaryHazard} | {risk.RiskSeverityScore} | ");
+		sb.Append($"{risk.RiskCauseOfFailure} | {risk.RiskOccurenceScore} | {risk.RiskMethodOfDetection} | ");
+		sb.Append($"{risk.RiskDetectabilityScore} | {risk.RiskSeverityScore * risk.RiskOccurenceScore * risk.RiskDetectabilityScore} | ");
 		var linkedItem = GetLinkedItems(item,ItemLinkType.RiskControl).FirstOrDefault();
 		if(risk.RiskControlMeasure == string.Empty)
 		{
@@ -24,8 +24,8 @@ string CreateRows()
 		else
 		{
 			if( linkedItem != null) { AddTrace(linkedItem.ItemID); }  //add trace for linked risk control
-			sb.Append($"{risk.RiskControlMeasure} | {risk.ModifiedOccScore} | {risk.ModifiedDetScore} | ");
-			sb.Append($"{risk.SeverityScore*risk.ModifiedOccScore*risk.ModifiedDetScore} | ");
+			sb.Append($"{risk.RiskControlMeasure} | {risk.RiskModifiedOccScore} | {risk.RiskModifiedDetScore} | ");
+			sb.Append($"{risk.RiskSeverityScore*risk.RiskModifiedOccScore*risk.RiskModifiedDetScore} | ");
 			sb.Append($"{(linkedItem == null?"N/A":linkedItem.ItemID)}\n\n");
 		}
 	}

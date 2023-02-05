@@ -347,6 +347,10 @@ UpdatedAnomalyIDs = []
 
 UpdatedSOUPIDs = []
 
+UpdatedDocumentationRequirementIDs = []
+
+UpdatedDocContentIDs = []
+
 [ConfigValues]
 
 CompanyName = "Acme Inc."

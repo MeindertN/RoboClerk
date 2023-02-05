@@ -1,9 +1,22 @@
 ﻿# This is the RoboClerk AzureDevOps plugin configuration
 
-accessToken = ""
-organizationName = ""
-projectName = ""
+AccessToken = "cnm2dcnrgpdwjiyry4e5loir2li5dl7kpj6npzjmjtfqvvczidaq"
+OrganizationName = "meindert"
+ProjectName = "RoboClerk"
 
-# if you want RoboClerk to ignore new Epics (for instance, in your backlog)
-# set this to true
-IgnoreNewSystemRequirements = true
+# The following allows you to indicate the work item names that map
+# to various entities in the RoboClerk software
+SystemRequirement = "Epic"
+SoftwareRequirement = "User Story"
+DocumentationRequirement = "Documentation"
+DocContent = "DocContent"
+SoftwareSystemTest = "Test Case"
+UnitTest = "NA"
+Risk = "Risk"
+Anomaly = "Bug"
+SOUP = "SOUP"
+
+# certain items in azure devops should be ignored because they are no longer
+# relevant. Indicate which item statuses should be ignored.
+
+Ignore = [ "Removed" ]

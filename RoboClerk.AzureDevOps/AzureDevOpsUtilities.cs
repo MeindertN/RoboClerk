@@ -1,9 +1,12 @@
-﻿using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
+﻿using HtmlAgilityPack;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using WorkItem = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models.WorkItem;
 
 namespace RoboClerk.AzureDevOps
 {
@@ -33,6 +36,14 @@ namespace RoboClerk.AzureDevOps
         internal static string GetWorkItemIDFromURL(string URL)
         {
             return URL.Substring(URL.LastIndexOf('/') + 1, URL.Length - (URL.LastIndexOf('/') + 1));
+        }
+
+        internal static string StripHTML(string withHTML)
+        {
+            HtmlDocument htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(withHTML);
+            string temp = htmlDoc.DocumentNode.InnerText;
+            return WebUtility.HtmlDecode(temp);
         }
     }
 }

@@ -173,7 +173,7 @@ namespace RoboClerk
 
             foreach (Type contentType in contentTypes)
             {
-                if (contentType.Name == contentCreatorID)
+                if (contentType.Name.ToUpper() == contentCreatorID.ToUpper())
                 {
                     return Activator.CreateInstance(contentType, dataSources, traceAnalysis) as IContentCreator;
                 }

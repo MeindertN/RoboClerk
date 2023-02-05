@@ -268,12 +268,12 @@ namespace RoboClerk.Tests
             SOUPs[1].ItemID = "SOUP_id2";
             mockPlugin.GetSOUP().Returns(SOUPs);
             RISKs = new List<RiskItem> { new RiskItem(), new RiskItem() };
-            RISKs[0].DetectabilityScore = 100;
-            RISKs[0].CauseOfFailure = "RISK_cause1";
+            RISKs[0].RiskDetectabilityScore = 100;
+            RISKs[0].RiskCauseOfFailure = "RISK_cause1";
             RISKs[0].ItemID = "RISK_id1";
             RISKs[0].AddLinkedItem(new ItemLink("DOC_id1", ItemLinkType.Related));
-            RISKs[1].DetectabilityScore = 200;
-            RISKs[1].CauseOfFailure = "RISK_cause2";
+            RISKs[1].RiskDetectabilityScore = 200;
+            RISKs[1].RiskCauseOfFailure = "RISK_cause2";
             RISKs[1].ItemID = "RISK_id2";
             mockPlugin.GetRisks().Returns(RISKs);
             DOCs = new List<RequirementItem> { new RequirementItem(RequirementType.DocumentationRequirement), new RequirementItem(RequirementType.DocumentationRequirement) };

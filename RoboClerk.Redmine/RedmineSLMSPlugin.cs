@@ -10,19 +10,10 @@ namespace RoboClerk.Redmine
 {
     public class RedmineSLMSPlugin : SLMSPluginBase
     {
-        private string prsTrackerName = string.Empty;
-        private string srsTrackerName = string.Empty;
-        private string docTrackerName = string.Empty;
-        private string cntTrackerName = string.Empty;
-        private string tcTrackerName = string.Empty;
-        private string bugTrackerName = string.Empty;
-        private string riskTrackerName = string.Empty;
-        private string soupTrackerName = string.Empty;
         private string baseURL = string.Empty;
         private string apiEndpoint = string.Empty;
         private string apiKey = string.Empty;
         private string projectName = string.Empty;
-        private TomlArray ignoreList = new TomlArray();
         private RestClient client = null;
 
         public RedmineSLMSPlugin(IFileSystem fileSystem)
@@ -35,6 +26,8 @@ namespace RoboClerk.Redmine
 
         public override void Initialize(IConfiguration configuration)
         {
+            logger.Info("Initializing the Redmine SLMS Plugin");
+            base.Initialize(configuration);
             try
             {
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
@@ -42,24 +35,7 @@ namespace RoboClerk.Redmine
                 client = new RestClient(apiEndpoint);
                 apiKey = configuration.CommandLineOptionOrDefault("RedmineAPIKey", GetStringForKey(config, "RedmineAPIKey", true));
                 projectName = configuration.CommandLineOptionOrDefault("RedmineProject", GetStringForKey(config, "RedmineProject", true));
-                prsTrackerName = configuration.CommandLineOptionOrDefault("SystemRequirement", GetStringForKey(config, "SystemRequirement", false));
-                srsTrackerName = configuration.CommandLineOptionOrDefault("SoftwareRequirement", GetStringForKey(config, "SoftwareRequirement", false));
-                docTrackerName = configuration.CommandLineOptionOrDefault("DocumentationRequirement", GetStringForKey(config, "DocumentationRequirement", false));
-                cntTrackerName = configuration.CommandLineOptionOrDefault("DocContent", GetStringForKey(config, "DocContent", false));
-                tcTrackerName = configuration.CommandLineOptionOrDefault("SoftwareSystemTest", GetStringForKey(config, "SoftwareSystemTest", false));
-                bugTrackerName = configuration.CommandLineOptionOrDefault("Anomaly", GetStringForKey(config, "Anomaly", false));
-                riskTrackerName = configuration.CommandLineOptionOrDefault("Risk", GetStringForKey(config, "Risk", false));
-                soupTrackerName = configuration.CommandLineOptionOrDefault("SOUP", GetStringForKey(config, "SOUP", false));
                 baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL", GetStringForKey(config, "RedmineBaseURL", false));
-
-                if (config.ContainsKey("Ignore"))
-                {
-                    ignoreList = (TomlArray)config["Ignore"];
-                }
-                else
-                {
-                    logger.Warn($"Key \"Ignore\" missing from configuration file for {name}. Attempting to continue.");
-                }
             }
             catch (Exception e)
             {
@@ -71,9 +47,9 @@ namespace RoboClerk.Redmine
 
         private List<string> GetTrackerList()
         {
-            var result = new List<string> { prsTrackerName, srsTrackerName, tcTrackerName,
-                                            bugTrackerName, riskTrackerName, soupTrackerName,
-                                            docTrackerName, cntTrackerName };
+            var result = new List<string> { prsName, srsName, tcName,
+                                            bugName, riskName, soupName,
+                                            docName, cntName };
             result.RemoveAll(x => x == string.Empty);
             return result;
         }
@@ -84,6 +60,7 @@ namespace RoboClerk.Redmine
             {
                 throw new Exception("No API endpoint or API key provided in configuration file.");
             }
+            ClearAllSLMSItems();
 
             logger.Debug($"Retrieving the issues from the redmine server...");
             var redmineIssues = PullAllIssuesFromServer(GetTrackerList());
@@ -97,42 +74,42 @@ namespace RoboClerk.Redmine
                     continue;
                 }
                 retrievedIDs.Add(redmineIssue.Id.ToString());
-                if (redmineIssue.Tracker.Name == prsTrackerName)
+                if (redmineIssue.Tracker.Name == prsName)
                 {
                     logger.Debug($"System level requirement found: {redmineIssue.Id}");
                     systemRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SystemRequirement));
                 }
-                else if (redmineIssue.Tracker.Name == srsTrackerName)
+                else if (redmineIssue.Tracker.Name == srsName)
                 {
                     logger.Debug($"Software level requirement found: {redmineIssue.Id}");
                     softwareRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SoftwareRequirement));
                 }
-                else if (redmineIssue.Tracker.Name == tcTrackerName)
+                else if (redmineIssue.Tracker.Name == tcName)
                 {
                     logger.Debug($"Testcase found: {redmineIssue.Id}");
                     testCases.Add(CreateTestCase(redmineIssues, redmineIssue));
                 }
-                else if (redmineIssue.Tracker.Name == bugTrackerName)
+                else if (redmineIssue.Tracker.Name == bugName)
                 {
                     logger.Debug($"Bug item found: {redmineIssue.Id}");
                     anomalies.Add(CreateBug(redmineIssue));
                 }
-                else if (redmineIssue.Tracker.Name == riskTrackerName)
+                else if (redmineIssue.Tracker.Name == riskName)
                 {
                     logger.Debug($"Risk item found: {redmineIssue.Id}");
                     risks.Add(CreateRisk(redmineIssues, redmineIssue));
                 }
-                else if (redmineIssue.Tracker.Name == soupTrackerName)
+                else if (redmineIssue.Tracker.Name == soupName)
                 {
                     logger.Debug($"SOUP item found: {redmineIssue.Id}");
                     soup.Add(CreateSOUP(redmineIssue));
                 }
-                else if (redmineIssue.Tracker.Name == docTrackerName)
+                else if (redmineIssue.Tracker.Name == docName)
                 {
                     logger.Debug($"Documentation item found: {redmineIssue.Id}");
                     documentationRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.DocumentationRequirement));
                 }
-                else if (redmineIssue.Tracker.Name == cntTrackerName)
+                else if (redmineIssue.Tracker.Name == cntName)
                 {
                     logger.Debug($"DocContent item found: {redmineIssue.Id}");
                     docContents.Add(CreateDocContent(redmineIssue));
@@ -151,27 +128,6 @@ namespace RoboClerk.Redmine
             TrimLinkedItems(risks, retrievedIDs);
             TrimLinkedItems(soup, retrievedIDs);
             TrimLinkedItems(docContents, retrievedIDs);
-        }
-
-        private void TrimLinkedItems<T>(List<T> items, List<string> retrievedIDs)
-        {
-            foreach (var item in items)
-            {
-                LinkedItem linkedItem = item as LinkedItem;
-                List<ItemLink> linkedItemsToRemove = new List<ItemLink>();
-                foreach (var itemLink in linkedItem.LinkedItems)
-                {
-                    if (!retrievedIDs.Contains(itemLink.TargetID))
-                    {
-                        logger.Warn($"Removing a {itemLink.LinkType} link to item with ID \"{itemLink.TargetID}\" because that item has a status that causes it to be ignored.");
-                        linkedItemsToRemove.Add(itemLink);
-                    }
-                }
-                foreach (var itemLink in linkedItemsToRemove)
-                {
-                    linkedItem.RemoveLinkedItem(itemLink); //remove the link to an ignored item
-                }
-            }
         }
 
         private List<TestStep> GetTestSteps(string testDescription)
@@ -257,7 +213,7 @@ namespace RoboClerk.Redmine
             {
                 foreach (var issue in issues)
                 {
-                    if (issue.Id.ToString() == link.TargetID && issue.Tracker.Name == srsTrackerName)
+                    if (issue.Id.ToString() == link.TargetID && issue.Tracker.Name == srsName)
                     {
                         link.LinkType = ItemLinkType.Parent;
                     }
@@ -394,6 +350,7 @@ namespace RoboClerk.Redmine
             resultItem.AnomalyState = redmineItem.Status.Name ?? string.Empty;
             resultItem.ItemStatus = redmineItem.Status.Name ?? string.Empty;
             resultItem.ItemTitle = redmineItem.Subject ?? string.Empty;
+            resultItem.AnomalyDetailedDescription = redmineItem.Description ?? String.Empty;
             if (redmineItem.FixedVersion != null)
             {
                 resultItem.ItemTargetVersion = redmineItem.FixedVersion.Name ?? string.Empty;
@@ -431,10 +388,10 @@ namespace RoboClerk.Redmine
                     switch (field.Name)
                     {
                         case "Risk Type": resultItem.ItemCategory = value; break;
-                        case "Risk": resultItem.PrimaryHazard = value; break;
-                        case "Hazard Severity": resultItem.SeverityScore = int.Parse(value.Split('-')[0]); break;
-                        case "Hazard Probability": resultItem.OccurenceScore = int.Parse(value.ToString().Split('-')[0]); break;
-                        case "Residual Probability": resultItem.ModifiedOccScore = (value != string.Empty ? int.Parse(value.Split('-')[0]) : int.MaxValue); break;
+                        case "Risk": resultItem.RiskPrimaryHazard = value; break;
+                        case "Hazard Severity": resultItem.RiskSeverityScore = (value != string.Empty ? int.Parse(value.Split('-')[0]) : int.MaxValue); break; //need to ensure default is int maxvalue for safety
+                        case "Hazard Probability": resultItem.RiskOccurenceScore = (value != string.Empty ? int.Parse(value.ToString().Split('-')[0]) : int.MaxValue); break;
+                        case "Residual Probability": resultItem.RiskModifiedOccScore = (value != string.Empty ? int.Parse(value.Split('-')[0]) : int.MaxValue); break;
                         case "Risk Control Category": resultItem.RiskControlMeasureType = (value != string.Empty ? value.Split('\t')[0] : string.Empty); break;
                     }
                 }
@@ -464,8 +421,8 @@ namespace RoboClerk.Redmine
                     }
                 }
             }
-            resultItem.FailureMode = redmineItem.Subject ?? String.Empty;
-            resultItem.CauseOfFailure = redmineItem.Description ?? String.Empty;
+            resultItem.RiskFailureMode = redmineItem.Subject ?? String.Empty;
+            resultItem.RiskCauseOfFailure = redmineItem.Description ?? String.Empty;
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString() ?? String.Empty;
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
             if (redmineItem.FixedVersion != null)

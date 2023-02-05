@@ -9,15 +9,22 @@ NOT FOUND
 @@@
 
 == Introduction
+
 === Purpose
+
 The purpose of this document is to specify the system level test plan for @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. 
 
 === Document Conventions
+
 This document contains two test plans, one for automated tests and one for manual tests. Each test is presented with references to the requirement it is testing.  
+
 === Intended Audience
+
 This document is intended for the software developers at @@Config:CompanyName()@@. It is also prepared as a record of the planning of the system level tests. This document is also intended to be reviewed by regulatory agencies and auditors.
 
 === Manual Tests
+
+The following tests are to be executed manually. This could be done by printing them and filling them out or it could be done electronically.
 
 @@@SLMS:TC(testCaseAutomated=False)
 
@@ -25,11 +32,15 @@ This document is intended for the software developers at @@Config:CompanyName()@
 
 === Automated Tests
 
+The following tests are automated, they are typically part of the continuous integration / continuous deployment build. 
+
 @@@SLMS:TC(testCaseAutomated=True)
 
 @@@
 
 === Unit Tests Brief
+
+This is a table containing an overview of all unit tests of RoboClerk. The different formats of the identifier is because two different approaches were used to document the unit tests. In the first approach we used the unit test function name to document it and in the second approach unit tests are annotated. The annotated approach is the superior approach. 
 
 @@@FILE:UnitTest(brief=true)
 A brief summary table of unit tests
@@ -37,6 +48,8 @@ A brief summary table of unit tests
 
 === Unit Tests Long
 
-@@@FILE:UnitTest(brief=false)
+It is also possible to create seperate tables for unit tests. Here is the table for unit test 439DA613-EF71-4589-9F3B-8314CB8A11E5.
+
+@@@FILE:UnitTest(brief=false,ItemID=439DA613-EF71-4589-9F3B-8314CB8A11E5)
 Individual unit test tables
 @@@

@@ -28,7 +28,7 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
-	<Target Name="CopyResources" AfterTargets="Build" >
+	<Target Name="CopyResources" BeforeTargets="Start" AfterTargets="Build" >
 		<ItemGroup>
 			<TemplateFiles Include="$(ProjectDir)/DocTemplates/*.*" />
 			<ItemTemplateFiles Include="$(ProjectDir)/ItemTemplates/*.*" />
@@ -48,7 +48,7 @@
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.runtimeconfig.json" DestinationFolder="$(ProjectDir)../Publish" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.deps.json" DestinationFolder="$(ProjectDir)../Publish" />
 	</Target>
-	<Target Name="AdaptConfigFiles" AfterTargets="Build">
+	<Target Name="AdaptConfigFiles" BeforeTargets="Start" AfterTargets="Build">
 		<ReplaceFileText 
 			InputFileName="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml"
 			MatchExpression="{DOCUMENTATIONROOT}"
@@ -66,13 +66,13 @@
 			MatchExpression="{PROJECTOUTPUT}"
 			ReplacementText="$(ProjectDir)$(OutDir)RoboClerk_output" />
 	</Target>
-	<Target Name="CreateDirectory" AfterTargets="Build">
+	<Target Name="CreateDirectory" BeforeTargets="Start" AfterTargets="Build">
         <MakeDir
             Directories="$(ProjectDir)$(OutDir)RoboClerk_input\media"/>
 		<MakeDir
             Directories="$(ProjectDir)$(OutDir)RoboClerk_output"/>
     </Target>
-	<Target Name="GenerateDependenciesList" AfterTargets="Build">
+	<Target Name="GenerateDependenciesList" BeforeTargets="Start" AfterTargets="Build">
 		<!-- get list of dependencies-->
 		<Exec Command="dotnet list package > dependencies.txt" WorkingDirectory="$(ProjectDir)/.."/>
 	</Target>

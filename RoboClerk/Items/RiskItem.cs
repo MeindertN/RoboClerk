@@ -25,43 +25,43 @@ namespace RoboClerk
             id = Guid.NewGuid().ToString();
         }
 
-        public string PrimaryHazard
+        public string RiskPrimaryHazard
         {
             get { return primaryHazard; }
             set { primaryHazard = value; }
         }
 
-        public string FailureMode
+        public string RiskFailureMode
         {
             get { return failureMode; }
             set { failureMode = value; }
         }
 
-        public string CauseOfFailure
+        public string RiskCauseOfFailure
         {
             get { return causeOfFailure; }
             set { causeOfFailure = value; }
         }
 
-        public string MethodOfDetection
+        public string RiskMethodOfDetection
         {
             get { return methodOfDetection; }
             set { methodOfDetection = value; }
         }
 
-        public int OccurenceScore
+        public int RiskOccurenceScore
         {
             get { return occurenceScore; }
             set { occurenceScore = value; }
         }
 
-        public int SeverityScore
+        public int RiskSeverityScore
         {
             get { return severityScore; }
             set { severityScore = value; }
         }
 
-        public int DetectabilityScore
+        public int RiskDetectabilityScore
         {
             get { return detectabilityScore; }
             set { detectabilityScore = value; }
@@ -85,13 +85,13 @@ namespace RoboClerk
             set { riskControlImplementation = value; }
         }
 
-        public int ModifiedOccScore
+        public int RiskModifiedOccScore
         {
             get { return modifiedOccScore; }
             set { modifiedOccScore = value; }
         }
 
-        public int ModifiedDetScore
+        public int RiskModifiedDetScore
         {
             get { return modifiedDetScore; }
             set { modifiedDetScore = value; }
