@@ -34,4 +34,4 @@ RUN wget -O dotnet.tar.gz https://dotnetcli.azureedge.net/dotnet/Runtime/$DOTNET
     && gem install asciidoctor-kroki 
 
 # Install RoboClerk itself
-ADD RoboClerk /home/RoboClerk
+ADD Publish /home/RoboClerk

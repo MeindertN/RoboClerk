@@ -28,9 +28,9 @@
 		<ItemGroup>
 			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
 		</ItemGroup>
-		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.UnitTestFN.runtimeconfig.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.UnitTestFN.deps.json" DestinationFolder="$(ProjectDir)../publish/plugins" />
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.UnitTestFN.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.UnitTestFN.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
 	</Target>
 	<Target Name="CopyPlugin" AfterTargets="Build">
 		<ItemGroup>

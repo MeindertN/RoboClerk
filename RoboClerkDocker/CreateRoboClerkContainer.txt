@@ -1,0 +1,13 @@
+Make sure to build the solution in the ReleasePublish configuration. It will create a "publish" dir that is is copied into the container by the dockerfile.
+
+Build the container using:
+
+docker build -t roboclerk .
+
+If you want to export the container to file do that as follows (requires gzip in your path): 
+
+docker save roboclerk | gzip > %1
+
+To import the container file use: docker load -i roboclerk_container.tar.gz 
+
+To run the docker: docker run -a stdout -a stderr -v "I:\\temp\\":/mnt --rm roboclerk dotnet /home/RoboClerk/RoboClerk.dll -c /mnt/Roboclerk_input/RoboClerkConfig/RoboClerk.toml -p /mnt/Roboclerk_input/RoboClerkConfig/projectConfig.toml

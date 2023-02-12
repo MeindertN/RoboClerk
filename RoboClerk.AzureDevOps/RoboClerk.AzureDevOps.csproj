@@ -39,9 +39,9 @@
 			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
 		</ItemGroup>
 
-		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../Publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AzureDevOps.runtimeconfig.json" DestinationFolder="$(ProjectDir)../Publish/plugins" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AzureDevOps.deps.json" DestinationFolder="$(ProjectDir)../Publish/plugins" />
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AzureDevOps.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AzureDevOps.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/plugins" />
 	</Target>
 	<Target Name="CopyPlugin" AfterTargets="Build">
 		<ItemGroup>

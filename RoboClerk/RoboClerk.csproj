@@ -44,9 +44,9 @@
 		<ItemGroup>
 			<RoboClerkFiles Include="$(ProjectDir)$(OutDir)*.dll;$(ProjectDir)$(OutDir)*.exe" />
 		</ItemGroup>
-		<Copy SourceFiles="@(RoboClerkFiles)" DestinationFolder="$(ProjectDir)../Publish/" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.runtimeconfig.json" DestinationFolder="$(ProjectDir)../Publish" />
-		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.deps.json" DestinationFolder="$(ProjectDir)../Publish" />
+		<Copy SourceFiles="@(RoboClerkFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish" />
 	</Target>
 	<Target Name="AdaptConfigFiles" BeforeTargets="Start" AfterTargets="Build">
 		<ReplaceFileText 
