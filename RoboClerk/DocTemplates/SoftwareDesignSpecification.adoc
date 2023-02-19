@@ -72,8 +72,8 @@ A summary table version of all the SOUP that are installed by the user
 This shows a summary table for all the SOUP that are installed by the user
 @@@
 
-Next is a docContent statement. These are required statements that must show up in documentation (usually the user manual)
+Next are some docContent statements. These are required statements that must show up in documentation (usually the user manual)
 
-@@@SLMS:DCT(ItemID=27)
-This will be replaced by the content in the specified documentation content item.
+@@@SLMS:DCT()
+This will be replaced by the available documentation content items.
 @@@

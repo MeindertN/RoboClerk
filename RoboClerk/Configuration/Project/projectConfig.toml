@@ -239,13 +239,24 @@ MediaDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/media"
 
 
 # Use the trace config to configure what documents shall be traced and what in those documents must trace.
-# Two levels of requirements are distinguished, product and software requirements. In the table below, both
-# these levels are represented as tables. In each table all trace documents are listed in the order in which
+# In the table below, each table represents a trace. Trace entities and documents are listed in the order in which
 # they will be traced. Each of them is assigned a list indicating how the trace should be validated and what
 # requirements should trace to the target doc. It is possible to indicate that only a subset of requirements
 # (based on the category of the requirements) must trace. Multiple categories can be indicated. To indicate
 # that the trace should be complete (all requirements must trace to the target) use the ALL keyword. To 
 # indicate that incomplete trace is allowed, use the OPTIONAL keyword. 
+# For example, to trace from a System Requirement to the SystemRequirementsSpecification document and to the
+# SoftwareRequirement add the following table below:
+# [TraceConfig.SystemRequirement]
+#		SystemRequirementsSpecification.forward = ["ALL"]    # all System Requirements must trace to the SystemRequirementSpecification document 
+#		SystemRequirementsSpecification.backward = ["ALL"]   # all System Requirements in the SystemRequirementSpecification must trace back to at least one SystemRequirement (i.e. no extras) 
+#		SystemRequirementsSpecification.forwardLink = "DOC"  # the link type is DOC, because this is a document
+#		SystemRequirementsSpecification.backwardLink = "DOC" # the link type is DOC, because this is a document
+#
+#		SoftwareRequirement.forward = ["ALL"]     # all System Requirements must trace to at least one Software Requirement
+#		SoftwareRequirement.backward = ["ALL"]    # all Software Requirements must trace back to at least one System Requirement. If orphans are allowed, change ALL to OPTIONAL
+#		SoftwareRequirement.forwardLink = "Child" # the relationship type from the System Requiremnt to the Software Requirement is "child"
+#		SoftwareRequirement.backwardLink = "Parent" # the relationship type from the Software Requirement back to the System Requirement is "parent"
 
 [TraceConfig]
 	
@@ -326,6 +337,7 @@ MediaDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/media"
 # To use a checkpoint, indicate its fileName (without path). It must be located in the 
 # template dir. If the checkpoint filename is an empty string, assume there is no checkpoint
 # file
+
 CheckpointFile = ""
 
 # For the following items, enter any IDs you want RoboClerk to pull from the normal

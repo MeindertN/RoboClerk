@@ -234,7 +234,7 @@ namespace RoboClerk.AzureDevOps
             item.ItemLastUpdated = GetWorkItemField<DateTime>(workitem, "System.ChangedDate");
             item.RequirementState = GetWorkItemField<string>(workitem, "System.State");
             item.ItemStatus = GetWorkItemField<string>(workitem, "System.State");
-            item.RequirementDescription = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "System.Description"));
+            item.RequirementDescription = HtmlToTextConverter.ToPlainText(GetWorkItemField<string>(workitem, "System.Description"));
             item.ItemTitle = GetWorkItemField<string>(workitem, "System.Title");
             item.ItemCategory = GetWorkItemField<string>(workitem, "Custom.CategoryofRequirement");
             AddLinksToWorkItems(workitem.Relations, item);
@@ -250,7 +250,7 @@ namespace RoboClerk.AzureDevOps
             item.ItemRevision = workitem.Rev.ToString();
             item.ItemLastUpdated = GetWorkItemField<DateTime>(workitem, "System.ChangedDate");
             item.ItemStatus = GetWorkItemField<string>(workitem, "System.State");
-            item.DocContent = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "System.Description"));
+            item.DocContent = HtmlToTextConverter.ToPlainText(GetWorkItemField<string>(workitem, "System.Description"));
             item.ItemCategory = GetWorkItemField<string>(workitem, "Custom.CategoryofContent");
             AddLinksToWorkItems(workitem.Relations, item);
             return item;
@@ -290,7 +290,7 @@ namespace RoboClerk.AzureDevOps
             item.ItemRevision = workitem.Rev.ToString();
             item.ItemLastUpdated = GetWorkItemField<DateTime>(workitem, "System.ChangedDate");
             item.ItemStatus = GetWorkItemField<string>(workitem, "System.State");
-            item.RiskCauseOfFailure = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "System.Description"));
+            item.RiskCauseOfFailure = HtmlToTextConverter.ToPlainText(GetWorkItemField<string>(workitem, "System.Description"));
             item.ItemCategory = GetWorkItemField<string>(workitem, "Custom.RiskType");
             item.RiskPrimaryHazard = GetWorkItemField<string>(workitem, "Custom.Hazard");
             item.RiskSeverityScore = ProcessRiskScores(GetWorkItemField<Int64>(workitem, "Custom.HazardSeverity"));
@@ -336,7 +336,7 @@ namespace RoboClerk.AzureDevOps
             item.ItemRevision = workitem.Rev.ToString();
             item.ItemLastUpdated = GetWorkItemField<DateTime>(workitem, "System.ChangedDate");
             item.ItemStatus = GetWorkItemField<string>(workitem, "System.State");
-            item.SOUPDetailedDescription = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "System.Description"));
+            item.SOUPDetailedDescription = HtmlToTextConverter.ToPlainText(GetWorkItemField<string>(workitem, "System.Description"));
             item.SOUPName = GetWorkItemField<string>(workitem, "System.Title");
             item.SOUPLicense = GetWorkItemField<string>(workitem, "Custom.License");
             item.SOUPAnomalyListDescription = GetWorkItemField<string>(workitem, "Custom.AnomalyListExamination");
@@ -346,7 +346,7 @@ namespace RoboClerk.AzureDevOps
             item.SOUPPerformanceCritical = !item.SOUPPerformanceCriticalText.Contains(" not ");
             item.SOUPVersion = GetWorkItemField<string>(workitem, "Custom.Version");
             item.SOUPLinkedLib = GetWorkItemField<bool>(workitem, "Custom.LinkedLibrary");
-            item.SOUPEnduserTraining = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "Custom.EndUserTraining"));
+            item.SOUPEnduserTraining = HtmlToTextConverter.ToPlainText(GetWorkItemField<string>(workitem, "Custom.EndUserTraining"));
             item.SOUPInstalledByUserText = GetWorkItemField<string>(workitem, "Custom.EndUserInstallationRequired");
             item.SOUPInstalledByUser = !item.SOUPInstalledByUserText.Contains(" not ");
             return item;
@@ -432,10 +432,10 @@ namespace RoboClerk.AzureDevOps
             item.ItemLastUpdated = GetWorkItemField<DateTime>(workitem, "System.ChangedDate");
             item.AnomalyState = GetWorkItemField<string>(workitem, "System.State");
             item.ItemStatus = GetWorkItemField<string>(workitem, "System.State");
-            item.AnomalyJustification = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "Microsoft.VSTS.CMMI.Justification"));
+            item.AnomalyJustification = HtmlToTextConverter.ToPlainText(GetWorkItemField<string>(workitem, "Microsoft.VSTS.CMMI.Justification"));
             item.AnomalyAssignee = GetWorkItemField<string>(workitem, "System.AssignedTo");
             item.AnomalySeverity = GetWorkItemField<string>(workitem, "Microsoft.VSTS.Common.Severity");
-            item.AnomalyDetailedDescription = AzureDevOpsUtilities.StripHTML(GetWorkItemField<string>(workitem, "Microsoft.VSTS.TCM.ReproSteps"));
+            item.AnomalyDetailedDescription = HtmlToTextConverter.ToPlainText(GetWorkItemField<string>(workitem, "Microsoft.VSTS.TCM.ReproSteps"));
             item.ItemTitle = GetWorkItemField<string>(workitem, "System.Title");
             return item;
         }

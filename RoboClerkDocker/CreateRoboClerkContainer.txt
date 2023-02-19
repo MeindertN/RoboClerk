@@ -6,7 +6,7 @@ docker build -t roboclerk .
 
 If you want to export the container to file do that as follows (requires gzip in your path): 
 
-docker save roboclerk | gzip > %1
+docker save roboclerk | gzip > RoboClerk.tar.gz
 
 To import the container file use: docker load -i roboclerk_container.tar.gz 
 

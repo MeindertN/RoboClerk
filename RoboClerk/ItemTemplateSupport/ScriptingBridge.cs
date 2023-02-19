@@ -19,30 +19,60 @@ namespace RoboClerk
             SourceTraceEntity = sourceTraceEntity;
         }
 
+        /// <summary>
+        /// The item that needs to be rendered in the documentation. 
+        /// </summary>
         public LinkedItem Item { get; set; }
 
+        /// <summary>
+        /// The items that need to be rendered in the documentation (empty if there is only a single item). 
+        /// </summary>
         public IEnumerable<LinkedItem> Items
         {
             get { return items; }
             set { items = (List<LinkedItem>)value; }
         }
 
+        /// <summary>
+        /// This function adds a trace link to the item who's ID is provided in the id parameter.
+        /// </summary>
+        /// <param name="id"></param>
         public void AddTrace(string id)
         {
             traces.Add(id);
         }
 
+        /// <summary>
+        /// Returns all the traces in the bridge.
+        /// </summary>
         public IEnumerable<string> Traces
         {
             get { return traces; }
         }
 
+        /// <summary>
+        /// Returns the source trace entity, indicates what kind of trace item is being rendered.
+        /// </summary>
         public TraceEntity SourceTraceEntity { get; }
 
+        /// <summary>
+        /// Provides access to the RoboClerk datasources object. This can be used to search in all 
+        /// the information RoboClerk has.
+        /// </summary>
         public IDataSources Sources { get { return data; } }
 
+        /// <summary>
+        /// Provides access to the traceability analysis object. The object stores all traceability
+        /// information in RoboClerk.
+        /// </summary>
         public ITraceabilityAnalysis TraceabilityAnalysis { get { return analysis; } }
 
+        /// <summary>
+        /// Returns all linked items attached to li with a link type of linkType
+        /// </summary>
+        /// <param name="li"></param>
+        /// <param name="linkType"></param>
+        /// <returns></returns>
         public IEnumerable<LinkedItem> GetLinkedItems(LinkedItem li, ItemLinkType linkType)
         {
             List<LinkedItem> results = new List<LinkedItem>();
@@ -58,6 +88,14 @@ namespace RoboClerk
             return results;
         }
 
+        /// <summary>
+        /// This function retrieves all items linked to li with a link of type linkType and returns an
+        /// asciidoc string that has links to all these items. Usually used to provide trace information.
+        /// </summary>
+        /// <param name="li"></param>
+        /// <param name="linkType"></param>
+        /// <returns></returns>
+        /// <exception cref="System.Exception"></exception>
         public string GetLinkedField(LinkedItem li, ItemLinkType linkType)
         {
             StringBuilder field = new StringBuilder();
@@ -91,11 +129,23 @@ namespace RoboClerk
             return "N/A";
         }
 
+        /// <summary>
+        /// Returns an asciidoc hyperlink for the provided item.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public string GetItemLinkString(Item item)
         {
             return item.HasLink ? $"{item.Link}[{item.ItemID}]" : $"{item.ItemID}";
         }
 
+        /// <summary>
+        /// Convenience function, checks if value is an empty string, if so, the
+        /// defaultValue is returned.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
         public string GetValOrDef(string value, string defaultValue)
         {
             if (value == string.Empty)
@@ -105,6 +155,11 @@ namespace RoboClerk
             return value;
         }
 
+        /// <summary>
+        /// Convenience function, calls ToString on input and returns resulting string.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public string Insert(object input)
         {
             return input.ToString();

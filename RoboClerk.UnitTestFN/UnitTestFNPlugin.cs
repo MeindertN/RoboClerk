@@ -6,7 +6,7 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 
-namespace RoboClerk.SourceCode
+namespace RoboClerk
 {
     public class UnitTestFNPlugin : SourceCodeAnalysisPluginBase
     {

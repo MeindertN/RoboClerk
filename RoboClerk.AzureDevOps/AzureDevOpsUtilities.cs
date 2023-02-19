@@ -38,12 +38,6 @@ namespace RoboClerk.AzureDevOps
             return URL.Substring(URL.LastIndexOf('/') + 1, URL.Length - (URL.LastIndexOf('/') + 1));
         }
 
-        internal static string StripHTML(string withHTML)
-        {
-            HtmlDocument htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(withHTML);
-            string temp = htmlDoc.DocumentNode.InnerText;
-            return WebUtility.HtmlDecode(temp);
-        }
     }
+
 }

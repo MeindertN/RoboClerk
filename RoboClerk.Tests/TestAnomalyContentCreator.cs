@@ -87,7 +87,7 @@ namespace RoboClerk.Tests
             var tag = new RoboClerkTag(0, 18, "@@SLMS:Anomaly()@@", true);
 
             string result = anomaly.GetContent(tag, documentConfig);
-            string expectedResult = "\n|====\n| Anomaly ID: | tcid1\n\n| Anomaly Revision: | tcrev1\n\n| State: | deferred\n\n| Assigned To: | tester mc testee\n\n| Title: | title1\n\n| Severity: | critical\n\n| Justification: | it's all good\n|====\n\n|====\n| Anomaly ID: | http://localhost/[tcid2]\n\n| Anomaly Revision: | tcrev2\n\n| State: | N/A\n\n| Assigned To: | NOT ASSIGNED\n\n| Title: | title2\n\n| Severity: | N/A\n\n| Justification: | N/A\n|====\n";
+            string expectedResult = "\n|====\n| Anomaly ID: | tcid1\n\n| Anomaly Revision: | tcrev1\n\n| State: | deferred\n\n| Assigned To: | tester mc testee\n\n| Title: | title1\n\n| Severity: | critical\n\n| Description: | MISSING\n\n| Justification: | it's all good\n|====\n\n|====\n| Anomaly ID: | http://localhost/[tcid2]\n\n| Anomaly Revision: | tcrev2\n\n| State: | N/A\n\n| Assigned To: | NOT ASSIGNED\n\n| Title: | title2\n\n| Severity: | N/A\n\n| Description: | MISSING\n\n| Justification: | N/A\n|====\n";
 
             Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedResult)); 
             Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), "tcid1", Arg.Any<TraceEntity>(), "tcid1"));
@@ -106,7 +106,7 @@ namespace RoboClerk.Tests
             ((AnomalyItem)anomalyItems[0]).AnomalyState = "Closed";
 
             string result = anomaly.GetContent(tag, documentConfig);
-            string expectedResult = "\n|====\n| Anomaly ID: | http://localhost/[tcid2]\n\n| Anomaly Revision: | tcrev2\n\n| State: | N/A\n\n| Assigned To: | NOT ASSIGNED\n\n| Title: | title2\n\n| Severity: | N/A\n\n| Justification: | N/A\n|====\n";
+            string expectedResult = "\n|====\n| Anomaly ID: | http://localhost/[tcid2]\n\n| Anomaly Revision: | tcrev2\n\n| State: | N/A\n\n| Assigned To: | NOT ASSIGNED\n\n| Title: | title2\n\n| Severity: | N/A\n\n| Description: | MISSING\n\n| Justification: | N/A\n|====\n";
 
             Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedResult));
             Assert.DoesNotThrow(() => traceAnalysis.DidNotReceive().AddTrace(Arg.Any<TraceEntity>(), "tcid1", Arg.Any<TraceEntity>(), "tcid1"));
