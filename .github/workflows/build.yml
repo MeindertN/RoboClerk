@@ -5,7 +5,7 @@ on: [push]
 jobs:
   build:
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         dotnet-version: ['6.0.x']
@@ -30,3 +30,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }} 
           path-to-lcov: ./RoboClerk.Tests/coverage.info
+      - name: Doxygen Action
+        uses: mattnotmitt/doxygen-action@1.9.5
+        with:
+          doxyfile-path: ./Doxyfile
+          working-directory: .
