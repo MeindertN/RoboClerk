@@ -64,11 +64,11 @@ namespace RoboClerk.Tests
             mockConfiguration = Substitute.For<IConfiguration>();
 
             mockConfiguration.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin1", "testPlugin2", "testDepPlugin", "testSrcPlugin" });
-            mockConfiguration.PluginDirs.ReturnsForAnyArgs(new List<string> { "c:\\temp\\does_not_exist", "c:\\temp\\" });
+            mockConfiguration.PluginDirs.ReturnsForAnyArgs(new List<string> { TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist"), TestingHelpers.ConvertFileName("c:\\temp\\") });
             mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>(),mockFileSystem).Returns<IPlugin>(l => null);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist"),mockFileSystem).Returns(mockSLMSPlugin);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testDepPlugin"), Arg.Is("c:\\temp\\does_not_exist"),mockFileSystem).Returns(mockDepMgmtPlugin);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testSrcPlugin"), Arg.Is("c:\\temp\\does_not_exist"),mockFileSystem).Returns(mockSrcCodePlugin);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem).Returns(mockSLMSPlugin);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testDepPlugin"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem).Returns(mockDepMgmtPlugin);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testSrcPlugin"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem).Returns(mockSrcCodePlugin);
         }
 
         [Test]
@@ -81,10 +81,14 @@ namespace RoboClerk.Tests
         public void Plugin_Search_Functionality_Works_Correctly_VERIFIES_DataSources_Traverses_All_Plugins_And_All_Directories()
         {
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin1"), Arg.Is<string>("c:\\temp\\does_not_exist"), mockFileSystem));
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin1"), Arg.Is<string>("c:\\temp\\"),mockFileSystem));
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin2"), Arg.Is<string>("c:\\temp\\does_not_exist"),mockFileSystem));
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin2"), Arg.Is<string>("c:\\temp\\"),mockFileSystem));
+            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin1"), 
+                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")), mockFileSystem));
+            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin1"), 
+                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\")),mockFileSystem));
+            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin2"), 
+                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem));
+            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin2"), 
+                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\")),mockFileSystem));
         }
 
         private List<RequirementItem> SYSs = null;
@@ -374,19 +378,20 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { @"c:\myfile.txt", new MockFileData("This is a \nmultiline text file.") },
+                { TestingHelpers.ConvertFileName(@"c:\myfile.txt"), new MockFileData("This is a \nmultiline text file.") },
             });
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, fileSystem);
-            Assert.That(ds.GetTemplateFile(@"C:\myfile.txt"), Is.EqualTo("This is a \nmultiline text file."));
+            Assert.That(ds.GetTemplateFile(TestingHelpers.ConvertFileName(@"C:\myfile.txt")), Is.EqualTo("This is a \nmultiline text file."));
         }
 
         [Test]
         public void FileStream_Is_Retrieved_From_Disk_VERIFIES_Stream_Contents_Matches_File_On_Disk()
         {
-            mockConfiguration.TemplateDir.Returns(@"C:\templatedir");
+            mockConfiguration.TemplateDir.Returns(TestingHelpers.ConvertFileName(@"C:\templatedir"));
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { @"c:\templateDir\myfile.txt", new MockFileData("This is a \nmultiline text file.") },
+                { TestingHelpers.ConvertFileName(TestingHelpers.ConvertFileName(@"c:\templateDir\myfile.txt")), 
+                    new MockFileData("This is a \nmultiline text file.") },
             });
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, fileSystem);
             Stream s = ds.GetFileStreamFromTemplateDir(@"myfile.txt");
