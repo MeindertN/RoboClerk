@@ -18,9 +18,8 @@ namespace RoboClerk.Tests
     internal class TestCheckpointDataSources
     {
         private IFileSystem mockFileSystem = null;
-        private ISLMSPlugin mockSLMSPlugin = null;
-        private IDependencyManagementPlugin mockDepMgmtPlugin = null;
-        private ISourceCodeAnalysisPlugin mockSrcCodePlugin = null;
+        private IPlugin mockPlugin = null;
+        private IPlugin mockDepMgmtPlugin = null;
         private IPluginLoader mockPluginLoader = null;
         private IConfiguration mockConfiguration = null;
 
@@ -84,15 +83,23 @@ namespace RoboClerk.Tests
                 { @"c:\out\placeholder.bin", new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
 
-            mockSLMSPlugin = Substitute.For<ISLMSPlugin>();
-            mockSLMSPlugin.Name.Returns("SLMS Test Plugin");
-            mockSLMSPlugin.Description.Returns("SLMS Test Plugin Description");
-            mockDepMgmtPlugin = Substitute.For<IDependencyManagementPlugin>();
+            mockPlugin = Substitute.For<IPlugin>();
+            mockPlugin.Name.Returns("SLMS Test Plugin");
+            mockPlugin.Description.Returns("SLMS Test Plugin Description");
+            mockPlugin.GetDependencies().Returns(new List<ExternalDependency>());
+            mockDepMgmtPlugin = Substitute.For<IPlugin>();
             mockDepMgmtPlugin.Name.Returns("Dependency Test Plugin");
             mockDepMgmtPlugin.Description.Returns("Dependency Test Plugin Description");
-            mockSrcCodePlugin = Substitute.For<ISourceCodeAnalysisPlugin>();
-            mockSrcCodePlugin.Name.Returns("Source Code Analysis Plugin");
-            mockSrcCodePlugin.Description.Returns("Source Code Analysis Plugin Description");
+            mockDepMgmtPlugin.GetSystemRequirements().Returns(new List<RequirementItem>());
+            mockDepMgmtPlugin.GetSoftwareRequirements().Returns(new List<RequirementItem>());
+            mockDepMgmtPlugin.GetDocumentationRequirements().Returns(new List<RequirementItem>());
+            mockDepMgmtPlugin.GetDocContents().Returns(new List<DocContentItem>());
+            mockDepMgmtPlugin.GetAnomalies().Returns(new List<AnomalyItem>());
+            mockDepMgmtPlugin.GetUnitTests().Returns(new List<UnitTestItem>());
+            mockDepMgmtPlugin.GetSoftwareSystemTests().Returns(new List<SoftwareSystemTestItem>());
+            mockDepMgmtPlugin.GetSOUP().Returns(new List<SOUPItem>());
+            mockDepMgmtPlugin.GetRisks().Returns(new List<RiskItem>());
+            mockDepMgmtPlugin.GetUnitTests().Returns(new List<UnitTestItem>());
             mockPluginLoader = Substitute.For<IPluginLoader>();
             mockConfiguration = Substitute.For<IConfiguration>();
 
@@ -101,9 +108,9 @@ namespace RoboClerk.Tests
             mockConfiguration.TemplateDir.Returns(@"c:\\temp");
             mockConfiguration.CheckpointConfig.Returns(new CheckpointConfig());
             mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>(), mockFileSystem).Returns<IPlugin>(l => null);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist"), mockFileSystem).Returns(mockSLMSPlugin);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist"), mockFileSystem).Returns(mockPlugin);
             mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testDepPlugin"), Arg.Is("c:\\temp\\does_not_exist"), mockFileSystem).Returns(mockDepMgmtPlugin);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testSrcPlugin"), Arg.Is("c:\\temp\\does_not_exist"), mockFileSystem).Returns(mockSrcCodePlugin);
+            
         }
 
         [UnitTestAttribute(
@@ -145,17 +152,16 @@ namespace RoboClerk.Tests
             cpc.UpdatedAnomalyIDs.Add("19");
             mockConfiguration.CheckpointConfig.Returns(cpc);
 
-            mockSLMSPlugin.GetSystemRequirements().Returns(new List<RequirementItem>());
-            mockSLMSPlugin.GetSoftwareRequirements().Returns(new List<RequirementItem>());
-            mockSLMSPlugin.GetDocumentationRequirements().Returns(new List<RequirementItem>());
-            mockSLMSPlugin.GetDocContents().Returns(new List<DocContentItem>());
-            mockSLMSPlugin.GetAnomalies().Returns(new List<AnomalyItem>());
-            mockSLMSPlugin.GetUnitTests().Returns(new List<UnitTestItem>());
-            mockSLMSPlugin.GetSoftwareSystemTests().Returns(new List<TestCaseItem>());
-            mockSLMSPlugin.GetSOUP().Returns(new List<SOUPItem>());
-            mockSLMSPlugin.GetRisks().Returns(new List<RiskItem>());
-            
-            mockSrcCodePlugin.GetUnitTests().Returns(new List<UnitTestItem>());
+            mockPlugin.GetSystemRequirements().Returns(new List<RequirementItem>());
+            mockPlugin.GetSoftwareRequirements().Returns(new List<RequirementItem>());
+            mockPlugin.GetDocumentationRequirements().Returns(new List<RequirementItem>());
+            mockPlugin.GetDocContents().Returns(new List<DocContentItem>());
+            mockPlugin.GetAnomalies().Returns(new List<AnomalyItem>());
+            mockPlugin.GetUnitTests().Returns(new List<UnitTestItem>());
+            mockPlugin.GetSoftwareSystemTests().Returns(new List<SoftwareSystemTestItem>());
+            mockPlugin.GetSOUP().Returns(new List<SOUPItem>());
+            mockPlugin.GetRisks().Returns(new List<RiskItem>());
+            mockPlugin.GetUnitTests().Returns(new List<UnitTestItem>());
 
             var cpds = new CheckpointDataSources(mockConfiguration, mockPluginLoader, mockFileSystem, "fake.json");
             
@@ -189,44 +195,42 @@ namespace RoboClerk.Tests
             cpc.UpdatedAnomalyIDs.Add("19");
             mockConfiguration.CheckpointConfig.Returns(cpc);
 
-            mockSLMSPlugin.GetSystemRequirements().Returns(new List<RequirementItem> 
+            mockPlugin.GetSystemRequirements().Returns(new List<RequirementItem> 
             { 
                 new RequirementItem(RequirementType.SystemRequirement) { ItemID = "11", ItemCategory = "new"} 
             });
-            mockSLMSPlugin.GetSoftwareRequirements().Returns(new List<RequirementItem>
+            mockPlugin.GetSoftwareRequirements().Returns(new List<RequirementItem>
             {
                 new RequirementItem(RequirementType.SoftwareRequirement) { ItemID = "12", ItemCategory = "new"}
             });
-            mockSLMSPlugin.GetDocumentationRequirements().Returns(new List<RequirementItem>
+            mockPlugin.GetDocumentationRequirements().Returns(new List<RequirementItem>
             {
                 new RequirementItem(RequirementType.DocumentationRequirement) { ItemID = "44", ItemCategory = "new"}
             });
-            mockSLMSPlugin.GetDocContents().Returns(new List<DocContentItem> 
+            mockPlugin.GetDocContents().Returns(new List<DocContentItem> 
             {
                 new DocContentItem() { ItemID = "45", ItemCategory = "new"}
             });
-            mockSLMSPlugin.GetAnomalies().Returns(new List<AnomalyItem> 
+            mockPlugin.GetAnomalies().Returns(new List<AnomalyItem> 
             {
                 new AnomalyItem() {ItemID = "19", ItemCategory = "new"}
             });
-            mockSLMSPlugin.GetUnitTests().Returns(new List<UnitTestItem>
+            mockPlugin.GetUnitTests().Returns(new List<UnitTestItem>
             {
                 new UnitTestItem() { ItemID = "TestDatasources.cs:49", ItemCategory = "new"}
             });
-            mockSLMSPlugin.GetSoftwareSystemTests().Returns(new List<TestCaseItem>
+            mockPlugin.GetSoftwareSystemTests().Returns(new List<SoftwareSystemTestItem>
             {
-                new TestCaseItem() {ItemID = "20", ItemCategory = "new"}
+                new SoftwareSystemTestItem() {ItemID = "20", ItemCategory = "new"}
             });
-            mockSLMSPlugin.GetSOUP().Returns(new List<SOUPItem>
+            mockPlugin.GetSOUP().Returns(new List<SOUPItem>
             {
                 new SOUPItem() {ItemID = "17", ItemCategory = "new"}
             });
-            mockSLMSPlugin.GetRisks().Returns(new List<RiskItem>
+            mockPlugin.GetRisks().Returns(new List<RiskItem>
             {
                 new RiskItem() {ItemID = "15", ItemCategory = "new"}
             });
-
-            mockSrcCodePlugin.GetUnitTests().Returns(new List<UnitTestItem>());
 
             var cpds = new CheckpointDataSources(mockConfiguration, mockPluginLoader, mockFileSystem, "fake.json");
 

@@ -2,7 +2,7 @@
 
 # Provide the names of the DataSource plugin(s) in a comma seperated list
 # For example: DataSourcePlugin = [ "AzureDevOpsSLMSPlugin", "RedmineCSVSLMSPlugin" ]
-DataSourcePlugin = [ "AzureDevOpsSLMSPlugin", "DependenciesFilePlugin", "UnitTestFNPlugin", "AnnotatedUnitTestPlugin" ]
+DataSourcePlugin = [ "RedmineSLMSPlugin", "DependenciesFilePlugin", "UnitTestFNPlugin", "AnnotatedUnitTestPlugin" ]
 
 # RoboClerk will search for plugins in the subdirectories of the plugin dirs.
 # For example: PluginDirs = [ "c:/temp/plugins" ]

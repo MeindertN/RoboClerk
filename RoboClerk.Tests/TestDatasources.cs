@@ -19,9 +19,9 @@ namespace RoboClerk.Tests
     [Description("These tests test the DataSources class")]
     internal class TestDatasources
     {
-        ISLMSPlugin mockSLMSPlugin = null; 
-        IDependencyManagementPlugin mockDepMgmtPlugin = null;
-        ISourceCodeAnalysisPlugin mockSrcCodePlugin = null;
+        IPlugin mockSLMSPlugin = null; 
+        IPlugin mockDepMgmtPlugin = null;
+        IPlugin mockSrcCodePlugin = null;
         IPluginLoader mockPluginLoader = null; 
         IConfiguration mockConfiguration = null;
         IFileSystem mockFileSystem = null;
@@ -30,15 +30,36 @@ namespace RoboClerk.Tests
         public void TestSetup()
         {
             mockFileSystem = Substitute.For<IFileSystem>();
-            mockSLMSPlugin = Substitute.For<ISLMSPlugin>();
+            mockSLMSPlugin = Substitute.For<IPlugin>();
             mockSLMSPlugin.Name.Returns("SLMS Test Plugin");
             mockSLMSPlugin.Description.Returns("SLMS Test Plugin Description");
-            mockDepMgmtPlugin = Substitute.For<IDependencyManagementPlugin>();
+            mockSLMSPlugin.GetDependencies().Returns(new List<ExternalDependency>());
+            mockDepMgmtPlugin = Substitute.For<IPlugin>();
             mockDepMgmtPlugin.Name.Returns("Dependency Test Plugin");
             mockDepMgmtPlugin.Description.Returns("Dependency Test Plugin Description");
-            mockSrcCodePlugin = Substitute.For<ISourceCodeAnalysisPlugin>();
+            mockDepMgmtPlugin.GetSystemRequirements().Returns(new List<RequirementItem>());
+            mockDepMgmtPlugin.GetSoftwareRequirements().Returns(new List<RequirementItem>());
+            mockDepMgmtPlugin.GetDocumentationRequirements().Returns(new List<RequirementItem>());
+            mockDepMgmtPlugin.GetDocContents().Returns(new List<DocContentItem>());
+            mockDepMgmtPlugin.GetAnomalies().Returns(new List<AnomalyItem>());
+            mockDepMgmtPlugin.GetUnitTests().Returns(new List<UnitTestItem>());
+            mockDepMgmtPlugin.GetSoftwareSystemTests().Returns(new List<SoftwareSystemTestItem>());
+            mockDepMgmtPlugin.GetSOUP().Returns(new List<SOUPItem>());
+            mockDepMgmtPlugin.GetRisks().Returns(new List<RiskItem>());
+            mockDepMgmtPlugin.GetUnitTests().Returns(new List<UnitTestItem>());
+            mockSrcCodePlugin = Substitute.For<IPlugin>();
             mockSrcCodePlugin.Name.Returns("Source Code Analysis Plugin");
             mockSrcCodePlugin.Description.Returns("Source Code Analysis Plugin Description");
+            mockSrcCodePlugin.GetSystemRequirements().Returns(new List<RequirementItem>());
+            mockSrcCodePlugin.GetSoftwareRequirements().Returns(new List<RequirementItem>());
+            mockSrcCodePlugin.GetDocumentationRequirements().Returns(new List<RequirementItem>());
+            mockSrcCodePlugin.GetDocContents().Returns(new List<DocContentItem>());
+            mockSrcCodePlugin.GetAnomalies().Returns(new List<AnomalyItem>());
+            mockSrcCodePlugin.GetUnitTests().Returns(new List<UnitTestItem>());
+            mockSrcCodePlugin.GetSoftwareSystemTests().Returns(new List<SoftwareSystemTestItem>());
+            mockSrcCodePlugin.GetSOUP().Returns(new List<SOUPItem>());
+            mockSrcCodePlugin.GetRisks().Returns(new List<RiskItem>());
+            mockSrcCodePlugin.GetDependencies().Returns(new List<ExternalDependency>());
             mockPluginLoader = Substitute.For<IPluginLoader>();
             mockConfiguration = Substitute.For<IConfiguration>();
 
@@ -69,7 +90,7 @@ namespace RoboClerk.Tests
         private List<RequirementItem> SYSs = null;
         private List<RequirementItem> SWRs = null;
         private List<RequirementItem> DOCs = null;
-        private List<TestCaseItem> TCs = null;
+        private List<SoftwareSystemTestItem> TCs = null;
         private List<AnomalyItem> ANOMALYs = null;
         private List<UnitTestItem> SLMSUTs = null;
         private List<UnitTestItem> SRCUTs = null;
@@ -97,7 +118,7 @@ namespace RoboClerk.Tests
             DOCs[1].ItemTitle = "DOC_TestTitle2";
             DOCs[1].ItemID = "DOC_id2";
             mockSLMSPlugin.GetDocumentationRequirements().Returns(DOCs);
-            TCs = new List<TestCaseItem> { new TestCaseItem(), new TestCaseItem() };
+            TCs = new List<SoftwareSystemTestItem> { new SoftwareSystemTestItem(), new SoftwareSystemTestItem() };
             TCs[0].ItemTitle = "TC_TestTitle1";
             TCs[0].ItemID = "TC_id1";
             TCs[1].ItemTitle = "TC_TestTitle2";

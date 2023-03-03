@@ -38,7 +38,7 @@ namespace RoboClerk.Tests
             documentConfig = new DocumentConfig("SystemLevelTestPlan", "docID", "docTitle", "docAbbr", @"c:\in\template.adoc");
 
             testcaseItems.Clear();
-            var testcaseItem = new TestCaseItem();
+            var testcaseItem = new SoftwareSystemTestItem();
             testcaseItem.ItemID = "tcid1";
             testcaseItem.ItemRevision = "tcrev1";
             testcaseItem.ItemLastUpdated = new DateTime(1999,10,10);
@@ -53,7 +53,7 @@ namespace RoboClerk.Tests
             testcaseItem.AddTestCaseStep(new TestStep("1", "input11", "expected result11" ));
             testcaseItem.AddTestCaseStep(new TestStep("2", "input12", "expected result12" ));
             testcaseItems.Add(testcaseItem);
-            testcaseItem = new TestCaseItem();
+            testcaseItem = new SoftwareSystemTestItem();
             testcaseItem.ItemID = "tcid2";
             testcaseItem.ItemRevision = "tcrev2";
             testcaseItem.ItemLastUpdated = new DateTime(1999, 12, 12);
@@ -112,9 +112,9 @@ namespace RoboClerk.Tests
         {
             var sst = new SoftwareSystemTest(dataSources, traceAnalysis);
             var tag = new RoboClerkTag(0, 25, "@@SLMS:TC(itemid=tcid2)@@", true);
-            ((TestCaseItem)testcaseItems[1]).ClearTestCaseSteps();
-            ((TestCaseItem)testcaseItems[1]).AddTestCaseStep(new TestStep("1", "input21", "expected result21" ));
-            ((TestCaseItem)testcaseItems[1]).AddTestCaseStep(new TestStep("2", "input22", "" ));
+            ((SoftwareSystemTestItem)testcaseItems[1]).ClearTestCaseSteps();
+            ((SoftwareSystemTestItem)testcaseItems[1]).AddTestCaseStep(new TestStep("1", "input21", "expected result21" ));
+            ((SoftwareSystemTestItem)testcaseItems[1]).AddTestCaseStep(new TestStep("2", "input22", "" ));
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "\n|====\n| *Test Case ID:* | http://localhost/[tcid2]\n\n| *Test Case Revision:* | tcrev2\n\n| *Parent ID:* | http://localhost/[tcid2]: \"title2\"\n\n| *Title:* | title2\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n| *Step* | *Action* | *Expected Result* | *Actual Result* | *Test Status*\n\n| 1 | input21 | expected result21  |  | Pass / Fail\n\n| 2 | input22 |  |  | \n\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n| Initial: | Date: | Asset ID: \n|====";
 

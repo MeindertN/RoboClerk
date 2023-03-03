@@ -2,18 +2,13 @@
 using NSubstitute;
 using NUnit.Framework;
 using RoboClerk.Configuration;
-using RoboClerk.ContentCreators;
-using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RoboClerk.Tests
 {
-    internal class TestSourceCodeAnalysisPlugin : SourceCodeAnalysisPluginBase, ISourceCodeAnalysisPlugin
+    internal class TestSourceCodeAnalysisPlugin : SourceCodeAnalysisPluginBase
     {
         public TestSourceCodeAnalysisPlugin(IFileSystem fileSystem) 
             :base(fileSystem)

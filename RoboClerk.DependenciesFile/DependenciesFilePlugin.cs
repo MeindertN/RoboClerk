@@ -6,7 +6,7 @@ using Tomlyn.Model;
 
 namespace RoboClerk.DependenciesFile
 {
-    public class DependenciesFilePlugin : PluginBase, IDependencyManagementPlugin
+    public class DependenciesFilePlugin : PluginBase
     {
         private List<string> fileLocations = new List<string>();
         private List<string> fileFormats = new List<string>();
@@ -18,11 +18,6 @@ namespace RoboClerk.DependenciesFile
         {
             name = "DependenciesFilePlugin";
             description = "A plugin that retrieves project dependencies via one or more files.";
-        }
-
-        public List<ExternalDependency> GetDependencies()
-        {
-            return externalDependencies;
         }
 
         public override void Initialize(IConfiguration configuration)
@@ -53,7 +48,7 @@ namespace RoboClerk.DependenciesFile
             }
         }
 
-        public void RefreshItems()
+        public override void RefreshItems()
         {
             logger.Info("Refreshing the external dependencies from file.");
             externalDependencies.Clear();

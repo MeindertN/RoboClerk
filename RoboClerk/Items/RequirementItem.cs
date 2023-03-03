@@ -33,7 +33,7 @@ namespace RoboClerk
                 {
                     type = "SoftwareRequirement";
                 }
-                if (requirementType == RequirementType.DocumentationRequirement)
+                if (value == RequirementType.DocumentationRequirement)
                 {
                     type = "DocumentationRequirement";
                 }

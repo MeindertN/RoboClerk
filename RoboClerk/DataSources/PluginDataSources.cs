@@ -6,9 +6,7 @@ namespace RoboClerk
 {
     public class PluginDataSources : DataSourcesBase, IDataSources
     {
-        private List<ISLMSPlugin> slmsPlugins = new List<ISLMSPlugin>();
-        private List<IDependencyManagementPlugin> dependencyManagementPlugins = new List<IDependencyManagementPlugin>();
-        private List<ISourceCodeAnalysisPlugin> sourceCodeAnalysisPlugins = new List<ISourceCodeAnalysisPlugin>();
+        private List<IPlugin> plugins = new List<IPlugin>();
 
         private readonly IPluginLoader pluginLoader = null;
 
@@ -26,29 +24,15 @@ namespace RoboClerk
             {
                 foreach (var dir in configuration.PluginDirs)
                 {
-                    var plugin = pluginLoader.LoadPlugin<IPlugin>((string)val, dir, fileSystem);
+                    var plugin = pluginLoader.LoadPlugin<IPlugin>(val, dir, fileSystem);
                     if (plugin != null)
                     {
                         plugin.Initialize(configuration);
-                        if (plugin as ISLMSPlugin != null)
+                        if (plugin as IPlugin != null)
                         {
-                            var temp = plugin as ISLMSPlugin;
+                            var temp = plugin as IPlugin;
                             temp.RefreshItems();
-                            slmsPlugins.Add(temp);
-                            continue;
-                        }
-                        if (plugin as IDependencyManagementPlugin != null)
-                        {
-                            var temp = plugin as IDependencyManagementPlugin;
-                            temp.RefreshItems();
-                            dependencyManagementPlugins.Add(temp);
-                            continue;
-                        }
-                        if (plugin as ISourceCodeAnalysisPlugin != null)
-                        {
-                            var temp = plugin as ISourceCodeAnalysisPlugin;
-                            temp.RefreshItems();
-                            sourceCodeAnalysisPlugins.Add(temp);
+                            plugins.Add(temp);
                             continue;
                         }
                     }
@@ -59,7 +43,7 @@ namespace RoboClerk
         public override List<SOUPItem> GetAllSOUP()
         {
             List<SOUPItem> list = new List<SOUPItem>();
-            foreach (var plugin in slmsPlugins)
+            foreach (var plugin in plugins)
             {
                 list.AddRange(plugin.GetSOUP());
             }
@@ -69,7 +53,7 @@ namespace RoboClerk
         public override List<RiskItem> GetAllRisks()
         {
             List<RiskItem> list = new List<RiskItem>();
-            foreach (var plugin in slmsPlugins)
+            foreach (var plugin in plugins)
             {
                 list.AddRange(plugin.GetRisks());
             }
@@ -79,7 +63,7 @@ namespace RoboClerk
         public override List<ExternalDependency> GetAllExternalDependencies()
         {
             var dependencies = new List<ExternalDependency>();
-            foreach (var plugin in dependencyManagementPlugins)
+            foreach (var plugin in plugins)
             {
                 dependencies.AddRange(plugin.GetDependencies());
             }
@@ -89,11 +73,11 @@ namespace RoboClerk
         public override List<UnitTestItem> GetAllUnitTests()
         {
             var unitTests = new List<UnitTestItem>();
-            foreach (var plugin in slmsPlugins)
+            foreach (var plugin in plugins)
             {
                 unitTests.AddRange(plugin.GetUnitTests());
             }
-            foreach (var plugin in sourceCodeAnalysisPlugins)
+            foreach (var plugin in plugins)
             {
                 unitTests.AddRange(plugin.GetUnitTests());
             }
@@ -103,7 +87,7 @@ namespace RoboClerk
         public override List<RequirementItem> GetAllSoftwareRequirements()
         {
             List<RequirementItem> items = new List<RequirementItem>();
-            foreach (var plugin in slmsPlugins)
+            foreach (var plugin in plugins)
             {
                 items.AddRange(plugin.GetSoftwareRequirements());
             }
@@ -113,7 +97,7 @@ namespace RoboClerk
         public override List<RequirementItem> GetAllSystemRequirements()
         {
             List<RequirementItem> items = new List<RequirementItem>();
-            foreach (var plugin in slmsPlugins)
+            foreach (var plugin in plugins)
             {
                 items.AddRange(plugin.GetSystemRequirements());
             }
@@ -123,7 +107,7 @@ namespace RoboClerk
         public override List<RequirementItem> GetAllDocumentationRequirements()
         {
             List<RequirementItem> items = new List<RequirementItem>();
-            foreach (var plugin in slmsPlugins)
+            foreach (var plugin in plugins)
             {
                 items.AddRange(plugin.GetDocumentationRequirements());
             }
@@ -133,17 +117,17 @@ namespace RoboClerk
         public override List<DocContentItem> GetAllDocContents()
         {
             List<DocContentItem> items = new List<DocContentItem>();
-            foreach (var plugin in slmsPlugins)
+            foreach (var plugin in plugins)
             {
                 items.AddRange(plugin.GetDocContents());
             }
             return items;
         }
 
-        public override List<TestCaseItem> GetAllSoftwareSystemTests()
+        public override List<SoftwareSystemTestItem> GetAllSoftwareSystemTests()
         {
-            List<TestCaseItem> items = new List<TestCaseItem>();
-            foreach (var plugin in slmsPlugins)
+            List<SoftwareSystemTestItem> items = new List<SoftwareSystemTestItem>();
+            foreach (var plugin in plugins)
             {
                 items.AddRange(plugin.GetSoftwareSystemTests());
             }
@@ -153,7 +137,7 @@ namespace RoboClerk
         public override List<AnomalyItem> GetAllAnomalies()
         {
             List<AnomalyItem> items = new List<AnomalyItem>();
-            foreach (var plugin in slmsPlugins)
+            foreach (var plugin in plugins)
             {
                 items.AddRange(plugin.GetAnomalies());
             }

@@ -7,7 +7,7 @@
 using RoboClerk;
 
 TraceEntity te = SourceTraceEntity;
-TestCaseItem item = (TestCaseItem)Item;
+SoftwareSystemTestItem item = (SoftwareSystemTestItem)Item;
 string pl = GetLinkedField(item, ItemLinkType.Parent);
 AddTrace(item.ItemID);
 

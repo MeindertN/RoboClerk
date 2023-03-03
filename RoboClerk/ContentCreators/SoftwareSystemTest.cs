@@ -23,7 +23,7 @@ namespace RoboClerk.ContentCreators
             foreach (var item in items)
             {
                 dataShare.Item = item;
-                TestCaseItem tc = (TestCaseItem)item;
+                SoftwareSystemTestItem tc = (SoftwareSystemTestItem)item;
                 var result = string.Empty;
                 if (tc.TestCaseAutomated)
                 {

@@ -36,7 +36,7 @@ namespace RoboClerk
 
         public abstract List<DocContentItem> GetAllDocContents();
 
-        public abstract List<TestCaseItem> GetAllSoftwareSystemTests();
+        public abstract List<SoftwareSystemTestItem> GetAllSoftwareSystemTests();
 
         public abstract List<AnomalyItem> GetAllAnomalies();
 
@@ -126,7 +126,7 @@ namespace RoboClerk
             return items.Find(f => (f.ItemID == id));
         }
 
-        public TestCaseItem GetSoftwareSystemTest(string id)
+        public SoftwareSystemTestItem GetSoftwareSystemTest(string id)
         {
             var items = GetAllSoftwareSystemTests();
             return items.Find(f => (f.ItemID == id));

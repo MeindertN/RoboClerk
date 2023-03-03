@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace RoboClerk
 {
-    public class TestCaseItem : LinkedItem
+    public class SoftwareSystemTestItem : LinkedItem
     {
         private string testCaseState = string.Empty;
         private string testCaseDescription = string.Empty;
@@ -11,7 +11,7 @@ namespace RoboClerk
         private bool testCaseToUnitTest = false;
         private List<TestStep> testCaseSteps = new List<TestStep>();
 
-        public TestCaseItem()
+        public SoftwareSystemTestItem()
         {
             type = "SoftwareSystemTest";
             id = Guid.NewGuid().ToString();

@@ -1,5 +1,4 @@
-﻿using RoboClerk.ContentCreators;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using Tomlyn.Model;
@@ -7,16 +6,8 @@ using IConfiguration = RoboClerk.Configuration.IConfiguration;
 
 namespace RoboClerk
 {
-    public abstract class SLMSPluginBase : PluginBase, ISLMSPlugin
+    public abstract class SLMSPluginBase : PluginBase
     {
-        protected List<RequirementItem> systemRequirements = new List<RequirementItem>();
-        protected List<RequirementItem> softwareRequirements = new List<RequirementItem>();
-        protected List<RequirementItem> documentationRequirements = new List<RequirementItem>();
-        protected List<TestCaseItem> testCases = new List<TestCaseItem>();
-        protected List<AnomalyItem> anomalies = new List<AnomalyItem>();
-        protected List<RiskItem> risks = new List<RiskItem>();
-        protected List<SOUPItem> soup = new List<SOUPItem>();
-        protected List<DocContentItem> docContents = new List<DocContentItem>();
         protected string prsName = string.Empty;
         protected string srsName = string.Empty;
         protected string docName = string.Empty;
@@ -63,18 +54,6 @@ namespace RoboClerk
             }
         }
 
-        protected void ClearAllSLMSItems()
-        {
-            systemRequirements.Clear();
-            softwareRequirements.Clear();
-            documentationRequirements.Clear();
-            testCases.Clear();
-            anomalies.Clear();
-            risks.Clear();
-            soup.Clear();
-            docContents.Clear();
-        }
-
         protected void TrimLinkedItems<T>(List<T> items, List<string> retrievedIDs)
         {
             foreach (var item in items)
@@ -95,52 +74,5 @@ namespace RoboClerk
                 }
             }
         }
-
-        public List<AnomalyItem> GetAnomalies()
-        {
-            return anomalies;
-        }
-
-        public List<RequirementItem> GetSystemRequirements()
-        {
-            return systemRequirements;
-        }
-
-        public List<RequirementItem> GetSoftwareRequirements()
-        {
-            return softwareRequirements;
-        }
-
-        public List<RequirementItem> GetDocumentationRequirements()
-        {
-            return documentationRequirements;
-        }
-
-        public List<DocContentItem> GetDocContents()
-        {
-            return docContents;
-        }
-
-        public List<TestCaseItem> GetSoftwareSystemTests()
-        {
-            return testCases;
-        }
-
-        public List<RiskItem> GetRisks()
-        {
-            return risks;
-        }
-
-        public List<SOUPItem> GetSOUP()
-        {
-            return soup;
-        }
-
-        public List<UnitTestItem> GetUnitTests()
-        {
-            return new List<UnitTestItem>();
-        }
-
-        public abstract void RefreshItems();
     }
 }

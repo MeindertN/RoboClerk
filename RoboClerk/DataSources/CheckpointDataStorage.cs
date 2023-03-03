@@ -9,7 +9,7 @@ namespace RoboClerk
         private List<RequirementItem> documentationRequirements = new List<RequirementItem>();
         private List<RiskItem> risks = new List<RiskItem>();
         private List<SOUPItem> soups = new List<SOUPItem>();
-        private List<TestCaseItem> softwareSystemTests = new List<TestCaseItem>();
+        private List<SoftwareSystemTestItem> softwareSystemTests = new List<SoftwareSystemTestItem>();
         private List<UnitTestItem> unitTests = new List<UnitTestItem>();
         private List<AnomalyItem> anomalies = new List<AnomalyItem>();
         private List<DocContentItem> docContents = new List<DocContentItem>();
@@ -87,7 +87,7 @@ namespace RoboClerk
             }
         }
 
-        public List<TestCaseItem> SoftwareSystemTests
+        public List<SoftwareSystemTestItem> SoftwareSystemTests
         {
             get
             {
@@ -213,7 +213,7 @@ namespace RoboClerk
             }
         }
 
-        public void UpdateSoftwareSystemTest(TestCaseItem item)
+        public void UpdateSoftwareSystemTest(SoftwareSystemTestItem item)
         {
             RemoveSoftwareSystemTest(item.ItemID);
             softwareSystemTests.Add(item);

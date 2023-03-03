@@ -13,7 +13,7 @@ namespace RoboClerk.Tests
         private List<RequirementItem> documentationRequirements = null;
         private List<RiskItem> risks = null;
         private List<SOUPItem> soups = null;
-        private List<TestCaseItem> softwareSystemTests = null;
+        private List<SoftwareSystemTestItem> softwareSystemTests = null;
         private List<UnitTestItem> unitTests = null;
         private List<AnomalyItem> anomalies = null;
         private List<DocContentItem> docContents = null;
@@ -26,7 +26,7 @@ namespace RoboClerk.Tests
             documentationRequirements = new List<RequirementItem> { new RequirementItem(RequirementType.DocumentationRequirement) { ItemID = "dr1" } }; ;
             risks = new List<RiskItem> { new RiskItem() { ItemID = "r1" } };
             soups = new List<SOUPItem>() { new SOUPItem() { ItemID = "s1" } };
-            softwareSystemTests = new List<TestCaseItem> { new TestCaseItem() { ItemID = "tc1" } };
+            softwareSystemTests = new List<SoftwareSystemTestItem> { new SoftwareSystemTestItem() { ItemID = "tc1" } };
             unitTests = new List<UnitTestItem> { new UnitTestItem() { ItemID = "ut1" } };
             anomalies = new List<AnomalyItem> { new AnomalyItem() { ItemID = "a1" } };
             docContents = new List<DocContentItem> { new DocContentItem() { ItemID = "dc1" } };
@@ -95,7 +95,7 @@ namespace RoboClerk.Tests
             var documentationRequirement = new RequirementItem(RequirementType.DocumentationRequirement) { ItemID = "dr1", ItemCategory = "new" } ;
             var risk = new RiskItem() { ItemID = "r1", ItemCategory = "new" } ;
             var soup = new SOUPItem() { ItemID = "s1", ItemCategory = "new" } ;
-            var softwareSystemTest = new TestCaseItem() { ItemID = "tc1", ItemCategory = "new" } ;
+            var softwareSystemTest = new SoftwareSystemTestItem() { ItemID = "tc1", ItemCategory = "new" } ;
             var unitTest = new UnitTestItem() { ItemID = "ut1", ItemCategory = "new" } ;
             var anomaly = new AnomalyItem() { ItemID = "a1", ItemCategory = "new" } ;
             var docContent = new DocContentItem() { ItemID = "dc1", ItemCategory = "new" } ;

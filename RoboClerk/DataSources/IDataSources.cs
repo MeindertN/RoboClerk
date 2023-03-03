@@ -9,7 +9,7 @@ namespace RoboClerk
         List<AnomalyItem> GetAllAnomalies();
         List<RequirementItem> GetAllSoftwareRequirements();
         List<UnitTestItem> GetAllUnitTests();
-        List<TestCaseItem> GetAllSoftwareSystemTests();
+        List<SoftwareSystemTestItem> GetAllSoftwareSystemTests();
         List<RequirementItem> GetAllSystemRequirements();
         List<ExternalDependency> GetAllExternalDependencies();
         List<RequirementItem> GetAllDocumentationRequirements();
@@ -20,7 +20,7 @@ namespace RoboClerk
         string GetConfigValue(string key);
         Item GetItem(string id);
         RequirementItem GetSoftwareRequirement(string id);
-        TestCaseItem GetSoftwareSystemTest(string id);
+        SoftwareSystemTestItem GetSoftwareSystemTest(string id);
         UnitTestItem GetUnitTest(string id);
         RequirementItem GetSystemRequirement(string id);
         RequirementItem GetDocumentationRequirement(string id);

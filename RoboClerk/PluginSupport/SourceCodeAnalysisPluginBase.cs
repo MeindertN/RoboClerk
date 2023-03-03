@@ -7,26 +7,18 @@ using Tomlyn.Model;
 
 namespace RoboClerk
 {
-    public abstract class SourceCodeAnalysisPluginBase : PluginBase, ISourceCodeAnalysisPlugin
+    public abstract class SourceCodeAnalysisPluginBase : PluginBase
     {
         protected bool subDir = false;
         protected List<string> directories = new List<string>();
         protected List<string> fileMasks = new List<string>();
         protected List<string> sourceFiles = new List<string>();
-        protected List<UnitTestItem> unitTests = new List<UnitTestItem>();
         protected GitRepoInformation gitInfo = null;
 
         public SourceCodeAnalysisPluginBase(IFileSystem fileSystem)
             : base(fileSystem)
         {
         }
-
-        public List<UnitTestItem> GetUnitTests()
-        {
-            return unitTests;
-        }
-
-        public abstract void RefreshItems();
 
         public override void Initialize(IConfiguration configuration)
         {

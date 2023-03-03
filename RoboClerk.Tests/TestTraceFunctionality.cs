@@ -211,10 +211,10 @@ namespace RoboClerk.Tests
         private List<RequirementItem> SWRs = null;
         private List<RequirementItem> DOCs = null;
         private List<DocContentItem> DOCCTs = null;
-        private List<TestCaseItem> TCs = null;
+        private List<SoftwareSystemTestItem> TCs = null;
         private List<AnomalyItem> ANOMALYs = null;
         private List<UnitTestItem> UTs = null;
-        private ISLMSPlugin mockPlugin = Substitute.For< ISLMSPlugin>();
+        private IPlugin mockPlugin = Substitute.For< IPlugin>();
         private List<SOUPItem> SOUPs = null;
         private List<RiskItem> RISKs = null;
         private void SetupPlugin()
@@ -237,7 +237,7 @@ namespace RoboClerk.Tests
             SWRs[1].ItemCategory = "CategoryName";
             SWRs[1].AddLinkedItem(new ItemLink(SYSs[1].ItemID, ItemLinkType.Parent));
             mockPlugin.GetSoftwareRequirements().Returns(SWRs);
-            TCs = new List<TestCaseItem> { new TestCaseItem(), new TestCaseItem() };
+            TCs = new List<SoftwareSystemTestItem> { new SoftwareSystemTestItem(), new SoftwareSystemTestItem() };
             TCs[0].ItemTitle = "TC_TestTitle1";
             TCs[0].ItemID = "TC_id1";
             TCs[0].AddLinkedItem(new ItemLink("SWR_id1", ItemLinkType.Parent));
@@ -297,7 +297,7 @@ namespace RoboClerk.Tests
 
 
         private IDataSources GenerateDataSources(List<RequirementItem> systemReqs, List<RequirementItem> softwareReqs, 
-            List<TestCaseItem> tcs, List<AnomalyItem> ans)
+            List<SoftwareSystemTestItem> tcs, List<AnomalyItem> ans)
         {
             SetupPlugin();
             IPluginLoader mockPluginLoader = Substitute.For<IPluginLoader>();
@@ -317,7 +317,7 @@ namespace RoboClerk.Tests
             ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
             var tet = traceabilityAnalysis.GetTraceEntityForID("SystemRequirement");
             IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
-                new List<TestCaseItem>(),new List<AnomalyItem>());
+                new List<SoftwareSystemTestItem>(),new List<AnomalyItem>());
 
             //add valid trace in PRS / SRS / RAR
             traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"),"SYS_id1",
@@ -374,7 +374,7 @@ namespace RoboClerk.Tests
             ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
             var tet = traceabilityAnalysis.GetTraceEntityForID("DocumentationRequirement");
             IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
-                new List<TestCaseItem>(), new List<AnomalyItem>());
+                new List<SoftwareSystemTestItem>(), new List<AnomalyItem>());
 
             var tet1 = traceabilityAnalysis.GetTraceEntityForID("DocContent");
 
@@ -403,7 +403,7 @@ namespace RoboClerk.Tests
             ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
             var tet = traceabilityAnalysis.GetTraceEntityForID("SystemRequirement");
             IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
-                new List<TestCaseItem>(), new List<AnomalyItem>());
+                new List<SoftwareSystemTestItem>(), new List<AnomalyItem>());
 
             //add valid trace in PRS / SRS / RAR
             traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"), "SYS_id1",
@@ -462,7 +462,7 @@ namespace RoboClerk.Tests
             ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
             var tet = traceabilityAnalysis.GetTraceEntityForID("SystemRequirement");
             IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
-                new List<TestCaseItem>(), new List<AnomalyItem>());
+                new List<SoftwareSystemTestItem>(), new List<AnomalyItem>());
 
             //add valid trace in PRS
             traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"), "SYS_id2",
@@ -523,7 +523,7 @@ namespace RoboClerk.Tests
             ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
             var tet = traceabilityAnalysis.GetTraceEntityForID("SystemRequirement");
             IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
-                new List<TestCaseItem>(), new List<AnomalyItem>());
+                new List<SoftwareSystemTestItem>(), new List<AnomalyItem>());
 
             //add valid trace in PRS / SRS / RAR
             traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"), "SYS_id1",
@@ -704,7 +704,7 @@ namespace RoboClerk.Tests
             ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
             var tet = traceabilityAnalysis.GetTraceEntityForID("SystemRequirement");
             IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
-                new List<TestCaseItem>(), new List<AnomalyItem>());
+                new List<SoftwareSystemTestItem>(), new List<AnomalyItem>());
 
             //add valid trace in PRS / SRS / RAR
             traceabilityAnalysis.AddTrace(traceabilityAnalysis.GetTraceEntityForID("SystemRequirement"), "SYS_id",
@@ -740,7 +740,7 @@ namespace RoboClerk.Tests
         {
             var analysis = new TraceabilityAnalysis(mockConfig);
             IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
-                new List<TestCaseItem>(), new List<AnomalyItem>());
+                new List<SoftwareSystemTestItem>(), new List<AnomalyItem>());
             var tet = new TraceEntity("test", "invalid", "abbreviation", TraceEntityType.Truth);
 
             Assert.Throws<Exception>(() => { analysis.PerformAnalysis(dataSources, tet); });
@@ -751,7 +751,7 @@ namespace RoboClerk.Tests
         {
             var analysis = new TraceabilityAnalysis(mockConfig);
             IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
-                new List<TestCaseItem>(), new List<AnomalyItem>());
+                new List<SoftwareSystemTestItem>(), new List<AnomalyItem>());
             var tet = new TraceEntity("SystemRequirement", "System Requirement", "SYS", TraceEntityType.Unknown);
 
             Assert.Throws<Exception>(() => { analysis.PerformAnalysis(dataSources, tet); });
@@ -761,7 +761,7 @@ namespace RoboClerk.Tests
         public void Incorrect_Link_Type_Used_VERIFIES_Only_Correct_Link_Types_Are_Traced()
         {
             IDataSources dataSources = GenerateDataSources(new List<RequirementItem>(), new List<RequirementItem>(),
-                                                new List<TestCaseItem>(), new List<AnomalyItem>());
+                                                new List<SoftwareSystemTestItem>(), new List<AnomalyItem>());
             SWRs = new List<RequirementItem> { new RequirementItem(RequirementType.SoftwareRequirement), new RequirementItem(RequirementType.SoftwareRequirement) };
             SWRs[0].ItemTitle = "SWR_TestTitle1";
             SWRs[0].ItemID = "SWR_id1";

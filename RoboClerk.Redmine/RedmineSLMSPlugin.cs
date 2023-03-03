@@ -60,7 +60,7 @@ namespace RoboClerk.Redmine
             {
                 throw new Exception("No API endpoint or API key provided in configuration file.");
             }
-            ClearAllSLMSItems();
+            ClearAllItems();
 
             logger.Debug($"Retrieving the issues from the redmine server...");
             var redmineIssues = PullAllIssuesFromServer(GetTrackerList());
@@ -165,10 +165,10 @@ namespace RoboClerk.Redmine
             return output;
         }
 
-        private TestCaseItem CreateTestCase(List<RedmineIssue> issues, RedmineIssue redmineItem)
+        private SoftwareSystemTestItem CreateTestCase(List<RedmineIssue> issues, RedmineIssue redmineItem)
         {
             logger.Debug($"Creating test case item: {redmineItem.Id}");
-            TestCaseItem resultItem = new TestCaseItem();
+            SoftwareSystemTestItem resultItem = new SoftwareSystemTestItem();
 
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();

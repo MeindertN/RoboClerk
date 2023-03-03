@@ -28,11 +28,11 @@ MediaDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/media"
 # Note that the <TRACE ID> elements cannot be changed by the user and that all truth entities must be present in this file.
 
 [Truth.SystemRequirement]
-	name = "Requirement"
+	name = "System Requirement"
 	abbreviation = "SYS"
 
 [Truth.SoftwareRequirement]
-	name = "Specification"
+	name = "Software Requirement"
 	abbreviation = "SWR"
 
 [Truth.DocumentationRequirement]
@@ -110,7 +110,7 @@ MediaDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/media"
 		ignoreErrors = "False"
 	[[Document.SystemRequirementsSpecification.Command]]
 		executable = "docker"
-		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 
@@ -126,7 +126,7 @@ MediaDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/media"
 		ignoreErrors = "False"
 	[[Document.SoftwareRequirementsSpecification.Command]]
 		executable = "docker"
-		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 
@@ -142,7 +142,7 @@ MediaDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/media"
 		ignoreErrors = "False"
 	[[Document.SoftwareDesignSpecification.Command]]
 		executable = "docker"
-		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 
@@ -158,7 +158,7 @@ MediaDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/media"
 		ignoreErrors = "False"
 	[[Document.RiskAssessmentRecord.Command]]
 		executable = "docker"
-		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.RiskAssessmentRecord.Command]]
@@ -179,7 +179,7 @@ MediaDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/media"
 		ignoreErrors = "False"
 	[[Document.SoftwareSystemLevelTestPlan.Command]]
 		executable = "docker"
-		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.SoftwareSystemLevelTestPlan.Command]]
@@ -206,7 +206,7 @@ MediaDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/media"
 		ignoreErrors = "False"
 	[[Document.ResidualAnomaliesRecord.Command]]
 		executable = "docker"
-		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx  --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 
@@ -222,7 +222,7 @@ MediaDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/media"
 		ignoreErrors = "False"
 	[[Document.TraceAbilityAnalysisRecord.Command]]
 		executable = "docker"
-		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.TraceAbilityAnalysisRecord.Command]]

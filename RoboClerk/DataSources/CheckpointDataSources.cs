@@ -181,7 +181,7 @@ namespace RoboClerk
             return dataStorage.SoftwareRequirements;
         }
 
-        public override List<TestCaseItem> GetAllSoftwareSystemTests()
+        public override List<SoftwareSystemTestItem> GetAllSoftwareSystemTests()
         {
             return dataStorage.SoftwareSystemTests;
         }

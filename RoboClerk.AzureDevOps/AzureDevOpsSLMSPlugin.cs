@@ -63,7 +63,7 @@ namespace RoboClerk.AzureDevOps
 
         public override void RefreshItems()
         {
-            ClearAllSLMSItems();
+            ClearAllItems();
             List<string> retrievedIDs = new List<string>();
 
             logger.Info("Retrieving and processing system level requirements.");
@@ -171,7 +171,7 @@ namespace RoboClerk.AzureDevOps
             {
                 foreach (var rel in links)
                 {
-                    if (rel.Rel.Contains("Hierarchy-Forward"))
+                    if (rel.Rel.Contains("Hierarchy-Forward") || rel.Rel.Contains("TestedBy-Forward"))
                     {
                         //this is a child link
                         var id = AzureDevOpsUtilities.GetWorkItemIDFromURL(rel.Url);
@@ -193,6 +193,11 @@ namespace RoboClerk.AzureDevOps
                         var id = AzureDevOpsUtilities.GetWorkItemIDFromURL(rel.Url);
                         logger.Debug($"Parent link found: {id}");
                         item.AddLinkedItem(new ItemLink(id, ItemLinkType.Related));
+                        continue;
+                    }
+                    if (rel.Rel.Contains("SharedStepReferencedBy-Reverse"))
+                    {
+                        //we ignore these kinds of links as this type of traceability is not of interest to RoboClerk
                         continue;
                     }
                     logger.Warn($"Unknown link type encountered in workitem {item.ItemID}: {rel.Rel}");
@@ -259,6 +264,20 @@ namespace RoboClerk.AzureDevOps
         private RequirementItem GetRequirementItem(string ID)
         {
             foreach (var ri in systemRequirements)
+            {
+                if (ri.ItemID == ID)
+                {
+                    return ri;
+                }
+            }
+            foreach (var ri in softwareRequirements)
+            {
+                if (ri.ItemID == ID)
+                {
+                    return ri;
+                }
+            }
+            foreach (var ri in documentationRequirements)
             {
                 if (ri.ItemID == ID)
                 {
@@ -401,10 +420,10 @@ namespace RoboClerk.AzureDevOps
             return result;
         }
 
-        private TestCaseItem ConvertToTestCaseItem(WorkItem workitem)
+        private SoftwareSystemTestItem ConvertToTestCaseItem(WorkItem workitem)
         {
             logger.Debug($"Creating testcase item for: {workitem.Id}");
-            TestCaseItem item = new TestCaseItem();
+            SoftwareSystemTestItem item = new SoftwareSystemTestItem();
             item.ItemID = workitem.Id.ToString();
             item.Link = new Uri($"https://dev.azure.com/{organizationName}/{projectName}/_workitems/edit/{workitem.Id}/");
             item.ItemRevision = workitem.Rev.ToString();
