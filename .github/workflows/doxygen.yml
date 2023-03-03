@@ -1,8 +1,9 @@
-- name: Doxygen Action
+name: Doxygen Action
+on: [push]
   # You may pin to the exact commit or the version.
   # uses: mattnotmitt/doxygen-action@411df0c62acb5b96b8a93d93a7bf4b753c47ea05
-  uses: mattnotmitt/doxygen-action@1.9.5
-  with:
+uses: mattnotmitt/doxygen-action@1.9.5
+with:
     # Path to Doxyfile
     doxyfile-path: # default is ./Doxyfile
     # Working directory
