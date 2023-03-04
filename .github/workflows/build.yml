@@ -33,8 +33,9 @@ jobs:
   doxygen:
     runs-on: ubuntu-latest
     
-    #only run on main
-    if: github.ref == 'refs/heads/main'
+    #only run on main and if the build was successful 
+    if: github.ref == 'refs/heads/main' && ${{ always() && contains(join(needs.*.result, ','), 'success') }}
+    needs: [build]
     steps:
       - uses: actions/checkout@v3
       - name: Doxygen Action
