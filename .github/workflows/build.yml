@@ -2,6 +2,9 @@ name: BuildRoboClerk
 
 on: [push]
 
+env:
+  LD_DEBUG: libs libgit2-106a5f2
+
 jobs:
   build:
 
