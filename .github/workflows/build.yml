@@ -36,6 +36,7 @@ jobs:
     #only run on main
     if: github.ref == 'refs/heads/main'
     steps:
+      - uses: actions/checkout@v3
       - name: Doxygen Action
         uses: mattnotmitt/doxygen-action@1.9.5
         with:
