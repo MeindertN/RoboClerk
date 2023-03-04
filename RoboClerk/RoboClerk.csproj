@@ -17,7 +17,7 @@
     <PackageReference Include="CliWrap" Version="3.4.4" />
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="DocumentPartner.ClosedXML" Version="0.95.171" />
-    <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
+    <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0182" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.4.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
@@ -50,8 +50,11 @@
 	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
 		<ItemGroup>
 			<RoboClerkFiles Include="$(ProjectDir)$(OutDir)*.dll;$(ProjectDir)$(OutDir)*.exe" />
+			<RunTimeFiles Include="$(ProjectDir)$(OutDir)/runtimes/**/*.*" />
 		</ItemGroup>
+		<MakeDir Directories="$(ProjectDir)../RoboClerkDocker/Publish/runtimes" />
 		<Copy SourceFiles="@(RoboClerkFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/" />
+		<Copy SourceFiles="@(RunTimeFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/runtimes/%(RecursiveDir)%(Filename)%(Extension)" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish" />
 	</Target>
