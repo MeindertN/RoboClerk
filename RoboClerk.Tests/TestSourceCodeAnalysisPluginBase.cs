@@ -162,7 +162,7 @@ FileMasks = [""Test*.cs""]
 UseGit = false";
             }
 
-            fs.File.WriteAllText(@"C:\TestSourceCodeAnalysisPlugin.toml", tomlFile);
+            fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
             testPlugin.Initialize(config);
@@ -235,7 +235,7 @@ FileMasks = [""Test*.cs"",""Test*.txt""]
 UseGit = false";
             }
 
-            fs.File.WriteAllText(@"c:\TestSourceCodeAnalysisPlugin.toml", tomlFile);
+            fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
             testPlugin.Initialize(config);

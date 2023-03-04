@@ -387,7 +387,7 @@ namespace RoboClerk.Tests
         [Test]
         public void FileStream_Is_Retrieved_From_Disk_VERIFIES_Stream_Contents_Matches_File_On_Disk()
         {
-            mockConfiguration.TemplateDir.Returns(TestingHelpers.ConvertFileName(@"C:\templatedir"));
+            mockConfiguration.TemplateDir.Returns(TestingHelpers.ConvertFileName(@"C:\templateDir"));
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
                 { TestingHelpers.ConvertFileName(TestingHelpers.ConvertFileName(@"C:\templateDir\myfile.txt")), 
