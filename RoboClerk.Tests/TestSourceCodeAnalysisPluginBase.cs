@@ -5,6 +5,7 @@ using RoboClerk.Configuration;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
+using System.Runtime.InteropServices;
 
 namespace RoboClerk.Tests
 {
@@ -40,25 +41,38 @@ namespace RoboClerk.Tests
         [SetUp]
         public void TestSetup()
         {
-            string tomlFile = @"
+            string tomlFile = string.Empty;
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                tomlFile = @"
+TestDirectories = [""/C/RoboClerkTest"",""/C/RoboClerkTest2""]
+SubDirs = true
+FileMasks = [""Test*.cs""]
+UseGit = false";
+            }
+            else
+            {
+                tomlFile = @"
 TestDirectories = [""C:\\RoboClerkTest"",""C:\\RoboClerkTest2""]
 SubDirs = true
 FileMasks = [""Test*.cs""]
 UseGit = false";
+            }
 
             fs = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { @"c:\TestSourceCodeAnalysisPlugin.toml", new MockFileData(tomlFile) },
-                { @"c:\RoboClerkTest\TestStuff1.cs", new MockFileData("this is a mock file1") },
-                { @"c:\RoboClerkTest\TestStuff2.txt", new MockFileData("this is a mock file2") },
-                { @"c:\RoboClerkTest\TestStuff3.cs", new MockFileData("this is a mock file3") },
-                { @"c:\RoboClerkTest\SubDir\TestStuff4.cs", new MockFileData("this is a mock file4") },
-                { @"c:\RoboClerkTest2\TestStuff5.cs", new MockFileData("this is a mock file5") },
+                { TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), new MockFileData(tomlFile) },
+                { TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff1.cs"), new MockFileData("this is a mock file1") },
+                { TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff2.txt"), new MockFileData("this is a mock file2") },
+                { TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff3.cs"), new MockFileData("this is a mock file3") },
+                { TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\SubDir\TestStuff4.cs"), new MockFileData("this is a mock file4") },
+                { TestingHelpers.ConvertFileName(@"C:\RoboClerkTest2\TestStuff5.cs"), new MockFileData("this is a mock file5") },
             });
 
             config = Substitute.For<IConfiguration>();
-            config.PluginConfigDir.Returns(@"c:\");
-            config.ProjectRoot.Returns(@"c:\RoboClerkTest");
+            config.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"C:\"));
+            config.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest"));
         }
 
         [UnitTestAttribute(
@@ -84,8 +98,8 @@ UseGit = false";
             Assert.That(testPlugin.FileMasks.Count, Is.EqualTo(1));
             Assert.That(testPlugin.FileMasks[0], Is.EqualTo("Test*.cs"));
             Assert.That(testPlugin.Directories.Count, Is.EqualTo(2));
-            Assert.That(testPlugin.Directories[0], Is.EqualTo("C:\\RoboClerkTest"));
-            Assert.That(testPlugin.Directories[1], Is.EqualTo("C:\\RoboClerkTest2"));
+            Assert.That(testPlugin.Directories[0], Is.EqualTo(TestingHelpers.ConvertFileName("C:\\RoboClerkTest")));
+            Assert.That(testPlugin.Directories[1], Is.EqualTo(TestingHelpers.ConvertFileName("C:\\RoboClerkTest2")));
             Assert.That(testPlugin.SubDir);
         }
 
@@ -96,15 +110,27 @@ UseGit = false";
         [Test]
         public void TestSourceCodeAnalysisPlugin2()
         {
-            string tomlFile = @"
+            string tomlFile = string.Empty;
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                tomlFile = @"
+TestDirectories = [""/C/RoboClerkTest"",""/C/RoboClerkTest2""]
+SubDirs = true
+FileMasks = [""Test*.cs""]
+UseGit = true";
+            }
+            else
+            {
+                tomlFile = @"
 TestDirectories = [""C:\\RoboClerkTest"",""C:\\RoboClerkTest2""]
 SubDirs = true
 FileMasks = [""Test*.cs""]
 UseGit = true";
+            }
 
             fs = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { @"c:\TestSourceCodeAnalysisPlugin.toml", new MockFileData(tomlFile) },
+                { TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), new MockFileData(tomlFile) },
             });
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
@@ -118,21 +144,33 @@ UseGit = true";
         [Test]
         public void TestSourceCodeAnalysisPlugin3()
         {
-            string tomlFile = @"
+            string tomlFile = string.Empty;
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                tomlFile = @"
+TestDirectories = [""/C/RoboClerkTest"",""/C/RoboClerkTest2""]
+SubDirs = false
+FileMasks = [""Test*.cs""]
+UseGit = false";
+            }
+            else
+            {
+                tomlFile = @"
 TestDirectories = [""C:\\RoboClerkTest"",""C:\\RoboClerkTest2""]
 SubDirs = false
 FileMasks = [""Test*.cs""]
 UseGit = false";
+            }
 
-            fs.File.WriteAllText(@"c:\TestSourceCodeAnalysisPlugin.toml", tomlFile);
+            fs.File.WriteAllText(@"C:\TestSourceCodeAnalysisPlugin.toml", tomlFile);
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
             testPlugin.Initialize(config);
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(3));
-            Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(@"c:\RoboClerkTest\TestStuff1.cs"));
-            Assert.That(testPlugin.SourceFiles[1], Is.EqualTo(@"c:\RoboClerkTest\TestStuff3.cs"));
-            Assert.That(testPlugin.SourceFiles[2], Is.EqualTo(@"c:\RoboClerkTest2\TestStuff5.cs"));
+            Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff1.cs")));
+            Assert.That(testPlugin.SourceFiles[1], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff3.cs")));
+            Assert.That(testPlugin.SourceFiles[2], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest2\TestStuff5.cs")));
         }
 
         [UnitTestAttribute(
@@ -142,11 +180,23 @@ UseGit = false";
         [Test]
         public void TestSourceCodeAnalysisPlugin4()
         {
-            string tomlFile = @"
+            string tomlFile = string.Empty;
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                tomlFile = @"
+TestDirectories = [""/C/RoboClerkTest"",""/C/RoboClerkTest2""]
+SubDirs = true
+FileMasks = [""Test*.cs""]
+UseGit = false";
+            }
+            else
+            {
+                tomlFile = @"
 TestDirectories = [""C:\\RoboClerkTest"",""C:\\RoboClerkTest2""]
 SubDirs = true
 FileMasks = [""Test*.cs""]
 UseGit = false";
+            }
 
             fs.File.WriteAllText(@"c:\TestSourceCodeAnalysisPlugin.toml", tomlFile);
 
@@ -154,10 +204,10 @@ UseGit = false";
             testPlugin.Initialize(config);
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(4));
-            Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(@"c:\RoboClerkTest\TestStuff1.cs"));
-            Assert.That(testPlugin.SourceFiles[1], Is.EqualTo(@"c:\RoboClerkTest\TestStuff3.cs"));
-            Assert.That(testPlugin.SourceFiles[2], Is.EqualTo(@"c:\RoboClerkTest\SubDir\TestStuff4.cs"));
-            Assert.That(testPlugin.SourceFiles[3], Is.EqualTo(@"c:\RoboClerkTest2\TestStuff5.cs"));
+            Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff1.cs")));
+            Assert.That(testPlugin.SourceFiles[1], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff3.cs")));
+            Assert.That(testPlugin.SourceFiles[2], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\SubDir\TestStuff4.cs")));
+            Assert.That(testPlugin.SourceFiles[3], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest2\TestStuff5.cs")));
         }
 
         [UnitTestAttribute(
@@ -167,11 +217,23 @@ UseGit = false";
         [Test]
         public void TestSourceCodeAnalysisPlugin5()
         {
-            string tomlFile = @"
+            string tomlFile = string.Empty;
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                tomlFile = @"
+TestDirectories = [""/C/RoboClerkTest"",""/C/RoboClerkTest2""]
+SubDirs = false
+FileMasks = [""Test*.cs"",""Test*.txt""]
+UseGit = false";
+            }
+            else
+            {
+                tomlFile = @"
 TestDirectories = [""C:\\RoboClerkTest"",""C:\\RoboClerkTest2""]
 SubDirs = false
 FileMasks = [""Test*.cs"",""Test*.txt""]
 UseGit = false";
+            }
 
             fs.File.WriteAllText(@"c:\TestSourceCodeAnalysisPlugin.toml", tomlFile);
 
@@ -179,10 +241,10 @@ UseGit = false";
             testPlugin.Initialize(config);
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(4));
-            Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(@"c:\RoboClerkTest\TestStuff1.cs"));
-            Assert.That(testPlugin.SourceFiles[1], Is.EqualTo(@"c:\RoboClerkTest\TestStuff3.cs"));
-            Assert.That(testPlugin.SourceFiles[2], Is.EqualTo(@"c:\RoboClerkTest\TestStuff2.txt"));
-            Assert.That(testPlugin.SourceFiles[3], Is.EqualTo(@"c:\RoboClerkTest2\TestStuff5.cs"));
+            Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff1.cs")));
+            Assert.That(testPlugin.SourceFiles[1], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff3.cs")));
+            Assert.That(testPlugin.SourceFiles[2], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff2.txt")));
+            Assert.That(testPlugin.SourceFiles[3], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest2\TestStuff5.cs")));
         }
 
         [UnitTestAttribute(
@@ -192,13 +254,25 @@ UseGit = false";
         [Test]
         public void TestSourceCodeAnalysisPlugin6()
         {
-            string tomlFile = @"
+            string tomlFile = string.Empty;
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                tomlFile = @"
+TestDirectories = [""/C/RoboClerkTest"",""/C/RoboClerkTest3""]
+SubDirs = false
+FileMasks = [""Test*.cs"",""Test*.txt""]
+UseGit = false";
+            }
+            else
+            {
+                tomlFile = @"
 TestDirectories = [""C:\\RoboClerkTest"",""C:\\RoboClerkTest3""]
 SubDirs = false
 FileMasks = [""Test*.cs"",""Test*.txt""]
 UseGit = false";
+            }
 
-            fs.File.WriteAllText(@"c:\TestSourceCodeAnalysisPlugin.toml", tomlFile);
+            fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
             testPlugin.Initialize(config);

@@ -378,7 +378,7 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\myfile.txt"), new MockFileData("This is a \nmultiline text file.") },
+                { TestingHelpers.ConvertFileName(@"C:\myfile.txt"), new MockFileData("This is a \nmultiline text file.") },
             });
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, fileSystem);
             Assert.That(ds.GetTemplateFile(TestingHelpers.ConvertFileName(@"C:\myfile.txt")), Is.EqualTo("This is a \nmultiline text file."));
@@ -390,7 +390,7 @@ namespace RoboClerk.Tests
             mockConfiguration.TemplateDir.Returns(TestingHelpers.ConvertFileName(@"C:\templatedir"));
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(TestingHelpers.ConvertFileName(@"c:\templateDir\myfile.txt")), 
+                { TestingHelpers.ConvertFileName(TestingHelpers.ConvertFileName(@"C:\templateDir\myfile.txt")), 
                     new MockFileData("This is a \nmultiline text file.") },
             });
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, fileSystem);

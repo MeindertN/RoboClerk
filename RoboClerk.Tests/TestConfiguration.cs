@@ -70,8 +70,8 @@ CompanyName = ""Acme Inc.""
 ";
             fs = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\temp\roboConf.toml"), new MockFileData(roboConf) },
-                { TestingHelpers.ConvertFileName(@"c:\temp\roboProjectConf.toml"), new MockFileData(roboProjectConf) }
+                { TestingHelpers.ConvertFileName(@"C:\temp\roboConf.toml"), new MockFileData(roboConf) },
+                { TestingHelpers.ConvertFileName(@"C:\temp\roboProjectConf.toml"), new MockFileData(roboProjectConf) }
             });
         }
 
@@ -206,6 +206,7 @@ MediaDirectory = ""I:/temp/Roboclerk_input/media""
 [ConfigValues]
 CompanyName = ""Acme Inc.""
 ";
+            fs.Directory.CreateDirectory(TestingHelpers.ConvertFileName(@"C:\temp"));
             fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\temp\confMissing.toml"), roboProjectConf);
             Assert.DoesNotThrow(() => new RoboClerk.Configuration.Configuration(fs, 
                 TestingHelpers.ConvertFileName(@"C:\temp\roboConf.toml"), 
