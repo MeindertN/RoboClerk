@@ -50,8 +50,11 @@
 	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
 		<ItemGroup>
 			<RoboClerkFiles Include="$(ProjectDir)$(OutDir)*.dll;$(ProjectDir)$(OutDir)*.exe" />
+			<RunTimeFiles Include="$(ProjectDir)$(OutDir)/runtimes/**/*.*" />
 		</ItemGroup>
+		<MakeDir Directories="$(ProjectDir)../RoboClerkDocker/Publish/runtimes" />
 		<Copy SourceFiles="@(RoboClerkFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/" />
+		<Copy SourceFiles="@(RunTimeFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/runtimes/%(RecursiveDir)%(Filename)%(Extension)" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish" />
 	</Target>
