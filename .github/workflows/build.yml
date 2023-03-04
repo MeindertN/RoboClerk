@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -30,6 +29,13 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }} 
           path-to-lcov: ./RoboClerk.Tests/coverage.info
+  
+  doxygen:
+    runs-on: ubuntu-latest
+    
+    #only run on main
+    if: github.ref == 'refs/heads/main'
+    steps:
       - name: Doxygen Action
         uses: mattnotmitt/doxygen-action@1.9.5
         with:
