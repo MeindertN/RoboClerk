@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -30,4 +29,22 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }} 
           path-to-lcov: ./RoboClerk.Tests/coverage.info
-          
+  
+  doxygen:
+    runs-on: ubuntu-latest
+    
+    #only run on main
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Doxygen Action
+        uses: mattnotmitt/doxygen-action@1.9.5
+        with:
+          doxyfile-path: ./Doxyfile
+          working-directory: .
+      - name: GitHub Pages v3
+        uses: peaceiris/actions-github-pages@v3.1.12
+        with:
+          personal_token: ${{ secrets.PERSONAL_TOKEN }}
+          publish_branch: main
+          publish_dir: ./Documentation/html
+          external_repository: MeindertN/MeindertN.github.io 
