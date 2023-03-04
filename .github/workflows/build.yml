@@ -2,6 +2,9 @@ name: BuildRoboClerk
 
 on: [push]
 
+env:
+  LD_DEBUG: all
+
 jobs:
   build:
 
