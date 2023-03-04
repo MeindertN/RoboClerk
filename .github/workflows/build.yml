@@ -2,9 +2,6 @@ name: BuildRoboClerk
 
 on: [push]
 
-env:
-  LD_DEBUG: libs libgit2-106a5f2
-
 jobs:
   build:
 
@@ -24,6 +21,8 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Test
+        env:
+          LD_DEBUG: libs
         run: dotnet test --no-restore --verbosity normal
           /p:CollectCoverage=true 
           /p:CoverletOutput=coverage.info
