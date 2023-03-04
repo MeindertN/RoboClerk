@@ -35,3 +35,10 @@ jobs:
         with:
           doxyfile-path: ./Doxyfile
           working-directory: .
+      - name: GitHub Pages v3
+        uses: peaceiris/actions-github-pages@v3.1.12
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: main
+          publish_dir: ./Documentation/html
+          external_repository: MeindertN/MeindertN.github.io
