@@ -1,0 +1,132 @@
+﻿[Document.SystemRequirementsSpecification]
+	title = "System Requirements Specification"
+	abbreviation = "PRS"
+	identifier = "DOC001"
+	template = "SystemRequirementSpecification.adoc"
+	[[Document.SystemRequirementsSpecification.Command]]
+		executable = "asciidoctor"
+		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.SystemRequirementsSpecification.Command]]
+		executable = "pandoc"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+
+[Document.SoftwareRequirementsSpecification]
+	title = "Software Requirements Specification"
+	abbreviation = "SRS"
+	identifier = "DOC002"
+	template = "SoftwareRequirementSpecification.adoc"
+	[[Document.SoftwareRequirementsSpecification.Command]]
+		executable = "asciidoctor"
+		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.SoftwareRequirementsSpecification.Command]]
+		executable = "pandoc"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+
+[Document.SoftwareDesignSpecification]
+	title = "Software Design Specification"
+	abbreviation = "SDS"
+	identifier = "DOC003"
+	template  = "SoftwareDesignSpecification.adoc"
+	[[Document.SoftwareDesignSpecification.Command]]
+		executable = "asciidoctor"
+		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.SoftwareDesignSpecification.Command]]
+		executable = "pandoc"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+
+[Document.RiskAssessmentRecord]
+	title = "Risk Assessment Record"
+	abbreviation = "RAR"
+	identifier = "DOC004"
+	template  = "RiskAssessmentRecord.adoc"
+	[[Document.RiskAssessmentRecord.Command]]
+		executable = "asciidoctor"
+		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.RiskAssessmentRecord.Command]]
+		executable = "pandoc"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.RiskAssessmentRecord.Command]]
+		executable = "python3"
+		arguments = "/mnt/RoboClerk_input/DocxProcessingScripts/GeneralDocxPostProc.py /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+
+[Document.SoftwareSystemLevelTestPlan]
+	title = "System Level Test Plan"
+	abbreviation = "SLTP"
+	identifier = "DOC005"
+	template = "SystemLevelTestPlan.adoc"
+	[[Document.SoftwareSystemLevelTestPlan.Command]]
+		executable = "asciidoctor"
+		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.SoftwareSystemLevelTestPlan.Command]]
+		executable = "pandoc"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.SoftwareSystemLevelTestPlan.Command]]
+		executable = "python3"
+		arguments = "/mnt/RoboClerk_input/DocxProcessingScripts/SystemLevelTestPlan.py /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.SoftwareSystemLevelTestPlan.Command]]
+		executable = "python3"
+		arguments = "/mnt/RoboClerk_input/DocxProcessingScripts/GeneralDocxPostProc.py /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	
+
+[Document.ResidualAnomaliesRecord]
+	title = "Unresolved Anomalies List"
+	abbreviation = "UAL"
+	identifier = "DOC006"
+	template = "ResidualAnomaliesRecord.adoc"
+	[[Document.ResidualAnomaliesRecord.Command]]
+		executable = "asciidoctor"
+		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.ResidualAnomaliesRecord.Command]]
+		executable = "pandoc"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+
+[Document.TraceAbilityAnalysisRecord]
+	title = "Traceability Analysis Record"
+	abbreviation = "TAR"
+	identifier = "DOC007"
+	template = "TraceabilityAnalysisRecord.adoc"
+	[[Document.TraceAbilityAnalysisRecord.Command]]
+		executable = "asciidoctor"
+		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.TraceAbilityAnalysisRecord.Command]]
+		executable = "pandoc"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.TraceAbilityAnalysisRecord.Command]]
+		executable = "python3"
+		arguments = "/mnt/RoboClerk_input/DocxProcessingScripts/GeneralDocxPostProc.py /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"

@@ -29,7 +29,6 @@
 		<ItemGroup>
 			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
 		</ItemGroup>
-
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/plugins" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AnnotatedUnitTests.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AnnotatedUnitTests.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
@@ -41,14 +40,16 @@
 		<Copy SourceFiles="$(ProjectDir)Configuration/AnnotatedUnitTestPlugin.toml" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig" />
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)plugins" />
 	</Target>
-	<Target Name="AdaptConfigFiles" AfterTargets="Build">
-		<ReplaceFileText
-			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/AnnotatedUnitTestPlugin.toml"
-			MatchExpression="{DOCUMENTATIONROOT}"
-			ReplacementText="$(ProjectDir)../RoboClerk/$(OutDir)" />
+	<Target Name="AdaptConfigFiles" AfterTargets="Build" Condition=" '$(Configuration)' != 'ReleasePublish' ">
 		<ReplaceFileText
 			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/AnnotatedUnitTestPlugin.toml"
 			MatchExpression="{PROJECTROOT}"
 			ReplacementText="$(ProjectDir)../" />
+	</Target>
+	<Target Name="AdaptConfigFilesRP" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
+		<ReplaceFileText
+			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/AnnotatedUnitTestPlugin.toml"
+			MatchExpression="{PROJECTROOT}"
+			ReplacementText="/mnt/" />
 	</Target>
 </Project>

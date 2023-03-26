@@ -1,7 +1,7 @@
 ﻿# This is the RoboClerk AzureDevOps plugin configuration
 
-AccessToken = "olyjeywxzkkw5vhtpa7nym3f7wnud4fa3ja25vyt2jis3wtliipa"
-OrganizationName = "meindert"
+AccessToken = ""
+OrganizationName = ""
 ProjectName = "RoboClerk"
 
 # The following allows you to indicate the work item names that map

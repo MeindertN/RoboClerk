@@ -41,14 +41,16 @@
 		<Copy SourceFiles="$(ProjectDir)Configuration/DependenciesFilePlugin.toml" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig" />
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)plugins" />
 	</Target>
-	<Target Name="AdaptConfigFiles" AfterTargets="Build">
-		<ReplaceFileText
-			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/DependenciesFilePlugin.toml"
-			MatchExpression="{DOCUMENTATIONROOT}"
-			ReplacementText="$(ProjectDir)../RoboClerk/$(OutDir)" />
+	<Target Name="AdaptConfigFiles" AfterTargets="Build" Condition=" '$(Configuration)' != 'ReleasePublish' ">
 		<ReplaceFileText
 			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/DependenciesFilePlugin.toml"
 			MatchExpression="{PROJECTROOT}"
 			ReplacementText="$(ProjectDir)../" />
+	</Target>
+	<Target Name="AdaptConfigFilesRP" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
+		<ReplaceFileText
+			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/DependenciesFilePlugin.toml"
+			MatchExpression="{PROJECTROOT}"
+			ReplacementText="/mnt/" />
 	</Target>
 </Project>

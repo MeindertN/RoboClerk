@@ -5,8 +5,10 @@
 DataSourcePlugin = [ "RedmineSLMSPlugin", "DependenciesFilePlugin", "UnitTestFNPlugin", "AnnotatedUnitTestPlugin" ]
 
 # RoboClerk will search for plugins in the subdirectories of the plugin dirs.
-# For example: PluginDirs = [ "c:/temp/plugins" ]
-PluginDirs = [ "{DOCUMENTATIONROOT}/plugins" ]
+# For example: PluginDirs = [ "c:/temp/plugins" ]. Note that the plugins are included
+# with the RoboClerk container, so when using the container, this should point to
+# /home/RoboClerk/plugins
+PluginDirs = [ "{PLUGINROOT}/plugins" ]
 
 # The configuration files for the plugins may be in a different location than the 
 # plugins themselves. E.g. when executing RoboClerk in a docker environment. If

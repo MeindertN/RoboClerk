@@ -35,3 +35,7 @@ RUN wget -O dotnet.tar.gz https://dotnetcli.azureedge.net/dotnet/Runtime/$DOTNET
 
 # Install RoboClerk itself
 ADD Publish /home/RoboClerk
+WORKDIR /home/RoboClerk
+ENV PATH="/home/RoboClerk:${PATH}"
+RUN chmod +x /home/RoboClerk/scaffold
+RUN chmod +x /home/RoboClerk/generate

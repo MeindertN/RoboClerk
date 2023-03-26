@@ -46,7 +46,7 @@ namespace RoboClerk.AnnotatedUnitTests
 
         public override void Initialize(IConfiguration configuration)
         {
-            logger.Info("Initializing the Unit Test Function Name Plugin");
+            logger.Info("Initializing the Annotated Unit Test Plugin");
             try
             {
                 base.Initialize(configuration);
@@ -65,9 +65,9 @@ namespace RoboClerk.AnnotatedUnitTests
             }
             catch (Exception e)
             {
-                logger.Error("Error reading configuration file for Unit Test FN plugin.");
+                logger.Error("Error reading configuration file for Annotated Unit Test plugin.");
                 logger.Error(e);
-                throw new Exception("The Unit Test FN plugin could not read its configuration. Aborting...");
+                throw new Exception("The Annotated Unit Test plugin could not read its configuration. Aborting...");
             }
             ScanDirectoriesForSourceFiles();
         }
