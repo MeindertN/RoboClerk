@@ -4,21 +4,35 @@ for
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
   
 Authors:
-@@@Config:authors()
-NOT FOUND
-@@@
+
+ROBOCLERK
+
+@@Post:TOC()@@
 
 == Introduction
 
 === Purpose
 
-The purpose of this document is to document the outcome of the traceability analysis process for @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. 
+The @@Document:Title()@@ (@@Document:Abbreviation()@@) is a document created in accordance with ISO 62304 standards to provide a comprehensive record of the traceability of requirements and risks throughout the software development lifecycle for the medical device software project. The purpose of this document is to demonstrate that all software requirements are traceable to higher-level system requirements, risk controls, and are validated. The TAR also identifies any issues with the trace and provides an analysis of the software of unknown provenance (SOUP) dependencies.
+
+=== Document Conventions
+
+The @@Document:Abbreviation()@@ will include the following sections:
+
+. System Level Trace Matrix: This table will trace system level requirements to the System Requirements Specification, software requirements, risk assessment record and risks.
+. Software Level Trace Matrix: This table will trace software level requirements to the Software Requirements Specification, system requirements, and the System Level Test Plan.
+. Risk Trace Matrix: This table will trace risks to the system requirements defining the risk control measure.
+. Documentation Trace Matrix: This table will trace documentation requirements to DocContent items.
+. DocContent Trace Matrix: This table will trace DocContent items to the documents they appear in.
+
+Traceability Issues: Any issues with the traceability of requirements will be listed below the tables.
+SOUP Issues: This section will analyze and describe all SOUP items and match them with dependencies. Any mismatches will be reported.
 
 === Intended Audience
 
-This document is intended for the software developers at @@Config:CompanyName()@@. It is also prepared as a record of the traceability validation activities. This document is also intended to be reviewed by regulatory agencies and auditors.
+The @@Document:Abbreviation()@@ is intended for use by the software development team, including developers and managers, to ensure that all software requirements are traceable to higher-level system requirements, risk controls, and validations. The @@Document:Abbreviation()@@ will also be reviewed by regulatory agencies to evaluate compliance with relevant standards and regulations governing the development and use of medical software.
 
-=== Product Level Trace Matrix
+=== System Level Trace Matrix
 
 @@@SLMS:TraceMatrix(source=SystemRequirement)
 
@@ -39,6 +53,12 @@ This document is intended for the software developers at @@Config:CompanyName()@
 === Documentation Trace Matrix
 
 @@@SLMS:TraceMatrix(source=DocumentationRequirement)
+
+@@@
+
+=== DocContent Trace Matrix
+
+@@@SLMS:TraceMatrix(source=DocContent)
 
 @@@
 

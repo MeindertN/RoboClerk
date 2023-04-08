@@ -72,9 +72,12 @@ for num, par in enumerate(document.paragraphs):
     if '~' in par.text and par.text[0] == '~':
         if '~TOC' in par.text:
             AddTOCToDocument(document, par, num)
-        elif '~REMOVEPARAGRAPH' in par.text:
-            DeleteLineFromDocument(par)
         elif '~PAGEBREAK' in par.text:
             InsertPageBreak(document, par, num)
+            
+for num, par in enumerate(document.paragraphs):
+    if '~' in par.text and par.text[0] == '~':
+        if '~REMOVEPARAGRAPH' in par.text:
+            DeleteLineFromDocument(par)
             
 document.save(outputFile)

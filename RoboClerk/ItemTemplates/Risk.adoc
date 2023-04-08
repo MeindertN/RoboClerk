@@ -26,7 +26,9 @@ string CreateRows()
 			if( linkedItem != null) { AddTrace(linkedItem.ItemID); }  //add trace for linked risk control
 			sb.Append($"{risk.RiskControlMeasure} | {risk.RiskModifiedOccScore} | {risk.RiskModifiedDetScore} | ");
 			sb.Append($"{risk.RiskSeverityScore*risk.RiskModifiedOccScore*risk.RiskModifiedDetScore} | ");
-			sb.Append($"{(linkedItem == null?"N/A":linkedItem.ItemID)}\n\n");
+			string linkField = "N/A";
+			if( linkedItem != null) { linkField = GetLinkedField(item, ItemLinkType.RiskControl, false); }
+			sb.Append($"{(linkedItem == null?"N/A":linkField)}\n\n");
 		}
 	}
 	return sb.ToString();
@@ -35,7 +37,7 @@ string CreateRows()
 ]
 |====
 
-|Hazard | Primary Hazard | Sev.| Cause | Occ. | Detection Method | Det. | RPN | Mitigation | mOcc. | mDet. | mRPN | Trace
+|*Hazard* | *Primary Hazard* | *Sev.*| *Cause* | *Occ.* | *Det. Method* | *Det.* | *RPN* | *Mitigation* | *mOcc.* | *mDet.* | *mRPN* | *RCM Trace*
 
 [csx:CreateRows()]
 |====

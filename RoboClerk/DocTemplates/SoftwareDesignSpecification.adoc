@@ -4,21 +4,33 @@ for
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
   
 Authors:
-@@@Config:authors()
-NOT FOUND
-@@@
+
+ROBOCLERK
+
+@@Post:TOC()@@
 
 == Introduction
 
 === Purpose
 
-The purpose of this document is to specify the architecture and system design of 
-@@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. 
-It tracks the information required to define architecture and system design, in order to give the development 
-team guidance on architecture of the system to be developed. The intended audience is the project manager, 
-project team, and development team. Some portions of this document such as the user interface (UI) may, on occasion, 
-be shared with the client/user and other stakeholders whose UI input/approval is needed. If trace to this document is desired
-Traceability information can be created by listing the software requirement ID with the design implementation in the text. 
+The purpose of this @@Document:Title()@@ (@@Document:Abbreviation()@@) document is to detail the architecture and system design for the @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. This document provides essential guidance to the development team, ensuring a cohesive and well-structured system. Portions related to the user interface (UI) may be shared with clients/users and other stakeholders for their input and approval. Traceability to this document can be established by linking software requirement IDs with their corresponding design implementations.
+
+=== Document Conventions
+
+This @@Document:Abbreviation()@@ document follows specific conventions to ensure consistency and clarity for all stakeholders involved in the software development process. Key conventions include:
+
+* Sections: The document is organized into distinct sections, each addressing a particular aspect of the software design, such as architecture, components, interfaces, and data flow.
+* Terminology: Consistent terminology is used throughout the document, with a Definitions Section provided for any domain-specific terms, acronyms, or abbreviations.
+* Diagrams: Visual representations, such as flowcharts, UML diagrams, or state-transition diagrams, are used to illustrate key concepts and relationships between components.
+* Traceability: Software requirement IDs are linked to their corresponding design implementations in the text, ensuring traceability and alignment with the ISO 62304 standard.
+
+=== Intended Audience
+
+This @@Document:Abbreviation()@@ document is intended for various stakeholders involved in the development, management, and regulatory oversight of the @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ medical device software development. The primary intended audience includes:
+
+. Software Developers: This document provides guidance on the architecture and system design, offering insights into the software's structure, components, and relationships for a well-designed solution.
+. Management: This document helps management monitor progress, allocate resources, and make informed decisions based on the software design and its alignment with requirements.
+. Regulatory Agencies: The SDS demonstrates compliance with ISO 62304 and supports regulatory submission, ensuring the software meets safety and efficacy standards.
 
 === Definitions
 
@@ -27,17 +39,27 @@ levels, can be called software items. (See IEC62304.)
 
 *SOFTWARE UNIT* – The lowest level of software item. This level is not further decomposed.
 
+@@POST:PAGEBREAK()@@
+
+== Image Section
+
+Roboclerk expects images to be stored in the media directory (or a subdirectory of the media directory). Here is an example image:
+
 .A nice image
-image::media/griffin-wooldridge-unsplash.jpg[image,width=565]
+image::media/griffin-wooldridge-unsplash.jpg[image,width=365]
 
 == Testing Section
 
-Here we will test a variety of in document trace tags referring to software requirements.
+This document is not meant to model a real design document. Instead it is a testing document for a variety of RoboClerk tags. Here we will test a variety of in document trace tags referring to software requirements. Please refer also to the template source to fully understand what is going on in this section.
 
 @@Trace:SWR(id=10)@@ The text that has the trace link
+
 @@Trace:SWR(Id=1234321)@@ the parameter names are case insensitive
+
 @@Trace:SWR(id=12)@@ And the second trace link
+
 Just a line of text.
+
 @@Trace:SWR(id=3)@@ @@Trace:SR(id=4)@@ Two more trace links
 
 @@Trace:SYS(id=2)@@ And a random product requirement trace link, is not supposed to show up in the document
@@ -48,7 +70,7 @@ Just a line of text.
 
 @@@
 
-The above just tests to see if we can include a single product requirement
+The above just tests to see if we can include a single system requirement
 
 @@@Comment:general()
 Things that are in comment tags will be removed when the document is processed. These comment blocks, when placed
@@ -60,7 +82,7 @@ Here is a reference to a document @@Ref:RandomTestDocument()@@
 
 Check out the @@Ref:SoftwareSystemLevelTestPlan()@@ (@@ref:SoftwareSystemLevelTestPlan(short=true)@@)
 
-We can import excel spreadsheets into our document in the following way:
+We can import excel spreadsheets (e.g. testspreadsheet.xlsx) into our document. See the template to see how this was done for this example:
 @@FILE:ExcelTable(fileName=testspreadsheet.xlsx,range=A3:C6,workSheet=Sheet1)@@
 
 Here is some SOUP that is included in the documents.
@@ -80,3 +102,24 @@ Next are some docContent statements. These are required statements that must sho
 @@@SLMS:DCT()
 This will be replaced by the available documentation content items.
 @@@
+
+== PlantUML diagram with Kroki
+
+The RoboClerk docker container has Kroki support built in. It allows you to add a variety of different text to image tool outputs including PlantUML to your documents:
+
+.*Example workflow diagram with PlantUML and Kroki*
+[plantuml, format=png, scaledwidth=4in]
+....
+skinparam defaultTextAlignment center
+!pragma useVerticalIf on
+
+while(RoboClerk is Awesome?) is (yes)
+    :Keep using RoboClerk;
+    while(Medical Device Software needs to comply with ISO62304) is (yes)
+        :Keep using RoboClerk;
+    endwhile (no)
+endwhile(no)
+:Finish;
+....
+
+

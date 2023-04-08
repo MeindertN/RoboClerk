@@ -47,22 +47,36 @@
 		<Copy SourceFiles="@(DocxProcessingScripts)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/DocxProcessingScripts" />
 		<Copy SourceFiles="@(MediaFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/media" />
 	</Target>
-	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
+	<Target Name="AdaptConfigFiles_local" BeforeTargets="Start" AfterTargets="Build" Condition="'$(Configuration)' != 'ReleasePublish'">
+		<InsertFileIntoFile InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{POSTBUILDPROCESS}" ReplacementFilename="$(ProjectDir)Configuration/Project/POSTBUILDPROCESS_OUTSIDE_DOCKER.txt" />
+		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{DOCUMENTATIONROOT}" ReplacementText="$(ProjectDir)$(OutDir)" />
+		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{PROJECTROOT}" ReplacementText="$(ProjectDir)../" />
+		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{DOCUMENTATIONROOT}" ReplacementText="$(ProjectDir)$(OutDir)" />
+		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{PLUGINROOT}" ReplacementText="$(ProjectDir)$(OutDir)" />
+	</Target>
+	<Target Name="AdaptConfigFiles_docker" BeforeTargets="Start" AfterTargets="Build" Condition="'$(Configuration)' == 'ReleasePublish'">
+		<InsertFileIntoFile InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{POSTBUILDPROCESS}" ReplacementFilename="$(ProjectDir)Configuration/Project/POSTBUILDPROCESS_IN_DOCKER.txt" />
+		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{DOCUMENTATIONROOT}" ReplacementText="/mnt/" />
+		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{PROJECTROOT}" ReplacementText="/mnt/" />
+		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{DOCUMENTATIONROOT}" ReplacementText="/mnt/" />
+		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{PLUGINROOT}" ReplacementText="/home/RoboClerk" />
+	</Target>
+	<Target Name="PublishFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
 		<ItemGroup>
 			<RoboClerkFiles Include="$(ProjectDir)$(OutDir)*.dll;$(ProjectDir)$(OutDir)*.exe" />
-			<RunTimeFiles Include="$(ProjectDir)$(OutDir)/runtimes/**/*.*" />
+			<ScaffoldDir Include="$(ProjectDir)$(OutDir)RoboClerk_input" />
+			<BashScripts Include="$(ProjectDir)../BashScripts/*" />
+			<DemoDir Include="$(ProjectDir)../Demo" />
 		</ItemGroup>
-		<MakeDir Directories="$(ProjectDir)../RoboClerkDocker/Publish/runtimes" />
+		<MakeDir Directories="$(ProjectDir)../RoboClerkDocker/Publish/scaffolding" />
+		<MakeDir Directories="$(ProjectDir)../RoboClerkDocker/Publish/scaffolding/RoboClerk_output" />
+		<MakeDir Directories="$(ProjectDir)../RoboClerkDocker/Publish/scaffolding/RoboClerk_input" />
+		<RecCopyDir InputDir="@(ScaffoldDir)" OutputDir="$(ProjectDir)../RoboClerkDocker/Publish/scaffolding/RoboClerk_input" />
+		<RecCopyDir InputDir="@(DemoDir)" OutputDir="$(ProjectDir)../RoboClerkDocker/Publish/Demo" />
 		<Copy SourceFiles="@(RoboClerkFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/" />
-		<Copy SourceFiles="@(RunTimeFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/runtimes/%(RecursiveDir)%(Filename)%(Extension)" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish" />
-	</Target>
-	<Target Name="AdaptConfigFiles" BeforeTargets="Start" AfterTargets="Build">
-		<ReplaceFileText InputFileName="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{DOCUMENTATIONROOT}" ReplacementText="$(ProjectDir)$(OutDir)" />
-		<ReplaceFileText InputFileName="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{PROJECTROOT}" ReplacementText="$(ProjectDir)../" />
-		<ReplaceFileText InputFileName="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{DOCUMENTATIONROOT}" ReplacementText="$(ProjectDir)$(OutDir)" />
-		<ReplaceFileText InputFileName="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{PROJECTOUTPUT}" ReplacementText="$(ProjectDir)$(OutDir)RoboClerk_output" />
+		<Copy SourceFiles="@(BashScripts)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish" />
 	</Target>
 	<Target Name="GenerateDependenciesList" BeforeTargets="Start" AfterTargets="Build">
 		<!-- get list of dependencies-->

@@ -4,41 +4,78 @@ for
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
   
 Authors:
-@@@Config:authors()
-NOT FOUND
-@@@
+
+ROBOCLERK 
+
+@@Post:TOC()@@
 
 == Introduction
+
 === Purpose
-The purpose of this document is to **specify** the product requirements of @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. 
+
+The purpose of this document is to specify the software requirements for the development of @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@, a medical device software product developed by @@Config:CompanyName()@@ in accordance with the requirements of ISO 62304. This document defines the functional and non-functional requirements of the software, including its intended use, performance criteria, safety requirements, and any other relevant specifications necessary for the design, implementation, and testing of the software product.
 
 === Document Conventions
-This document typically contains the following types of requirements:
 
-* General Product Requirements - requirements specifying how the product behaves and functions
-* Risk Control Product Requirements - requirements specifying how a risk is controlled using the product
-* Transfer To Production Product Requirements - requirements specifying how product that is used to transfer the software to production (e.g. devOps software) behaves and functions
-* Documentation Requirements - requirements specifying contents of "external" documentation (e.g. user manual, transfer to production work order etc.)
-* Usability Product Requirements - requirements specifying what a user has to be able to accomplish with the software. These are used in the product usability validation. 
+==== System Requirements Format
+
+Each system requirement in this document shall be formatted as follows:
+
+* System Requirement ID: A unique identifier assigned to the requirement, with a hyperlink back to the Software Lifecycle Management System for traceability purposes.
+* System Requirement Revision: The revision number of the requirement, along with the date and time of the latest revision.
+* System Requirement Category: The category to which the requirement belongs. Requirements are organized by category for ease of use and management.
+* Parent Item ID: The ID of the parent item, if applicable.
+* Requirement Title: A short, descriptive title that summarizes the requirement.
+* Requirement Description: A detailed description of the requirement, including any specific performance criteria, safety requirements, or other relevant information necessary for the design, implementation, and testing of the software product.
+
+==== System Requirements Categories
+
+The following categories shall be used to organize the system requirements in this document:
+
+* Functional Requirements: Requirements that specify the intended behavior or functionality of the software product.
+* Non-Functional Requirements: Requirements that specify constraints or criteria related to the performance, reliability, or maintainability of the software product.
+* Risk Control Requirements: Requirements that specify measures or features intended to control risks associated with the use of the software product.
+* User Interface Requirements: Requirements that specify the appearance, layout, or behavior of the software product's user interface.
+* Performance Requirements: Requirements that specify the performance criteria or benchmarks that the software product must meet.
+* Security Requirements: Requirements that specify measures or features intended to ensure the security of the software product and protect against unauthorized access or use.
+* Data Management Requirements: Requirements that specify the data elements, structures, or formats used by the software product.
+* Compatibility Requirements: Requirements that specify the compatibility of the software product with other systems, platforms, or devices.
+* Usability Requirements: Requirements related to the ease of use and user experience of the software product.
+* Transfer To Production Requirements: Requirements that specify measures or features of the transfer to production process.
  
 === Intended Audience
-This document is intended for the software developers at @@Config:CompanyName()@@. It is prepared as a record of the product level requirements. This document is also intended to be reviewed by regulatory agencies and auditors.
 
-== Product Requirements
+This document is intended for:
 
-=== Functional Product Requirements
+* Software developers responsible for the design, development, and testing of the software product.
+* Management responsible for overseeing the software development process, including project managers, product owners, and quality assurance personnel
+* Regulatory agencies responsible for overseeing the development and approval of medical device software products
 
-@@@SLMS:SystemRequirement(ItemCategory=Functional)
+@@POST:PAGEBREAK()@@
+
+== System Requirements
+
+=== User Interface System Requirements
+
+@@@SLMS:SystemRequirement(ItemCategory=User Interface)
 
 @@@
 
-=== Documentation Product Requirements
+=== Data Management System Requirements
 
-@@@SLMS:DocumentationRequirement(ItemCategory = General)
+@@@SLMS:SystemRequirement(ItemCategory=Data Management)
 
 @@@
 
-=== Risk Control Product Requirements
+=== Documentation System Requirements
+
+All system requirements shown here are implemented in the labeling of the device, not in the software.
+
+@@@SLMS:DocumentationRequirement()
+
+@@@
+
+=== Risk Control System Requirements
 
 @@@SLMS:SystemRequirement(ItemCategory=Risk Control Measure)
 

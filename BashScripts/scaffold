@@ -1,0 +1,23 @@
+#!/bin/sh
+
+SOURCE_DIR="/home/RoboClerk/scaffolding"
+TARGET_DIR="/mnt"
+DEMO_SOURCE_FILE="/home/RoboClerk/Demo/DataSourceData.json"
+DEMO_TARGET_DIR="/mnt/RoboClerk_input"
+
+# Copy the scaffold directory to /mnt
+cp -r "$SOURCE_DIR/"* "$TARGET_DIR"
+
+# Check if the commandline argument "demo" is provided
+if [ "$1" == "demo" ]; then
+    # Copy the DataSourceData.json file to /mnt/RoboClerk_input
+    cp "$DEMO_SOURCE_FILE" "$DEMO_TARGET_DIR"
+	
+	# Define the project config file path
+    project_config_file="/mnt/RoboClerk_input/RoboClerkConfig/projectConfig.toml"
+	config_file="/mnt/RoboClerk_input/RoboClerkConfig/RoboClerk.toml"
+
+    # Modify the CheckpointFile line in the config file
+    sed -i 's|CheckpointFile = ""|CheckpointFile = "DataSourceData.json"|' "$project_config_file"
+	sed -i 's|DataSourcePlugin = \[ "RedmineSLMSPlugin", "DependenciesFilePlugin", "UnitTestFNPlugin", "AnnotatedUnitTestPlugin" \]|DataSourcePlugin = \[\]|' "$config_file"
+fi

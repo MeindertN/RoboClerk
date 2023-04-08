@@ -91,12 +91,14 @@ namespace RoboClerk
         /// <summary>
         /// This function retrieves all items linked to li with a link of type linkType and returns an
         /// asciidoc string that has links to all these items. Usually used to provide trace information.
+        /// You can use includeTitle to control if the title of the linked item is included as well.
         /// </summary>
         /// <param name="li"></param>
         /// <param name="linkType"></param>
-        /// <returns></returns>
+        /// <param name="includeTitle"</param>
+        /// <returns>AsciiDoc string with http link to item.</returns>
         /// <exception cref="System.Exception"></exception>
-        public string GetLinkedField(LinkedItem li, ItemLinkType linkType)
+        public string GetLinkedField(LinkedItem li, ItemLinkType linkType, bool includeTitle = true)
         {
             StringBuilder field = new StringBuilder();
             var linkedItems = li.LinkedItems.Where(x => x.LinkType == linkType);
@@ -113,7 +115,7 @@ namespace RoboClerk
                     {
                         AddTrace(linkedItem.ItemID);
                         field.Append(linkedItem.HasLink ? $"{linkedItem.Link}[{linkedItem.ItemID}]" : linkedItem.ItemID);
-                        if (linkedItem.ItemTitle != string.Empty)
+                        if (includeTitle && linkedItem.ItemTitle != string.Empty)
                         {
                             field.Append($": \"{linkedItem.ItemTitle}\"");
                         }

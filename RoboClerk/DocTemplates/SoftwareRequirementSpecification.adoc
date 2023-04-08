@@ -4,40 +4,71 @@ for
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
   
 Authors:
-@@@Config:authors()
-NOT FOUND
-@@@
+
+ROBOCLERK
+
+@@Post:TOC()@@
 
 == Introduction
 
 === Purpose
 
-The purpose of this document is to specify the software requirements of @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. 
+The purpose of this @@Document:Title()@@ (@@Document:Abbreviation()@@) is to define the functional and non-functional requirements for the development of @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@, a medical device software product developed by @@Config:CompanyName()@@ in accordance with the requirements of ISO 62304. This document provides a comprehensive overview of the software product's intended use, performance criteria, safety requirements, and other relevant specifications necessary for the design, implementation, and testing of the software product. The Software Requirements Specification is intended to be a detailed and traceable document that can be used throughout the software development life cycle to ensure compliance with regulatory requirements and to facilitate effective communication and collaboration between stakeholders involved in the development of the software product.
 
 === Document Conventions
 
-This document contains the following types of requirements:
+==== Software Requirements Format
 
-* Functional Software Requirements - requirements specifying how the software behaves and functions
-* Risk Control Software Requirements - requirements specifying how a risk is controlled using the software
-* Transfer To Production Software Requirements - requirements specifying how software that is used to transfer the software to production (e.g. devOps software) behaves and functions
-* Documentation Requirements - requirements specifying contents of "external" documentation (e.g. user manual, transfer to production work order etc.)
+Each software requirement in this document shall be formatted as follows:
+
+* Software Requirement ID: A unique identifier assigned to the requirement, with a hyperlink back to the Software Lifecycle Management System for traceability purposes.
+* Requirement Revision: The revision number of the requirement, along with the date and time of the latest revision.
+* Requirement Category: The category to which the requirement belongs. Requirements are organized by category for ease of use and management.
+* Parent System Requirement ID: The ID of the parent System Requirement item, along with its title.
+* Requirement Title: A short, descriptive title that summarizes the requirement.
+* Requirement Description: A detailed description of the requirement, including any specific performance criteria, safety requirements, or other relevant information necessary for the design, implementation, and testing of the software product.
+
+==== Software Requirements Categories
+
+The following categories shall be used to organize the software requirements in this document:
+
+* Functional Requirements: Requirements that specify the intended behavior or functionality of the software product.
+* Non-Functional Requirements: Requirements that specify constraints or criteria related to the performance, reliability, or maintainability of the software product.
+* Risk Control Requirements: Requirements that specify measures or features intended to control risks associated with the use of the software product.
+* User Interface Requirements: Requirements that specify the appearance, layout, or behavior of the software product's user interface.
+* Performance Requirements: Requirements that specify the performance criteria or benchmarks that the software product must meet.
+* Security Requirements: Requirements that specify measures or features intended to ensure the security of the software product and protect against unauthorized access or use.
+* Data Management Requirements: Requirements that specify the data elements, structures, or formats used by the software product.
+* Compatibility Requirements: Requirements that specify the compatibility of the software product with other systems, platforms, or devices.
+* Transfer To Production Requirements: Requirements that specify measures or features of the transfer to production process.
+
+==== Parent System Requirements
+
+Every Software Requirement must have a parent System Requirement item, which is defined in the System Requirements Specification document. The parent System Requirement item provides a high-level overview of the software product's intended use, and each software requirement is linked back to a specific parent System Requirement item to ensure traceability and alignment with the overall product vision.
  
 === Intended Audience
 
-This document is intended for the software developers at @@Config:CompanyName()@@. It is also prepared as a record of the breakdown of system level requirements into lower level (software) requirements according to the SDLC. This document is also intended to be reviewed by regulatory agencies and auditors.
+This @@Document:Abbreviation()@@ is intended for the following audiences:
 
-== Requirements
+* Software developers at @@Config:CompanyName()@@ responsible for the design, development, and testing of the software product
+* Management responsible for overseeing the software development process, including project managers, product owners, and quality assurance personnel
+* Regulatory agencies responsible for overseeing the development and approval of medical device software products
 
-=== Functional Software Requirements
+The document provides each audience with the necessary information about the software product's requirements and specifications to support informed decision-making, compliance with regulatory requirements, and successful software development.
 
-@@@SLMS:SWR(itemCategory=Functional)
+@@POST:PAGEBREAK()@@
+
+== Software Requirements
+
+=== Performance Software Requirements
+
+@@@SLMS:SWR(itemCategory=Performance)
 
 @@@
 
-=== Risk Control Software Requirements
+=== Data Management Software Requirements
 
-@@@SLMS:SWR(itemCategory=Risk Control Measure)
+@@@SLMS:SWR(itemCategory=Data Management)
 
 @@@
 
@@ -49,14 +80,20 @@ This project does not have software requirements of this category. If you still 
 
 @@@
 
-=== Next are only software requirements changed before 2023/02/04 03:07:12 PM:
+=== Risk Control Software Requirements
 
-@@@SLMS:SWR(OlderThan=2023/02/04 03:07:12 PM)
+@@@SLMS:SWR(itemCategory=Risk Control Measure)
 
 @@@
 
-=== Next are only functional software requirements changed after 2023/02/04 03:07:12 PM:
+=== Next are only Software Requirements changed before 2023/04/01 03:00:00 PM:
 
-@@@SLMS:SWR(itemCategory=Functional,NewerThan=2023/02/04 03:07:12 PM)
+@@@SLMS:SWR(OlderThan=2023/04/01 03:00:00 PM)
+
+@@@
+
+=== Next are only User Interface Software Requirements changed after 2023/02/04 03:07:12 PM:
+
+@@@SLMS:SWR(itemCategory=User Interface,NewerThan=2023/02/04 03:07:12 PM)
 
 @@@
