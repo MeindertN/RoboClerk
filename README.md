@@ -14,18 +14,16 @@ RoboClerk uses templates to generate the documentation. These are in Asciidoc fo
 
 # Highly Flexible
 
-By using Asciidoc format, RoboClerk makes all the features of asciidoc available for its users. This makes it easy to include diagrams (for example, plantUML etc. through the use of [Kroki](https://kroki.io/)), images, and other visual aids in the generated documentation.
-
 RoboClerk utilizes the Asciidoc format, granting users access to its extensive features. This allows for the seamless incorporation of diagrams (e.g., PlantUML through [Kroki](https://kroki.io/)), images, tables, code snippets, cross-references, and more into the generated documentation, enhancing its overall quality and readability.
 
 # Getting Started
 
-. Pull the RoboClerk docker container for the release you want to use:
+1. Pull the RoboClerk docker container for the release you want to use:
 
-`some command`
+    $ some command
 
-. At the command prompt, use the `scaffold demo` command to generate a set of demo directories containing templates and everything you need to run RoboClerk for the first time. The precise command to use depends on what commandline you are using:
+2. At the command prompt, use the `scaffold demo` command to generate a set of demo directories containing templates and everything you need to run RoboClerk for the first time. The precise command to use depends on what commandline you are using:
 
-`some other command`
+    $ some other command
 
 To learn more details about RoboClerk please check out the documentation in the [Wiki](https://github.com/MeindertN/RoboClerk/wiki). 
