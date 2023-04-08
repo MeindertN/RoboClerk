@@ -90,7 +90,10 @@ Windows Commandline:
 
 11. Things to try:
 
-* Log into the demo instance at `http://localhost:3001/` with username `admin` and password `password123`. Make changes to items or create new items in the demo instance of redmine, re-generate the documents using the same generate command as for the demo. 
+* Log into the demo instance at `http://localhost:3001/` with username `admin` and password `password123`. Make changes to items or create new items in the demo instance of redmine, re-generate the documents using the following command (note the addition of --network="host" only needed because we need to connect to localhost from the container):
+```
+      docker run -v $(pwd):/mnt --rm --network="host" ghcr.io/meindertn/roboclerk:latest generate 
+```
 * Take a look at the redmine configuration file in `RoboClerk_input/PluginConfig/RedmineSLMSPlugin.toml` to see what configuration options are available.
 
 To learn more details about RoboClerk please check out the documentation in the [Wiki](https://github.com/MeindertN/RoboClerk/wiki). 
