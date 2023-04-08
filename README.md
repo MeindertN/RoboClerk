@@ -40,7 +40,7 @@ Windows Commandline:
     docker run -v %cd%:/mnt --rm ghcr.io/meindertn/roboclerk:latest scaffold demo
 ```
 
-3. RoboClerk will create two directories for you. `RoboClerk_input` and `RoboClerk_output`. In `RoboClerk_input` you will find a set of templates and various other files. 
+3. RoboClerk will create two directories for you. `RoboClerk_input` and `RoboClerk_output`. In `RoboClerk_input` you will find a set of templates and various other files. `RoboClerk_output` will contain the finished documentation. 
 
 4. Now generate the documentation by running the following command:
 
