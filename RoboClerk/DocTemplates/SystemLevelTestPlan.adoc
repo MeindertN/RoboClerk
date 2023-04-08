@@ -4,23 +4,59 @@ for
 @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
   
 Authors:
-@@@Config:authors()
-NOT FOUND
-@@@
+
+ROBOCLERK
+
+@@Post:TOC()@@
 
 == Introduction
 
 === Purpose
 
-The purpose of this document is to specify the system level test plan for @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. 
+The purpose of this @@Document:Title()@@ (@@Document:Abbreviation()@@) document is to define and outline the testing activities, objectives, scope, and methods that will be employed to evaluate the performance, safety, and reliability of @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@, a medical device software developed by @@Config:CompanyName()@@ This SLTP has been prepared in compliance with the ISO 62304 standard for the development of medical device software, and it aims to ensure that @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ meets all the necessary requirements for safe and effective use in its intended healthcare environment.
 
 === Document Conventions
 
-This document contains two test plans, one for automated tests and one for manual tests. Each test is presented with references to the requirement it is testing.  
+This @@Document:Abbreviation()@@ document includes two distinct types of test cases: Manual Test Cases and Automated Test Cases. Each type of test case is organized in its own separate section within the document. The format and content for each type of test case are described below:
+
+==== Manual Test Cases
+
+Manual Test Cases are designed to be executed by human testers. Each Manual Test Case includes the following information:
+
+* Test Case ID: A unique identifier with a link back to the Software Lifecycle Management System.
+* Test Case Revision: The revision number, date, and time of the test case.
+* Parent ID: One or more links to parent software requirement items, along with a brief description for each linked software requirement.
+* Test Case Title: A brief, descriptive title of the test case.
+* Test Case Steps: A series of steps to execute the test case, including:
+** Step Number: The sequential number of the test step.
+** Action: The action to be performed by the tester.
+** Expected Result: The expected outcome of the action.
+** Actual Result: The actual outcome of the action, recorded by the tester.
+** Test Step Status: The status of the test step, indicated as either "pass" or "fail".
+
+==== Automated Test Cases
+
+Automated Test Cases are designed to run automatically as part of the build process. Each Automated Test Case includes the following information:
+
+* Test Case ID: A unique identifier with a link back to the Software Lifecycle Management System.
+* Test Case Revision: The revision number, date, and time of the test case.
+* Parent ID: One or more links to parent software requirement items, along with a brief description for each linked software requirement.
+* Test Case Title: A brief, descriptive title of the test case.
+* Test Case Steps: A series of steps to execute the test case, including:
+** Step Number: The sequential number of the test step.
+** Action: The action to be performed by the automated test.
+** Expected Result: The expected outcome of the action.
 
 === Intended Audience
 
-This document is intended for the software developers at @@Config:CompanyName()@@. It is also prepared as a record of the planning of the system level tests. This document is also intended to be reviewed by regulatory agencies and auditors.
+This @@Document:Abbreviation()@@ document is designed for various stakeholders involved in the development, testing, management, and regulatory oversight of RoboClerk 0.1 medical device software. The primary intended audience includes:
+
+. Software Developers: This document provides guidance on testing objectives, scope, and methodologies, offering insights into software behavior, performance requirements, and safety criteria for a robust solution.
+. Testers and Quality Assurance (QA) Personnel: This SLTP outlines test levels, methods, and evaluation criteria, enabling efficient testing and ensuring software quality.
+. Project Managers and Management: This document helps management monitor progress, allocate resources, and make informed decisions based on test results.
+. Regulatory Agencies: The  demonstrates compliance with ISO 62304 and supports regulatory submission, ensuring the software meets safety and efficacy standards.
+
+@@POST:PAGEBREAK()@@
 
 === Manual Tests
 
@@ -30,6 +66,8 @@ The following tests are to be executed manually. This could be done by printing 
 
 @@@
 
+@@POST:PAGEBREAK()@@
+
 === Automated Tests
 
 The following tests are automated, they are typically part of the continuous integration / continuous deployment build. 
@@ -38,6 +76,8 @@ The following tests are automated, they are typically part of the continuous int
 
 @@@
 
+@@POST:PAGEBREAK()@@
+
 === Unit Tests Brief
 
 This is a table containing an overview of all unit tests of RoboClerk. The different formats of the identifier is because two different approaches were used to document the unit tests. In the first approach we used the unit test function name to document it and in the second approach unit tests are annotated. The annotated approach is the superior approach. 
@@ -45,6 +85,8 @@ This is a table containing an overview of all unit tests of RoboClerk. The diffe
 @@@FILE:UnitTest(brief=true)
 A brief summary table of unit tests
 @@@
+
+@@POST:PAGEBREAK()@@
 
 === Unit Tests Long
 

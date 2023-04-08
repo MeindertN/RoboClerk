@@ -345,6 +345,23 @@ namespace RoboClerk.Redmine
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.AnomalyJustification = string.Empty;
             resultItem.AnomalySeverity = string.Empty;
+            if (redmineItem.CustomFields.Count != 0)
+            {
+                foreach (var field in redmineItem.CustomFields)
+                {
+                    if (field.Value == null)
+                    {
+                        continue;
+                    }
+                    var value = ((System.Text.Json.JsonElement)field.Value).ToString();
+
+                    switch (field.Name)
+                    {
+                        case "Justification": resultItem.AnomalyJustification = value; break;
+                        case "Severity": resultItem.AnomalySeverity = value; break;
+                    }
+                }
+            }
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
             resultItem.AnomalyState = redmineItem.Status.Name ?? string.Empty;
@@ -391,8 +408,11 @@ namespace RoboClerk.Redmine
                         case "Risk": resultItem.RiskPrimaryHazard = value; break;
                         case "Hazard Severity": resultItem.RiskSeverityScore = (value != string.Empty ? int.Parse(value.Split('-')[0]) : int.MaxValue); break; //need to ensure default is int maxvalue for safety
                         case "Hazard Probability": resultItem.RiskOccurenceScore = (value != string.Empty ? int.Parse(value.ToString().Split('-')[0]) : int.MaxValue); break;
+                        case "Hazard Detectability": resultItem.RiskDetectabilityScore = (value != string.Empty ? int.Parse(value.ToString().Split('-')[0]) : int.MaxValue); break;
                         case "Residual Probability": resultItem.RiskModifiedOccScore = (value != string.Empty ? int.Parse(value.Split('-')[0]) : int.MaxValue); break;
+                        case "Residual Detectability": resultItem.RiskModifiedDetScore = (value != string.Empty ? int.Parse(value.Split('-')[0]) : int.MaxValue); break;
                         case "Risk Control Category": resultItem.RiskControlMeasureType = (value != string.Empty ? value.Split('\t')[0] : string.Empty); break;
+                        case "Detection Method": resultItem.RiskMethodOfDetection = value; break;
                     }
                 }
             }

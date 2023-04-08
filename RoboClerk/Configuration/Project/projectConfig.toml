@@ -194,7 +194,6 @@ MediaDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/media"
 		DocContent.forwardLink = "Child"
 		DocContent.backwardLink = "Parent"
 
-
 # The following element can be used to take a snapshot as produced in a RoboClerk build
 # and rebuild the documentation without the use of any external datasources. It can also
 # be used to make small additions and changes to accomodate patches and bug fixes that 

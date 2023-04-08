@@ -77,10 +77,6 @@ namespace RoboClerk
             {
                 unitTests.AddRange(plugin.GetUnitTests());
             }
-            foreach (var plugin in plugins)
-            {
-                unitTests.AddRange(plugin.GetUnitTests());
-            }
             return unitTests;
         }
 

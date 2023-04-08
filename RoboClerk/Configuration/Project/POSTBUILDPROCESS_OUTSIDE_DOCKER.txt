@@ -13,6 +13,11 @@
 		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
+	[[Document.SystemRequirementsSpecification.Command]]
+		executable = "docker"
+		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk python3 /mnt/RoboClerk_input/DocxProcessingScripts/GeneralDocxPostProc.py /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
 
 [Document.SoftwareRequirementsSpecification]
 	title = "Software Requirements Specification"
@@ -29,6 +34,11 @@
 		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
+	[[Document.SoftwareRequirementsSpecification.Command]]
+		executable = "docker"
+		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk python3 /mnt/RoboClerk_input/DocxProcessingScripts/GeneralDocxPostProc.py /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
 
 [Document.SoftwareDesignSpecification]
 	title = "Software Design Specification"
@@ -43,6 +53,11 @@
 	[[Document.SoftwareDesignSpecification.Command]]
 		executable = "docker"
 		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.SoftwareDesignSpecification.Command]]
+		executable = "docker"
+		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk python3 /mnt/RoboClerk_input/DocxProcessingScripts/GeneralDocxPostProc.py /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 
@@ -94,19 +109,24 @@
 		ignoreErrors = "False"
 	
 
-[Document.ResidualAnomaliesRecord]
-	title = "Unresolved Anomalies List"
-	abbreviation = "UAL"
+[Document.OutstandingAnomaliesRecord]
+	title = "Outstanding Anomalies Record"
+	abbreviation = "OAR"
 	identifier = "DOC006"
-	template = "ResidualAnomaliesRecord.adoc"
-	[[Document.ResidualAnomaliesRecord.Command]]
+	template = "OutstandingAnomaliesRecord.adoc"
+	[[Document.OutstandingAnomaliesRecord.Command]]
 		executable = "docker"
 		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk asciidoctor -r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
 		workingDirectory = ""
 		ignoreErrors = "False"
-	[[Document.ResidualAnomaliesRecord.Command]]
+	[[Document.OutstandingAnomaliesRecord.Command]]
 		executable = "docker"
 		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk pandoc --from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx  --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		workingDirectory = ""
+		ignoreErrors = "False"
+	[[Document.OutstandingAnomaliesRecord.Command]]
+		executable = "docker"
+		arguments = "run -a stdout -a stderr -v \"{DOCUMENTATIONROOT}\":/mnt --rm roboclerk python3 /mnt/RoboClerk_input/DocxProcessingScripts/GeneralDocxPostProc.py /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 

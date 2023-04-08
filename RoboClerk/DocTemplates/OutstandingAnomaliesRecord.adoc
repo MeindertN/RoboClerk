@@ -1,0 +1,43 @@
+﻿# @@Document:Title()@@
+
+for
+@@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@  
+  
+Authors:
+
+ROBOCLERK
+
+@@Post:TOC()@@
+
+== Introduction
+
+=== Purpose
+
+The purpose of this @@Document:Title()@@ (@@Document:Abbreviation()@@) is to document the outstanding anomalies identified during the development and testing of the medical device, in accordance with ISO 62304 standards. The @@Document:Abbreviation()@@ serves as a comprehensive record of the residual anomalies, their root cause analysis, and the corrective and preventive measures implemented to minimize their impact on the safety and efficacy of the device.
+
+=== Document Conventions
+
+The @@Document:Abbreviation()@@ will proide the following information for each outstanding anomaly:
+
+. Unique Identifier: A unique identifier will be assigned to each residual anomaly for easy tracking and identification.
+. Revision History: A revision history will be maintained for each residual anomaly, including the time and date of each revision.
+. Current State: The current state of the anomaly will be recorded, including whether it is open, closed, or in progress.
+. Assigned To: The person or team responsible for addressing the anomaly will be identified.
+. Anomaly Title: A descriptive title will be provided for each residual anomaly.
+. Severity: The severity of the anomaly will be rated on a scale of 1 to 5, with 1 being the least impactful and 5 being the most critical.
+. Description: A description of the anomaly will be provided, including its impact on the device's safety and efficacy. The description field is also used to record information related to the root cause analysis and any corrective and preventive measures taken.
+. Justification: A justification for why the anomaly is acceptable to remain unresolved will be provided, including any risk assessments or other factors that were considered.
+
+=== Intended Audience
+
+The @@Document:Abbreviation()@@ is intended for use by the project team, including software developers, testers, and quality assurance personnel, to ensure that all outstanding anomalies have been appropriately addressed before release to market. The RAR will also be reviewed by regulatory agencies and auditors to evaluate the safety and efficacy of the device and demonstrate compliance with the relevant standards and regulations.
+
+@@POST:PAGEBREAK()@@
+
+== Outstanding Anomalies
+
+Below is a list of bug work items that are listed as open at release time.
+
+@@@SLMS:BG()
+
+@@@

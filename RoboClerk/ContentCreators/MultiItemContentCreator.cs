@@ -31,6 +31,7 @@ namespace RoboClerk.ContentCreators
                 properties = items[0].GetType().GetProperties();
             }
             List<LinkedItem> includedItems = new List<LinkedItem>();
+            int index = 0;
             foreach (var item in items)
             {
                 if (ShouldBeIncluded(tag, item, properties) && CheckUpdateDateTime(tag, item))
@@ -38,6 +39,7 @@ namespace RoboClerk.ContentCreators
                     foundContent = true;
                     includedItems.Add(item);
                 }
+                index++;
             }
             string content = string.Empty;
             try
