@@ -34,7 +34,7 @@
 		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
-	[[Document.SystemRequirementsSpecification.Command]]
+	[[Document.SoftwareRequirementsSpecification.Command]]
 		executable = "python3"
 		arguments = "/mnt/RoboClerk_input/DocxProcessingScripts/GeneralDocxPostProc.py /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
