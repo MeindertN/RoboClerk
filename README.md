@@ -67,7 +67,7 @@ Windows Commandline:
 7. Once you are done using the JSON file as input, connect RoboClerk to a demo SLMS. First, get the demo Redmine container using the following command:
 
 ```
-   docker pull ghcr.io/meindertn/demo-redmine:latest
+   docker pull ghcr.io/meindertn/redmine-demo:latest
 ```
 
 8. From this point forward, my assumption is that you are using linux, see the earlier examples on how to run these commands in other commandlines. Scaffold a non-demo instance of the RoboClerk directory structure using:
