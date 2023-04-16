@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Tomlyn;
 using Tomlyn.Model;
 
@@ -130,7 +131,7 @@ namespace RoboClerk
                         // asciidoc uses | to seperate fields in a table, if the fields
                         // themselves contain a | character it needs to be escaped.
                         string currentValue = (string)property.GetValue(obj);
-                        string newValue = currentValue.Replace("|", "\\|");
+                        string newValue = Regex.Replace(currentValue, "(?<!\\\\)\\|", "\\|"); 
                         property.SetValue(obj, newValue);
                     }
                 }
