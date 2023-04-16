@@ -116,6 +116,7 @@ namespace RoboClerk.Redmine
                 }
             }
             RemoveIgnoredLinks(retrievedIDs); //go over all items and remove any links to ignored items
+            ScrubItemContents(); //go over all relevant items and escape any | characters
         }
 
         private void RemoveIgnoredLinks(List<string> retrievedIDs)

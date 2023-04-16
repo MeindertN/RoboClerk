@@ -1,4 +1,5 @@
-﻿using RoboClerk.Configuration;
+﻿using DocumentFormat.OpenXml.Office2010.ExcelAc;
+using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
@@ -113,6 +114,46 @@ namespace RoboClerk
             docContents.Clear();
             unitTests.Clear();
             dependencies.Clear();
+        }
+
+        private void ScrubItemsFields<T>(IEnumerable<T> items)
+        {
+            foreach (var obj in items)
+            {
+                Type type = obj.GetType();
+                PropertyInfo[] properties = type.GetProperties();
+
+                foreach (PropertyInfo property in properties)
+                {
+                    if (property.PropertyType == typeof(string) && property.CanWrite)
+                    {
+                        // asciidoc uses | to seperate fields in a table, if the fields
+                        // themselves contain a | character it needs to be escaped.
+                        string currentValue = (string)property.GetValue(obj);
+                        string newValue = currentValue.Replace("|", "\\|");
+                        property.SetValue(obj, newValue);
+                    }
+                }
+            }
+        }
+
+        // with the exception of docContent items, all other items are visualized
+        // in tables and they need to escape the | character
+        protected void ScrubItemContents()
+        {
+            ScrubItemsFields<RequirementItem>(systemRequirements);
+            ScrubItemsFields<RequirementItem>(softwareRequirements);
+            ScrubItemsFields<RequirementItem>(documentationRequirements);
+            ScrubItemsFields<SoftwareSystemTestItem>(testCases);
+            foreach (var testCase in testCases)
+            {
+                ScrubItemsFields<TestStep>(testCase.TestCaseSteps);
+            }
+            ScrubItemsFields<AnomalyItem>(anomalies);
+            ScrubItemsFields<RiskItem>(risks);
+            ScrubItemsFields<SOUPItem>(soup);
+            ScrubItemsFields<UnitTestItem>(unitTests);
+            ScrubItemsFields<ExternalDependency>(dependencies);
         }
 
         protected string GetStringForKey(TomlTable config, string keyName, bool required)

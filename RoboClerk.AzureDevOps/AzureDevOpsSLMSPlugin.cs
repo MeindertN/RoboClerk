@@ -151,6 +151,8 @@ namespace RoboClerk.AzureDevOps
             TrimLinkedItems(soup, retrievedIDs);
             TrimLinkedItems(docContents, retrievedIDs);
 
+            ScrubItemContents(); //go over all relevant items and escape any | characters
+
             /*var productRequirementLinksQuery = new Wiql()
             {
                 Query = $"SELECT * FROM WorkItemLinks " +

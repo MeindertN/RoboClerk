@@ -76,15 +76,22 @@ namespace RoboClerk.AnnotatedUnitTests
         {
             int openers = 0;
             int closers = 0;
+            bool insideStringLiteral = false;
+            bool ignoreStringDelim = false;
 
             for (int i = 0; i < input.Length; i++)
             {
                 var temp = input.Substring(i);
-                if (temp.StartsWith(parameterStartDelimiter))
+                if (temp.StartsWith("\"") && !ignoreStringDelim)
+                {
+                    insideStringLiteral = !insideStringLiteral;
+                }
+                ignoreStringDelim = temp.StartsWith("\\\"");
+                if (!insideStringLiteral && temp.StartsWith(parameterStartDelimiter))
                 {
                     openers++;
                 }
-                if (temp.StartsWith(parameterEndDelimiter))
+                if (!insideStringLiteral && temp.StartsWith(parameterEndDelimiter))
                 {
                     closers++;
                 }
@@ -205,7 +212,7 @@ namespace RoboClerk.AnnotatedUnitTests
                 {
                     var value = parameterValues[info.Key];
                     //all strings are assumed to start and end with a string delimiter for all supported languages
-                    value = value.Substring(1, value.Length - 2);
+                    value = value.Substring(1, value.Length - 2).Replace("\\\"","\"");
                     switch (info.Key)
                     {
                         case "Purpose": unitTest.UnitTestPurpose = value; break;

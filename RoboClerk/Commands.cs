@@ -1,4 +1,5 @@
 ﻿using CliWrap;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,6 +18,7 @@ namespace RoboClerk
         private List<string> workingDirectories = new List<string>();
         private List<string> arguments = new List<string>();
         private List<bool> ignoreErrors = new List<bool>();
+        protected static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public Commands(TomlTableArray commands, string outputDir, string filename, string inputDir)
         {
@@ -73,13 +75,31 @@ namespace RoboClerk
                 var stdOutBuffer = new StringBuilder();
                 var stdErrBuffer = new StringBuilder();
                 CommandResultValidation validation = (ignoreErrors[i] ? CommandResultValidation.None : CommandResultValidation.ZeroExitCode);
-                var result = Cli.Wrap(executables[i])
-                    .WithArguments(arguments[i])
-                    .WithWorkingDirectory(workingDirectories[i])
-                    .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
-                    .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
-                    .WithValidation(validation);
-                result.ExecuteAsync().Task.Wait();
+                try
+                {
+                    var result = Cli.Wrap(executables[i])
+                        .WithArguments(arguments[i])
+                        .WithWorkingDirectory(workingDirectories[i])
+                        .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
+                        .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
+                        .WithValidation(validation);
+                    result.ExecuteAsync().Task.Wait();
+                }
+                catch(AggregateException ex) 
+                {
+                    logger.Error($"{ex.Message}\n");
+                    if (stdOutBuffer.Length > 0)
+                    {
+                        logger.Error("Standard command output:");
+                        logger.Error(stdOutBuffer.ToString());
+                    }
+                    if (stdErrBuffer.Length > 0)
+                    {
+                        logger.Error("Standard error command output:");
+                        logger.Error(stdErrBuffer.ToString());
+                    }
+                    throw new Exception("Command execution failed. Aborting...");
+                }
             }
         }
     }
