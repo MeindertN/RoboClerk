@@ -10,7 +10,7 @@
 		ignoreErrors = "False"
 	[[Document.SystemRequirementsSpecification.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.SystemRequirementsSpecification.Command]]
@@ -31,7 +31,7 @@
 		ignoreErrors = "False"
 	[[Document.SoftwareRequirementsSpecification.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.SoftwareRequirementsSpecification.Command]]
@@ -52,7 +52,7 @@
 		ignoreErrors = "False"
 	[[Document.SoftwareDesignSpecification.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.SoftwareDesignSpecification.Command]]
@@ -73,7 +73,7 @@
 		ignoreErrors = "False"
 	[[Document.RiskAssessmentRecord.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.RiskAssessmentRecord.Command]]
@@ -94,7 +94,7 @@
 		ignoreErrors = "False"
 	[[Document.SoftwareSystemLevelTestPlan.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.SoftwareSystemLevelTestPlan.Command]]
@@ -121,7 +121,7 @@
 		ignoreErrors = "False"
 	[[Document.OutstandingAnomaliesRecord.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.OutstandingAnomaliesRecord.Command]]
@@ -142,7 +142,7 @@
 		ignoreErrors = "False"
 	[[Document.TraceAbilityAnalysisRecord.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/Roboclerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.TraceAbilityAnalysisRecord.Command]]
