@@ -5,12 +5,12 @@
 	template = "SystemRequirementSpecification.adoc"
 	[[Document.SystemRequirementsSpecification.Command]]
 		executable = "asciidoctor"
-		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		arguments = "-r asciidoctor-kroki /mnt/RoboClerk_output/%OUTPUTFILE% --backend docbook"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.SystemRequirementsSpecification.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/RoboClerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.SystemRequirementsSpecification.Command]]
@@ -26,12 +26,12 @@
 	template = "SoftwareRequirementSpecification.adoc"
 	[[Document.SoftwareRequirementsSpecification.Command]]
 		executable = "asciidoctor"
-		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		arguments = "-r asciidoctor-kroki /mnt/RoboClerk_output/%OUTPUTFILE% --backend docbook"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.SoftwareRequirementsSpecification.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/RoboClerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.SoftwareRequirementsSpecification.Command]]
@@ -47,12 +47,12 @@
 	template  = "SoftwareDesignSpecification.adoc"
 	[[Document.SoftwareDesignSpecification.Command]]
 		executable = "asciidoctor"
-		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		arguments = "-r asciidoctor-kroki /mnt/RoboClerk_output/%OUTPUTFILE% --backend docbook"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.SoftwareDesignSpecification.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/RoboClerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.SoftwareDesignSpecification.Command]]
@@ -68,12 +68,12 @@
 	template  = "RiskAssessmentRecord.adoc"
 	[[Document.RiskAssessmentRecord.Command]]
 		executable = "asciidoctor"
-		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		arguments = "-r asciidoctor-kroki /mnt/RoboClerk_output/%OUTPUTFILE% --backend docbook"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.RiskAssessmentRecord.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/RoboClerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.RiskAssessmentRecord.Command]]
@@ -89,12 +89,12 @@
 	template = "SystemLevelTestPlan.adoc"
 	[[Document.SoftwareSystemLevelTestPlan.Command]]
 		executable = "asciidoctor"
-		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		arguments = "-r asciidoctor-kroki /mnt/RoboClerk_output/%OUTPUTFILE% --backend docbook"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.SoftwareSystemLevelTestPlan.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/RoboClerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.SoftwareSystemLevelTestPlan.Command]]
@@ -116,12 +116,12 @@
 	template = "OutstandingAnomaliesRecord.adoc"
 	[[Document.OutstandingAnomaliesRecord.Command]]
 		executable = "asciidoctor"
-		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		arguments = "-r asciidoctor-kroki /mnt/RoboClerk_output/%OUTPUTFILE% --backend docbook"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.OutstandingAnomaliesRecord.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/RoboClerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.OutstandingAnomaliesRecord.Command]]
@@ -137,12 +137,12 @@
 	template = "TraceabilityAnalysisRecord.adoc"
 	[[Document.TraceAbilityAnalysisRecord.Command]]
 		executable = "asciidoctor"
-		arguments = "-r asciidoctor-kroki /mnt/Roboclerk_output/%OUTPUTFILE% --backend docbook"
+		arguments = "-r asciidoctor-kroki /mnt/RoboClerk_output/%OUTPUTFILE% --backend docbook"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.TraceAbilityAnalysisRecord.Command]]
 		executable = "pandoc"
-		arguments = "--from docbook -s /mnt/Roboclerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/Roboclerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
+		arguments = "--from docbook -s /mnt/RoboClerk_output/%OUTPUTFILENOEXT%.xml --reference-doc=/mnt/RoboClerk_input/DocxProcessingScripts/General_DOCX_template.docx --resource-path=.:/mnt/RoboClerk_output/ -o /mnt/RoboClerk_output/%OUTPUTFILENOEXT%-%DATE%.docx"
 		workingDirectory = ""
 		ignoreErrors = "False"
 	[[Document.TraceAbilityAnalysisRecord.Command]]
