@@ -77,10 +77,20 @@ UseGit = false";
 
         [UnitTestAttribute(
         Identifier = "FEDA10DA-717C-47C2-9933-9F304C935B93",
-        Purpose = "SourceCodeAnalysisPlugin is created",
+        Purpose = "SourceCodeAnalysisPlugin is \"created\"",
         PostCondition = "No exception is thrown")]
         [Test]
         public void CreateSourceCodeAnalysisPlugin()
+        {
+            var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "C4FC7062-B3F4-4EDE-A902-3CC936E0E088",
+        Purpose = "",
+        PostCondition = "")]
+        [Test]
+        public void TestEmptyAnnotationFields()
         {
             var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
         }

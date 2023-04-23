@@ -1,7 +1,7 @@
 #!/bin/sh
 
 COMMAND="dotnet /home/RoboClerk/RoboClerk.dll"
-DEFAULT_PARAMS="-c /mnt/Roboclerk_input/RoboClerkConfig/RoboClerk.toml -p /mnt/Roboclerk_input/RoboClerkConfig/projectConfig.toml"
+DEFAULT_PARAMS="-c /mnt/RoboClerk_input/RoboClerkConfig/RoboClerk.toml -p /mnt/RoboClerk_input/RoboClerkConfig/projectConfig.toml"
 
 if [ $# -eq 0 ]; then
     # If no commandline parameters are provided, use the default parameters

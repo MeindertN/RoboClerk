@@ -29,6 +29,9 @@
     <Folder Include="DocTemplates\media\" />
     <Folder Include="Properties\" />
   </ItemGroup>
+	<Target Name="DeletePublishDirectory" BeforeTargets="Build" Condition="'$(Configuration)' == 'ReleasePublish'">
+		<RemoveDir Directories="$(ProjectDir)../RoboClerkDocker/Publish" />
+	</Target>
 	<Target Name="CreateDirectory" BeforeTargets="Start" AfterTargets="Build">
 		<MakeDir Directories="$(ProjectDir)$(OutDir)RoboClerk_input\media" />
 		<MakeDir Directories="$(ProjectDir)$(OutDir)RoboClerk_output" />

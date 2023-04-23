@@ -14,10 +14,10 @@ PluginDirs = [ "{PLUGINROOT}/plugins" ]
 # plugins themselves. E.g. when executing RoboClerk in a docker environment. If
 # the following configuration item is empty, then the standard location 
 # in the Configuration subdir of the plugins directory is assumed.
-PluginConfigurationDir = "{DOCUMENTATIONROOT}Roboclerk_input/PluginConfig"
+PluginConfigurationDir = "{DOCUMENTATIONROOT}RoboClerk_input/PluginConfig"
 
 # The output directory is where the output files and logs are placed
-OutputDirectory = "{DOCUMENTATIONROOT}Roboclerk_output"
+OutputDirectory = "{DOCUMENTATIONROOT}RoboClerk_output"
 
 # Clear output directory before creating new output files.
 ClearOutputDir = "True"
