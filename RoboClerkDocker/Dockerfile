@@ -21,7 +21,7 @@ RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python \
     && rm -rf pandoc-$PANDOC_VERSION \
     && rm pandoc-$PANDOC_VERSION-linux-amd64.tar.gz \
 	&& apk add --no-cache asciidoctor \
-	&& apk --update add --no-cache ruby ruby-io-console ruby-irb ruby-json ruby-rake ruby-rdoc \
+	&& apk --update add --no-cache ruby ruby-io-console ruby-irb ruby-json ruby-rake ruby-rdoc git \
     && gem install asciidoctor-kroki 
 
 # Install RoboClerk itself

@@ -13,7 +13,7 @@ namespace RoboClerk
         protected List<string> directories = new List<string>();
         protected List<string> fileMasks = new List<string>();
         protected List<string> sourceFiles = new List<string>();
-        protected GitRepoInformation gitInfo = null;
+        protected GitRepository gitRepo = null;
 
         public SourceCodeAnalysisPluginBase(IFileSystem fileSystem)
             : base(fileSystem)
@@ -38,7 +38,7 @@ namespace RoboClerk
             {
                 if (config.ContainsKey("UseGit") && (bool)config["UseGit"])
                 {
-                    gitInfo = new GitRepoInformation(configuration);
+                    gitRepo = new GitRepository(configuration);
                 }
             }
             catch (Exception)
@@ -53,7 +53,7 @@ namespace RoboClerk
             sourceFiles.Clear();
             foreach (var testDirectory in directories)
             {
-                IDirectoryInfo dir = fileSystem.DirectoryInfo.FromDirectoryName(testDirectory);
+                IDirectoryInfo dir = fileSystem.DirectoryInfo.New(testDirectory);
                 try
                 {
                     foreach (var fileMask in fileMasks)

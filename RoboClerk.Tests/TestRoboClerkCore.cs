@@ -254,14 +254,14 @@ namespace RoboClerk.Tests
 
         [UnitTestAttribute(
             Identifier = "C8A8666F-6D6D-44BF-A22F-41077F6068E8",
-            Purpose = "RoboClerk processes a document with a reference tag",
+            Purpose = "RoboClerk processes a document with a reference tag and a non-existent reference tag",
             PostCondition = "Resulting processed document is as expected")]
         [Test]
         public void ProcessReferenceTagDocument1()
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), new MockFileData("@@Ref:roboclerkID()@@ @@Ref:roboclerkID(short=true)@@") } , 
+                { TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), new MockFileData("@@Ref:roboclerkID()@@ @@Ref:roboclerkID(id=true,title=true,abbr=true,template=true)@@") } , 
                 { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
             config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
@@ -276,9 +276,40 @@ namespace RoboClerk.Tests
             core.SaveDocumentsToDisk();
             Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
-            Assert.That(content == "documentTitle ABR");
+            Assert.That(content == $"{config2.DocumentTitle} {config2.DocumentID} {config2.DocumentTitle} ({config2.DocumentAbbreviation}) {config2.DocumentTemplate}");
 
-            fileSystem.File.WriteAllText(TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), "@@Ref:nonexistentID()@@ @@Ref:nonexistentID(short=true)@@");
+            fileSystem.File.WriteAllText(TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), "@@Ref:nonexistentID()@@ @@Ref:nonexistentID(abbr=true)@@");
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
+            Assert.Throws<TagInvalidException>(() => core.GenerateDocs());
+        }
+
+        [UnitTestAttribute(
+            Identifier = "05E1D254-E5D7-41DA-836B-E86C030F9F7C",
+            Purpose = "RoboClerk processes a document with all reference tag parameters and one that has unknown parameters",
+            PostCondition = "The tags are processed successfully and then an exception is thrown for the unknown parameter.")]
+        [Test]
+        public void ProcessReferenceTagDocument2()
+        {
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), new MockFileData("@@Ref:roboclerkID(title=true)@@ @@Ref:roboclerkID(id=true)@@ @@Ref:roboclerkID(title=true)@@ (@@Ref:roboclerkID(abbr=true)@@) @@Ref:roboclerkID(template=true)@@") } ,
+                { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+            });
+            config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
+            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
+            DocumentConfig config2 = new DocumentConfig(
+                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFileName(@"c:\in\template.adoc"));
+            config.Documents.Returns(new List<DocumentConfig>() { config2 });
+            traceAnalysis.GetTraceEntityForID("roboclerkID").Returns(new TraceEntity("roboclerkID", "documentTitle", "ABR", TraceEntityType.Document));
+
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
+            core.GenerateDocs();
+            core.SaveDocumentsToDisk();
+            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
+            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
+            Assert.That(content == $"{config2.DocumentTitle} {config2.DocumentID} {config2.DocumentTitle} ({config2.DocumentAbbreviation}) {config2.DocumentTemplate}");
+
+            fileSystem.File.WriteAllText(TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), "@@Ref:roboclerkID()@@ @@Ref:roboclerkID(doesnotexist=true)@@");
             core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             Assert.Throws<TagInvalidException>(() => core.GenerateDocs());
         }

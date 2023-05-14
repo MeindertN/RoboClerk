@@ -48,7 +48,7 @@ namespace RoboClerk
                     continue;  //skip documents without template
                 logger.Info($"Reading document template: {doc.RoboClerkID}");
                 Document document = new Document(doc.DocumentTitle, doc.DocumentTemplate);
-                document.FromStream(fileSystem.FileStream.Create(fileSystem.Path.Join(configuration.TemplateDir, doc.DocumentTemplate), FileMode.Open));
+                document.FromStream(fileSystem.FileStream.New(fileSystem.Path.Join(configuration.TemplateDir, doc.DocumentTemplate), FileMode.Open));
                 logger.Info($"Generating document: {doc.RoboClerkID}");
                 int nrOfLevels = 0;
                 //go over the tag list to determine what information should be collected from where
@@ -83,7 +83,7 @@ namespace RoboClerk
                             }
                             else if (tag.Source == DataSource.Reference)
                             {
-                                IContentCreator cc = new Reference(traceAnalysis);
+                                IContentCreator cc = new Reference(traceAnalysis,configuration);
                                 tag.Contents = cc.GetContent(tag, doc);
                             }
                             else if (tag.Source == DataSource.Document)
