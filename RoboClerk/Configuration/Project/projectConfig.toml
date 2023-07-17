@@ -161,6 +161,11 @@ MediaDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/media"
 		SystemRequirement.forwardLink = "Parent"
 		SystemRequirement.backwardLink = "Child"
 
+		SoftwareSystemTest.forward = ["ALL"]
+		SoftwareSystemTest.backward = ["ALL"]
+		SoftwareSystemTest.forwardLink = "Child"
+		SoftwareSystemTest.backwardLink = "Parent"
+
 		SoftwareSystemLevelTestPlan.forward = ["ALL"]
 		SoftwareSystemLevelTestPlan.backward = ["OPTIONAL"]
 		SoftwareSystemLevelTestPlan.forwardLink = "DOC"

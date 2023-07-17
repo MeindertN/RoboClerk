@@ -370,6 +370,7 @@ namespace RoboClerk.AzureDevOps
             item.SOUPEnduserTraining = HtmlToTextConverter.ToPlainText(GetWorkItemField<string>(workitem, "Custom.EndUserTraining"));
             item.SOUPInstalledByUserText = GetWorkItemField<string>(workitem, "Custom.EndUserInstallationRequired");
             item.SOUPInstalledByUser = !item.SOUPInstalledByUserText.Contains(" not ");
+            item.SOUPManufacturer = GetWorkItemField<string>(workitem, "Custom.Manufacturer");
             return item;
         }
 

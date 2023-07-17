@@ -19,6 +19,7 @@ namespace RoboClerk
                 throw new Exception("Git support enabled in RoboClerk but Git executable not found in path. Please ensure Git command is in your path or disable Git support in RoboClerk.");
             }
             logger.Info($"Git support enabled and Git executable found in path: {result}");
+            RunGitCommand($"config --global --add safe.directory {config.ProjectRoot}"); //needed to ensure we can apply git on files we don't own
         }
 
         public bool GetFileLocallyUpdated(string file)

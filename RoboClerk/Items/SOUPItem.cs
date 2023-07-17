@@ -17,6 +17,7 @@ namespace RoboClerk
         private string soupPerformanceCriticalText = string.Empty;
         private bool soupCybersecurityCritical = true;
         private string soupCybersecurityCriticalText = string.Empty;
+        private string soupManufacturer = string.Empty;
 
         public SOUPItem()
         {
@@ -100,6 +101,12 @@ namespace RoboClerk
         {
             get { return soupCybersecurityCriticalText; }
             set { soupCybersecurityCriticalText = value; }
+        }
+
+        public string SOUPManufacturer
+        {
+            get { return soupManufacturer; }
+            set { soupManufacturer = value; }
         }
     }
 }

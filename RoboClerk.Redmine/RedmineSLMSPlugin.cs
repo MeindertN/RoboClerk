@@ -323,6 +323,10 @@ namespace RoboClerk.Redmine
                     {
                         resultItem.SOUPLicense = value.GetString();
                     }
+                    else if (field.Name == "Manufacturer")
+                    {
+                        resultItem.SOUPManufacturer = value.GetString();
+                    }
                 }
             }
             AddLinksToItem(redmineItem, resultItem);
