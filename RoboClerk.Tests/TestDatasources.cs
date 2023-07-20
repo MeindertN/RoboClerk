@@ -374,6 +374,16 @@ namespace RoboClerk.Tests
         }
 
         [Test]
+        public void Configuration_Data_Contains_ConfigValues_VERIFIES_Exception_Thrown_When_ConfigValues_Missing()
+        {
+            TomlTable table = new TomlTable();
+            table["Incorrect"] = new TomlTable();
+            ((TomlTable)table["Incorrect"])["testKey"] = "TestValue";
+            ConfigurationValues vals = new ConfigurationValues();
+            Assert.Throws<Exception>(() => vals.FromToml(table), "Required configuration element \"ConfigValues\" is missing from project configuration file. Cannot continue.");
+        }
+
+        [Test]
         public void File_Is_Retrieved_From_Disk_VERIFIES_Text_File_Matches_File_On_Disk()
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
