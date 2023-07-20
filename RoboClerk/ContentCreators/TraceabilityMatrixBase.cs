@@ -64,7 +64,14 @@ namespace RoboClerk.ContentCreators
                             }
                             else
                             {
-                                combinedString.Append(item.HasLink ? $"{item.Link}[{item.ItemID}]" : item.ItemID);
+                                if(entry.Key.EntityType == TraceEntityType.Document)
+                                {
+                                    combinedString.Append("Trace Present");
+                                }
+                                else
+                                {
+                                    combinedString.Append(item.HasLink ? $"{item.Link}[{item.ItemID}]" : item.ItemID);
+                                }                                
                             }
                             combinedString.Append(", ");
                         }
