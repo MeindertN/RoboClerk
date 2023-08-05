@@ -66,9 +66,8 @@ namespace RoboClerk.Tests
             dataSources.GetTemplateFile("./ItemTemplates/Anomaly.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/Anomaly.adoc"));
         }
 
-        [UnitTestAttribute(
+        [UnitTestAttribute(Purpose = "(TEST) Anomaly content creator is created",
         Identifier = "1C2B7995-DFDF-466B-96D8-B8165EDA28C8",
-        Purpose = "Anomaly content creator is created",
         PostCondition = "No exception is thrown")]
         [Test]
         public void CreateAnomalyCC()
