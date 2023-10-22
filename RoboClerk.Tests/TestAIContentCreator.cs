@@ -75,18 +75,18 @@ namespace RoboClerk.Tests
         public void TestAIContentCreator4()
         {
             fs = new MockFileSystem();
-            fs.Directory.CreateDirectory(@"c:\out");
+            fs.Directory.CreateDirectory(TestingHelpers.ConvertFileName(@"c:\out"));
             var obj = new AIContentCreator(dataSources, traceAnalysis, config, aiSystemPlugin, fs);
             var tag = new RoboClerkTag(0, 57, "@@SLMS:TraceMatrix(entity=SystemRequirement,itemID=101)@@", true);
             var doc = new DocumentConfig("roboclerkID", "documentID", "documentTitle", "documentAbbreviation", "documentTemplate");
             RequirementItem item = new RequirementItem(RequirementType.SoftwareRequirement);
             dataSources.GetItem(Arg.Any<string>()).Returns(item);
-            config.OutputDir.Returns(@"c:\out");
+            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out"));
 
             var result = obj.GetContent(tag,doc);
             Assert.That(result == "SLMS:TraceMatrix(entity=SystemRequirement,itemID=101)@@");
-            Assert.That(fs.File.Exists(@"c:\out\documentTemplate_AIComments.json"));
-            Assert.That(fs.File.ReadAllText(@"c:\out\documentTemplate_AIComments.json").Contains("This is an AI test comment!"));
+            Assert.That(fs.File.Exists(TestingHelpers.ConvertFileName(@"c:\out\documentTemplate_AIComments.json")));
+            Assert.That(fs.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\documentTemplate_AIComments.json")).Contains("This is an AI test comment!"));
         }
 
     }
