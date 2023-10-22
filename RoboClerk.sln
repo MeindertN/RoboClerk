@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk.UnitTestFN", "Rob
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk.AnnotatedUnitTests", "RoboClerk.AnnotatedUnitTests\RoboClerk.AnnotatedUnitTests.csproj", "{8E5AC894-A9E1-484A-B4C4-CAB286D5DF62}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk.OpenAI", "RoboClerk.OpenAI\RoboClerk.OpenAI.csproj", "{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -159,6 +161,24 @@ Global
 		{8E5AC894-A9E1-484A-B4C4-CAB286D5DF62}.ReleasePublish|x64.Build.0 = Release|Any CPU
 		{8E5AC894-A9E1-484A-B4C4-CAB286D5DF62}.ReleasePublish|x86.ActiveCfg = Release|Any CPU
 		{8E5AC894-A9E1-484A-B4C4-CAB286D5DF62}.ReleasePublish|x86.Build.0 = Release|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.Debug|x64.Build.0 = Debug|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.Debug|x86.Build.0 = Debug|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.Release|x64.ActiveCfg = Release|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.Release|x64.Build.0 = Release|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.Release|x86.ActiveCfg = Release|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.Release|x86.Build.0 = Release|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.ReleasePublish|Any CPU.ActiveCfg = ReleasePublish|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.ReleasePublish|Any CPU.Build.0 = ReleasePublish|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.ReleasePublish|x64.ActiveCfg = Release|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.ReleasePublish|x64.Build.0 = Release|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.ReleasePublish|x86.ActiveCfg = Release|Any CPU
+		{A66F99A4-BAE7-42AA-A1E4-1F44557C7A65}.ReleasePublish|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

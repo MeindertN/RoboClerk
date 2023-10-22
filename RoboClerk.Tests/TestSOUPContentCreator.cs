@@ -5,7 +5,6 @@ using RoboClerk.Configuration;
 using System.IO.Abstractions;
 using RoboClerk.ContentCreators;
 using System.Text.RegularExpressions;
-using NSubstitute.Core.Arguments;
 using System.IO;
 
 namespace RoboClerk.Tests
@@ -85,7 +84,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateSOUPCC()
         {
-            var soup = new SOUP(dataSources, traceAnalysis);
+            var soup = new SOUP(dataSources, traceAnalysis, config);
         }
 
         [UnitTestAttribute(
@@ -95,7 +94,7 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent1()
         {
-            var soup = new SOUP(dataSources, traceAnalysis);
+            var soup = new SOUP(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 22, "@@SLMS:SOUP(ItemID=21)@@",true);
             dataSources.GetItem("21").Returns(soupItems[0]);
             string content = soup.GetContent(tag, documentConfig);
@@ -112,7 +111,7 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent2()
         {
-            var soup = new SOUP(dataSources, traceAnalysis);
+            var soup = new SOUP(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 22, "@@SLMS:SOUP(ItemID=21)@@", true);
             dataSources.GetItem("21").Returns(soupItems[0]);
             ((SOUPItem)soupItems[0]).SOUPPerformanceCritical = true;
@@ -130,7 +129,7 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent3()
         {
-            var soup = new SOUP(dataSources, traceAnalysis);
+            var soup = new SOUP(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 22, "@@SLMS:SOUP(ItemID=21)@@", true);
             dataSources.GetItem("21").Returns(soupItems[0]);
             ((SOUPItem)soupItems[0]).SOUPInstalledByUser = true;
@@ -148,7 +147,7 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent4()
         {
-            var soup = new SOUP(dataSources, traceAnalysis);
+            var soup = new SOUP(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 33, "@@SLMS:SOUP(ItemID=21,BrIeF=TruE)@@", true);
             dataSources.GetItem("21").Returns(soupItems[0]);
             string content = soup.GetContent(tag, documentConfig);
@@ -165,7 +164,7 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent5()
         {
-            var soup = new SOUP(dataSources, traceAnalysis);
+            var soup = new SOUP(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 22, "@@SLMS:SOUP(itemid=23)@@", true);
             string content = soup.GetContent(tag, documentConfig);
             string expectedContent = "Unable to find specified soup(s). Check if soups are provided or if a valid soup identifier is specified.";
@@ -191,7 +190,7 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent6()
         {
-            var soup = new SOUP(dataSources, traceAnalysis);
+            var soup = new SOUP(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 37, "@@SLMS:SOUP(itemid=21,checksoup=true)@@", true);
             dataSources.GetAllExternalDependencies().Returns(GetDependencies());   
             string content = soup.GetContent(tag, documentConfig);
@@ -207,7 +206,7 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent7()
         {
-            var soup = new SOUP(dataSources, traceAnalysis);
+            var soup = new SOUP(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 37, "@@SLMS:SOUP(itemid=21,checksoup=true)@@", true);
             var deps = GetDependencies();
             deps.RemoveAt(1);  //remove the external dependency matching soupname2
@@ -225,7 +224,7 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent8()
         {
-            var soup = new SOUP(dataSources, traceAnalysis);
+            var soup = new SOUP(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 37, "@@SLMS:SOUP(itemid=21,checksoup=true)@@", true);
             var deps = GetDependencies();
             deps.Add(new ExternalDependency("soupname3", "soupversion3", false));
@@ -243,7 +242,7 @@ namespace RoboClerk.Tests
         [Test]
         public void GenerateSOUPContent9()
         {
-            var soup = new SOUP(dataSources, traceAnalysis);
+            var soup = new SOUP(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 37, "@@SLMS:SOUP(itemid=21,checksoup=true)@@", true);
             ((SOUPItem)soupItems[0]).SOUPVersion = "wrong";
             var deps = GetDependencies();

@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.Scripting;
+using RoboClerk.Configuration;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,8 +8,8 @@ namespace RoboClerk.ContentCreators
     public class SOUP : MultiItemContentCreator
     {
 
-        public SOUP(IDataSources data, ITraceabilityAnalysis analysis)
-            : base(data, analysis)
+        public SOUP(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf)
+            : base(data, analysis, conf)
         {
 
         }

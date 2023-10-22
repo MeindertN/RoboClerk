@@ -153,6 +153,11 @@ namespace RoboClerk.Redmine
                         thenFound = true;
                         output[output.Count - 1].ExpectedResult = line;
                     }
+                    else if (line.ToUpper().Contains("WHEN:"))
+                    {
+                        output.Add(new TestStep((output.Count + 1).ToString(), line, string.Empty));
+                        thenFound = false;
+                    }
                     else if (!line.ToUpper().Contains("AND:"))
                     {
                         output[output.Count - 1].ExpectedResult = output[output.Count - 1].ExpectedResult + '\n' + line;
@@ -322,6 +327,10 @@ namespace RoboClerk.Redmine
                     else if (field.Name == "SOUP License")
                     {
                         resultItem.SOUPLicense = value.GetString();
+                    }
+                    else if (field.Name == "Manufacturer")
+                    {
+                        resultItem.SOUPManufacturer = value.GetString();
                     }
                 }
             }

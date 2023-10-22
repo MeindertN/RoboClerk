@@ -3,6 +3,9 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 from docx.shared import Pt
 import argparse
+import os
+import AIDocxAnnotations as ai
+import json
 
 
 def AddTOCToDocument(document, par, num):
@@ -54,30 +57,77 @@ def InsertPageBreak(document, par, num):
     else:
         document.paragraphs[num + 1].paragraph_format.page_break_before = True
 
+def ProcessParagraphs(document):
+    reachedTheEnd = False
+    while not reachedTheEnd:
+        reachedTheEnd = True
+        for num, par in enumerate(document.paragraphs):
+            if '~' in par.text and par.text[0] == '~':
+                if '~TOC' in par.text:
+                    AddTOCToDocument(document, par, num)
+                    reachedTheEnd = False
+                    break
+                elif '~PAGEBREAK' in par.text:
+                    InsertPageBreak(document, par, num)
+                    reachedTheEnd = False
+                    break
+        for num, par in enumerate(document.paragraphs):
+            if '~' in par.text and par.text[0] == '~':
+                if '~REMOVEPARAGRAPH' in par.text:
+                    DeleteLineFromDocument(par)
+                    reachedTheEnd = False
+                    break
 
+# this function scans over all tables in the document and merges any cells that have 
+# a single key character in them:
+# ^ = merge with cell above 
+# < = merge with cell to the left
+# > = merge with cell to the right
+# note that this only works for rectangular sets of cells! 
+def ProcessTables(document):
+    for table in document.tables:
+        for c,column in enumerate(table.columns):
+            for r,cell in enumerate(column.cells):
+                if cell.text == '^' and r != 0:
+                    cell.text = ''
+                    table.cell(r-1,c).merge(table.cell(r,c))
+                if cell.text == '<' and c != 0:
+                    cell.text = ''
+                    table.cell(r,c-1).merge(table.cell(r,c))
+                if cell.text == '>' and c < len(table.columns)-1:
+                    cell.text = ''
+                    table.cell(r,c+1).merge(table.cell(r,c))
 
-parser = argparse.ArgumentParser(description="Processes the docx and replaces postprocessing tags (marked with ~ in the"
+def ProcessAIComments(inputFile,document):
+    directory, fileWithExtension = os.path.split(inputFile)
+    fn, fileExtension = os.path.splitext(fileWithExtension)
+    commentFilename = ''
+    for filename in os.listdir(directory):
+        if filename.endswith("_AIComments.json") and fn.startswith(filename[:-16]):
+            commentFilename = filename
+    if commentFilename == '':
+        return
+    commentFilename = os.path.join(directory,commentFilename)
+    if os.path.exists(commentFilename):
+        with open(commentFilename, 'r') as file:
+            comments = [json.loads(line) for line in file]
+        ai.ProcessComments(document,comments)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Processes the docx and replaces postprocessing tags (marked with ~ in the"
                                              " document) with elements of the Docx.")
 
-parser.add_argument('input', type=str, help='the input docx file')
-parser.add_argument('output', type=str, help='the output docx file')
-args = parser.parse_args()
+    parser.add_argument('input', type=str, help='the input docx file')
+    parser.add_argument('output', type=str, help='the output docx file')
+    args = parser.parse_args()
 
-inputFile = args.input
-outputFile = args.output
+    inputFile = args.input
+    outputFile = args.output
 
-document = Document(inputFile)
+    document = Document(inputFile)
 
-for num, par in enumerate(document.paragraphs):
-    if '~' in par.text and par.text[0] == '~':
-        if '~TOC' in par.text:
-            AddTOCToDocument(document, par, num)
-        elif '~PAGEBREAK' in par.text:
-            InsertPageBreak(document, par, num)
+    ProcessParagraphs(document)
+    ProcessTables(document)
+    ProcessAIComments(inputFile,document)
             
-for num, par in enumerate(document.paragraphs):
-    if '~' in par.text and par.text[0] == '~':
-        if '~REMOVEPARAGRAPH' in par.text:
-            DeleteLineFromDocument(par)
-            
-document.save(outputFile)
+    document.save(outputFile)

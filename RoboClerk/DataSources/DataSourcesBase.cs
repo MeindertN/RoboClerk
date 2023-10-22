@@ -201,7 +201,7 @@ namespace RoboClerk
 
         public Stream GetFileStreamFromTemplateDir(string fileName)
         {
-            var stream = fileSystem.FileStream.Create(fileSystem.Path.Join(configuration.TemplateDir, fileName), FileMode.Open);
+            var stream = fileSystem.FileStream.New(fileSystem.Path.Join(configuration.TemplateDir, fileName), FileMode.Open);
             return stream;
         }
 

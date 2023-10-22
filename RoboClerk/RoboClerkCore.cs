@@ -1,4 +1,5 @@
 ﻿
+using RoboClerk.AISystem;
 using RoboClerk.Configuration;
 using RoboClerk.ContentCreators;
 using System;
@@ -15,6 +16,7 @@ namespace RoboClerk
         private readonly IDataSources dataSources = null;
         private readonly ITraceabilityAnalysis traceAnalysis = null;
         private readonly IConfiguration configuration = null;
+        private readonly IAISystemPlugin aiPlugin = null;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private List<Document> documents = new List<Document>();
         private IFileSystem fileSystem = null;
@@ -25,6 +27,7 @@ namespace RoboClerk
             this.dataSources = dataSources;
             this.traceAnalysis = traceAnalysis;
             fileSystem = fs;
+            aiPlugin = LoadAIPlugin();
         }
 
         public void GenerateDocs()
@@ -41,14 +44,26 @@ namespace RoboClerk
                     logger.Warn($"Configured media directory \"{configuration.MediaDir}\" does not exist. Some of the output documents may have missing images.");
                 }
             }
+            if(aiPlugin != null) 
+            {
+                List<Document> docs = ProcessTemplates(aiPlugin.GetAIPromptTemplates());
+                aiPlugin.SetPrompts(docs);
+            }
             var configDocuments = configuration.Documents;
+            documents.AddRange(ProcessTemplates(configDocuments));
+            logger.Info("Finished creating documents.");
+        }
+
+        private List<Document> ProcessTemplates(IEnumerable<DocumentConfig> configDocuments)
+        {
+            List<Document> docs = new List<Document>();
             foreach (var doc in configDocuments)
             {
                 if (doc.DocumentTemplate == string.Empty)
                     continue;  //skip documents without template
                 logger.Info($"Reading document template: {doc.RoboClerkID}");
                 Document document = new Document(doc.DocumentTitle, doc.DocumentTemplate);
-                document.FromStream(fileSystem.FileStream.Create(fileSystem.Path.Join(configuration.TemplateDir, doc.DocumentTemplate), FileMode.Open));
+                document.FromStream(fileSystem.FileStream.New(fileSystem.Path.Join(configuration.TemplateDir, doc.DocumentTemplate), FileMode.Open));
                 logger.Info($"Generating document: {doc.RoboClerkID}");
                 int nrOfLevels = 0;
                 //go over the tag list to determine what information should be collected from where
@@ -70,7 +85,8 @@ namespace RoboClerk
                             if (tag.Source == DataSource.Config)
                             {
                                 logger.Debug($"Configuration file item requested: {tag.ContentCreatorID}");
-                                tag.Contents = dataSources.GetConfigValue(tag.ContentCreatorID);
+                                IContentCreator cc = new ConfigurationValue(dataSources, traceAnalysis, configuration);
+                                tag.Contents = cc.GetContent(tag, doc);
                             }
                             else if (tag.Source == DataSource.Comment)
                             {
@@ -83,12 +99,17 @@ namespace RoboClerk
                             }
                             else if (tag.Source == DataSource.Reference)
                             {
-                                IContentCreator cc = new Reference(traceAnalysis);
+                                IContentCreator cc = new Reference(dataSources, traceAnalysis, configuration);
                                 tag.Contents = cc.GetContent(tag, doc);
                             }
                             else if (tag.Source == DataSource.Document)
                             {
                                 IContentCreator cc = new ContentCreators.Document();
+                                tag.Contents = cc.GetContent(tag, doc);
+                            }
+                            else if (tag.Source == DataSource.AI)
+                            {
+                                IContentCreator cc = new AIContentCreator(dataSources, traceAnalysis, configuration, aiPlugin, fileSystem);
                                 tag.Contents = cc.GetContent(tag, doc);
                             }
                             else
@@ -112,10 +133,10 @@ namespace RoboClerk
                     document.FromString(documentContent);
                 }
                 while (document.RoboClerkTags.Count() > 0 && nrOfLevels < 5);
-                documents.Add(document);
+                docs.Add(document);
                 logger.Info($"Finished creating document {doc.RoboClerkID}");
             }
-            logger.Info("Finished creating documents.");
+            return docs;
         }
 
         private void CleanAndCopyMediaDirectory()
@@ -175,7 +196,24 @@ namespace RoboClerk
             {
                 if (contentType.Name.ToUpper() == contentCreatorID.ToUpper())
                 {
-                    return Activator.CreateInstance(contentType, dataSources, traceAnalysis) as IContentCreator;
+                    return Activator.CreateInstance(contentType, dataSources, traceAnalysis, configuration) as IContentCreator;
+                }
+            }
+            return null;
+        }
+
+        private IAISystemPlugin LoadAIPlugin()
+        {
+            if(configuration.AIPlugin == "")
+                return null;
+            foreach (var dir in configuration.PluginDirs)
+            {
+                IPluginLoader pluginLoader = new PluginLoader();
+                var plugin = pluginLoader.LoadPlugin<IPlugin>(configuration.AIPlugin, dir, fileSystem);
+                if (plugin != null)
+                {
+                    plugin.Initialize(configuration);
+                    return plugin as IAISystemPlugin;
                 }
             }
             return null;

@@ -80,7 +80,7 @@ comment tags too.
 
 Here is a reference to a document @@Ref:RandomTestDocument()@@
 
-Check out the @@Ref:SoftwareSystemLevelTestPlan()@@ (@@ref:SoftwareSystemLevelTestPlan(short=true)@@)
+Check out the @@Ref:SoftwareSystemLevelTestPlan(title=true,abbr=true)@@
 
 We can import excel spreadsheets (e.g. testspreadsheet.xlsx) into our document. See the template to see how this was done for this example:
 @@FILE:ExcelTable(fileName=testspreadsheet.xlsx,range=A3:C6,workSheet=Sheet1)@@

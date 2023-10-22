@@ -1,7 +1,7 @@
-﻿using LibGit2Sharp;
-using NSubstitute;
+﻿using NSubstitute;
 using NUnit.Framework;
 using RoboClerk.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
@@ -20,7 +20,7 @@ namespace RoboClerk.Tests
         public List<UnitTestItem> UnitTests => unitTests;
         public List<string> Directories => directories;
         public List<string> FileMasks => fileMasks;
-        public GitRepoInformation GitInfo => gitInfo;
+        public GitRepository GitInfo => gitRepo;
         public bool SubDir => subDir;
         public List<string> SourceFiles => sourceFiles;
 
@@ -111,40 +111,6 @@ UseGit = false";
             Assert.That(testPlugin.Directories[0], Is.EqualTo(TestingHelpers.ConvertFileName("C:\\RoboClerkTest")));
             Assert.That(testPlugin.Directories[1], Is.EqualTo(TestingHelpers.ConvertFileName("C:\\RoboClerkTest2")));
             Assert.That(testPlugin.SubDir);
-        }
-
-        [UnitTestAttribute(
-        Identifier = "B6889217-B4F1-49C0-A13D-544A09FF6E32",
-        Purpose = "SourceCodeAnalysisPlugin is created and initialized, git support is set to true but fails",
-        PostCondition = "Exception is thrown")]
-        [Test]
-        public void TestSourceCodeAnalysisPlugin2()
-        {
-            string tomlFile = string.Empty;
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                tomlFile = @"
-TestDirectories = [""/C/RoboClerkTest"",""/C/RoboClerkTest2""]
-SubDirs = true
-FileMasks = [""Test*.cs""]
-UseGit = true";
-            }
-            else
-            {
-                tomlFile = @"
-TestDirectories = [""C:\\RoboClerkTest"",""C:\\RoboClerkTest2""]
-SubDirs = true
-FileMasks = [""Test*.cs""]
-UseGit = true";
-            }
-
-            fs = new MockFileSystem(new Dictionary<string, MockFileData>
-            {
-                { TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), new MockFileData(tomlFile) },
-            });
-
-            var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
-            Assert.Throws<RepositoryNotFoundException>(()=>testPlugin.Initialize(config));
         }
 
         [UnitTestAttribute(

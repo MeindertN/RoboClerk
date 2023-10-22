@@ -54,7 +54,9 @@ namespace RoboClerk
                 {
                     throw new Exception($"Inline Roboclerk containers cannot have newline characters in them. Newline found in tag at {inlineIndices[i]}.");
                 }
-                tags.Add(new RoboClerkTag(inlineIndices[i], inlineIndices[i + 1], asciiDocText, true));
+                //check if this inline tag is within a container tag, if so, do not add the tag. The outer container tag will be resolved first
+                if (tags.Count(t => (!t.Inline && t.ContentStart < inlineIndices[i] && t.ContentEnd > inlineIndices[i + 1])) == 0)
+                    tags.Add(new RoboClerkTag(inlineIndices[i], inlineIndices[i + 1], asciiDocText, true));
             }
 
             return tags;

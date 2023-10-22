@@ -13,7 +13,10 @@ namespace RoboClerk.Configuration
         bool ClearOutputDir { get; }
         string LogLevel { get; }
         string MediaDir { get; }
+        bool AICheckTemplateContents { get; }
+        string AIPlugin { get; }
         List<TraceEntity> TruthEntities { get; }
+        List<TraceEntity> AICheckTraceEntities { get; }
         List<DocumentConfig> Documents { get; }
         List<TraceConfig> TraceConfig { get; }
         ConfigurationValues ConfigVals { get; }

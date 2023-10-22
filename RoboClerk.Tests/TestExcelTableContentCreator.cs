@@ -62,7 +62,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateExcelTableCC()
         {
-            var et = new ExcelTable(dataSources, traceAnalysis);
+            var et = new ExcelTable(dataSources, traceAnalysis, config);
         }
 
         [UnitTestAttribute(
@@ -72,7 +72,7 @@ namespace RoboClerk.Tests
         [Test]
         public void TestExcelTableCC1()
         {
-            var et = new ExcelTable(dataSources, traceAnalysis);
+            var et = new ExcelTable(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 75, "@@FILE:exceltable(fileName=test.xlsx,range=B2:C4,workSheet=testworksheet)@@", true);
 
             string result = et.GetContent(tag, documentConfig);
@@ -88,7 +88,7 @@ namespace RoboClerk.Tests
         [Test]
         public void TestExcelTableCC2()
         {
-            var et = new ExcelTable(dataSources, traceAnalysis);
+            var et = new ExcelTable(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 78, "@@FILE:exceltable(fileName=unknown.xlsx,range=B2:C4,workSheet=testworksheet)@@", true);
             dataSources.GetFileStreamFromTemplateDir(@"unknown.xlsx").Returns(x => throw new Exception("Can't find file"));
 

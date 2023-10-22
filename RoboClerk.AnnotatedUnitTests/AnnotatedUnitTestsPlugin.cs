@@ -227,11 +227,11 @@ namespace RoboClerk.AnnotatedUnitTests
             {
                 unitTest.ItemID = $"{shortFileName}:{lineNumber}";
             }
-            if (gitInfo != null && !gitInfo.GetFileLocallyUpdated(fileName))
+            if (gitRepo != null && !gitRepo.GetFileLocallyUpdated(fileName))
             {
                 //if gitInfo is not null, this means some item data elements should be collected through git
-                unitTest.ItemLastUpdated = gitInfo.GetFileLastUpdated(fileName);
-                unitTest.ItemRevision = gitInfo.GetFileVersion(fileName);
+                unitTest.ItemLastUpdated = gitRepo.GetFileLastUpdated(fileName);
+                unitTest.ItemRevision = gitRepo.GetFileVersion(fileName);
             }
             else
             {

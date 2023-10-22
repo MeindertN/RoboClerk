@@ -14,16 +14,15 @@
     <Optimize>True</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.4.4" />
+    <PackageReference Include="CliWrap" Version="3.6.1" />
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="DocumentPartner.ClosedXML" Version="0.95.171" />
-    <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0182" />
+    <PackageReference Include="DocumentPartner.ClosedXML" Version="0.95.289" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.4.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
-    <PackageReference Include="NLog" Version="4.7.15" />
-    <PackageReference Include="System.IO.Abstractions" Version="17.0.23" />
-    <PackageReference Include="Tomlyn" Version="0.14.3" />
+    <PackageReference Include="NLog" Version="5.1.4" />
+    <PackageReference Include="System.IO.Abstractions" Version="19.2.22" />
+    <PackageReference Include="Tomlyn" Version="0.16.2" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DocTemplates\media\" />

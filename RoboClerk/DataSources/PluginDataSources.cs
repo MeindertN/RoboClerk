@@ -6,7 +6,7 @@ namespace RoboClerk
 {
     public class PluginDataSources : DataSourcesBase, IDataSources
     {
-        private List<IPlugin> plugins = new List<IPlugin>();
+        private List<IDataSourcePlugin> plugins = new List<IDataSourcePlugin>();
 
         private readonly IPluginLoader pluginLoader = null;
 
@@ -28,9 +28,9 @@ namespace RoboClerk
                     if (plugin != null)
                     {
                         plugin.Initialize(configuration);
-                        if (plugin as IPlugin != null)
+                        if (plugin as IDataSourcePlugin != null)
                         {
-                            var temp = plugin as IPlugin;
+                            var temp = plugin as IDataSourcePlugin;
                             temp.RefreshItems();
                             plugins.Add(temp);
                             continue;

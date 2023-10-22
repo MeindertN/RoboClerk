@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RoboClerk.AISystem;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
@@ -15,6 +16,7 @@ namespace RoboClerk.Configuration
         //The information contained in the general configuration file
         private List<string> dataSourcePlugins = new List<string>();
         private List<string> pluginDirs = new List<string>();
+        private string aiPlugin = string.Empty;
         private string outputDir = string.Empty;
         private string logLevel = string.Empty;
         private string pluginConfigDir = string.Empty;
@@ -25,6 +27,8 @@ namespace RoboClerk.Configuration
         private List<DocumentConfig> documents = new List<DocumentConfig>();
         private List<TraceConfig> traceConfig = new List<TraceConfig>();
         private CheckpointConfig checkpointConfig = new CheckpointConfig();
+        private List<TraceEntity> checkTraceEntitiesAI = new List<TraceEntity>();
+        private bool checkTemplateContentsAI = false;
         private ConfigurationValues configVals = null;
         private string templateDir = string.Empty;
         private string mediaDir = string.Empty;
@@ -47,6 +51,8 @@ namespace RoboClerk.Configuration
         public string OutputDir => outputDir;
         public string LogLevel => logLevel;
         public List<TraceEntity> TruthEntities => truthEntities;
+        public List<TraceEntity> AICheckTraceEntities => checkTraceEntitiesAI;
+        public bool AICheckTemplateContents => checkTemplateContentsAI;
         public List<DocumentConfig> Documents => documents;
         public List<TraceConfig> TraceConfig => traceConfig;
         public CheckpointConfig CheckpointConfig => checkpointConfig;
@@ -56,6 +62,7 @@ namespace RoboClerk.Configuration
         public string MediaDir => mediaDir;
         public string ProjectRoot => projectRoot;
         public bool ClearOutputDir => clearOutput;
+        public string AIPlugin => aiPlugin;
 
         private (string, string) LoadConfigFiles(string configFile, string projectConfigFile)
         {
@@ -97,6 +104,7 @@ namespace RoboClerk.Configuration
             {
                 pluginDirs.Add((string)obj);
             }
+            aiPlugin = CommandLineOptionOrDefault("AISystemPlugin", (string)toml["AISystemPlugin"]);
             pluginConfigDir = CommandLineOptionOrDefault("PluginConfigurationDir", (string)toml["PluginConfigurationDir"]);
             outputDir = CommandLineOptionOrDefault("OutputDirectory", (string)toml["OutputDirectory"]);
             clearOutput = CommandLineOptionOrDefault("ClearOutputDir", (string)toml["ClearOutputDir"]).ToUpper() == "TRUE";
@@ -121,6 +129,41 @@ namespace RoboClerk.Configuration
             ReadTraceConfiguration(toml);
             ReadCheckpointConfiguration(toml);
             ReadConfigurationValues(toml);
+            ReadAISystemConfigurationValues(toml); //this step depends on the fact the truth trace items have already been read from the config file
+        }
+
+        private void ReadAISystemConfigurationValues(TomlTable toml)
+        {
+            if (!toml.ContainsKey("AIFeedback"))
+            {
+                logger.Warn("AIFeedback table missing from the project configuration file. RoboClerk will not be able to provide any AI feedback.");
+                return;
+            }
+            foreach (var val in (TomlTable)toml["AIFeedback"])
+            {
+                switch (val.Key)
+                {
+                    case "ProvideTemplateContentFeedback":
+                        checkTemplateContentsAI = ((string)val.Value).ToUpper() == "TRUE";
+                        break;
+                    case "TruthItemsAIFeedback":
+                        {
+                            foreach (var truthitemString in (TomlArray)val.Value)
+                            {
+                                foreach(var truthitem in truthEntities)
+                                {
+                                    if(truthitem.ID.ToUpper() == truthitemString.ToString().ToUpper())
+                                    {
+                                        checkTraceEntitiesAI.Add(truthitem);
+                                    }
+                                }                                
+                            }
+                            break;
+                        }
+                    default:
+                        throw new Exception($"Unknown AIFeedback item \"{val.Key}\" found, please check project configuration file.");
+                }
+            }
         }
 
         private void ReadCheckpointConfiguration(TomlTable toml)

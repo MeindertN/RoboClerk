@@ -5,8 +5,8 @@ namespace RoboClerk.ContentCreators
 {
     public class SystemRequirement : RequirementBase
     {
-        public SystemRequirement(IDataSources data, ITraceabilityAnalysis analysis)
-            : base(data, analysis)
+        public SystemRequirement(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf)
+            : base(data, analysis, conf)
         {
 
         }
