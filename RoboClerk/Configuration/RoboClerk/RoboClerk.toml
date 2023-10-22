@@ -5,7 +5,8 @@
 DataSourcePlugin = [ "RedmineSLMSPlugin", "DependenciesFilePlugin", "UnitTestFNPlugin", "AnnotatedUnitTestPlugin" ]
 
 # Indicate what AI system plugin you'd like to use (if any). Provide "" for no AI plugin.
-AISystemPlugin = "OpenAIPlugin"
+# If you have an OpenAI key, you can use "OpenAIPlugin"
+AISystemPlugin = ""
 
 # RoboClerk will search for plugins in the subdirectories of the plugin dirs.
 # For example: PluginDirs = [ "c:/temp/plugins" ]. Note that the plugins are included
