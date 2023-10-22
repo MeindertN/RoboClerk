@@ -19,9 +19,9 @@ namespace RoboClerk.Tests
     [Description("These tests test the DataSources class")]
     internal class TestDatasources
     {
-        IPlugin mockSLMSPlugin = null; 
-        IPlugin mockDepMgmtPlugin = null;
-        IPlugin mockSrcCodePlugin = null;
+        IDataSourcePlugin mockSLMSPlugin = null; 
+        IDataSourcePlugin mockDepMgmtPlugin = null;
+        IDataSourcePlugin mockSrcCodePlugin = null;
         IPluginLoader mockPluginLoader = null; 
         IConfiguration mockConfiguration = null;
         IFileSystem mockFileSystem = null;
@@ -30,13 +30,13 @@ namespace RoboClerk.Tests
         public void TestSetup()
         {
             mockFileSystem = Substitute.For<IFileSystem>();
-            mockSLMSPlugin = Substitute.For<IPlugin>();
-            mockSLMSPlugin.Name.Returns("SLMS Test Plugin");
-            mockSLMSPlugin.Description.Returns("SLMS Test Plugin Description");
+            mockSLMSPlugin = (IDataSourcePlugin)Substitute.For<IPlugin,IDataSourcePlugin>();
+            ((IPlugin)mockSLMSPlugin).Name.Returns("SLMS Test Plugin");
+            ((IPlugin)mockSLMSPlugin).Description.Returns("SLMS Test Plugin Description");
             mockSLMSPlugin.GetDependencies().Returns(new List<ExternalDependency>());
-            mockDepMgmtPlugin = Substitute.For<IPlugin>();
-            mockDepMgmtPlugin.Name.Returns("Dependency Test Plugin");
-            mockDepMgmtPlugin.Description.Returns("Dependency Test Plugin Description");
+            mockDepMgmtPlugin = (IDataSourcePlugin)Substitute.For<IPlugin,IDataSourcePlugin>();
+            ((IPlugin)mockDepMgmtPlugin).Name.Returns("Dependency Test Plugin");
+            ((IPlugin)mockDepMgmtPlugin).Description.Returns("Dependency Test Plugin Description");
             mockDepMgmtPlugin.GetSystemRequirements().Returns(new List<RequirementItem>());
             mockDepMgmtPlugin.GetSoftwareRequirements().Returns(new List<RequirementItem>());
             mockDepMgmtPlugin.GetDocumentationRequirements().Returns(new List<RequirementItem>());
@@ -47,9 +47,9 @@ namespace RoboClerk.Tests
             mockDepMgmtPlugin.GetSOUP().Returns(new List<SOUPItem>());
             mockDepMgmtPlugin.GetRisks().Returns(new List<RiskItem>());
             mockDepMgmtPlugin.GetUnitTests().Returns(new List<UnitTestItem>());
-            mockSrcCodePlugin = Substitute.For<IPlugin>();
-            mockSrcCodePlugin.Name.Returns("Source Code Analysis Plugin");
-            mockSrcCodePlugin.Description.Returns("Source Code Analysis Plugin Description");
+            mockSrcCodePlugin = (IDataSourcePlugin)Substitute.For<IPlugin, IDataSourcePlugin>();
+            ((IPlugin)mockSrcCodePlugin).Name.Returns("Source Code Analysis Plugin");
+            ((IPlugin)mockSrcCodePlugin).Description.Returns("Source Code Analysis Plugin Description");
             mockSrcCodePlugin.GetSystemRequirements().Returns(new List<RequirementItem>());
             mockSrcCodePlugin.GetSoftwareRequirements().Returns(new List<RequirementItem>());
             mockSrcCodePlugin.GetDocumentationRequirements().Returns(new List<RequirementItem>());
@@ -66,9 +66,9 @@ namespace RoboClerk.Tests
             mockConfiguration.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin1", "testPlugin2", "testDepPlugin", "testSrcPlugin" });
             mockConfiguration.PluginDirs.ReturnsForAnyArgs(new List<string> { TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist"), TestingHelpers.ConvertFileName("c:\\temp\\") });
             mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>(),mockFileSystem).Returns<IPlugin>(l => null);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem).Returns(mockSLMSPlugin);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testDepPlugin"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem).Returns(mockDepMgmtPlugin);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testSrcPlugin"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem).Returns(mockSrcCodePlugin);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem).Returns((IPlugin)mockSLMSPlugin);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testDepPlugin"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem).Returns((IPlugin)mockDepMgmtPlugin);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testSrcPlugin"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem).Returns((IPlugin)mockSrcCodePlugin);
         }
 
         [Test]

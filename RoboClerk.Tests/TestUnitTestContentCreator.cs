@@ -69,7 +69,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateUnitTestCC1()
         {
-            var sst = new UnitTest(dataSources,traceAnalysis);
+            var sst = new UnitTest(dataSources,traceAnalysis, config);
         }
 
         [UnitTestAttribute(
@@ -79,7 +79,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateUnitTestCC2()
         {
-            var sst = new UnitTest(dataSources, traceAnalysis);
+            var sst = new UnitTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 31, "@@SLMS:UnitTest(ItemID=tcid1)@@", true);
             //make sure we can find the item linked to this test
             dataSources.GetItem("target1").Returns(new RequirementItem(RequirementType.SystemRequirement) { ItemID = "target1" });
@@ -97,7 +97,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateUnitTestCC5()
         {
-            var sst = new UnitTest(dataSources, traceAnalysis);
+            var sst = new UnitTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 31, "@@SLMS:UnitTest(ItemID=tcid1)@@", true);
             
             Assert.Throws<AggregateException>(()=>sst.GetContent(tag, documentConfig));
@@ -110,7 +110,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateUnitTestCC3()
         {
-            var sst = new UnitTest(dataSources, traceAnalysis);
+            var sst = new UnitTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 31, "@@SLMS:UnitTest(ItemID=tcid2)@@", true);
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "\n|====\n| *unittest ID:* | http://localhost/[tcid2] \n\n| *Revision:* | \n\n\n| *Trace Link:* | N/A\n\n| *Purpose:* | N/A\n\n| *Acceptance Criteria:* | N/A\n\n|====";
@@ -126,7 +126,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateUnitTestCC4()
         {
-            var sst = new UnitTest(dataSources, traceAnalysis);
+            var sst = new UnitTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 31, "@@SLMS:UnitTest(ItemID=tcid3)@@", true);
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "Unable to find specified unittest(s). Check if unittests are provided or if a valid unittest identifier is specified.";
@@ -141,7 +141,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateUnitTestCC6()
         {
-            var sst = new UnitTest(dataSources, traceAnalysis);
+            var sst = new UnitTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 29, "@@SLMS:UnitTest(brief=true)@@", true);
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "|====\n| unittest ID | unittest Purpose | Acceptance Criteria\n\n| tcid1 | purpose1 | accept1 \n\n| http://localhost/[tcid2] |  |  \n\n|====\n";

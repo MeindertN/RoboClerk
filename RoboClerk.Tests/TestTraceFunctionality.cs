@@ -214,7 +214,7 @@ namespace RoboClerk.Tests
         private List<SoftwareSystemTestItem> TCs = null;
         private List<AnomalyItem> ANOMALYs = null;
         private List<UnitTestItem> UTs = null;
-        private IPlugin mockPlugin = Substitute.For< IPlugin>();
+        private IDataSourcePlugin mockPlugin = (IDataSourcePlugin)Substitute.For<IPlugin,IDataSourcePlugin>();
         private List<SOUPItem> SOUPs = null;
         private List<RiskItem> RISKs = null;
         private void SetupPlugin()
@@ -302,7 +302,7 @@ namespace RoboClerk.Tests
             SetupPlugin();
             IPluginLoader mockPluginLoader = Substitute.For<IPluginLoader>();
             mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>(), mockFileSystem).Returns<IPlugin>(l => null);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist"), mockFileSystem).Returns(mockPlugin);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist"), mockFileSystem).Returns((IPlugin)mockPlugin);
             IDataSources dataSources = new PluginDataSources(mockConfig, mockPluginLoader, mockFileSystem);
             SYSs.AddRange(systemReqs);
             SWRs.AddRange(softwareReqs);

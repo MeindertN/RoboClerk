@@ -1,6 +1,11 @@
-﻿using RoboClerk.Configuration;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Drawing.Charts;
+using DocumentFormat.OpenXml.Spreadsheet;
+using RoboClerk.Configuration;
 using System;
 using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace RoboClerk.ContentCreators
 {
@@ -9,16 +14,18 @@ namespace RoboClerk.ContentCreators
         protected static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         protected ITraceabilityAnalysis analysis = null;
         protected IDataSources data = null;
+        protected IConfiguration configuration = null;
 
-        public ContentCreatorBase(IDataSources data, ITraceabilityAnalysis analysis)
+        public ContentCreatorBase(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration configuration)
         {
             this.data = data;
             this.analysis = analysis;
+            this.configuration = configuration;
         }
 
         public abstract string GetContent(RoboClerkTag tag, DocumentConfig doc);
 
-        protected bool ShouldBeIncluded<T>(RoboClerkTag tag, T item, PropertyInfo[] properties)
+        protected static bool ShouldBeIncluded<T>(RoboClerkTag tag, T item, PropertyInfo[] properties)
         {
             foreach (var param in tag.Parameters)
             {
@@ -36,7 +43,7 @@ namespace RoboClerk.ContentCreators
             return true;
         }
 
-        protected bool CheckUpdateDateTime(RoboClerkTag tag, Item item)
+        protected static bool CheckUpdateDateTime(RoboClerkTag tag, Item item)
         {
             foreach (var param in tag.Parameters)
             {
@@ -67,6 +74,44 @@ namespace RoboClerk.ContentCreators
                     logger.Warn($"Cannot find item with ID \"{trace}\" as referenced in {docTE.Name}. Possible trace issue.");
                     analysis.AddTrace(null, trace, docTE, trace);
                 }
+            }
+        }
+
+        protected string TagFieldWithAIComment(string itemID, string input)
+        {
+            string result = input;
+            if (configuration.AIPlugin != string.Empty)
+            {
+                if (!input.Contains($"[[comment_{itemID}]]"))
+                {
+                    if (char.IsLetterOrDigit(input[0]))
+                    {
+                        result = $"[[comment_{itemID}]]{input}";
+                    }
+                    else
+                    {
+                        Match match = Regex.Match(input, @"(?<=\s)[A-Za-z0-9]");
+                        if (match.Success)
+                        {
+                            result = input.Insert(match.Index, $"[[comment_{itemID}]]");
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        protected void AddAITagsToContent(StringBuilder result, string input, string teID, string itemID)
+        {
+            if(configuration.AIPlugin != string.Empty)
+            {
+                result.AppendLine($"@@@AI:AIFeedback(entity={teID},itemID={itemID})");
+                result.AppendLine(input);
+                result.AppendLine("@@@");
+            }
+            else
+            {
+                result.AppendLine(input);
             }
         }
 

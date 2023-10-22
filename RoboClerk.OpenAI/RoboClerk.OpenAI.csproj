@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFramework>net6.0</TargetFramework>
+	  <ApplicationIcon />
+	  <OutputType>Library</OutputType>
+	  <StartupObject />
+	  <EnableDynamicLoading>true</EnableDynamicLoading>
+	  <Authors>Meindert Niemeijer</Authors>
+	  <Company>RoboClerk Project</Company>
+	  <Product>OpenAI plugin</Product>
+	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+	  <Configurations>Debug;Release;ReleasePublish</Configurations>
+	  <BaseOutputPath>bin</BaseOutputPath>
+  </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+	
+  <ItemGroup>
+    <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.8" />
+    <PackageReference Include="Samboy063.Tomlet" Version="5.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RoboClerk\RoboClerk.csproj">
+	  <Private>false</Private>
+	  <ExcludeAssets>runtime</ExcludeAssets>
+	</ProjectReference>
+  </ItemGroup>
+	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
+		<ItemGroup>
+			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+			<PromptFiles Include="$(ProjectDir)OpenAI/*.toml" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+		<Copy SourceFiles="@(PromptFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/scaffolding/RoboClerk_input/AIPromptTemplates/OpenAI" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.OpenAI.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.OpenAI.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+	</Target>
+	<Target Name="CopyPlugin" AfterTargets="Build">
+		<ItemGroup>
+			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+			<PromptFiles Include="$(ProjectDir)OpenAI/*.toml" />
+		</ItemGroup>
+		<Copy SourceFiles="$(ProjectDir)Configuration/OpenAIPlugin.toml" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig" />
+		<Copy SourceFiles="@(PromptFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)/RoboClerk_input/AIPromptTemplates/OpenAI" />
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)plugins" />
+	</Target>
+
+</Project>

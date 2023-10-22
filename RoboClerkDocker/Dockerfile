@@ -7,13 +7,13 @@ FROM $REPO:6.0-alpine-amd64
 
 # environment variables
 ENV PYTHONUNBUFFERED=1
-ENV PANDOC_VERSION 3.1.6
+ENV PANDOC_VERSION 3.1.8
 ENV PANDOC_DOWNLOAD_URL https://github.com/jgm/pandoc/releases/download/$PANDOC_VERSION/pandoc-$PANDOC_VERSION-linux-amd64.tar.gz
 
 RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python \
     && python3 -m ensurepip \
     && python3 -m pip install --no-cache --upgrade pip \
-    && pip3 install --no-cache --upgrade python-docx \
+    && pip3 install --no-cache --upgrade bayoo-docx \
 	&& pip3 install --no-cache --upgrade openpyxl \
     && wget $PANDOC_DOWNLOAD_URL \
     && tar -xzf pandoc-$PANDOC_VERSION-linux-amd64.tar.gz \

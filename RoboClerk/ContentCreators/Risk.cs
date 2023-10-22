@@ -1,12 +1,13 @@
 ﻿using Microsoft.CodeAnalysis.Scripting;
+using RoboClerk.Configuration;
 using System.Collections.Generic;
 
 namespace RoboClerk.ContentCreators
 {
     public class Risk : MultiItemContentCreator
     {
-        public Risk(IDataSources data, ITraceabilityAnalysis analysis)
-            : base(data, analysis)
+        public Risk(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf)
+            : base(data, analysis, conf)
         {
         }
 

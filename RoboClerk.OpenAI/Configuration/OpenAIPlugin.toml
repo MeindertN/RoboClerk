@@ -1,0 +1,40 @@
+﻿# This is the RoboClerk OpenAI plugin configuration
+# This plugin allows RoboClerk to provide intelligent
+# feedback to the documentation elements it is using
+# to build the documentation.
+
+# Set to true to use the Azure version of the openAI API
+# If set to false, the regular openAI API is used
+
+UseAzureOpenAI = "false"
+
+# If you are using the regular openAI API, the following
+# API key must be set
+
+OpenAIKey = ""
+
+# If you are using the Azure version of the openAI API the
+# Azure openAI resource URI and the Azure openAI resource
+# API key must be provided
+
+AzureOpenAIUri = ""
+
+AzureOpenAIResourceKey = ""
+
+# Prompt templates are processed in the same way as regular
+# document templates. In that way, prompt templates can contain 
+# information pulled from data sources. Here you can define
+# what prompt template files to use for the various truth items.
+# The template filename is relative to the Template Directory
+# from the projectConfig.toml file. The prompt is run for each
+# truth item. The properties of the applicable truth item can be 
+# pulled into the template by providing the property name between
+# %{ }% For example:
+# %{RequirementDescription}%
+# RoboClerk will fill these in automatically using the information
+# from the truth item.
+
+SystemRequirement = "/AIPromptTemplates/OpenAI/SystemRequirement.toml"
+SoftwareRequirement = "/AIPromptTemplates/OpenAI/SoftwareRequirement.toml"
+DocumentationRequirement = "/AIPromptTemplates/OpenAI/DocumentationRequirement.toml"
+
