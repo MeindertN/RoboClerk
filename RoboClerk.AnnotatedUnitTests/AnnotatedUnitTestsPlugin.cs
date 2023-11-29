@@ -1,4 +1,5 @@
-﻿using RoboClerk.Configuration;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -78,20 +79,26 @@ namespace RoboClerk.AnnotatedUnitTests
             int closers = 0;
             bool insideStringLiteral = false;
             bool ignoreStringDelim = false;
-
+            bool insideStringBlock = false;
             for (int i = 0; i < input.Length; i++)
             {
                 var temp = input.Substring(i);
-                if (temp.StartsWith("\"") && !ignoreStringDelim)
+                if (temp.StartsWith("\"\"\"") && !ignoreStringDelim)
+                {
+                    insideStringBlock = !insideStringBlock;
+                    i += 2;
+                    continue;
+                }
+                if (temp.StartsWith("\"") && !ignoreStringDelim && !insideStringBlock)
                 {
                     insideStringLiteral = !insideStringLiteral;
                 }
                 ignoreStringDelim = temp.StartsWith("\\\"");
-                if (!insideStringLiteral && temp.StartsWith(parameterStartDelimiter))
+                if ( (!insideStringLiteral && !insideStringBlock) && temp.StartsWith(parameterStartDelimiter))
                 {
                     openers++;
                 }
-                if (!insideStringLiteral && temp.StartsWith(parameterEndDelimiter))
+                if ( (!insideStringLiteral && !insideStringBlock) && temp.StartsWith(parameterEndDelimiter))
                 {
                     closers++;
                 }
@@ -110,17 +117,32 @@ namespace RoboClerk.AnnotatedUnitTests
             //to be used in practice
             StringBuilder pmsSb = new StringBuilder(pms);
             bool insideString = false;
+            bool insideTextBlock = false;
             for (int i = 0; i < pms.Length; i++)
             {
                 if (pms[i] == '"')
                 {
-                    insideString = !insideString;
+                    if (i + 2 < pms.Length && pms[i + 1] == '"' && pms[i + 2] == '"')
+                    {
+                        int index = i + 2;
+                        while (index < pms.Length && pms[index] == '"')
+                        {
+                            index++;
+                        }
+                        insideTextBlock = !insideTextBlock;
+                        i = index;
+                        continue;
+                    }
+                    else if(!insideTextBlock)
+                    {
+                        insideString = !insideString;
+                    }
                 }
-                if (pms[i] == '=' && insideString)
+                if (pms[i] == '=' && (insideString || insideTextBlock))
                 {
                     pmsSb[i] = '\a';
                 }
-                if (pms[i] == ',' && insideString)
+                if (pms[i] == ',' && (insideString || insideTextBlock))
                 {
                     pmsSb[i] = '\f';
                 }
@@ -211,8 +233,12 @@ namespace RoboClerk.AnnotatedUnitTests
                 if (parameterValues.ContainsKey(info.Key))
                 {
                     var value = parameterValues[info.Key];
-                    //all strings are assumed to start and end with a string delimiter for all supported languages
-                    value = value.Substring(1, value.Length - 2).Replace("\\\"","\"");
+                    //all strings are assumed to start and end with a string delimiter for all supported languages,
+                    //note that for some languages the string delimiter can be """
+                    if (value.StartsWith("\"\"\""))
+                        value = value.Substring(3, value.Length - 6).Replace("\\\"", "\"");
+                    else
+                        value = value.Substring(1, value.Length - 2).Replace("\\\"", "\"");
                     switch (info.Key)
                     {
                         case "Purpose": unitTest.UnitTestPurpose = value; break;
