@@ -30,3 +30,16 @@ Ignore = [ "Rejected" ]
 # variable to an empty string "".
 
 RedmineBaseURL = "http://localhost:3001/issues/"
+
+# To support the use case of documenting different versions of the software
+# for example an RUO vs IVD version with different features or a US vs an EU
+# version of the software, the RoboClerk Redmine Plugin supports providing 
+# fields here that will cause it to ignore system requirements and all  
+# attached items as well. As an example, by providing the value 
+# Release = ["IVD"]
+# Roboclerk will look for a field named "Release" in the system requirements 
+# and if the field value is in the list ("IVD") will ignore that system
+# requirement and all attached items.
+
+[IgnoreRequirements]
+	ReleaseType = [ "IVD" ]
