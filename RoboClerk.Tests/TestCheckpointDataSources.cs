@@ -14,8 +14,8 @@ namespace RoboClerk.Tests
     internal class TestCheckpointDataSources
     {
         private IFileSystem mockFileSystem = null;
-        private IPlugin mockPlugin = null;
-        private IPlugin mockDepMgmtPlugin = null;
+        private IDataSourcePlugin mockPlugin = null;
+        private IDataSourcePlugin mockDepMgmtPlugin = null;
         private IPluginLoader mockPluginLoader = null;
         private IConfiguration mockConfiguration = null;
 
@@ -79,13 +79,13 @@ namespace RoboClerk.Tests
                 { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
 
-            mockPlugin = Substitute.For<IPlugin>();
-            mockPlugin.Name.Returns("SLMS Test Plugin");
-            mockPlugin.Description.Returns("SLMS Test Plugin Description");
+            mockPlugin = (IDataSourcePlugin)Substitute.For<IPlugin,IDataSourcePlugin>();
+            ((IPlugin)mockPlugin).Name.Returns("SLMS Test Plugin");
+            ((IPlugin)mockPlugin).Description.Returns("SLMS Test Plugin Description");
             mockPlugin.GetDependencies().Returns(new List<ExternalDependency>());
-            mockDepMgmtPlugin = Substitute.For<IPlugin>();
-            mockDepMgmtPlugin.Name.Returns("Dependency Test Plugin");
-            mockDepMgmtPlugin.Description.Returns("Dependency Test Plugin Description");
+            mockDepMgmtPlugin = (IDataSourcePlugin)Substitute.For<IPlugin,IDataSourcePlugin>();
+            ((IPlugin)mockDepMgmtPlugin).Name.Returns("Dependency Test Plugin");
+            ((IPlugin)mockDepMgmtPlugin).Description.Returns("Dependency Test Plugin Description");
             mockDepMgmtPlugin.GetSystemRequirements().Returns(new List<RequirementItem>());
             mockDepMgmtPlugin.GetSoftwareRequirements().Returns(new List<RequirementItem>());
             mockDepMgmtPlugin.GetDocumentationRequirements().Returns(new List<RequirementItem>());
@@ -104,9 +104,8 @@ namespace RoboClerk.Tests
             mockConfiguration.TemplateDir.Returns(TestingHelpers.ConvertFileName("c:\\temp"));
             mockConfiguration.CheckpointConfig.Returns(new CheckpointConfig());
             mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>(), mockFileSystem).Returns<IPlugin>(l => null);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")), mockFileSystem).Returns(mockPlugin);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testDepPlugin"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")), mockFileSystem).Returns(mockDepMgmtPlugin);
-            
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")), mockFileSystem).Returns((IPlugin)mockPlugin);
+            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testDepPlugin"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")), mockFileSystem).Returns((IPlugin)mockDepMgmtPlugin);
         }
 
         [UnitTestAttribute(
@@ -192,7 +191,7 @@ namespace RoboClerk.Tests
             mockConfiguration.CheckpointConfig.Returns(cpc);
 
             mockPlugin.GetSystemRequirements().Returns(new List<RequirementItem> 
-            { 
+            {
                 new RequirementItem(RequirementType.SystemRequirement) { ItemID = "11", ItemCategory = "new"} 
             });
             mockPlugin.GetSoftwareRequirements().Returns(new List<RequirementItem>

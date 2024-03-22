@@ -1,14 +1,15 @@
 ﻿using Microsoft.CodeAnalysis.Scripting;
 using System.Collections.Generic;
 using System.Text;
+using IConfiguration = RoboClerk.Configuration.IConfiguration;
 
 namespace RoboClerk.ContentCreators
 {
     internal class DocContent : MultiItemContentCreator
     {
 
-        public DocContent(IDataSources data, ITraceabilityAnalysis analysis)
-            : base(data, analysis)
+        public DocContent(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf)
+            : base(data, analysis, conf)
         {
 
         }

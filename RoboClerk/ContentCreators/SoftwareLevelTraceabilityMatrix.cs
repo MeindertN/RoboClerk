@@ -4,8 +4,8 @@ namespace RoboClerk.ContentCreators
 {
     class SoftwareLevelTraceabilityMatrix : TraceabilityMatrixBase
     {
-        public SoftwareLevelTraceabilityMatrix(IDataSources data, ITraceabilityAnalysis analysis)
-            : base(data, analysis)
+        public SoftwareLevelTraceabilityMatrix(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf)
+            : base(data, analysis, conf)
         {
 
         }

@@ -85,6 +85,7 @@ namespace RoboClerk
         Reference, //tag for referencing a document in another document
         Document, //tag for referencing a property of the document
         File, //a file in the template directory
+        AI, //the AI system
         Unknown //it is not known where to retrieve this information
     }
 
@@ -133,7 +134,7 @@ namespace RoboClerk
 
         public bool HasParameter(string parameterName)
         {
-            return parameters.ContainsKey(parameterName);
+            return parameters.ContainsKey(parameterName.ToUpper());
         }
 
         public DataSource Source
@@ -301,6 +302,7 @@ namespace RoboClerk
                 case "DOCUMENT": return DataSource.Document;
                 case "REF": return DataSource.Reference;
                 case "FILE": return DataSource.File;
+                case "AI": return DataSource.AI;
             }
             return DataSource.Unknown;
         }

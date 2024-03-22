@@ -6,8 +6,8 @@ namespace RoboClerk.ContentCreators
 {
     public class ExcelTable : ContentCreatorBase
     {
-        public ExcelTable(IDataSources data, ITraceabilityAnalysis analysis)
-            : base(data, analysis)
+        public ExcelTable(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf)
+            : base(data, analysis, conf)
         {
 
         }

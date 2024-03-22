@@ -18,6 +18,7 @@ namespace RoboClerk.Tests
             cmdOptions = new Dictionary<string, string>();
             string roboConf = @"
 DataSourcePlugin = [ ""RedmineSLMSPlugin"", ""DependenciesFilePlugin"" ]
+AISystemPlugin = ""OpenAIPlugin""
 PluginDirs = [ ""I:/test/plugindir"" ]
 PluginConfigurationDir = ""testdir""
 OutputDirectory = ""I:/temp/Roboclerk_output""

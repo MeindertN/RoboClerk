@@ -1,0 +1,131 @@
+﻿model = "gpt-3.5-turbo"
+temperature = 0.2
+max_tokens = 256
+top_p = 1
+frequency_penalty = 0
+presence_penalty = 0
+
+  [[messages]]
+  role = "system"
+  content = """You are a very helpful, expert business analyst in a medical device software company reviewing a requirements document. You always aim to answer questions precisely and in a professional manner. Your audience is the project manager and developers of a medical device software product."""
+
+  [[messages]]
+  role = "user"
+  content = """You will be analyzing and reviewing system level requirements for the following product, please indicate that you are ready to analyze requirements: "@@Config:ProductDescription()@@" """
+
+  [[messages]]
+  role = "assistant"
+  content = """I am ready to analyze requirements."""
+
+  [[messages]]
+  role = "user"
+  content = """Imagine that the quality of requirements are measured along two axes, these are ambiguity and clarity. Your task is to assign a clarity and an ambiguity label to requirements. The clarity label of a requirement can either be "very clear", "somewhat clear","somewhat unclear" or "unclear". The ambiguity label of a requirement can either be "unambiguous", "somewhat unambiguous", "somewhat ambiguous", "ambiguous".  Provide an explanation for each of the assigned labels and an improved requirement text (when possible) that is both clear and unambiguous. Provide your answer in JSON format. The requirement to analyze is: "Users should be able to view past result data when they need to.""""
+
+  [[messages]]
+  role = "assistant"
+  content = """{
+  "clarity":{
+  "label":"Clear",
+  "explanation":"The intent to provide historical data is clear."
+  },
+  "ambiguity":{
+  "label":"Somewhat ambiguous",
+  "explanation":"\"When they need to\" is ambiguous as it doesn't specify any conditions or triggers."
+  },
+  "better_requirement":"The user interface shall provide a dedicated section for viewing historical result data, allowing users to select and view data from specific dates and times."
+  }"""
+
+  [[messages]]
+  role = "user"
+  content = """The requirement to analyze is: "Patient data backups should be done at appropriate intervals." """
+  
+  [[messages]]
+  role = "assistant"
+  content = """{
+  "clarity":{
+  "label":"Somewhat clear",
+  "explanation":"The intent to backup data is clear."
+  },
+  "ambiguity":{
+  "label":"Ambiguous",
+  "explanation":"\"Appropriate intervals\" is ambiguous as it doesn't specify the frequency."
+  },
+  "better_requirement":"The software shall automatically backup patient data to the cloud server every 24 hours."
+  }"""
+  
+  [[messages]]
+  role = "user"
+  content = """The requirement to analyze is: "Alerts should be sent to healthcare providers in a timely manner." """
+    
+    
+  [[messages]]
+  role = "assistant"
+  content = """{
+  "clarity":{
+  "label":"Somewhat clear",
+  "explanation":"\"Timely manner\" is not a defined time frame and can be subjective."
+  },
+  "ambiguity":{
+  "label":"Unambiguous",
+  "explanation":"The action (sending alerts to healthcare providers) is clear."
+  },
+  "better_requirement": "The alert system must send notifications to healthcare providers within 10 seconds of detecting a potential positive result."
+  }"""
+    
+  [[messages]]
+  role = "user"
+  content = """The requirement to analyze is: "Alerts should be sent sometimes." """
+  
+  [[messages]]
+  role = "assistant"
+  content = """{
+  "clarity":{
+  "label":"Unclear",
+  "explanation":"\"Sometimes\" is very vague and doesn't provide specific conditions."
+  },
+  "ambiguity":{
+  "label":"Somewhat ambiguous",
+  "explanation":"It is unclear when these alerts should be sent."
+  },
+  "better_requirement":"The alert system must send notifications to healthcare providers within 5 seconds of detecting a potential positive result."
+  }"""
+
+  [[messages]]
+  role = "user"
+  content = """The requirement to analyze is: "Patient data backups are important." """
+  
+  [[messages]]
+  role = "assistant"
+  content = """{
+  "clarity":{
+  "label":"Somewhat unclear",
+  "explanation":"The requirement states a fact but doesn't specify an action."
+  },
+  "ambiguity":{
+  "label":"Somewhat unambiguous",
+  "explanation":"It's unclear if the system should perform backups or if this is just a statement."
+  },
+  "better_requirement":"The software shall automatically backup patient data to the cloud server every 24 hours."
+  }"""
+
+  [[messages]]
+  role = "user"
+  content = """The requirement to analyze is: "Predictive insights should be presented in a way that makes sense." """
+  
+  [[messages]]
+  role = "assistant"
+  content = """{
+  "clarity":{
+  "label":"Somewhat clear",
+  "explanation":"The requirement states the need for presenting predictive insights in a meaningful way."
+  },
+  "ambiguity":{
+  "label":"Somewhat ambiguous",
+  "explanation":"It is unclear what specific criteria define a presentation that makes sense."
+  },
+  "better_requirement":"The software shall present predictive insights in a clear and easily understandable manner, using visualizations and explanatory text where necessary."
+  }"""
+  
+  [[messages]]
+  role = "user"
+  content = """The requirement to analyze is: "%{RequirementDescription}%" """

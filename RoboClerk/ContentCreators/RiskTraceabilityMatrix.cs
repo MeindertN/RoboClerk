@@ -4,8 +4,8 @@ namespace RoboClerk.ContentCreators
 {
     class RiskTraceabilityMatrix : TraceabilityMatrixBase
     {
-        public RiskTraceabilityMatrix(IDataSources data, ITraceabilityAnalysis analysis)
-            : base(data, analysis)
+        public RiskTraceabilityMatrix(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf)
+            : base(data, analysis, conf)
         {
 
         }

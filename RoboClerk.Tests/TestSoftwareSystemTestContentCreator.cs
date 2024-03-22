@@ -83,7 +83,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateSoftwareSystemTestCC()
         {
-            var sst = new SoftwareSystemTest(dataSources, traceAnalysis);
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
         }
 
         [UnitTestAttribute(
@@ -93,7 +93,7 @@ namespace RoboClerk.Tests
         [Test]
         public void SoftwareSystemRenderTest1()
         {
-            var sst = new SoftwareSystemTest(dataSources, traceAnalysis);
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 13, "@@SLMS:TC()@@", true);
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "\n|====\n| *Test Case ID:* | tcid1\n\n| *Test Case Revision:* | tcrev1\n\n| *Parent ID:* | http://localhost/[tcid2]: \"title2\"\n\n| *Title:* | title1\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n\n| *Step* | *Action* | *Expected Result* \n\n| 1 | input11 | expected result11 \n\n| 2 | input12 | expected result12 \n\n|====\n\n|====\n| *Test Case ID:* | http://localhost/[tcid2]\n\n| *Test Case Revision:* | tcrev2\n\n| *Parent ID:* | http://localhost/[tcid2]: \"title2\"\n\n| *Title:* | title2\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n| *Step* | *Action* | *Expected Result* | *Actual Result* | *Test Status*\n\n| 1 | input21 | expected result21  |  | Pass / Fail\n\n| 2 | input22 | expected result22  |  | Pass / Fail\n\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n| Initial: | Date: | Asset ID: \n|====";
@@ -110,7 +110,7 @@ namespace RoboClerk.Tests
         [Test]
         public void SoftwareSystemRenderTest2()
         {
-            var sst = new SoftwareSystemTest(dataSources, traceAnalysis);
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 25, "@@SLMS:TC(itemid=tcid2)@@", true);
             ((SoftwareSystemTestItem)testcaseItems[1]).ClearTestCaseSteps();
             ((SoftwareSystemTestItem)testcaseItems[1]).AddTestCaseStep(new TestStep("1", "input21", "expected result21" ));
@@ -129,7 +129,7 @@ namespace RoboClerk.Tests
         [Test]
         public void SoftwareSystemRenderTest4()
         {
-            var sst = new SoftwareSystemTest(dataSources, traceAnalysis);
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 25, "@@SLMS:TC(itemid=tcid5)@@", true);
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "Unable to find specified Test Case(s). Check if Test Cases are provided or if a valid Test Case identifier is specified.";

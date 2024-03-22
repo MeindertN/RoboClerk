@@ -7,7 +7,7 @@ using Tomlyn.Model;
 
 namespace RoboClerk
 {
-    public abstract class SourceCodeAnalysisPluginBase : PluginBase
+    public abstract class SourceCodeAnalysisPluginBase : DataSourcePluginBase
     {
         protected bool subDir = false;
         protected List<string> directories = new List<string>();

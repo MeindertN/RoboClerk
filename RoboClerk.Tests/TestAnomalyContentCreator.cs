@@ -18,6 +18,7 @@ namespace RoboClerk.Tests
     [Description("These tests test the RoboClerk Anomaly content creator")]
     internal class TestAnomalyContentCreator
     {
+        private IConfiguration config = null;
         private IDataSources dataSources = null;
         private ITraceabilityAnalysis traceAnalysis = null;
         private DocumentConfig documentConfig = null;
@@ -72,7 +73,7 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateAnomalyCC()
         {
-            var sst = new Anomaly(dataSources, traceAnalysis);
+            var sst = new Anomaly(dataSources, traceAnalysis, config);
         }
 
         [UnitTestAttribute(
@@ -82,7 +83,7 @@ namespace RoboClerk.Tests
         [Test]
         public void TestAnomaly1()
         {
-            var anomaly = new Anomaly(dataSources, traceAnalysis);
+            var anomaly = new Anomaly(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 18, "@@SLMS:Anomaly()@@", true);
 
             string result = anomaly.GetContent(tag, documentConfig);
@@ -100,7 +101,7 @@ namespace RoboClerk.Tests
         [Test]
         public void TestAnomaly2()
         {
-            var anomaly = new Anomaly(dataSources, traceAnalysis);
+            var anomaly = new Anomaly(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 18, "@@SLMS:Anomaly()@@", true);
             ((AnomalyItem)anomalyItems[0]).AnomalyState = "Closed";
 
@@ -119,7 +120,7 @@ namespace RoboClerk.Tests
         [Test]
         public void TestAnomaly3()
         {
-            var anomaly = new Anomaly(dataSources, traceAnalysis);
+            var anomaly = new Anomaly(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 18, "@@SLMS:Anomaly()@@", true);
             ((AnomalyItem)anomalyItems[0]).AnomalyState = "Closed";
             anomalyItems.RemoveAt(1);

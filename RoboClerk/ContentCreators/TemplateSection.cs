@@ -4,8 +4,8 @@ namespace RoboClerk.ContentCreators
 {
     public class TemplateSection : ContentCreatorBase
     {
-        public TemplateSection(IDataSources data, ITraceabilityAnalysis analysis)
-            : base(data, analysis)
+        public TemplateSection(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf)
+            : base(data, analysis, conf)
         {
 
         }

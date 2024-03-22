@@ -17,6 +17,10 @@ RoboClerk uses templates to generate the documentation. These are in Asciidoc fo
 
 RoboClerk utilizes the Asciidoc format, granting users access to its extensive features. This allows for the seamless incorporation of diagrams (e.g., PlantUML through [Kroki](https://kroki.io/)), images, tables, code snippets, cross-references, and more into the generated documentation, enhancing its overall quality and readability.
 
+## Leverage LLMs for Enhanced Documentation Generation
+
+The advent of modern AI, particularly Large Language Models (LLMs), has significantly transformed how we craft and manage textual content. Incorporating LLMs into RoboClerk's framework augments its capabilities. At present, RoboClerk harnesses the power of AI by interpreting AI prompts just as it handles text templates. This approach offers users unparalleled flexibility, enabling them to infuse extensive information into their prompts. Consequently, LLMs can assist in comprehensively analyzing and shaping the documentation. As RoboClerk continues to evolve, future iterations will further amplify its capabilities by permitting direct documentation generation through LLMs.
+
 ## Getting Started
 
 1. Pull the RoboClerk docker container for the release you want to use:

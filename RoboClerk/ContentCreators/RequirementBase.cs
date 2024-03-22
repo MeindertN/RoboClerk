@@ -1,4 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.Scripting;
+using RoboClerk.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,10 +12,9 @@ namespace RoboClerk.ContentCreators
         protected string requirementName = string.Empty;
         protected TraceEntity sourceType = null;
 
-        public RequirementBase(IDataSources data, ITraceabilityAnalysis analysis)
-            : base(data, analysis)
+        public RequirementBase(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration config)
+            : base(data, analysis, config)
         {
-
         }
 
         protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity te, TraceEntity docTE)
@@ -24,17 +25,28 @@ namespace RoboClerk.ContentCreators
             var renderer = new ItemTemplateRenderer(file);
             foreach (var item in items)
             {
-                dataShare.Item = item;
+                RequirementItem reqItem = item as RequirementItem;
+                if (reqItem == null) 
+                {
+                    throw new Exception("Item passed into requirement content creator is not a RequirementItem.");
+                }
+                string oldDescription = reqItem.RequirementDescription;
+                //this will insert a tag in the description indicating where AI comments need to be included if an AI plugin is selected
+                reqItem.RequirementDescription = TagFieldWithAIComment(reqItem.ItemID, reqItem.RequirementDescription);  
+                dataShare.Item = reqItem;
+                string result = string.Empty;
                 try
                 {
-                    var result = renderer.RenderItemTemplate(dataShare);
-                    output.Append(result);
+                    result = renderer.RenderItemTemplate(dataShare);
                 }
                 catch (CompilationErrorException e)
                 {
                     logger.Error($"A compilation error occurred while compiling Requirement.adoc script: {e.Message}");
                     throw;
                 }
+                AddAITagsToContent(output, result, te.ID, reqItem.ItemID);
+                //remove the tag to restore the original description
+                reqItem.RequirementDescription = oldDescription;
             }
             ProcessTraces(docTE, dataShare);
             return output.ToString();

@@ -9,11 +9,13 @@ namespace RoboClerk.ContentCreators
         protected TraceEntity truthSource = null;
         protected IDataSources data = null;
         protected ITraceabilityAnalysis analysis = null;
+        protected IConfiguration configuration = null;
 
-        public TraceabilityMatrixBase(IDataSources data, ITraceabilityAnalysis analysis)
+        public TraceabilityMatrixBase(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration configuration)
         {
             this.data = data;
             this.analysis = analysis;
+            this.configuration = configuration;
         }
 
         public virtual string GetContent(RoboClerkTag tag, DocumentConfig doc)

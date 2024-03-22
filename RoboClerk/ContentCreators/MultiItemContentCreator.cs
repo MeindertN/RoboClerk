@@ -8,8 +8,8 @@ namespace RoboClerk.ContentCreators
 {
     public abstract class MultiItemContentCreator : ContentCreatorBase
     {
-        public MultiItemContentCreator(IDataSources data, ITraceabilityAnalysis analysis)
-            : base(data, analysis)
+        public MultiItemContentCreator(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration config)
+            : base(data, analysis, config)
         {
         }
 

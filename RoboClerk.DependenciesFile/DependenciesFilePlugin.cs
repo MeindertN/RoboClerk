@@ -6,7 +6,7 @@ using Tomlyn.Model;
 
 namespace RoboClerk.DependenciesFile
 {
-    public class DependenciesFilePlugin : PluginBase
+    public class DependenciesFilePlugin : DataSourcePluginBase
     {
         private List<string> fileLocations = new List<string>();
         private List<string> fileFormats = new List<string>();
