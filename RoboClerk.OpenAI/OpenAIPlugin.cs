@@ -4,6 +4,7 @@ using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
+using RoboClerk.AISystem;
 
 namespace RoboClerk.OpenAI
 {

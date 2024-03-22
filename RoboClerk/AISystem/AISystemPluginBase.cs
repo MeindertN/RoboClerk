@@ -1,9 +1,8 @@
-﻿using RoboClerk.AISystem;
-using RoboClerk.Configuration;
+﻿using RoboClerk.Configuration;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 
-namespace RoboClerk
+namespace RoboClerk.AISystem
 {
     public abstract class AISystemPluginBase : PluginBase, IAISystemPlugin
     {

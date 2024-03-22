@@ -1,6 +1,7 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
 using System.Collections.Generic;
+using RoboClerk.AISystem;
 
 namespace RoboClerk.Tests
 {

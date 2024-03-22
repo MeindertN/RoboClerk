@@ -6,7 +6,7 @@ using IConfiguration = RoboClerk.Configuration.IConfiguration;
 
 namespace RoboClerk
 {
-    public abstract class SLMSPluginBase : PluginBase
+    public abstract class SLMSPluginBase : DataSourcePluginBase
     {
         protected string prsName = string.Empty;
         protected string srsName = string.Empty;
