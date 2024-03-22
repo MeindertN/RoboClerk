@@ -9,6 +9,8 @@ namespace RoboClerk
         private string unitTestPurpose = "";
         private string unitTestAcceptanceCriteria = "";
         private string unitTestFileLocation = "";
+        private string unitTestFileName = "";
+        private string unitTestFunctionName = "";
 
         public UnitTestItem()
         {
@@ -38,6 +40,18 @@ namespace RoboClerk
         {
             get { return unitTestFileLocation; }
             set { unitTestFileLocation = value; }
+        }
+
+        public string UnitTestFileName
+        { 
+            get { return unitTestFileName; } 
+            set { unitTestFileName = value; } 
+        }
+
+        public string UnitTestFunctionName
+        { 
+            get { return unitTestFunctionName; } 
+            set { unitTestFunctionName = value; } 
         }
     }
 }

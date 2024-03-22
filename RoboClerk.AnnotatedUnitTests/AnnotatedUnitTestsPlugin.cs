@@ -85,6 +85,8 @@ namespace RoboClerk.AnnotatedUnitTests
                 var temp = input.Substring(i);
                 if (temp.StartsWith("\"\"\"") && !ignoreStringDelim)
                 {
+                    if (insideStringBlock && temp.Length >= 4 && temp[3] == '"')
+                        continue;
                     insideStringBlock = !insideStringBlock;
                     i += 2;
                     continue;

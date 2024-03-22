@@ -155,6 +155,7 @@ namespace RoboClerk
                     foundMatch = foundMatch && longestString.Contains(functionMaskElement);
                 }
             }
+            StringBuilder functionName = new StringBuilder();
             if (foundMatch)
             {
                 string remainingLine = longestString;
@@ -171,6 +172,8 @@ namespace RoboClerk
                     }
                     var items = remainingLine.Split(functionMaskElements[i]);
                     resultingElements.Add((functionMaskElements[i - 1], items[0]));
+                    functionName.Append(items[0]);
+                    functionName.Append(functionMaskElements[i]);
                     if (items.Length - 1 != 0)
                     {
                         remainingLine = String.Join(functionMaskElements[i], items, 1, items.Length - 1);
@@ -205,6 +208,7 @@ namespace RoboClerk
                     default: throw new Exception($"Unknown element identifier in FunctionMask: {el.Item1.ToUpper()}");
                 }
             }
+            unitTest.UnitTestFileName = shortFileName;
             if (!identified)
             {
                 unitTest.ItemID = $"{shortFileName}:{lineNumber}";

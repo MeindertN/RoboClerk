@@ -64,7 +64,7 @@ namespace RoboClerk
                 {
                     if (!retrievedIDs.Contains(itemLink.TargetID))
                     {
-                        logger.Warn($"Removing a {itemLink.LinkType} link to item with ID \"{itemLink.TargetID}\" because that item has a status that causes it to be ignored.");
+                        logger.Warn($"Removing a {itemLink.LinkType} link from item \"{linkedItem.ItemID}\" to item with ID \"{itemLink.TargetID}\" because that item has a status that causes it to be ignored.");
                         linkedItemsToRemove.Add(itemLink);
                     }
                 }

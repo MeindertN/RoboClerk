@@ -46,7 +46,14 @@ namespace RoboClerk.Redmine
                         {
                             foreach (var element in (TomlArray)kvp.Value)
                             {
-                                ignoreSysReqWithFieldVal[kvp.Key].Add((string)element);
+                                if (ignoreSysReqWithFieldVal.ContainsKey(kvp.Key))
+                                {
+                                    ignoreSysReqWithFieldVal[kvp.Key].Add(element.ToString());
+                                }
+                                else
+                                {
+                                    ignoreSysReqWithFieldVal.Add(kvp.Key, new List<string> { element.ToString() });
+                                }
                             }
                         }
                         else
@@ -96,7 +103,7 @@ namespace RoboClerk.Redmine
                 if (redmineIssue.Tracker.Name == prsName)
                 {
                     logger.Debug($"System level requirement found: {redmineIssue.Id}");
-                    if (ignoreSysReqWithFieldVal.Count == 0 || !ShouldIgnoreSysDocReq(redmineIssue))
+                    if (ignoreSysReqWithFieldVal.Count == 0 || !ShouldIgnoreSysSoftDocReq(redmineIssue))
                     {
                         systemRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SystemRequirement));
                     }
@@ -108,7 +115,14 @@ namespace RoboClerk.Redmine
                 else if (redmineIssue.Tracker.Name == srsName)
                 {
                     logger.Debug($"Software level requirement found: {redmineIssue.Id}");
-                    softwareRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SoftwareRequirement));
+                    if (ignoreSysReqWithFieldVal.Count == 0 || !ShouldIgnoreSysSoftDocReq(redmineIssue))
+                    {
+                        softwareRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SoftwareRequirement));
+                    }
+                    else
+                    {
+                        retrievedIDs.Remove(redmineIssue.Id.ToString());
+                    }
                 }
                 else if (redmineIssue.Tracker.Name == tcName)
                 {
@@ -133,7 +147,7 @@ namespace RoboClerk.Redmine
                 else if (redmineIssue.Tracker.Name == docName)
                 {
                     logger.Debug($"Documentation item found: {redmineIssue.Id}");
-                    if (ignoreSysReqWithFieldVal.Count == 0 || !ShouldIgnoreSysDocReq(redmineIssue))
+                    if (ignoreSysReqWithFieldVal.Count == 0 || !ShouldIgnoreSysSoftDocReq(redmineIssue))
                     {
                         documentationRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.DocumentationRequirement));
                     }
@@ -150,7 +164,7 @@ namespace RoboClerk.Redmine
             }
             if (ignoreSysReqWithFieldVal.Count > 0)
             {
-                RemoveAllItemsNotLinkedToSysDocReq(retrievedIDs);
+                RemoveAllItemsNotLinkedToSysSoftDocReq(retrievedIDs);
             }
             RemoveIgnoredLinks(retrievedIDs); //go over all items and remove any links to ignored items
             ScrubItemContents(); //go over all relevant items and escape any | characters
@@ -162,11 +176,16 @@ namespace RoboClerk.Redmine
             string removeItem = string.Empty;
             foreach (var item in inputItems)
             {
-                removeItem = item.ItemID;
+                if(item.LinkedItems.Count() > 0) //orphan items are always included so they don't get lost or ingnored.
+                    removeItem = item.ItemID;
                 foreach (var link in item.LinkedItems)
                 {
+                    
                     if (link != null && lt.Contains(link.LinkType) &&
-                        retrievedIDs.Contains(link.TargetID))
+                        retrievedIDs.Contains(link.TargetID) && 
+                        (systemRequirements.Any(obj => obj.ItemID == link.TargetID) ||
+                         softwareRequirements.Any(obj => obj.ItemID == link.TargetID) ||
+                         documentationRequirements.Any(obj => obj.ItemID == link.TargetID)) )
                     {
                         removeItem = string.Empty;
                         break;
@@ -178,18 +197,22 @@ namespace RoboClerk.Redmine
                 }
                 else
                 {
+                    logger.Debug($"Removing item because it is not linked to a valid item: {item.ItemID}");
                     retrievedIDs.Remove(removeItem);
+                    removeItem = string.Empty;
                 }
             }
             return items;
         }
 
-        private void RemoveAllItemsNotLinkedToSysDocReq(List<string> retrievedIDs)
+        private void RemoveAllItemsNotLinkedToSysSoftDocReq(List<string> retrievedIDs)
         {
             softwareRequirements = CheckForLinkedItem(retrievedIDs, softwareRequirements, new List<ItemLinkType> { ItemLinkType.Parent });
             testCases = CheckForLinkedItem(retrievedIDs, testCases, new List<ItemLinkType> { ItemLinkType.Parent, ItemLinkType.Related });
             docContents = CheckForLinkedItem(retrievedIDs, docContents, new List<ItemLinkType> { ItemLinkType.Parent });
-            risks = CheckForLinkedItem(retrievedIDs, risks, new List<ItemLinkType> { ItemLinkType.Related });
+            risks = CheckForLinkedItem(retrievedIDs, risks, new List<ItemLinkType> { ItemLinkType.RiskControl });
+            //need to remove any bugs connected to items that were removed.
+            anomalies = CheckForLinkedItem(retrievedIDs, anomalies, new List<ItemLinkType> { ItemLinkType.Related } );
         }
 
         private void RemoveIgnoredLinks(List<string> retrievedIDs)
@@ -571,7 +594,7 @@ namespace RoboClerk.Redmine
             }
         }
 
-        private bool ShouldIgnoreSysDocReq(RedmineIssue redmineItem)
+        private bool ShouldIgnoreSysSoftDocReq(RedmineIssue redmineItem)
         {
             if (redmineItem.CustomFields.Count != 0)
             {
@@ -582,7 +605,7 @@ namespace RoboClerk.Redmine
                         string fieldVal = ((System.Text.Json.JsonElement)field.Value).GetString();
                         if (ignoreSysReqWithFieldVal[field.Name].Contains(fieldVal))
                         {
-                            logger.Debug($"Ignoring system requirement item {redmineItem.Id} due to \"{field.Name}\" being equal to \"{fieldVal}\".");
+                            logger.Debug($"Ignoring requirement item {redmineItem.Id} due to \"{field.Name}\" being equal to \"{fieldVal}\".");
                             return true;
                         }
                     }

@@ -28,7 +28,7 @@ TestDirectories = [""c:/temp""]
 SubDirs = true
 FileMasks = [""Test*.cs""]
 UseGit = false
-DecorationMarker = ""[UnitTestAttribute""
+DecorationMarker = ""[UnitTestAttribut""
 ParameterStartDelimiter = ""(""
 ParameterEndDelimiter = "")""
 ParameterSeparator = "",""
@@ -45,7 +45,7 @@ ParameterSeparator = "",""
 	Keyword = ""TraceID""
 	Optional = true";
             string testFile = @"
- [UnitTestAttribute(
+ [UnitTestAttribut(
             Identifier = ""9A3258CF-F9EE-4A1A-95E6-B49EF25FB200"",
             Purpose = """"""RoboClerk Processes the media directory including subdirs, 
 output media directory exists including subdirs""
@@ -56,7 +56,7 @@ output media directory exists including subdirs""
         {
 	    }
 
-[UnitTestAttribute(
+[UnitTestAttribut(
         Identifier = ""5D8F1310-1D33-49C1-93C9-0072428EF215"",
         Purpose = ""SourceCodeAnalysisPlugin is created and initialized, subdirs set to false"",
         PostCondition = ""Expected files =found"")]
