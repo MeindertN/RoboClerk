@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,8 +24,16 @@ namespace RoboClerk.Tests
         [SetUp]
         public void TestSetup()
         {
-            string configFile = @"
-TestDirectories = [""c:/temp""]
+            StringBuilder configFile = new StringBuilder();
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                configFile.Append(@"TestDirectories = [""/c/temp""]");
+            }
+            else
+            {
+                configFile.Append(@"TestDirectories = [""c:/temp""]");
+            }
+            configFile.Append(@"
 SubDirs = true
 FileMasks = [""Test*.cs""]
 UseGit = false
@@ -43,7 +52,7 @@ ParameterSeparator = "",""
 	Optional = true
 [TraceID]
 	Keyword = ""TraceID""
-	Optional = true";
+	Optional = true");
             string testFile = @"
  [UnitTestAttribut(
             Identifier = ""9A3258CF-F9EE-4A1A-95E6-B49EF25FB200"",
@@ -66,12 +75,12 @@ output media directory exists including subdirs""
         }";
             fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { @"c:\test\AnnotatedUnitTestPlugin.toml", new MockFileData(configFile) },
-                { @"c:\temp\TestDummy.cs", new MockFileData(testFile) },
+                { TestingHelpers.ConvertFileName(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(configFile.ToString()) },
+                { TestingHelpers.ConvertFileName(@"c:\temp\TestDummy.cs"), new MockFileData(testFile) },
             });
             configuration = Substitute.For<IConfiguration>();
-            configuration.PluginConfigDir.Returns(@"c:/test/");
-            configuration.ProjectRoot.Returns(@"c:/temp/");
+            configuration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:/test/"));
+            configuration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:/temp/"));
             configuration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
         }
