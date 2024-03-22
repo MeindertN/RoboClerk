@@ -5,6 +5,10 @@
     <Configurations>Debug;Release;ReleasePublish</Configurations>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="TestDummy.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="TestingTest.java" />
     <None Remove="TestSOUPContentCreator.cs~RF419ef34.TMP" />
   </ItemGroup>
   <ItemGroup>
@@ -19,6 +23,7 @@
     <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="19.2.22" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\RoboClerk.AnnotatedUnitTests\RoboClerk.AnnotatedUnitTests.csproj" />
     <ProjectReference Include="..\RoboClerk\RoboClerk.csproj" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using Tomlyn.Model;
@@ -6,7 +6,7 @@ using IConfiguration = RoboClerk.Configuration.IConfiguration;
 
 namespace RoboClerk
 {
-    public abstract class SLMSPluginBase : DataSourcePluginBase
+    public abstract class SLMSPluginBase : PluginBase
     {
         protected string prsName = string.Empty;
         protected string srsName = string.Empty;
@@ -64,7 +64,7 @@ namespace RoboClerk
                 {
                     if (!retrievedIDs.Contains(itemLink.TargetID))
                     {
-                        logger.Warn($"Removing a {itemLink.LinkType} link to item with ID \"{itemLink.TargetID}\" because that item has a status that causes it to be ignored.");
+                        logger.Warn($"Removing a {itemLink.LinkType} link from item \"{linkedItem.ItemID}\" to item with ID \"{itemLink.TargetID}\" because that item has a status that causes it to be ignored.");
                         linkedItemsToRemove.Add(itemLink);
                     }
                 }
