@@ -67,7 +67,7 @@ namespace RoboClerk.AzureDevOps
             List<string> retrievedIDs = new List<string>();
 
             logger.Info("Retrieving and processing system level requirements.");
-            foreach (var workitem in GetWorkItems(prsName))
+            foreach (var workitem in GetWorkItems(PrsConfig.Name))
             {
                 if (IgnoreItem(workitem)) continue;
                 retrievedIDs.Add(workitem.Id.ToString());
@@ -76,7 +76,7 @@ namespace RoboClerk.AzureDevOps
             }
 
             logger.Info("Retrieving and processing software level requirements.");
-            foreach (var workitem in GetWorkItems(srsName))
+            foreach (var workitem in GetWorkItems(SrsConfig.Name))
             {
                 if (IgnoreItem(workitem)) continue;
                 retrievedIDs.Add(workitem.Id.ToString());
@@ -85,7 +85,7 @@ namespace RoboClerk.AzureDevOps
             }
 
             logger.Info("Retrieving and processing documentation requirements.");
-            foreach (var workitem in GetWorkItems(docName))
+            foreach (var workitem in GetWorkItems(DocConfig.Name))
             {
                 if (IgnoreItem(workitem)) continue;
                 retrievedIDs.Add(workitem.Id.ToString());
@@ -94,7 +94,7 @@ namespace RoboClerk.AzureDevOps
             }
 
             logger.Info("Retrieving and processing docContent requirements.");
-            foreach (var workitem in GetWorkItems(cntName))
+            foreach (var workitem in GetWorkItems(CntConfig.Name))
             {
                 if (IgnoreItem(workitem)) continue;
                 retrievedIDs.Add(workitem.Id.ToString());
@@ -103,7 +103,7 @@ namespace RoboClerk.AzureDevOps
             }
 
             logger.Info("Retrieving and SOUP items.");
-            foreach (var workitem in GetWorkItems(soupName))
+            foreach (var workitem in GetWorkItems(SoupConfig.Name))
             {
                 if (IgnoreItem(workitem)) continue;
                 retrievedIDs.Add(workitem.Id.ToString());
@@ -112,7 +112,7 @@ namespace RoboClerk.AzureDevOps
             }
 
             logger.Info("Retrieving test cases.");
-            foreach (var workitem in GetWorkItems(tcName))
+            foreach (var workitem in GetWorkItems(TcConfig.Name))
             {
                 if (IgnoreItem(workitem)) continue;
                 retrievedIDs.Add(workitem.Id.ToString());
@@ -122,7 +122,7 @@ namespace RoboClerk.AzureDevOps
 
             logger.Info("Retrieving and processing bugs.");
             
-            foreach (var workitem in GetWorkItems(bugName))
+            foreach (var workitem in GetWorkItems(BugConfig.Name))
             {
                 if (IgnoreItem(workitem)) continue;
                 retrievedIDs.Add(workitem.Id.ToString());
@@ -133,7 +133,7 @@ namespace RoboClerk.AzureDevOps
             logger.Info("Retrieving and processing risks.");
             //Note that to gather all information about the risk item, this code relies on the 
             //system level requirements having been retrieved already.
-            foreach (var workitem in GetWorkItems(riskName))
+            foreach (var workitem in GetWorkItems(RiskConfig.Name))
             {
                 if (IgnoreItem(workitem)) continue;
                 retrievedIDs.Add(workitem.Id.ToString());

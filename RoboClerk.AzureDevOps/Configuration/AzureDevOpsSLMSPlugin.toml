@@ -4,18 +4,70 @@ AccessToken = ""
 OrganizationName = ""
 ProjectName = "RoboClerk"
 
-# The following allows you to indicate the work item names that map
-# to various entities in the RoboClerk software
-SystemRequirement = "Epic"
-SoftwareRequirement = "User Story"
-DocumentationRequirement = "Documentation"
-DocContent = "DocContent"
-SoftwareSystemTest = "Test Case"
-Risk = "Risk"
-Anomaly = "Bug"
-SOUP = "SOUP"
-
 # certain items in azure devops should be ignored because they are no longer
 # relevant. Indicate which item statuses should be ignored.
 
 Ignore = [ "Removed" ]
+
+# The following allows you to indicate the redmine trackers that map
+# to various entities in the RoboClerk software. Set the name to the 
+# redmine ticket type. You can also indicate if the items are subject
+# are subject to the inclusion and exclusion filters defined further
+# on in this file.
+
+[SystemRequirement]
+	name = "Epic"
+	filter = true
+
+[SoftwareRequirement]
+	name = "User Story"
+	filter = true
+
+[DocumentationRequirement]
+	name = "Documentation"
+	filter = true
+
+[DocContent]
+	name = "DocContent"
+	filter = false
+
+[SoftwareSystemTest]
+	name = "Test Case"
+	filter = false
+
+[Risk]
+	name = "Risk"
+	filter = true
+
+[Anomaly]
+	name = "Bug"
+	filter = false
+
+[SOUP]
+	name = "SOUP"
+	filter = true
+
+# To support the use case of documenting different versions of the software
+# for example an RUO vs IVD version with different features or a US vs an EU
+# version of the software, the RoboClerk Redmine Plugin supports providing 
+# fields here that will cause it to either include or exclude items and all  
+# attached items as well. As an example, by providing the value 
+# [ExcludedItemFilter]
+# ReleaseType = ["IVD"] 
+# Roboclerk will look for a field named "ReleaseType" in the item tickets 
+# and if the field value is in the list (e.g. "IVD") it will ignore that ticket
+# and all attached items. 
+# Another use of this feature is to include only those
+# tickets associated with a particular release.
+# [IncludedItemFilter]
+# MileStone = ["1.0.0","1.0.1"]
+# this will ensure that only items that have a field named MileStone with the values
+# 1.0.0 or 1.0.1 will be included
+# Note that we only include those items types that have the filter property set
+# to true (see above)
+
+[ExcludedItemFilter]
+	ReleaseType = [ "IVD" ]
+
+[IncludedItemFilter]
+	MileStone = ["1.0.0","1.0.1"]

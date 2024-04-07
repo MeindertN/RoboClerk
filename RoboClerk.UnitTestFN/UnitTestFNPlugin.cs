@@ -29,11 +29,11 @@ namespace RoboClerk
                 base.Initialize(configuration);
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
 
-                testFunctionDecoration = configuration.CommandLineOptionOrDefault("TestFunctionDecoration", GetStringForKey(config, "TestFunctionDecoration", false));
-                var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", GetStringForKey(config, "FunctionMask", true));
+                testFunctionDecoration = configuration.CommandLineOptionOrDefault("TestFunctionDecoration", GetObjectForKey<string>(config, "TestFunctionDecoration", false));
+                var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", GetObjectForKey<string>(config, "FunctionMask", true));
                 functionMaskElements = ParseFunctionMask(functionMask);
                 ValidateFunctionMaskElements(functionMaskElements);
-                sectionSeparator = configuration.CommandLineOptionOrDefault("SectionSeparator", GetStringForKey(config, "SectionSeparator", true));
+                sectionSeparator = configuration.CommandLineOptionOrDefault("SectionSeparator", GetObjectForKey<string>(config, "SectionSeparator", true));
             }
             catch (Exception e)
             {

@@ -53,10 +53,10 @@ namespace RoboClerk.AnnotatedUnitTests
                 base.Initialize(configuration);
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
 
-                decorationMarker = configuration.CommandLineOptionOrDefault("DecorationMarker", GetStringForKey(config, "DecorationMarker", true));
-                parameterStartDelimiter = configuration.CommandLineOptionOrDefault("ParameterStartDelimiter", GetStringForKey(config, "ParameterStartDelimiter", true));
-                parameterEndDelimiter = configuration.CommandLineOptionOrDefault("ParameterEndDelimiter", GetStringForKey(config, "ParameterEndDelimiter", true));
-                parameterSeparator = configuration.CommandLineOptionOrDefault("ParameterSeparator", GetStringForKey(config, "ParameterSeparator", true));
+                decorationMarker = configuration.CommandLineOptionOrDefault("DecorationMarker", GetObjectForKey<string>(config, "DecorationMarker", true));
+                parameterStartDelimiter = configuration.CommandLineOptionOrDefault("ParameterStartDelimiter", GetObjectForKey<string>(config, "ParameterStartDelimiter", true));
+                parameterEndDelimiter = configuration.CommandLineOptionOrDefault("ParameterEndDelimiter", GetObjectForKey<string>(config, "ParameterEndDelimiter", true));
+                parameterSeparator = configuration.CommandLineOptionOrDefault("ParameterSeparator", GetObjectForKey<string>(config, "ParameterSeparator", true));
 
                 PopulateUTInfo("Purpose", config);
                 PopulateUTInfo("PostCondition", config);

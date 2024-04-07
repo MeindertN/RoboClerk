@@ -7,39 +7,80 @@ RedmineAPIKey = "014a75c443c18891c3baf8f7f2d2ce37aa27b94c"
 
 RedmineProject = "TestProject"
 
-# The following allows you to indicate the redmine trackers that map
-# to various entities in the RoboClerk software
-
-SystemRequirement = "SystemRequirement"
-SoftwareRequirement = "SoftwareRequirement"
-DocumentationRequirement = "Documentation"
-DocContent = "DocContent"
-SoftwareSystemTest = "SoftwareSystemTest"
-Risk = "Risk"
-Anomaly = "Bug"
-SOUP = "SOUP"
-
 # certain items in redmine should be ignored because they are no longer
 # relevant. Indicate which item statuses should be ignored.
-
 Ignore = [ "Rejected" ]
 
 # In order to provide hyperlinks in the documents provide the redmine
 # base URL here. NOTE: Ensure the URL ends with a single /
 # If you do not wish the software to include hyperlinks, just set this
 # variable to an empty string "".
-
 RedmineBaseURL = "http://localhost:3001/issues/"
+
+# The following allows you to indicate the redmine trackers that map
+# to various entities in the RoboClerk software. Set the name to the 
+# redmine ticket type. You can also indicate if the items are subject
+# are subject to the inclusion and exclusion filters defined further
+# on in this file.
+
+[SystemRequirement]
+	name = "SystemRequirement"
+	filter = true
+
+[SoftwareRequirement]
+	name = "SoftwareRequirement"
+	filter = true
+
+[DocumentationRequirement]
+	name = "Documentation"
+	filter = true
+
+[DocContent]
+	name = "DocContent"
+	filter = false
+
+[SoftwareSystemTest]
+	name = "SoftwareSystemTest"
+	filter = false
+
+[Risk]
+	name = "Risk"
+	filter = true
+
+[Anomaly]
+	name = "Bug"
+	filter = false
+
+[SOUP]
+	name = "SOUP"
+	filter = true
 
 # To support the use case of documenting different versions of the software
 # for example an RUO vs IVD version with different features or a US vs an EU
 # version of the software, the RoboClerk Redmine Plugin supports providing 
-# fields here that will cause it to ignore system requirements and all  
+# fields here that will cause it to either include or exclude items and all  
 # attached items as well. As an example, by providing the value 
-# ReleaseType = ["IVD"]
-# Roboclerk will look for a field named "ReleaseType" in the system requirements 
-# and if the field value is in the list (e.g. "IVD") will ignore that system
-# requirement and all attached items.
+# [ExcludedItemFilter]
+# ReleaseType = ["IVD"] 
+# Roboclerk will look for a field named "ReleaseType" in the item tickets 
+# and if the field value is in the list (e.g. "IVD") it will ignore that ticket
+# and all attached items. 
+# Another use of this feature is to include only those
+# tickets associated with a particular release.
+# [IncludedItemFilter]
+# MileStone = ["1.0.0","1.0.1"]
+# this will ensure that only items that have a field named MileStone with the values
+# 1.0.0 or 1.0.1 will be included
+# Note that we only include those items types that have the filter property set
+# to true (see above)
 
-[IgnoreRequirements]
+[ExcludedItemFilter]
 	ReleaseType = [ "IVD" ]
+
+[IncludedItemFilter]
+	MileStone = ["1.0.0","1.0.1"]
+
+
+
+
+	

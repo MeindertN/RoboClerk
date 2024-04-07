@@ -24,16 +24,16 @@ namespace RoboClerk.OpenAI
         {
             base.Initialize(configuration);
             var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-            bool useAzureOpenAI = configuration.CommandLineOptionOrDefault("UseAzureOpenAI", GetStringForKey(config, "UseAzureOpenAI", true)).ToUpper() == "TRUE";
+            bool useAzureOpenAI = configuration.CommandLineOptionOrDefault("UseAzureOpenAI", GetObjectForKey<string>(config, "UseAzureOpenAI", true)).ToUpper() == "TRUE";
             if (useAzureOpenAI)
             {
-                string azureOpenAIUri = configuration.CommandLineOptionOrDefault("AzureOpenAIUri", GetStringForKey(config, "AzureOpenAIUri", true));
-                string azureOpenAIResourceKey = configuration.CommandLineOptionOrDefault("AzureOpenAIResourceKey", GetStringForKey(config, "AzureOpenAIResourceKey", true));
+                string azureOpenAIUri = configuration.CommandLineOptionOrDefault("AzureOpenAIUri", GetObjectForKey<string>(config, "AzureOpenAIUri", true));
+                string azureOpenAIResourceKey = configuration.CommandLineOptionOrDefault("AzureOpenAIResourceKey", GetObjectForKey<string>(config, "AzureOpenAIResourceKey", true));
                 openAIClient = new OpenAIClient(new Uri(azureOpenAIUri),new Azure.AzureKeyCredential(azureOpenAIResourceKey));
             }
             else
             {
-                string openAIKey = configuration.CommandLineOptionOrDefault("OpenAIKey", GetStringForKey(config, "OpenAIKey", true));
+                string openAIKey = configuration.CommandLineOptionOrDefault("OpenAIKey", GetObjectForKey<string>(config, "OpenAIKey", true));
                 openAIClient = new OpenAIClient(openAIKey);
             }
 

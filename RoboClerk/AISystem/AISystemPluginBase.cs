@@ -27,9 +27,9 @@ namespace RoboClerk.AISystem
         public override void Initialize(IConfiguration configuration)
         {
             var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-            promptTemplateFiles["SystemRequirement"]=configuration.CommandLineOptionOrDefault("SystemRequirement", GetStringForKey(config, "SystemRequirement", true));
-            promptTemplateFiles["SoftwareRequirement"]=configuration.CommandLineOptionOrDefault("SoftwareRequirement", GetStringForKey(config, "SoftwareRequirement", true));
-            promptTemplateFiles["DocumentationRequirement"]=configuration.CommandLineOptionOrDefault("DocumentationRequirement", GetStringForKey(config, "DocumentationRequirement", true));
+            promptTemplateFiles["SystemRequirement"]=configuration.CommandLineOptionOrDefault("SystemRequirement", GetObjectForKey<string>(config, "SystemRequirement", true));
+            promptTemplateFiles["SoftwareRequirement"]=configuration.CommandLineOptionOrDefault("SoftwareRequirement", GetObjectForKey<string>(config, "SoftwareRequirement", true));
+            promptTemplateFiles["DocumentationRequirement"]=configuration.CommandLineOptionOrDefault("DocumentationRequirement", GetObjectForKey<string>(config, "DocumentationRequirement", true));
         }
 
         public abstract string GetFeedback(TraceEntity et, Item item);
