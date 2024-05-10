@@ -8,7 +8,9 @@ UnitTestItem item = (UnitTestItem)Item;
 AddTrace(item.ItemID);
 ]
 |====
-| *[csx:te.Name] ID:* | [csx:GetItemLinkString(item)] 
+| *[csx:te.Name] ID:* | [csx:GetItemLinkString(item)]
+
+| *Function / File Name:* | [csx:GetValOrDef(item.UnitTestFunctionName,"N/A")] / [csx:GetValOrDef(item.UnitTestFileName,"N/A")]
 
 | *Revision:* | [csx:item.ItemRevision]
 

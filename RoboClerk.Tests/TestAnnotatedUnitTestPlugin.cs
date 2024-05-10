@@ -52,7 +52,10 @@ ParameterSeparator = "",""
 	Optional = true
 [TraceID]
 	Keyword = ""TraceID""
-	Optional = true");
+	Optional = true
+[FunctionName]
+	StartString = ""public void ""
+	EndString = ""(""");
             string testFile = @"
  [UnitTestAttribut(
             Identifier = ""9A3258CF-F9EE-4A1A-95E6-B49EF25FB200"",

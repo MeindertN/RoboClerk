@@ -203,7 +203,7 @@ namespace RoboClerk.Redmine
                 }
                 else
                 {
-                    logger.Debug($"Removing item because it is not linked to a valid item: {item.ItemID}");
+                    logger.Info($"Removing item because it is not linked to a valid item: {item.ItemID}");
                     retrievedIDs.Remove(removeItem);
                     removeItem = string.Empty;
                 }

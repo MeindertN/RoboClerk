@@ -16,6 +16,8 @@ namespace RoboClerk.AnnotatedUnitTests
         private string parameterStartDelimiter = string.Empty;
         private string parameterEndDelimiter = string.Empty;
         private string parameterSeparator = string.Empty;
+        private string functionNameStartSeq = string.Empty;
+        private string functionNameEndSeq = string.Empty;
 
         private Dictionary<string, UTInformation> information = new Dictionary<string, UTInformation>();
 
@@ -63,6 +65,16 @@ namespace RoboClerk.AnnotatedUnitTests
                 PopulateUTInfo("Identifier", config);
                 PopulateUTInfo("TraceID", config);
 
+                if(config.ContainsKey("FunctionName"))
+                {
+                    var tomlTable = (TomlTable)config["FunctionName"];
+                    functionNameStartSeq = tomlTable["StartString"].ToString();
+                    functionNameEndSeq = tomlTable["EndString"].ToString();
+                }
+                else
+                {
+                    throw new Exception($"Table \"FunctionName\" missing from configuration file: \"{name}.toml\".");
+                }
             }
             catch (Exception e)
             {
@@ -201,6 +213,7 @@ namespace RoboClerk.AnnotatedUnitTests
                         paramEndIndex = ParameterEnd(foundAnnotation.ToString());
                         if (paramEndIndex >= 0)
                         {
+                            i = j + 1;
                             break;
                         }
                         else
@@ -219,16 +232,34 @@ namespace RoboClerk.AnnotatedUnitTests
                             throw new Exception($"Required parameter {info.Key} missing from unit test anotation starting on {startLine} of \"{filename}\".");
                         }
                     }
-                    AddUnitTest(filename, startLine, foundParameters);
+                    // extract the function name
+                    int startI = i;
+                    string functionName = string.Empty;
+                    for (int j = i ; j < lines.Length && j-startI<3 ; j++)
+                    {
+                        int startIndex = lines[j].IndexOf(functionNameStartSeq);
+                        if( startIndex>=0 )
+                        {
+                            int endIndex = lines[j].IndexOf(functionNameEndSeq);
+                            if( endIndex>=0 ) 
+                            {
+                                functionName = lines[j].Substring(startIndex+functionNameStartSeq.Length, endIndex-(startIndex+functionNameStartSeq.Length));
+                                functionName = functionName.Trim();
+                            }
+                        }
+                    }
+                    AddUnitTest(filename, startLine, foundParameters, functionName);
                 }
             }
         }
 
-        private void AddUnitTest(string fileName, int lineNumber, Dictionary<string, string> parameterValues)
+        private void AddUnitTest(string fileName, int lineNumber, Dictionary<string, string> parameterValues, string functionName)
         {
             var unitTest = new UnitTestItem();
+            unitTest.UnitTestFunctionName = functionName;
             bool identified = false;
             string shortFileName = Path.GetFileName(fileName);
+            unitTest.UnitTestFileName = shortFileName;
 
             foreach (var info in information)
             {

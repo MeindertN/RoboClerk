@@ -191,7 +191,7 @@ namespace RoboClerk
             return resultingElements;
         }
 
-        private void AddUnitTest(List<(string, string)> els, string fileName, int lineNumber)
+        private void AddUnitTest(List<(string, string)> els, string fileName, int lineNumber, string functionName)
         {
             var unitTest = new UnitTestItem();
             bool identified = false;
@@ -209,6 +209,7 @@ namespace RoboClerk
                 }
             }
             unitTest.UnitTestFileName = shortFileName;
+            unitTest.UnitTestFunctionName = functionName;
             if (!identified)
             {
                 unitTest.ItemID = $"{shortFileName}:{lineNumber}";
@@ -232,6 +233,15 @@ namespace RoboClerk
             unitTests.Add(unitTest);
         }
 
+        private string GetFunctionName(string line)
+        {
+            var strings = line.Trim().Split(' ');
+            var longestString = strings.OrderByDescending(s => s.Length).First(); //we assume that the function name is the longest element
+            //we also assume the function parameters start with (
+            int index = longestString.IndexOf('(');
+            return longestString.Substring(0, index);
+        }
+
         private void FindAndProcessFunctions(string[] lines, string fileName)
         {
             bool nextLineIsFunction = testFunctionDecoration == string.Empty;
@@ -246,8 +256,9 @@ namespace RoboClerk
                         var els = ApplyFunctionNameMask(line);
                         if (els.Count > 0)
                         {
+
                             //Create unit test
-                            AddUnitTest(els, fileName, currentLineNumber);
+                            AddUnitTest(els, fileName, currentLineNumber, GetFunctionName(line));
                         }
                         nextLineIsFunction = false || testFunctionDecoration == string.Empty;
                     }
