@@ -213,7 +213,7 @@ namespace RoboClerk.AnnotatedUnitTests
                         paramEndIndex = ParameterEnd(foundAnnotation.ToString());
                         if (paramEndIndex >= 0)
                         {
-                            i = j + 1;
+                            i = j;
                             break;
                         }
                         else
@@ -245,6 +245,8 @@ namespace RoboClerk.AnnotatedUnitTests
                             {
                                 functionName = lines[j].Substring(startIndex+functionNameStartSeq.Length, endIndex-(startIndex+functionNameStartSeq.Length));
                                 functionName = functionName.Trim();
+                                i = j;
+                                break;
                             }
                         }
                     }
