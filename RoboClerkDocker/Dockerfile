@@ -10,19 +10,21 @@ ENV PYTHONUNBUFFERED=1
 ENV PANDOC_VERSION 3.1.8
 ENV PANDOC_DOWNLOAD_URL https://github.com/jgm/pandoc/releases/download/$PANDOC_VERSION/pandoc-$PANDOC_VERSION-linux-amd64.tar.gz
 
-RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python \
-    && python3 -m ensurepip \
-    && python3 -m pip install --no-cache --upgrade pip \
-    && pip3 install --no-cache --upgrade bayoo-docx \
-	&& pip3 install --no-cache --upgrade openpyxl \
+RUN apk add --update --no-cache python3 py3-virtualenv \
+    && ln -sf python3 /usr/bin/python \
+    && python3 -m venv /opt/venv \
+    && . /opt/venv/bin/activate \
+    && pip install --no-cache --upgrade pip \
+    && pip install --no-cache --upgrade bayoo-docx \
+    && pip install --no-cache --upgrade openpyxl \
     && wget $PANDOC_DOWNLOAD_URL \
     && tar -xzf pandoc-$PANDOC_VERSION-linux-amd64.tar.gz \
     && cp /pandoc-$PANDOC_VERSION/bin/pandoc /usr/bin/ \
     && rm -rf pandoc-$PANDOC_VERSION \
     && rm pandoc-$PANDOC_VERSION-linux-amd64.tar.gz \
-	&& apk add --no-cache asciidoctor \
-	&& apk --update add --no-cache ruby ruby-io-console ruby-irb ruby-json ruby-rake ruby-rdoc git \
-    && gem install asciidoctor-kroki 
+    && apk add --no-cache asciidoctor \
+    && apk --update add --no-cache ruby ruby-io-console ruby-irb ruby-json ruby-rake ruby-rdoc git \
+    && gem install asciidoctor-kroki
 
 # Install RoboClerk itself
 ADD Publish /home/RoboClerk
@@ -30,3 +32,6 @@ WORKDIR /home/RoboClerk
 ENV PATH="/home/RoboClerk:${PATH}"
 RUN chmod +x /home/RoboClerk/scaffold
 RUN chmod +x /home/RoboClerk/generate
+
+# Activate the virtual environment and set it as default for subsequent commands
+ENV PATH="/opt/venv/bin:$PATH"

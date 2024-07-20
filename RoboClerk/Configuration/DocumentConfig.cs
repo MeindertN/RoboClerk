@@ -1,4 +1,7 @@
-﻿namespace RoboClerk.Configuration
+﻿using DocumentFormat.OpenXml.Packaging;
+using System.Collections.Generic;
+
+namespace RoboClerk.Configuration
 {
     public class DocumentConfig
     {
@@ -7,6 +10,7 @@
         private string documentTitle = string.Empty;
         private string documentAbbreviation = string.Empty;
         private string documentTemplate = string.Empty;
+        private Dictionary<TraceEntity, uint> entityCounts = new Dictionary<TraceEntity, uint>();
         private Commands commands = null;
 
         public DocumentConfig(string roboClerkID, string documentID, string documentTitle, string documentAbbreviation, string documentTemplate)
@@ -30,5 +34,34 @@
         public string DocumentAbbreviation => documentAbbreviation;
         public string DocumentTemplate => documentTemplate;
         public Commands Commands => commands;
+        public void AddEntityCount(TraceEntity te, uint count)
+        {
+            if (te != null)
+            if (entityCounts.ContainsKey(te))
+            {
+                entityCounts[te] += count;
+            }
+            else
+            {
+                entityCounts.Add(te, count);
+            }
+        }
+
+        public void ResetEntityCount(TraceEntity te)
+        {
+            if (te != null && entityCounts.ContainsKey(te))
+            {
+                entityCounts[te]=0;
+            }
+        }
+
+        public uint GetEntityCount(TraceEntity te)
+        {
+            if (te != null && entityCounts.ContainsKey(te))
+            {
+                return entityCounts[te];
+            }
+            else return 0;
+        }
     }
 }

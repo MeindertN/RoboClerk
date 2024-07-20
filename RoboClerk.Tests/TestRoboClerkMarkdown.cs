@@ -59,9 +59,9 @@ There is some text @@Foo:inline()@@ in this line.
         public void Mismatched_Tag_Detection_VERIFIES_Exception_Thrown_When_Final_Container_Tags_Do_Not_Match()
         {
             StringBuilder sb = new StringBuilder(validText);
-            sb[65] = ' ';
-            sb[66] = ' ';
             sb[67] = ' ';
+            sb[68] = ' ';
+            sb[69] = ' ';
             Assert.Throws<Exception>(() => RoboClerkAsciiDoc.ExtractRoboClerkTags(sb.ToString()));
         }
 
@@ -145,10 +145,10 @@ There is some text @@Foo:inline()@@ in this line.
         {
             var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
             Assert.AreEqual("This is the content\n", tags[0].Contents);
-            Assert.AreEqual("Source:testinfo()", tags[3].Contents);
-            Assert.AreEqual("Config:testinfo2()", tags[4].Contents);
-            Assert.AreEqual("", tags[1].Contents);
-            Assert.AreEqual("this is some contents\nit is even multiline\n# it contains a *header*\n", tags[2].Contents);
+            Assert.AreEqual("Source:testinfo()", tags[1].Contents);
+            Assert.AreEqual("Config:testinfo2()", tags[2].Contents);
+            Assert.AreEqual("", tags[3].Contents);
+            Assert.AreEqual("this is some contents\nit is even multiline\n# it contains a *header*\n", tags[4].Contents);
             Assert.AreEqual("Foo:inline()", tags[5].Contents);
             Assert.AreEqual("Trace:SWR(id=1234, name  =test name    )", tags[6].Contents);
         }
@@ -158,10 +158,10 @@ There is some text @@Foo:inline()@@ in this line.
         {
             var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
             Assert.AreEqual("TheFirstInfo", tags[0].ContentCreatorID);
-            Assert.AreEqual("testinfo", tags[3].ContentCreatorID);
-            Assert.AreEqual("testinfo2", tags[4].ContentCreatorID);
-            Assert.AreEqual("empty", tags[1].ContentCreatorID);
-            Assert.AreEqual("huff", tags[2].ContentCreatorID);
+            Assert.AreEqual("testinfo", tags[1].ContentCreatorID);
+            Assert.AreEqual("testinfo2", tags[2].ContentCreatorID);
+            Assert.AreEqual("empty", tags[3].ContentCreatorID);
+            Assert.AreEqual("huff", tags[4].ContentCreatorID);
             Assert.AreEqual("inline", tags[5].ContentCreatorID);
             Assert.AreEqual("SWR", tags[6].ContentCreatorID);
         }
@@ -171,10 +171,10 @@ There is some text @@Foo:inline()@@ in this line.
         {
             var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
             Assert.AreEqual(DataSource.SLMS, tags[0].Source);
-            Assert.AreEqual(DataSource.Source, tags[3].Source);
-            Assert.AreEqual(DataSource.Config, tags[4].Source);
-            Assert.AreEqual(DataSource.OTS, tags[1].Source);
-            Assert.AreEqual(DataSource.Comment, tags[2].Source);
+            Assert.AreEqual(DataSource.Source, tags[1].Source);
+            Assert.AreEqual(DataSource.Config, tags[2].Source);
+            Assert.AreEqual(DataSource.OTS, tags[3].Source);
+            Assert.AreEqual(DataSource.Comment, tags[4].Source);
             Assert.AreEqual(DataSource.Unknown, tags[5].Source);
             Assert.AreEqual(DataSource.Trace, tags[6].Source);
         }
@@ -184,10 +184,10 @@ There is some text @@Foo:inline()@@ in this line.
         {
             var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
             tags[0].Contents = "item1";
-            tags[3].Contents = "item2";
-            tags[4].Contents = "";
-            tags[1].Contents = "item4";
+            tags[1].Contents = "item2";
             tags[2].Contents = "";
+            tags[3].Contents = "item4";
+            tags[4].Contents = "";
             tags[5].Contents = "item6";
             tags[6].Contents = "D";
 

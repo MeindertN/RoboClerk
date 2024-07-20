@@ -1,9 +1,11 @@
-﻿using RestSharp;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using RestSharp;
 using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Linq;
+using System.Reflection;
 using Tomlyn.Model;
 
 namespace RoboClerk.Redmine
@@ -605,6 +607,41 @@ namespace RoboClerk.Redmine
             if (!config.Filtered)
                 return false;
 
+            var properties = redmineItem.GetType().GetProperties();
+            foreach (var property in properties)
+            {
+                if (property.Name != "CustomFields" && 
+                    property.Name != "EstimatedHours" && 
+                    property.Name != "Relations") 
+                {
+                    HashSet<string> values = new HashSet<string>();
+                    var value = property.GetValue(redmineItem);
+                    if (value != null)
+                    {
+                        if (value is string || value is int || value is bool)
+                        {
+                            values.Add(value.ToString());
+                        }
+                        else if (value is DateTime date)
+                        {
+                            values.Add(date.ToString("MM-dd-yyyy"));
+                        }
+                        else
+                        {
+                            PropertyInfo nameProperty = value.GetType().GetProperty("Name");
+                            if (nameProperty != null && nameProperty.PropertyType == typeof(string))
+                            {
+                                values.Add(nameProperty.GetValue(value) as string);
+                            }
+                        }
+                        if (!IncludeItem(property.Name, values) || ExcludeItem(property.Name, values))
+                        {
+                            logger.Debug($"Ignoring requirement item {redmineItem.Id} due to \"{property.Name}\" being equal to \"{String.Join(", ", values)}\".");
+                            return true;
+                        }
+                    }
+                }
+            }
             if (redmineItem.CustomFields.Count != 0)
             {
                 foreach (var field in redmineItem.CustomFields)
