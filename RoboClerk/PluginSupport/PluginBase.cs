@@ -37,12 +37,12 @@ namespace RoboClerk
 
         public abstract void Initialize(IConfiguration config);
 
-        protected string GetStringForKey(TomlTable config, string keyName, bool required)
+        protected T GetObjectForKey<T>(TomlTable config, string keyName, bool required)
         {
             string result = string.Empty;
             if (config.ContainsKey(keyName))
             {
-                return (string)config[keyName];
+                return (T)config[keyName];
             }
             else
             {
@@ -53,7 +53,7 @@ namespace RoboClerk
                 else
                 {
                     logger.Warn($"Key \\\"{keyName}\\\" missing from configuration file for {name}. Attempting to continue.");
-                    return string.Empty;
+                    return default(T);
                 }
             }
         }

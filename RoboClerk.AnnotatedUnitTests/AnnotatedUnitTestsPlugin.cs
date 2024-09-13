@@ -1,4 +1,5 @@
-﻿using RoboClerk.Configuration;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,6 +16,8 @@ namespace RoboClerk.AnnotatedUnitTests
         private string parameterStartDelimiter = string.Empty;
         private string parameterEndDelimiter = string.Empty;
         private string parameterSeparator = string.Empty;
+        private string functionNameStartSeq = string.Empty;
+        private string functionNameEndSeq = string.Empty;
 
         private Dictionary<string, UTInformation> information = new Dictionary<string, UTInformation>();
 
@@ -52,16 +55,26 @@ namespace RoboClerk.AnnotatedUnitTests
                 base.Initialize(configuration);
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
 
-                decorationMarker = configuration.CommandLineOptionOrDefault("DecorationMarker", GetStringForKey(config, "DecorationMarker", true));
-                parameterStartDelimiter = configuration.CommandLineOptionOrDefault("ParameterStartDelimiter", GetStringForKey(config, "ParameterStartDelimiter", true));
-                parameterEndDelimiter = configuration.CommandLineOptionOrDefault("ParameterEndDelimiter", GetStringForKey(config, "ParameterEndDelimiter", true));
-                parameterSeparator = configuration.CommandLineOptionOrDefault("ParameterSeparator", GetStringForKey(config, "ParameterSeparator", true));
+                decorationMarker = configuration.CommandLineOptionOrDefault("DecorationMarker", GetObjectForKey<string>(config, "DecorationMarker", true));
+                parameterStartDelimiter = configuration.CommandLineOptionOrDefault("ParameterStartDelimiter", GetObjectForKey<string>(config, "ParameterStartDelimiter", true));
+                parameterEndDelimiter = configuration.CommandLineOptionOrDefault("ParameterEndDelimiter", GetObjectForKey<string>(config, "ParameterEndDelimiter", true));
+                parameterSeparator = configuration.CommandLineOptionOrDefault("ParameterSeparator", GetObjectForKey<string>(config, "ParameterSeparator", true));
 
                 PopulateUTInfo("Purpose", config);
                 PopulateUTInfo("PostCondition", config);
                 PopulateUTInfo("Identifier", config);
                 PopulateUTInfo("TraceID", config);
 
+                if(config.ContainsKey("FunctionName"))
+                {
+                    var tomlTable = (TomlTable)config["FunctionName"];
+                    functionNameStartSeq = tomlTable["StartString"].ToString();
+                    functionNameEndSeq = tomlTable["EndString"].ToString();
+                }
+                else
+                {
+                    throw new Exception($"Table \"FunctionName\" missing from configuration file: \"{name}.toml\".");
+                }
             }
             catch (Exception e)
             {
@@ -78,20 +91,28 @@ namespace RoboClerk.AnnotatedUnitTests
             int closers = 0;
             bool insideStringLiteral = false;
             bool ignoreStringDelim = false;
-
+            bool insideStringBlock = false;
             for (int i = 0; i < input.Length; i++)
             {
                 var temp = input.Substring(i);
-                if (temp.StartsWith("\"") && !ignoreStringDelim)
+                if (temp.StartsWith("\"\"\"") && !ignoreStringDelim)
+                {
+                    if (insideStringBlock && temp.Length >= 4 && temp[3] == '"')
+                        continue;
+                    insideStringBlock = !insideStringBlock;
+                    i += 2;
+                    continue;
+                }
+                if (temp.StartsWith("\"") && !ignoreStringDelim && !insideStringBlock)
                 {
                     insideStringLiteral = !insideStringLiteral;
                 }
                 ignoreStringDelim = temp.StartsWith("\\\"");
-                if (!insideStringLiteral && temp.StartsWith(parameterStartDelimiter))
+                if ( (!insideStringLiteral && !insideStringBlock) && temp.StartsWith(parameterStartDelimiter))
                 {
                     openers++;
                 }
-                if (!insideStringLiteral && temp.StartsWith(parameterEndDelimiter))
+                if ( (!insideStringLiteral && !insideStringBlock) && temp.StartsWith(parameterEndDelimiter))
                 {
                     closers++;
                 }
@@ -110,17 +131,32 @@ namespace RoboClerk.AnnotatedUnitTests
             //to be used in practice
             StringBuilder pmsSb = new StringBuilder(pms);
             bool insideString = false;
+            bool insideTextBlock = false;
             for (int i = 0; i < pms.Length; i++)
             {
                 if (pms[i] == '"')
                 {
-                    insideString = !insideString;
+                    if (i + 2 < pms.Length && pms[i + 1] == '"' && pms[i + 2] == '"')
+                    {
+                        int index = i + 2;
+                        while (index < pms.Length && pms[index] == '"')
+                        {
+                            index++;
+                        }
+                        insideTextBlock = !insideTextBlock;
+                        i = index;
+                        continue;
+                    }
+                    else if(!insideTextBlock)
+                    {
+                        insideString = !insideString;
+                    }
                 }
-                if (pms[i] == '=' && insideString)
+                if (pms[i] == '=' && (insideString || insideTextBlock))
                 {
                     pmsSb[i] = '\a';
                 }
-                if (pms[i] == ',' && insideString)
+                if (pms[i] == ',' && (insideString || insideTextBlock))
                 {
                     pmsSb[i] = '\f';
                 }
@@ -177,6 +213,7 @@ namespace RoboClerk.AnnotatedUnitTests
                         paramEndIndex = ParameterEnd(foundAnnotation.ToString());
                         if (paramEndIndex >= 0)
                         {
+                            i = j;
                             break;
                         }
                         else
@@ -195,24 +232,48 @@ namespace RoboClerk.AnnotatedUnitTests
                             throw new Exception($"Required parameter {info.Key} missing from unit test anotation starting on {startLine} of \"{filename}\".");
                         }
                     }
-                    AddUnitTest(filename, startLine, foundParameters);
+                    // extract the function name
+                    int startI = i;
+                    string functionName = string.Empty;
+                    for (int j = i ; j < lines.Length && j-startI<3 ; j++)
+                    {
+                        int startIndex = lines[j].IndexOf(functionNameStartSeq);
+                        if( startIndex>=0 )
+                        {
+                            int endIndex = lines[j].IndexOf(functionNameEndSeq);
+                            if( endIndex>=0 ) 
+                            {
+                                functionName = lines[j].Substring(startIndex+functionNameStartSeq.Length, endIndex-(startIndex+functionNameStartSeq.Length));
+                                functionName = functionName.Trim();
+                                i = j;
+                                break;
+                            }
+                        }
+                    }
+                    AddUnitTest(filename, startLine, foundParameters, functionName);
                 }
             }
         }
 
-        private void AddUnitTest(string fileName, int lineNumber, Dictionary<string, string> parameterValues)
+        private void AddUnitTest(string fileName, int lineNumber, Dictionary<string, string> parameterValues, string functionName)
         {
             var unitTest = new UnitTestItem();
+            unitTest.UnitTestFunctionName = functionName;
             bool identified = false;
             string shortFileName = Path.GetFileName(fileName);
+            unitTest.UnitTestFileName = shortFileName;
 
             foreach (var info in information)
             {
                 if (parameterValues.ContainsKey(info.Key))
                 {
                     var value = parameterValues[info.Key];
-                    //all strings are assumed to start and end with a string delimiter for all supported languages
-                    value = value.Substring(1, value.Length - 2).Replace("\\\"","\"");
+                    //all strings are assumed to start and end with a string delimiter for all supported languages,
+                    //note that for some languages the string delimiter can be """
+                    if (value.StartsWith("\"\"\""))
+                        value = value.Substring(3, value.Length - 6).Replace("\\\"", "\"");
+                    else
+                        value = value.Substring(1, value.Length - 2).Replace("\\\"", "\"");
                     switch (info.Key)
                     {
                         case "Purpose": unitTest.UnitTestPurpose = value; break;

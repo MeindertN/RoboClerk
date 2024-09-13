@@ -9,7 +9,7 @@ using System.IO.Abstractions;
 using System.Reflection;
 using Tomlyn;
 
-[assembly: AssemblyVersion("1.0.*")]
+[assembly: AssemblyVersion("1.2.*")]
 
 namespace RoboClerk
 {

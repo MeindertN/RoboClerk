@@ -1,9 +1,11 @@
-﻿using RestSharp;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using RestSharp;
 using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Linq;
+using System.Reflection;
 using Tomlyn.Model;
 
 namespace RoboClerk.Redmine
@@ -14,7 +16,9 @@ namespace RoboClerk.Redmine
         private string apiEndpoint = string.Empty;
         private string apiKey = string.Empty;
         private string projectName = string.Empty;
+        private List<string> redmineVersionFields = new List<string>();
         private RestClient client = null;
+        private List<Version> versions = null;
 
         public RedmineSLMSPlugin(IFileSystem fileSystem)
             : base(fileSystem)
@@ -30,12 +34,25 @@ namespace RoboClerk.Redmine
             base.Initialize(configuration);
             try
             {
-                var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-                apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", GetStringForKey(config, "RedmineAPIEndpoint", true));
+                TomlTable config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
+                apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", GetObjectForKey<string>(config, "RedmineAPIEndpoint", true));
                 client = new RestClient(apiEndpoint);
-                apiKey = configuration.CommandLineOptionOrDefault("RedmineAPIKey", GetStringForKey(config, "RedmineAPIKey", true));
-                projectName = configuration.CommandLineOptionOrDefault("RedmineProject", GetStringForKey(config, "RedmineProject", true));
-                baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL", GetStringForKey(config, "RedmineBaseURL", false));
+                apiKey = configuration.CommandLineOptionOrDefault("RedmineAPIKey", GetObjectForKey<string>(config, "RedmineAPIKey", true));
+                projectName = configuration.CommandLineOptionOrDefault("RedmineProject", GetObjectForKey<string>(config, "RedmineProject", true));
+                baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL", GetObjectForKey<string>(config, "RedmineBaseURL", false));
+                if(config.ContainsKey("VersionCustomFields"))
+                {
+                    //this is needed specifically for Redmine because we cannot via the API figure out if a custom field is of type "version"
+                    //without having admin rights. 
+                    TomlTable versionCustomFields = (TomlTable)config["VersionCustomFields"];
+                    foreach (var field in versionCustomFields)
+                    {
+                        foreach (var fieldValue in (TomlArray)field.Value)
+                        {
+                            redmineVersionFields.Add((string)fieldValue);
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -47,9 +64,9 @@ namespace RoboClerk.Redmine
 
         private List<string> GetTrackerList()
         {
-            var result = new List<string> { prsName, srsName, tcName,
-                                            bugName, riskName, soupName,
-                                            docName, cntName };
+            var result = new List<string> { PrsConfig.Name, SrsConfig.Name, TcConfig.Name,
+                                            BugConfig.Name, RiskConfig.Name, SoupConfig.Name,
+                                            DocConfig.Name, CntConfig.Name };
             result.RemoveAll(x => x == string.Empty);
             return result;
         }
@@ -74,49 +91,151 @@ namespace RoboClerk.Redmine
                     continue;
                 }
                 retrievedIDs.Add(redmineIssue.Id.ToString());
-                if (redmineIssue.Tracker.Name == prsName)
+                if (redmineIssue.Tracker.Name == PrsConfig.Name)
                 {
                     logger.Debug($"System level requirement found: {redmineIssue.Id}");
-                    systemRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SystemRequirement));
+                    if (!ShouldIgnoreIssue(redmineIssue,PrsConfig))
+                    {
+                        systemRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SystemRequirement));
+                    }
+                    else
+                    {
+                        retrievedIDs.Remove(redmineIssue.Id.ToString());
+                    }
                 }
-                else if (redmineIssue.Tracker.Name == srsName)
+                else if (redmineIssue.Tracker.Name == SrsConfig.Name)
                 {
                     logger.Debug($"Software level requirement found: {redmineIssue.Id}");
-                    softwareRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SoftwareRequirement));
+                    if (!ShouldIgnoreIssue(redmineIssue, SrsConfig))
+                    {
+                        softwareRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SoftwareRequirement));
+                    }
+                    else
+                    {
+                        retrievedIDs.Remove(redmineIssue.Id.ToString());
+                    }
                 }
-                else if (redmineIssue.Tracker.Name == tcName)
+                else if (redmineIssue.Tracker.Name == TcConfig.Name)
                 {
                     logger.Debug($"Testcase found: {redmineIssue.Id}");
-                    testCases.Add(CreateTestCase(redmineIssues, redmineIssue));
+                    if (!ShouldIgnoreIssue(redmineIssue, TcConfig))
+                    {
+                        testCases.Add(CreateTestCase(redmineIssues, redmineIssue));
+                    }
+                    else
+                    {
+                        retrievedIDs.Remove(redmineIssue.Id.ToString());
+                    }
                 }
-                else if (redmineIssue.Tracker.Name == bugName)
+                else if (redmineIssue.Tracker.Name == BugConfig.Name)
                 {
                     logger.Debug($"Bug item found: {redmineIssue.Id}");
-                    anomalies.Add(CreateBug(redmineIssue));
+                    if (!ShouldIgnoreIssue(redmineIssue, BugConfig))
+                    {
+                        anomalies.Add(CreateBug(redmineIssue));
+                    }
+                    else
+                    {
+                        retrievedIDs.Remove(redmineIssue.Id.ToString());
+                    }
                 }
-                else if (redmineIssue.Tracker.Name == riskName)
+                else if (redmineIssue.Tracker.Name == RiskConfig.Name)
                 {
                     logger.Debug($"Risk item found: {redmineIssue.Id}");
-                    risks.Add(CreateRisk(redmineIssues, redmineIssue));
+                    if (!ShouldIgnoreIssue(redmineIssue, RiskConfig))
+                    {
+                        risks.Add(CreateRisk(redmineIssues, redmineIssue));
+                    }
+                    else
+                    {
+                        retrievedIDs.Remove(redmineIssue.Id.ToString());
+                    }
                 }
-                else if (redmineIssue.Tracker.Name == soupName)
+                else if (redmineIssue.Tracker.Name == SoupConfig.Name)
                 {
                     logger.Debug($"SOUP item found: {redmineIssue.Id}");
-                    soup.Add(CreateSOUP(redmineIssue));
+                    if (!ShouldIgnoreIssue(redmineIssue, SoupConfig))
+                    {
+                        soup.Add(CreateSOUP(redmineIssue));
+                    }
+                    else
+                    {
+                        retrievedIDs.Remove(redmineIssue.Id.ToString());
+                    }
                 }
-                else if (redmineIssue.Tracker.Name == docName)
+                else if (redmineIssue.Tracker.Name == DocConfig.Name)
                 {
                     logger.Debug($"Documentation item found: {redmineIssue.Id}");
-                    documentationRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.DocumentationRequirement));
+                    if (!ShouldIgnoreIssue(redmineIssue, DocConfig))
+                    {
+                        documentationRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.DocumentationRequirement));
+                    }
+                    else
+                    {
+                        retrievedIDs.Remove(redmineIssue.Id.ToString());
+                    }
                 }
-                else if (redmineIssue.Tracker.Name == cntName)
+                else if (redmineIssue.Tracker.Name == CntConfig.Name)
                 {
                     logger.Debug($"DocContent item found: {redmineIssue.Id}");
-                    docContents.Add(CreateDocContent(redmineIssue));
+                    if (!ShouldIgnoreIssue(redmineIssue, CntConfig))
+                    {
+                        docContents.Add(CreateDocContent(redmineIssue));
+                    }
+                    else
+                    {
+                        retrievedIDs.Remove(redmineIssue.Id.ToString());
+                    }
                 }
             }
+            RemoveAllItemsNotLinked(retrievedIDs);
             RemoveIgnoredLinks(retrievedIDs); //go over all items and remove any links to ignored items
             ScrubItemContents(); //go over all relevant items and escape any | characters
+        }
+
+        private List<T> CheckForLinkedItem<T>(List<string> retrievedIDs, List<T> inputItems, List<ItemLinkType> lt) where T : LinkedItem
+        {
+            List<T> items = new List<T>();
+            string removeItem = string.Empty;
+            foreach (var item in inputItems)
+            {
+                if(item.LinkedItems.Count() > 0) //orphan items are always included so they don't get lost or ingnored.
+                    removeItem = item.ItemID;
+                foreach (var link in item.LinkedItems)
+                {
+                    
+                    if (link != null && lt.Contains(link.LinkType) &&
+                        retrievedIDs.Contains(link.TargetID) && 
+                        (systemRequirements.Any(obj => obj.ItemID == link.TargetID) ||
+                         softwareRequirements.Any(obj => obj.ItemID == link.TargetID) ||
+                         documentationRequirements.Any(obj => obj.ItemID == link.TargetID)) )
+                    {
+                        removeItem = string.Empty;
+                        break;
+                    }
+                }
+                if (removeItem == string.Empty)
+                {
+                    items.Add(item);
+                }
+                else
+                {
+                    logger.Info($"Removing item because it is not linked to a valid item: {item.ItemID}");
+                    retrievedIDs.Remove(removeItem);
+                    removeItem = string.Empty;
+                }
+            }
+            return items;
+        }
+
+        private void RemoveAllItemsNotLinked(List<string> retrievedIDs)
+        {
+            softwareRequirements = CheckForLinkedItem(retrievedIDs, softwareRequirements, new List<ItemLinkType> { ItemLinkType.Parent });
+            testCases = CheckForLinkedItem(retrievedIDs, testCases, new List<ItemLinkType> { ItemLinkType.Parent, ItemLinkType.Related });
+            docContents = CheckForLinkedItem(retrievedIDs, docContents, new List<ItemLinkType> { ItemLinkType.Parent });
+            risks = CheckForLinkedItem(retrievedIDs, risks, new List<ItemLinkType> { ItemLinkType.RiskControl });
+            //need to remove any bugs connected to items that were removed.
+            anomalies = CheckForLinkedItem(retrievedIDs, anomalies, new List<ItemLinkType> { ItemLinkType.Related } );
         }
 
         private void RemoveIgnoredLinks(List<string> retrievedIDs)
@@ -219,7 +338,7 @@ namespace RoboClerk.Redmine
             {
                 foreach (var issue in issues)
                 {
-                    if (issue.Id.ToString() == link.TargetID && issue.Tracker.Name == srsName)
+                    if (issue.Id.ToString() == link.TargetID && issue.Tracker.Name == SrsConfig.Name)
                     {
                         link.LinkType = ItemLinkType.Parent;
                     }
@@ -430,7 +549,8 @@ namespace RoboClerk.Redmine
             int nrOfResults = 0;
             if ((nrOfResults = resultItem.LinkedItems.Where(x => x.LinkType == ItemLinkType.Related).Count()) > 1)
             {
-                logger.Warn($"Expected 1 related link for risk item \"{resultItem.ItemID}\". Multiple related items linked. Please check the item in Redmine.");
+                logger.Error($"Expected 1 related link for risk item \"{resultItem.ItemID}\". Multiple related items linked. Please check the item in Redmine.");
+                throw new Exception($"Only a single related link to risk item \"{resultItem.ItemID}\" allowed. Cannot determine if traceability to risk item is correct.");
             }
             else if (nrOfResults == 1)
             {
@@ -498,6 +618,90 @@ namespace RoboClerk.Redmine
             }
         }
 
+        private string ConvertValue(bool version, string value)
+        {
+            if (!version)
+                return value;
+            foreach( var rmVersion in versions )
+            {
+                if (rmVersion.Id.ToString() == value)
+                {
+                    return rmVersion.Name;
+                }
+            }
+            return value;
+        }
+
+        private bool ShouldIgnoreIssue(RedmineIssue redmineItem, TruthItemConfig config)
+        {
+            if (!config.Filtered)
+                return false;
+
+            var properties = redmineItem.GetType().GetProperties();
+            foreach (var property in properties)
+            {
+                if (property.Name != "CustomFields" && 
+                    property.Name != "EstimatedHours" && 
+                    property.Name != "Relations") 
+                {
+                    HashSet<string> values = new HashSet<string>();
+                    var value = property.GetValue(redmineItem);
+                    if (value != null)
+                    {
+                        if (value is string || value is int || value is bool)
+                        {
+                            values.Add(value.ToString());
+                        }
+                        else if (value is DateTime date)
+                        {
+                            values.Add(date.ToString("MM-dd-yyyy"));
+                        }
+                        else
+                        {
+                            PropertyInfo nameProperty = value.GetType().GetProperty("Name");
+                            if (nameProperty != null && nameProperty.PropertyType == typeof(string))
+                            {
+                                values.Add(nameProperty.GetValue(value) as string);
+                            }
+                        }
+                        if (!IncludeItem(property.Name, values) || ExcludeItem(property.Name, values))
+                        {
+                            logger.Debug($"Ignoring requirement item {redmineItem.Id} due to \"{property.Name}\" being equal to \"{String.Join(", ", values)}\".");
+                            return true;
+                        }
+                    }
+                }
+            }
+            if (redmineItem.CustomFields.Count != 0)
+            {
+                foreach (var field in redmineItem.CustomFields)
+                {
+                    if (field.Value != null)
+                    {
+                        bool versionField = redmineVersionFields.Contains(field.Name);                   
+                        HashSet<string> values = new HashSet<string>();
+                        if (field.Multiple)
+                        {
+                            foreach(var value in (System.Text.Json.JsonElement.ArrayEnumerator)field.Value)
+                            {
+                                values.Add(ConvertValue(versionField,value.ToString()));
+                            }
+                        }
+                        else
+                        {
+                            values.Add(ConvertValue(versionField,((System.Text.Json.JsonElement)field.Value).GetString()));
+                        }
+                        if (!IncludeItem(field.Name, values) || ExcludeItem(field.Name,values))
+                        {
+                            logger.Debug($"Ignoring requirement item {redmineItem.Id} due to \"{field.Name}\" being equal to \"{String.Join(", ", values)}\".");
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
         private RequirementItem CreateRequirement(List<RedmineIssue> issues, RedmineIssue redmineItem, RequirementType requirementType)
         {
             logger.Debug($"Creating requirement item: {redmineItem.Id}");
@@ -510,7 +714,7 @@ namespace RoboClerk.Redmine
                     if (field.Name == "Functional Area" && field.Value != null)
                     {
                         resultItem.ItemCategory = ((System.Text.Json.JsonElement)field.Value).GetString();
-                    }
+                    }                           
                 }
             }
 
@@ -635,6 +839,7 @@ namespace RoboClerk.Redmine
         private List<RedmineIssue> PullAllIssuesFromServer(List<string> queryTrackers)
         {
             int projectID = GetProjectID(projectName);
+            versions = PullAllVersionsFromServer(projectID);
             var trackers = GetTrackers();
             List<RedmineIssue> issueList = new List<RedmineIssue>();
             foreach (var queryTracker in queryTrackers)
@@ -646,6 +851,21 @@ namespace RoboClerk.Redmine
                 issueList.AddRange(GetIssues(projectID, trackers[queryTracker]));
             }
             return issueList;
+        }
+
+        private List<Version> PullAllVersionsFromServer(int projectID)
+        {
+            var request = new RestRequest($"projects/{projectID}/versions.json", Method.Get)
+                .AddParameter("key", apiKey);
+            var response = client.GetAsync<VersionList>(request).GetAwaiter().GetResult();
+            if (response.TotalCount == 0)
+            {
+                return null;
+            }
+            else
+            {
+                return response.Versions;
+            }
         }
     }
 }

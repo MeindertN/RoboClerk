@@ -9,57 +9,76 @@ namespace RoboClerk
         public static List<RoboClerkTag> ExtractRoboClerkTags(string asciiDocText)
         {
             int index = 0;
-            List<int> containerIndices = new List<int>();
-            List<int> inlineIndices = new List<int>();
+            List<ProtoTag> indices = new List<ProtoTag>();
             while ((index = asciiDocText.IndexOf("@@", index)) >= 0)
             {
                 if (index + 1 == asciiDocText.Length - 1)
                 {
-                    inlineIndices.Add(index);
+                    AddIndex(indices, index, false);
                     break;
                 }
                 if (asciiDocText[index + 2] != '@')
                 {
-                    inlineIndices.Add(index);
+                    AddIndex(indices, index, false);
                     index += 2;
                 }
                 else
                 {
-                    containerIndices.Add(index);
+                    AddIndex(indices, index, true);
                     index += 3;
                 }
             }
 
-            if (containerIndices.Count % 2 != 0)
-            {
-                throw new Exception("Number of @@@ container indices is not even. Template file is invalid.");
-            }
-            if (inlineIndices.Count % 2 != 0)
-            {
-                throw new Exception("Number of @@ inline container indices is not even. Template file is invalid.");
-            }
+            CheckForUnbalancedTags(indices);
 
             List<RoboClerkTag> tags = new List<RoboClerkTag>();
 
-            for (int i = 0; i < containerIndices.Count; i += 2)
+            foreach (ProtoTag tag in indices)
             {
-                tags.Add(new RoboClerkTag(containerIndices[i], containerIndices[i + 1], asciiDocText, false));
-            }
-
-            for (int i = 0; i < inlineIndices.Count; i += 2)
-            {
-                //check for newlines in tag which is illegal
-                int idx = asciiDocText.IndexOf('\n', inlineIndices[i], inlineIndices[i + 1] - inlineIndices[i]);
-                if (idx >= 0 && idx <= inlineIndices[i + 1])
+                if (tag.ContainerTag)
                 {
-                    throw new Exception($"Inline Roboclerk containers cannot have newline characters in them. Newline found in tag at {inlineIndices[i]}.");
+                    tags.Add(new RoboClerkTag(tag.StartIndex, tag.EndIndex, asciiDocText, false));
                 }
-                //check if this inline tag is within a container tag, if so, do not add the tag. The outer container tag will be resolved first
-                if (tags.Count(t => (!t.Inline && t.ContentStart < inlineIndices[i] && t.ContentEnd > inlineIndices[i + 1])) == 0)
-                    tags.Add(new RoboClerkTag(inlineIndices[i], inlineIndices[i + 1], asciiDocText, true));
+                else
+                {
+                    //check for newlines in tag which is illegal
+                    int idx = asciiDocText.IndexOf('\n', tag.StartIndex, tag.EndIndex - tag.StartIndex);
+                    if (idx >= 0 && idx <= tag.EndIndex)
+                    {
+                        throw new Exception($"Inline Roboclerk containers cannot have newline characters in them. Newline found in tag at {tag.StartIndex}.");
+                    }
+                    //check if this inline tag is within a container tag, if so, do not add the tag. The outer container tag will be resolved first
+                    if (tags.Count(t => (!t.Inline && t.ContentStart < tag.StartIndex && t.ContentEnd > tag.EndIndex)) == 0)
+                        tags.Add(new RoboClerkTag(tag.StartIndex, tag.EndIndex, asciiDocText, true));
+                }
             }
 
             return tags;
+        }
+
+        private static void AddIndex(List<ProtoTag> tags, int index, bool containerIndex)
+        {
+            if (tags.Count > 0 && !tags.Last().hasEndIndex())
+            {
+                tags.Last().EndIndex=index;
+                return;
+            }
+            tags.Add(new ProtoTag(index, containerIndex));
+        }
+
+        private static void CheckForUnbalancedTags(List<ProtoTag> tags)
+        {
+            foreach (ProtoTag tag in tags)
+            {
+                if (!tag.hasEndIndex() && tag.ContainerTag)
+                {
+                    throw new Exception("Number of @@@ container indices is not even. Template file is invalid.");
+                }
+                if (!tag.hasEndIndex() && !tag.ContainerTag)
+                {
+                    throw new Exception("Number of @@ inline container indices is not even. Template file is invalid.");
+                }
+            }
         }
 
         public static string ReInsertRoboClerkTags(string asciiDoc, List<RoboClerkTag> tags)

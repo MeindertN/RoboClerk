@@ -29,11 +29,11 @@ namespace RoboClerk
                 base.Initialize(configuration);
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
 
-                testFunctionDecoration = configuration.CommandLineOptionOrDefault("TestFunctionDecoration", GetStringForKey(config, "TestFunctionDecoration", false));
-                var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", GetStringForKey(config, "FunctionMask", true));
+                testFunctionDecoration = configuration.CommandLineOptionOrDefault("TestFunctionDecoration", GetObjectForKey<string>(config, "TestFunctionDecoration", false));
+                var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", GetObjectForKey<string>(config, "FunctionMask", true));
                 functionMaskElements = ParseFunctionMask(functionMask);
                 ValidateFunctionMaskElements(functionMaskElements);
-                sectionSeparator = configuration.CommandLineOptionOrDefault("SectionSeparator", GetStringForKey(config, "SectionSeparator", true));
+                sectionSeparator = configuration.CommandLineOptionOrDefault("SectionSeparator", GetObjectForKey<string>(config, "SectionSeparator", true));
             }
             catch (Exception e)
             {
@@ -155,6 +155,7 @@ namespace RoboClerk
                     foundMatch = foundMatch && longestString.Contains(functionMaskElement);
                 }
             }
+            StringBuilder functionName = new StringBuilder();
             if (foundMatch)
             {
                 string remainingLine = longestString;
@@ -171,6 +172,8 @@ namespace RoboClerk
                     }
                     var items = remainingLine.Split(functionMaskElements[i]);
                     resultingElements.Add((functionMaskElements[i - 1], items[0]));
+                    functionName.Append(items[0]);
+                    functionName.Append(functionMaskElements[i]);
                     if (items.Length - 1 != 0)
                     {
                         remainingLine = String.Join(functionMaskElements[i], items, 1, items.Length - 1);
@@ -188,7 +191,7 @@ namespace RoboClerk
             return resultingElements;
         }
 
-        private void AddUnitTest(List<(string, string)> els, string fileName, int lineNumber)
+        private void AddUnitTest(List<(string, string)> els, string fileName, int lineNumber, string functionName)
         {
             var unitTest = new UnitTestItem();
             bool identified = false;
@@ -205,6 +208,8 @@ namespace RoboClerk
                     default: throw new Exception($"Unknown element identifier in FunctionMask: {el.Item1.ToUpper()}");
                 }
             }
+            unitTest.UnitTestFileName = shortFileName;
+            unitTest.UnitTestFunctionName = functionName;
             if (!identified)
             {
                 unitTest.ItemID = $"{shortFileName}:{lineNumber}";
@@ -228,6 +233,15 @@ namespace RoboClerk
             unitTests.Add(unitTest);
         }
 
+        private string GetFunctionName(string line)
+        {
+            var strings = line.Trim().Split(' ');
+            var longestString = strings.OrderByDescending(s => s.Length).First(); //we assume that the function name is the longest element
+            //we also assume the function parameters start with (
+            int index = longestString.IndexOf('(');
+            return longestString.Substring(0, index);
+        }
+
         private void FindAndProcessFunctions(string[] lines, string fileName)
         {
             bool nextLineIsFunction = testFunctionDecoration == string.Empty;
@@ -242,8 +256,9 @@ namespace RoboClerk
                         var els = ApplyFunctionNameMask(line);
                         if (els.Count > 0)
                         {
+
                             //Create unit test
-                            AddUnitTest(els, fileName, currentLineNumber);
+                            AddUnitTest(els, fileName, currentLineNumber, GetFunctionName(line));
                         }
                         nextLineIsFunction = false || testFunctionDecoration == string.Empty;
                     }

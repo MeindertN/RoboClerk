@@ -183,7 +183,7 @@ namespace RoboClerk
             catch (TagInvalidException e)
             {
                 e.SetLocation(tagStart, rawDocument);
-                throw e;
+                throw;
             }
             ExtractParameters(contents);
             var items = contents.Split('(')[0].Split(':');
@@ -248,7 +248,7 @@ namespace RoboClerk
             catch (TagInvalidException e)
             {
                 e.SetLocation(tagStart, rawDocument);
-                throw e;
+                throw;
             }
             var items = tagContents.Split(':');
             source = GetSource(items[0].Trim().ToUpper());

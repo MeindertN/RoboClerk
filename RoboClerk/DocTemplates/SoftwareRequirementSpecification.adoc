@@ -97,3 +97,5 @@ This project does not have software requirements of this category. If you still 
 @@@SLMS:SWR(itemCategory=User Interface,NewerThan=2023/02/04 03:07:12 PM)
 
 @@@
+
+This document contains @@Document:CountEntities(entity=Software Requirement)@@ software requirements.

@@ -66,6 +66,8 @@ The following tests are to be executed manually. This could be done by printing 
 
 @@@
 
+This document contains @@Document:CountEntities(entity=TC)@@ manual test cases.@@Document:CountEntities(entity=TC,restart=true)@@
+
 @@POST:PAGEBREAK()@@
 
 === Automated Tests
@@ -75,6 +77,8 @@ The following tests are automated, they are typically part of the continuous int
 @@@SLMS:TC(testCaseAutomated=True)
 
 @@@
+
+This document contains @@Document:CountEntities(entity=TC)@@ automated test cases.
 
 @@POST:PAGEBREAK()@@
 
@@ -95,3 +99,5 @@ It is also possible to create seperate tables for unit tests. Here is the table 
 @@@FILE:UnitTest(brief=false,ItemID=439DA613-EF71-4589-9F3B-8314CB8A11E5)
 Individual unit test tables
 @@@
+
+

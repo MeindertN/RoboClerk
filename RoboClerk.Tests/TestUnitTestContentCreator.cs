@@ -47,6 +47,8 @@ namespace RoboClerk.Tests
             unittestItem.ItemTitle = "title1";
             unittestItem.UnitTestPurpose = "purpose1";
             unittestItem.UnitTestAcceptanceCriteria = "accept1";
+            unittestItem.UnitTestFileName = "filename";
+            unittestItem.UnitTestFunctionName = "functionname";
             unittestItems.Add(unittestItem);
             unittestItem = new UnitTestItem();
             unittestItem.ItemID = "tcid2";
@@ -84,7 +86,7 @@ namespace RoboClerk.Tests
             //make sure we can find the item linked to this test
             dataSources.GetItem("target1").Returns(new RequirementItem(RequirementType.SystemRequirement) { ItemID = "target1" });
             string content = sst.GetContent(tag, documentConfig);
-            string expectedContent = "\n|====\n| *unittest ID:* | tcid1 \n\n| *Revision:* | tcrev1\n\n| *Last Updated:* | 1999/10/10 00:00:00\n| *Trace Link:* | target1\n\n| *Purpose:* | purpose1\n\n| *Acceptance Criteria:* | accept1\n\n|====";
+            string expectedContent = "\n|====\n| *unittest ID:* | tcid1\n\n| *Function / File Name:* | functionname / filename\n\n| *Revision:* | tcrev1\n\n| *Last Updated:* | 1999/10/10 00:00:00\n| *Trace Link:* | target1\n\n| *Purpose:* | purpose1\n\n| *Acceptance Criteria:* | accept1\n\n|====";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
             Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), "tcid1", Arg.Any<TraceEntity>(), "tcid1"));
@@ -113,7 +115,7 @@ namespace RoboClerk.Tests
             var sst = new UnitTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 31, "@@SLMS:UnitTest(ItemID=tcid2)@@", true);
             string content = sst.GetContent(tag, documentConfig);
-            string expectedContent = "\n|====\n| *unittest ID:* | http://localhost/[tcid2] \n\n| *Revision:* | \n\n\n| *Trace Link:* | N/A\n\n| *Purpose:* | N/A\n\n| *Acceptance Criteria:* | N/A\n\n|====";
+            string expectedContent = "\n|====\n| *unittest ID:* | http://localhost/[tcid2]\n\n| *Function / File Name:* | N/A / N/A\n\n| *Revision:* | \n\n\n| *Trace Link:* | N/A\n\n| *Purpose:* | N/A\n\n| *Acceptance Criteria:* | N/A\n\n|====";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
             Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), "tcid2", Arg.Any<TraceEntity>(), "tcid2"));
@@ -144,7 +146,7 @@ namespace RoboClerk.Tests
             var sst = new UnitTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 29, "@@SLMS:UnitTest(brief=true)@@", true);
             string content = sst.GetContent(tag, documentConfig);
-            string expectedContent = "|====\n| unittest ID | unittest Purpose | Acceptance Criteria\n\n| tcid1 | purpose1 | accept1 \n\n| http://localhost/[tcid2] |  |  \n\n|====\n";
+            string expectedContent = "|====\n| unittest ID | Function / File Name | unittest Purpose | Acceptance Criteria\n\n| tcid1 | functionname / filename | purpose1 | accept1 \n\n| http://localhost/[tcid2] |  /  |  |  \n\n|====\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
             Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), "tcid1", Arg.Any<TraceEntity>(), "tcid1"));

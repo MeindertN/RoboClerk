@@ -104,7 +104,7 @@ namespace RoboClerk
                             }
                             else if (tag.Source == DataSource.Document)
                             {
-                                IContentCreator cc = new ContentCreators.Document();
+                                IContentCreator cc = new ContentCreators.Document(traceAnalysis);
                                 tag.Contents = cc.GetContent(tag, doc);
                             }
                             else if (tag.Source == DataSource.AI)

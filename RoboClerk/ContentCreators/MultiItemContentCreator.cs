@@ -41,6 +41,7 @@ namespace RoboClerk.ContentCreators
                 }
                 index++;
             }
+            doc.AddEntityCount(te,(uint)includedItems.Count); //keep track of how many entities we're adding to the document
             string content = string.Empty;
             try
             {

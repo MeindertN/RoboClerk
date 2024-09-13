@@ -32,7 +32,7 @@ namespace RoboClerk
             catch (TagInvalidException e)
             {
                 e.DocumentTitle = title;
-                throw e;
+                throw;
             }
         }
 
