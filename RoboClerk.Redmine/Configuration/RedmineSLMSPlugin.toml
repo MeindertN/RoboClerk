@@ -94,12 +94,17 @@ RedmineBaseURL = "http://localhost:3001/issues/"
 # UpdatedOn = Date updated (MM-dd-yyyy)
 # ClosedOn = Date closed (MM-dd-yyyy)
 
+# Provide a list of custom fields of type version as these need special handeling
+[VersionCustomFields]
+	FieldNames = ["TestVersion"]
+
 [ExcludedItemFilter]
-	Superseded = ["0.5.0","1.0.0","1.1.0"]
+	#Superseded = ["0.5.0","1.0.0","1.1.0"]
+	TestVersion = ["0.5.0"]
 
 [IncludedItemFilter]
 	ReleaseRegion = ["EU","US"]
-	Milestone = ["0.5.0","1.0.0","1.1.0"]
+	#Milestone = ["0.5.0","1.0.0","1.1.0"]
 
 
 

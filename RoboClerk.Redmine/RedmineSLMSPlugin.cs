@@ -16,7 +16,9 @@ namespace RoboClerk.Redmine
         private string apiEndpoint = string.Empty;
         private string apiKey = string.Empty;
         private string projectName = string.Empty;
+        private List<string> redmineVersionFields = new List<string>();
         private RestClient client = null;
+        private List<Version> versions = null;
 
         public RedmineSLMSPlugin(IFileSystem fileSystem)
             : base(fileSystem)
@@ -38,6 +40,19 @@ namespace RoboClerk.Redmine
                 apiKey = configuration.CommandLineOptionOrDefault("RedmineAPIKey", GetObjectForKey<string>(config, "RedmineAPIKey", true));
                 projectName = configuration.CommandLineOptionOrDefault("RedmineProject", GetObjectForKey<string>(config, "RedmineProject", true));
                 baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL", GetObjectForKey<string>(config, "RedmineBaseURL", false));
+                if(config.ContainsKey("VersionCustomFields"))
+                {
+                    //this is needed specifically for Redmine because we cannot via the API figure out if a custom field is of type "version"
+                    //without having admin rights. 
+                    TomlTable versionCustomFields = (TomlTable)config["VersionCustomFields"];
+                    foreach (var field in versionCustomFields)
+                    {
+                        foreach (var fieldValue in (TomlArray)field.Value)
+                        {
+                            redmineVersionFields.Add((string)fieldValue);
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -139,7 +154,7 @@ namespace RoboClerk.Redmine
                 else if (redmineIssue.Tracker.Name == SoupConfig.Name)
                 {
                     logger.Debug($"SOUP item found: {redmineIssue.Id}");
-                    if (!ShouldIgnoreIssue(redmineIssue, RiskConfig))
+                    if (!ShouldIgnoreIssue(redmineIssue, SoupConfig))
                     {
                         soup.Add(CreateSOUP(redmineIssue));
                     }
@@ -534,7 +549,8 @@ namespace RoboClerk.Redmine
             int nrOfResults = 0;
             if ((nrOfResults = resultItem.LinkedItems.Where(x => x.LinkType == ItemLinkType.Related).Count()) > 1)
             {
-                logger.Warn($"Expected 1 related link for risk item \"{resultItem.ItemID}\". Multiple related items linked. Please check the item in Redmine.");
+                logger.Error($"Expected 1 related link for risk item \"{resultItem.ItemID}\". Multiple related items linked. Please check the item in Redmine.");
+                throw new Exception($"Only a single related link to risk item \"{resultItem.ItemID}\" allowed. Cannot determine if traceability to risk item is correct.");
             }
             else if (nrOfResults == 1)
             {
@@ -602,6 +618,20 @@ namespace RoboClerk.Redmine
             }
         }
 
+        private string ConvertValue(bool version, string value)
+        {
+            if (!version)
+                return value;
+            foreach( var rmVersion in versions )
+            {
+                if (rmVersion.Id.ToString() == value)
+                {
+                    return rmVersion.Name;
+                }
+            }
+            return value;
+        }
+
         private bool ShouldIgnoreIssue(RedmineIssue redmineItem, TruthItemConfig config)
         {
             if (!config.Filtered)
@@ -648,17 +678,18 @@ namespace RoboClerk.Redmine
                 {
                     if (field.Value != null)
                     {
+                        bool versionField = redmineVersionFields.Contains(field.Name);                   
                         HashSet<string> values = new HashSet<string>();
                         if (field.Multiple)
                         {
                             foreach(var value in (System.Text.Json.JsonElement.ArrayEnumerator)field.Value)
                             {
-                                values.Add(value.ToString());
+                                values.Add(ConvertValue(versionField,value.ToString()));
                             }
                         }
                         else
                         {
-                            values.Add(((System.Text.Json.JsonElement)field.Value).GetString());
+                            values.Add(ConvertValue(versionField,((System.Text.Json.JsonElement)field.Value).GetString()));
                         }
                         if (!IncludeItem(field.Name, values) || ExcludeItem(field.Name,values))
                         {
@@ -808,6 +839,7 @@ namespace RoboClerk.Redmine
         private List<RedmineIssue> PullAllIssuesFromServer(List<string> queryTrackers)
         {
             int projectID = GetProjectID(projectName);
+            versions = PullAllVersionsFromServer(projectID);
             var trackers = GetTrackers();
             List<RedmineIssue> issueList = new List<RedmineIssue>();
             foreach (var queryTracker in queryTrackers)
@@ -819,6 +851,21 @@ namespace RoboClerk.Redmine
                 issueList.AddRange(GetIssues(projectID, trackers[queryTracker]));
             }
             return issueList;
+        }
+
+        private List<Version> PullAllVersionsFromServer(int projectID)
+        {
+            var request = new RestRequest($"projects/{projectID}/versions.json", Method.Get)
+                .AddParameter("key", apiKey);
+            var response = client.GetAsync<VersionList>(request).GetAwaiter().GetResult();
+            if (response.TotalCount == 0)
+            {
+                return null;
+            }
+            else
+            {
+                return response.Versions;
+            }
         }
     }
 }
