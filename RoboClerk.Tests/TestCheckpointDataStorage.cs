@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System.Collections.Generic;
 
 
@@ -60,15 +61,15 @@ namespace RoboClerk.Tests
             sst.Anomalies = anomalies;
             sst.DocContents = docContents;
 
-            Assert.AreSame(systemRequirements, sst.SystemRequirements);
-            Assert.AreSame(softwareRequirements, sst.SoftwareRequirements);
-            Assert.AreSame(documentationRequirements, sst.DocumentationRequirements);
-            Assert.AreSame(risks, sst.Risks);
-            Assert.AreSame(soups, sst.SOUPs);
-            Assert.AreSame(unitTests, sst.UnitTests);
-            Assert.AreSame(softwareSystemTests,sst.SoftwareSystemTests);
-            Assert.AreSame(anomalies, sst.Anomalies);
-            Assert.AreSame(docContents, sst.DocContents);
+            ClassicAssert.AreSame(systemRequirements, sst.SystemRequirements);
+            ClassicAssert.AreSame(softwareRequirements, sst.SoftwareRequirements);
+            ClassicAssert.AreSame(documentationRequirements, sst.DocumentationRequirements);
+            ClassicAssert.AreSame(risks, sst.Risks);
+            ClassicAssert.AreSame(soups, sst.SOUPs);
+            ClassicAssert.AreSame(unitTests, sst.UnitTests);
+            ClassicAssert.AreSame(softwareSystemTests,sst.SoftwareSystemTests);
+            ClassicAssert.AreSame(anomalies, sst.Anomalies);
+            ClassicAssert.AreSame(docContents, sst.DocContents);
         }
 
         [UnitTestAttribute(
@@ -131,15 +132,15 @@ namespace RoboClerk.Tests
             Assert.That(sst.Anomalies[0].ItemCategory, Is.EqualTo("new"));
             Assert.That(sst.DocContents[0].ItemCategory, Is.EqualTo("new"));
 
-            Assert.AreSame(systemRequirements, sst.SystemRequirements);
-            Assert.AreSame(softwareRequirements, sst.SoftwareRequirements);
-            Assert.AreSame(documentationRequirements, sst.DocumentationRequirements);
-            Assert.AreSame(risks, sst.Risks);
-            Assert.AreSame(soups, sst.SOUPs);
-            Assert.AreSame(unitTests, sst.UnitTests);
-            Assert.AreSame(softwareSystemTests, sst.SoftwareSystemTests);
-            Assert.AreSame(anomalies, sst.Anomalies);
-            Assert.AreSame(docContents, sst.DocContents);
+            ClassicAssert.AreSame(systemRequirements, sst.SystemRequirements);
+            ClassicAssert.AreSame(softwareRequirements, sst.SoftwareRequirements);
+            ClassicAssert.AreSame(documentationRequirements, sst.DocumentationRequirements);
+            ClassicAssert.AreSame(risks, sst.Risks);
+            ClassicAssert.AreSame(soups, sst.SOUPs);
+            ClassicAssert.AreSame(unitTests, sst.UnitTests);
+            ClassicAssert.AreSame(softwareSystemTests, sst.SoftwareSystemTests);
+            ClassicAssert.AreSame(anomalies, sst.Anomalies);
+            ClassicAssert.AreSame(docContents, sst.DocContents);
         }
 
 

@@ -7,10 +7,10 @@ FROM $REPO:6.0-alpine-amd64
 
 # environment variables
 ENV PYTHONUNBUFFERED=1
-ENV PANDOC_VERSION 3.1.8
-ENV PANDOC_DOWNLOAD_URL https://github.com/jgm/pandoc/releases/download/$PANDOC_VERSION/pandoc-$PANDOC_VERSION-linux-amd64.tar.gz
+ENV PANDOC_VERSION=3.1.8
+ENV PANDOC_DOWNLOAD_URL=https://github.com/jgm/pandoc/releases/download/$PANDOC_VERSION/pandoc-$PANDOC_VERSION-linux-amd64.tar.gz
 
-RUN apk add --update --no-cache python3 py3-virtualenv \
+RUN apk add --update --no-cache python3 py3-virtualenv dos2unix \
     && ln -sf python3 /usr/bin/python \
     && python3 -m venv /opt/venv \
     && . /opt/venv/bin/activate \
@@ -30,6 +30,8 @@ RUN apk add --update --no-cache python3 py3-virtualenv \
 ADD Publish /home/RoboClerk
 WORKDIR /home/RoboClerk
 ENV PATH="/home/RoboClerk:${PATH}"
+RUN dos2unix /home/RoboClerk/scaffold
+RUN dos2unix /home/RoboClerk/generate
 RUN chmod +x /home/RoboClerk/scaffold
 RUN chmod +x /home/RoboClerk/generate
 

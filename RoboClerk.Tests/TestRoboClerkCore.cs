@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using RoboClerk.Configuration;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
+using NUnit.Framework.Legacy;
 
 namespace RoboClerk.Tests
 {
@@ -57,13 +58,13 @@ namespace RoboClerk.Tests
             
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
-            Assert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\junk.jpeg")));
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\illustration.jpeg")));
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\subdir\image.gif")));
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\.gitignore")));
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\illustration.jpeg")));
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\subdir\image.gif")));
-            Assert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\.gitignore")));
+            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\junk.jpeg")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\illustration.jpeg")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\subdir\image.gif")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\.gitignore")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\illustration.jpeg")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\subdir\image.gif")));
+            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\.gitignore")));
         }
 
         [UnitTestAttribute(
@@ -86,13 +87,13 @@ namespace RoboClerk.Tests
 
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\illustration.jpeg")));
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\image.gif")));
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\.gitignore")));
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\illustration.jpeg")));
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\image.gif")));
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin")));
-            Assert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\.gitignore")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\illustration.jpeg")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\image.gif")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\.gitignore")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\illustration.jpeg")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\image.gif")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin")));
+            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\.gitignore")));
         }
 
         [UnitTestAttribute(
@@ -112,8 +113,8 @@ namespace RoboClerk.Tests
 
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
             core.GenerateDocs();
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin")));
-            Assert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin")));
+            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media")));
         }
 
         [UnitTestAttribute(
@@ -137,7 +138,7 @@ namespace RoboClerk.Tests
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            Assert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
+            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
         }
 
         [UnitTestAttribute(
@@ -162,7 +163,7 @@ namespace RoboClerk.Tests
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
             Assert.That(content == "testvalue");
         }
@@ -191,7 +192,7 @@ namespace RoboClerk.Tests
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
             Assert.That(content == "(89) (http://localhost/[19])");
 
@@ -221,7 +222,7 @@ namespace RoboClerk.Tests
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
             Assert.That(content == "remainder\n");
         }
@@ -247,7 +248,7 @@ namespace RoboClerk.Tests
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
             Assert.That(content == "~PAGEBREAK ~REMOVEPARAGRAPH ~TOC UNKNOWN POST PROCESSING TAG: unknown");
         }
@@ -274,7 +275,7 @@ namespace RoboClerk.Tests
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
             Assert.That(content == $"{config2.DocumentTitle} {config2.DocumentID} {config2.DocumentTitle} ({config2.DocumentAbbreviation}) {config2.DocumentTemplate}");
 
@@ -305,7 +306,7 @@ namespace RoboClerk.Tests
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
             Assert.That(content == $"{config2.DocumentTitle} {config2.DocumentID} {config2.DocumentTitle} ({config2.DocumentAbbreviation}) {config2.DocumentTemplate}");
 
@@ -335,7 +336,7 @@ namespace RoboClerk.Tests
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
             Assert.That(content == @"documentTitle ABR documentID "+ TestingHelpers.ConvertFileName(@"c:\in\template.adoc") +" roboclerkID");
 
@@ -394,7 +395,7 @@ AddTrace(item.ItemID);
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            Assert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
             Assert.That(content == "\n|====\n| typename ID: | 14\n| typename Revision: | rev1\n| typename Category: | \n| Parent ID: | N/A\n| Title: | title\n| Description: a| description\n|====\n");
 

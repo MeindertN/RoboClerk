@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
 using System.Text;
@@ -42,7 +43,7 @@ There is some text @@Foo:inline()@@ in this line.
         public void Test_Tag_Extraction_VERIFIES_The_Expected_Nr_Of_Tags_Is_Extracted()
         {
             var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
-            Assert.AreEqual(7, tags.Count);
+            ClassicAssert.AreEqual(7, tags.Count);
         }
 
         [Test]
@@ -103,9 +104,9 @@ There is some text @@Foo:inline()@@ in this line.
         public void Parameters_Are_Successfully_Extracted_VERIFIES_Parameter_Values_Match_Expected_Values()
         {
             var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
-            Assert.IsTrue(tags[6].Parameters.Count() == 2);
-            Assert.AreEqual("1234", tags[6].GetParameterOrDefault("ID"));
-            Assert.AreEqual("test name", tags[6].GetParameterOrDefault("NAME"));
+            ClassicAssert.IsTrue(tags[6].Parameters.Count() == 2);
+            ClassicAssert.AreEqual("1234", tags[6].GetParameterOrDefault("ID"));
+            ClassicAssert.AreEqual("test name", tags[6].GetParameterOrDefault("NAME"));
         }
 
         [Test]
@@ -144,39 +145,39 @@ There is some text @@Foo:inline()@@ in this line.
         public void Content_Fields_Are_Parsed_Correctly_VERIFIES_The_Correct_Content_Fields_Are_Extracted()
         {
             var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
-            Assert.AreEqual("This is the content\n", tags[0].Contents);
-            Assert.AreEqual("Source:testinfo()", tags[1].Contents);
-            Assert.AreEqual("Config:testinfo2()", tags[2].Contents);
-            Assert.AreEqual("", tags[3].Contents);
-            Assert.AreEqual("this is some contents\nit is even multiline\n# it contains a *header*\n", tags[4].Contents);
-            Assert.AreEqual("Foo:inline()", tags[5].Contents);
-            Assert.AreEqual("Trace:SWR(id=1234, name  =test name    )", tags[6].Contents);
+            ClassicAssert.AreEqual("This is the content\n", tags[0].Contents);
+            ClassicAssert.AreEqual("Source:testinfo()", tags[1].Contents);
+            ClassicAssert.AreEqual("Config:testinfo2()", tags[2].Contents);
+            ClassicAssert.AreEqual("", tags[3].Contents);
+            ClassicAssert.AreEqual("this is some contents\nit is even multiline\n# it contains a *header*\n", tags[4].Contents);
+            ClassicAssert.AreEqual("Foo:inline()", tags[5].Contents);
+            ClassicAssert.AreEqual("Trace:SWR(id=1234, name  =test name    )", tags[6].Contents);
         }
 
         [Test]
         public void Info_Fields_Are_Parsed_Correctly_VERIFIES_The_Correct_Info_Fields_Are_Extracted()
         {
             var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
-            Assert.AreEqual("TheFirstInfo", tags[0].ContentCreatorID);
-            Assert.AreEqual("testinfo", tags[1].ContentCreatorID);
-            Assert.AreEqual("testinfo2", tags[2].ContentCreatorID);
-            Assert.AreEqual("empty", tags[3].ContentCreatorID);
-            Assert.AreEqual("huff", tags[4].ContentCreatorID);
-            Assert.AreEqual("inline", tags[5].ContentCreatorID);
-            Assert.AreEqual("SWR", tags[6].ContentCreatorID);
+            ClassicAssert.AreEqual("TheFirstInfo", tags[0].ContentCreatorID);
+            ClassicAssert.AreEqual("testinfo", tags[1].ContentCreatorID);
+            ClassicAssert.AreEqual("testinfo2", tags[2].ContentCreatorID);
+            ClassicAssert.AreEqual("empty", tags[3].ContentCreatorID);
+            ClassicAssert.AreEqual("huff", tags[4].ContentCreatorID);
+            ClassicAssert.AreEqual("inline", tags[5].ContentCreatorID);
+            ClassicAssert.AreEqual("SWR", tags[6].ContentCreatorID);
         }
 
         [Test]
         public void Source_Fields_Are_Parsed_Correctly_VERIFIES_The_Correct_Source_Fields_Are_Extracted()
         {
             var tags = RoboClerkAsciiDoc.ExtractRoboClerkTags(validText);
-            Assert.AreEqual(DataSource.SLMS, tags[0].Source);
-            Assert.AreEqual(DataSource.Source, tags[1].Source);
-            Assert.AreEqual(DataSource.Config, tags[2].Source);
-            Assert.AreEqual(DataSource.OTS, tags[3].Source);
-            Assert.AreEqual(DataSource.Comment, tags[4].Source);
-            Assert.AreEqual(DataSource.Unknown, tags[5].Source);
-            Assert.AreEqual(DataSource.Trace, tags[6].Source);
+            ClassicAssert.AreEqual(DataSource.SLMS, tags[0].Source);
+            ClassicAssert.AreEqual(DataSource.Source, tags[1].Source);
+            ClassicAssert.AreEqual(DataSource.Config, tags[2].Source);
+            ClassicAssert.AreEqual(DataSource.OTS, tags[3].Source);
+            ClassicAssert.AreEqual(DataSource.Comment, tags[4].Source);
+            ClassicAssert.AreEqual(DataSource.Unknown, tags[5].Source);
+            ClassicAssert.AreEqual(DataSource.Trace, tags[6].Source);
         }
 
         [Test]
@@ -201,7 +202,7 @@ D";
             expectedResult = Regex.Replace(expectedResult, @"\r\n", "\n");
 
             string finalResult = RoboClerkAsciiDoc.ReInsertRoboClerkTags(validText, tags);
-            Assert.AreEqual(expectedResult, finalResult);
+            ClassicAssert.AreEqual(expectedResult, finalResult);
         }
 
         [Test]

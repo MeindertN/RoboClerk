@@ -1,5 +1,6 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using RoboClerk.AISystem;
 using RoboClerk.Configuration;
 using RoboClerk.ContentCreators;
@@ -116,19 +117,19 @@ namespace RoboClerk.Tests
             var tag = new RoboClerkTag(0, 37, "@@SLMS:SystemRequirement(ItemID=21)@@", true);
             dataSources.GetItem("21").Returns(sysReqItems[0]);
             string content = sysReq.GetContent(tag, documentConfig);
-            Assert.IsTrue(Regex.Replace(content, @"\r\n", "\n") == "\n|====\n| sys ID: | 21\n\n| sys Revision: | latest\n\n| sys Category: | \n\n| Parent ID: | N/A\n\n| Title: | \n\n| Description: a| Description\n|====\n");
+            ClassicAssert.IsTrue(Regex.Replace(content, @"\r\n", "\n") == "\n|====\n| sys ID: | 21\n\n| sys Revision: | latest\n\n| sys Category: | \n\n| Parent ID: | N/A\n\n| Title: | \n\n| Description: a| Description\n|====\n");
 
             var softReq = new SoftwareRequirement(dataSources, traceAnalysis, config);
             tag = new RoboClerkTag(0, 39, "@@SLMS:SoftwareRequirement(ItemID=55)@@", true);
             dataSources.GetItem("55").Returns(softReqItems[0]);
             content = softReq.GetContent(tag, documentConfig);
-            Assert.IsTrue(Regex.Replace(content, @"\r\n", "\n") == "\n|====\n| soft ID: | 55\n\n| soft Revision: | some\n\n| soft Category: | \n\n| Parent ID: | N/A\n\n| Title: | \n\n| Description: a|        \nDescription\n|====\n");
+            ClassicAssert.IsTrue(Regex.Replace(content, @"\r\n", "\n") == "\n|====\n| soft ID: | 55\n\n| soft Revision: | some\n\n| soft Category: | \n\n| Parent ID: | N/A\n\n| Title: | \n\n| Description: a|        \nDescription\n|====\n");
 
             var docReq = new DocumentationRequirement(dataSources, traceAnalysis, config);
             tag = new RoboClerkTag(0, 44, "@@SLMS:DocumentationRequirement(ItemID=99)@@", true);
             dataSources.GetItem("99").Returns(docReqItems[0]);
             content = docReq.GetContent(tag, documentConfig);
-            Assert.IsTrue(Regex.Replace(content, @"\r\n", "\n") == "\n|====\n| doc ID: | 99\n\n| doc Revision: | some\n\n| doc Category: | \n\n| Parent ID: | N/A\n\n| Title: | \n\n| Description: a| --------    Description\n|====\n");
+            ClassicAssert.IsTrue(Regex.Replace(content, @"\r\n", "\n") == "\n|====\n| doc ID: | 99\n\n| doc Revision: | some\n\n| doc Category: | \n\n| Parent ID: | N/A\n\n| Title: | \n\n| Description: a| --------    Description\n|====\n");
         }
 
         [UnitTestAttribute(
@@ -143,19 +144,19 @@ namespace RoboClerk.Tests
             var tag = new RoboClerkTag(0, 37, "@@SLMS:SystemRequirement(ItemID=21)@@", true);
             dataSources.GetItem("21").Returns(sysReqItems[0]);
             string content = sysReq.GetContent(tag, documentConfig);
-            Assert.IsTrue(Regex.Replace(content, @"\r\n", "\n") == "@@@AI:AIFeedback(entity=SystemRequirement,itemID=21)\n\n|====\n| sys ID: | 21\n\n| sys Revision: | latest\n\n| sys Category: | \n\n| Parent ID: | N/A\n\n| Title: | \n\n| Description: a| [[comment_21]]Description\n|====\n@@@\n");
+            ClassicAssert.IsTrue(Regex.Replace(content, @"\r\n", "\n") == "@@@AI:AIFeedback(entity=SystemRequirement,itemID=21)\n\n|====\n| sys ID: | 21\n\n| sys Revision: | latest\n\n| sys Category: | \n\n| Parent ID: | N/A\n\n| Title: | \n\n| Description: a| [[comment_21]]Description\n|====\n@@@\n");
 
             var softReq = new SoftwareRequirement(dataSources, traceAnalysis, config);
             tag = new RoboClerkTag(0, 39, "@@SLMS:SoftwareRequirement(ItemID=55)@@", true);
             dataSources.GetItem("55").Returns(softReqItems[0]);
             content = softReq.GetContent(tag, documentConfig);
-            Assert.IsTrue(Regex.Replace(content, @"\r\n", "\n") == "@@@AI:AIFeedback(entity=SoftwareRequirement,itemID=55)\n\n|====\n| soft ID: | 55\n\n| soft Revision: | some\n\n| soft Category: | \n\n| Parent ID: | N/A\n\n| Title: | \n\n| Description: a|        \n[[comment_55]]Description\n|====\n@@@\n");
+            ClassicAssert.IsTrue(Regex.Replace(content, @"\r\n", "\n") == "@@@AI:AIFeedback(entity=SoftwareRequirement,itemID=55)\n\n|====\n| soft ID: | 55\n\n| soft Revision: | some\n\n| soft Category: | \n\n| Parent ID: | N/A\n\n| Title: | \n\n| Description: a|        \n[[comment_55]]Description\n|====\n@@@\n");
 
             var docReq = new DocumentationRequirement(dataSources, traceAnalysis, config);
             tag = new RoboClerkTag(0, 44, "@@SLMS:DocumentationRequirement(ItemID=99)@@", true);
             dataSources.GetItem("99").Returns(docReqItems[0]);
             content = docReq.GetContent(tag, documentConfig);
-            Assert.IsTrue(Regex.Replace(content, @"\r\n", "\n") == "@@@AI:AIFeedback(entity=DocumentationRequirement,itemID=99)\n\n|====\n| doc ID: | 99\n\n| doc Revision: | some\n\n| doc Category: | \n\n| Parent ID: | N/A\n\n| Title: | \n\n| Description: a| --------    [[comment_99]]Description\n|====\n@@@\n");
+            ClassicAssert.IsTrue(Regex.Replace(content, @"\r\n", "\n") == "@@@AI:AIFeedback(entity=DocumentationRequirement,itemID=99)\n\n|====\n| doc ID: | 99\n\n| doc Revision: | some\n\n| doc Category: | \n\n| Parent ID: | N/A\n\n| Title: | \n\n| Description: a| --------    [[comment_99]]Description\n|====\n@@@\n");
         }
 
     }

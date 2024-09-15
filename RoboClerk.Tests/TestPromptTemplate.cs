@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using System.Collections.Generic;
 using RoboClerk.AISystem;
+using NUnit.Framework.Legacy;
 
 namespace RoboClerk.Tests
 {
@@ -35,7 +36,7 @@ namespace RoboClerk.Tests
             string template = "";
             var tpe = new PromptTemplate(template);
             Dictionary<string,string> parameters = new Dictionary<string,string>();
-            Assert.IsTrue(tpe.GetPrompt(parameters) == "");
+            ClassicAssert.IsTrue(tpe.GetPrompt(parameters) == "");
         }
 
         [UnitTestAttribute(
@@ -49,7 +50,7 @@ namespace RoboClerk.Tests
             var tpe = new PromptTemplate(template);
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             parameters["RequirementDescription"] = "true";
-            Assert.IsTrue(tpe.GetPrompt(parameters) == "");
+            ClassicAssert.IsTrue(tpe.GetPrompt(parameters) == "");
         }
 
         [UnitTestAttribute(
@@ -63,7 +64,7 @@ namespace RoboClerk.Tests
             var tpe = new PromptTemplate(template);
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             parameters["pArvAl"] = "true";
-            Assert.IsTrue(tpe.GetPrompt(parameters) == "true");
+            ClassicAssert.IsTrue(tpe.GetPrompt(parameters) == "true");
         }
 
         [UnitTestAttribute(
@@ -77,7 +78,7 @@ namespace RoboClerk.Tests
             var tpe = new PromptTemplate(template);
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             parameters["pArvAl_non_matching"] = "true";
-            Assert.IsTrue(tpe.GetPrompt(parameters) == "parval");
+            ClassicAssert.IsTrue(tpe.GetPrompt(parameters) == "parval");
         }
 
         [UnitTestAttribute(
@@ -93,7 +94,7 @@ namespace RoboClerk.Tests
             var tpe = new PromptTemplate(template);
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             parameters["pArvAl_non_matching"] = "true";
-            Assert.IsTrue(tpe.GetPrompt(parameters,item) == "test string");
+            ClassicAssert.IsTrue(tpe.GetPrompt(parameters,item) == "test string");
         }
     }
 
