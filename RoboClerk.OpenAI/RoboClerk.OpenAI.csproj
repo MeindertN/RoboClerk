@@ -20,7 +20,7 @@
 	
   <ItemGroup>
     <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.8" />
-    <PackageReference Include="Samboy063.Tomlet" Version="5.2.0" />
+    <PackageReference Include="Samboy063.Tomlet" Version="5.4.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -12,6 +12,7 @@ using System.Text.Json;
 using NUnit.Framework.Internal;
 using System.Text;
 using System.Linq;
+using NUnit.Framework.Legacy;
 
 namespace RoboClerk.Tests
 {
@@ -190,10 +191,10 @@ namespace RoboClerk.Tests
             SetupSLMSPlugin();
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedReqs = ds.GetAllSystemRequirements();
-            Assert.AreSame(SYSs[0], returnedReqs[0]);
-            Assert.AreSame(SYSs[1], returnedReqs[1]);
-            Assert.AreSame(SYSs[1], ds.GetSystemRequirement("SYS_id2"));
-            Assert.AreSame(SYSs[0], ds.GetItem("SYS_id1"));
+            ClassicAssert.AreSame(SYSs[0], returnedReqs[0]);
+            ClassicAssert.AreSame(SYSs[1], returnedReqs[1]);
+            ClassicAssert.AreSame(SYSs[1], ds.GetSystemRequirement("SYS_id2"));
+            ClassicAssert.AreSame(SYSs[0], ds.GetItem("SYS_id1"));
             var returnedItems = ds.GetItems(new TraceEntity("SystemRequirement", "Requirement", "SYS", TraceEntityType.Truth));
             Assert.That(returnedItems[0].ItemID, Is.EqualTo(SYSs[0].ItemID));
             Assert.That(returnedItems[1].ItemID, Is.EqualTo(SYSs[1].ItemID));
@@ -205,10 +206,10 @@ namespace RoboClerk.Tests
             SetupSLMSPlugin();
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedReqs = ds.GetAllSoftwareRequirements();
-            Assert.AreSame(SWRs[0], returnedReqs[0]);
-            Assert.AreSame(SWRs[1], returnedReqs[1]);
-            Assert.AreSame(SWRs[1], ds.GetSoftwareRequirement("SWR_id2"));
-            Assert.AreSame(SWRs[0], ds.GetItem("SWR_id1"));
+            ClassicAssert.AreSame(SWRs[0], returnedReqs[0]);
+            ClassicAssert.AreSame(SWRs[1], returnedReqs[1]);
+            ClassicAssert.AreSame(SWRs[1], ds.GetSoftwareRequirement("SWR_id2"));
+            ClassicAssert.AreSame(SWRs[0], ds.GetItem("SWR_id1"));
             var returnedItems = ds.GetItems(new TraceEntity("SoftwareRequirement", "Requirement", "SWR", TraceEntityType.Truth));
             Assert.That(returnedItems[0].ItemID, Is.EqualTo(SWRs[0].ItemID));
             Assert.That(returnedItems[1].ItemID, Is.EqualTo(SWRs[1].ItemID));
@@ -220,10 +221,10 @@ namespace RoboClerk.Tests
             SetupSLMSPlugin();
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedReqs = ds.GetAllDocumentationRequirements();
-            Assert.AreSame(DOCs[0], returnedReqs[0]);
-            Assert.AreSame(DOCs[1], returnedReqs[1]);
-            Assert.AreSame(DOCs[1], ds.GetDocumentationRequirement("DOC_id2"));
-            Assert.AreSame(DOCs[0], ds.GetItem("DOC_id1"));
+            ClassicAssert.AreSame(DOCs[0], returnedReqs[0]);
+            ClassicAssert.AreSame(DOCs[1], returnedReqs[1]);
+            ClassicAssert.AreSame(DOCs[1], ds.GetDocumentationRequirement("DOC_id2"));
+            ClassicAssert.AreSame(DOCs[0], ds.GetItem("DOC_id1"));
             var returnedItems = ds.GetItems(new TraceEntity("DocumentationRequirement", "Requirement", "DOC", TraceEntityType.Truth));
             Assert.That(returnedItems[0].ItemID, Is.EqualTo(DOCs[0].ItemID));
             Assert.That(returnedItems[1].ItemID, Is.EqualTo(DOCs[1].ItemID));
@@ -235,10 +236,10 @@ namespace RoboClerk.Tests
             SetupSLMSPlugin();
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedDCTs = ds.GetAllDocContents();
-            Assert.AreSame(DOCCTs[0], returnedDCTs[0]);
-            Assert.AreSame(DOCCTs[1], returnedDCTs[1]);
-            Assert.AreSame(DOCCTs[1], ds.GetDocContent("DOCCT_id2"));
-            Assert.AreSame(DOCCTs[0], ds.GetItem("DOCCT_id1"));
+            ClassicAssert.AreSame(DOCCTs[0], returnedDCTs[0]);
+            ClassicAssert.AreSame(DOCCTs[1], returnedDCTs[1]);
+            ClassicAssert.AreSame(DOCCTs[1], ds.GetDocContent("DOCCT_id2"));
+            ClassicAssert.AreSame(DOCCTs[0], ds.GetItem("DOCCT_id1"));
             var returnedItems = ds.GetItems(new TraceEntity("DocContent", "Content", "DOCCT", TraceEntityType.Truth));
             Assert.That(returnedItems[0].ItemID, Is.EqualTo(DOCCTs[0].ItemID));
             Assert.That(returnedItems[1].ItemID, Is.EqualTo(DOCCTs[1].ItemID));
@@ -250,10 +251,10 @@ namespace RoboClerk.Tests
             SetupSLMSPlugin();
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedReqs = ds.GetAllSoftwareSystemTests();
-            Assert.AreSame(TCs[0], returnedReqs[0]);
-            Assert.AreSame(TCs[1], returnedReqs[1]);
-            Assert.AreSame(TCs[1], ds.GetSoftwareSystemTest("TC_id2"));
-            Assert.AreSame(TCs[0], ds.GetItem("TC_id1"));
+            ClassicAssert.AreSame(TCs[0], returnedReqs[0]);
+            ClassicAssert.AreSame(TCs[1], returnedReqs[1]);
+            ClassicAssert.AreSame(TCs[1], ds.GetSoftwareSystemTest("TC_id2"));
+            ClassicAssert.AreSame(TCs[0], ds.GetItem("TC_id1"));
             var returnedItems = ds.GetItems(new TraceEntity("SoftwareSystemTest", "System Level Test", "SLT", TraceEntityType.Truth));
             Assert.That(returnedItems[0].ItemID, Is.EqualTo(TCs[0].ItemID));
             Assert.That(returnedItems[1].ItemID, Is.EqualTo(TCs[1].ItemID));
@@ -266,10 +267,10 @@ namespace RoboClerk.Tests
             SetupSrcCodePlugin();
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedSOUP = ds.GetAllSOUP();
-            Assert.AreSame(SOUPs[0], returnedSOUP[0]);
-            Assert.AreSame(SOUPs[1], returnedSOUP[1]);
-            Assert.AreSame(SOUPs[1], ds.GetSOUP("SOUP_id2"));
-            Assert.AreSame(SOUPs[0], ds.GetItem("SOUP_id1"));
+            ClassicAssert.AreSame(SOUPs[0], returnedSOUP[0]);
+            ClassicAssert.AreSame(SOUPs[1], returnedSOUP[1]);
+            ClassicAssert.AreSame(SOUPs[1], ds.GetSOUP("SOUP_id2"));
+            ClassicAssert.AreSame(SOUPs[0], ds.GetItem("SOUP_id1"));
             var returnedItems = ds.GetItems(new TraceEntity("SOUP", "SOUP", "OTS", TraceEntityType.Truth));
             Assert.That(returnedItems[0].ItemID, Is.EqualTo(SOUPs[0].ItemID));
             Assert.That(returnedItems[1].ItemID, Is.EqualTo(SOUPs[1].ItemID));
@@ -282,10 +283,10 @@ namespace RoboClerk.Tests
             SetupSrcCodePlugin();
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedRISKs = ds.GetAllRisks();
-            Assert.AreSame(RISKs[0], returnedRISKs[0]);
-            Assert.AreSame(RISKs[1], returnedRISKs[1]);
-            Assert.AreSame(RISKs[1], ds.GetRisk("RISK_id2"));
-            Assert.AreSame(RISKs[0], ds.GetItem("RISK_id1"));
+            ClassicAssert.AreSame(RISKs[0], returnedRISKs[0]);
+            ClassicAssert.AreSame(RISKs[1], returnedRISKs[1]);
+            ClassicAssert.AreSame(RISKs[1], ds.GetRisk("RISK_id2"));
+            ClassicAssert.AreSame(RISKs[0], ds.GetItem("RISK_id1"));
             var returnedItems = ds.GetItems(new TraceEntity("Risk", "Risk", "RSK", TraceEntityType.Truth));
             Assert.That(returnedItems[0].ItemID, Is.EqualTo(RISKs[0].ItemID));
             Assert.That(returnedItems[1].ItemID, Is.EqualTo(RISKs[1].ItemID));
@@ -298,12 +299,12 @@ namespace RoboClerk.Tests
             SetupSrcCodePlugin();
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedUTs = ds.GetAllUnitTests();
-            Assert.AreSame(SLMSUTs[0], returnedUTs[0]);
-            Assert.AreSame(SLMSUTs[1], returnedUTs[1]);
-            Assert.AreSame(SRCUTs[0], returnedUTs[2]);
-            Assert.AreSame(SRCUTs[1], returnedUTs[3]);
-            Assert.AreSame(returnedUTs[2], ds.GetUnitTest("UT_id3"));
-            Assert.AreSame(returnedUTs[0], ds.GetItem("UT_id1"));
+            ClassicAssert.AreSame(SLMSUTs[0], returnedUTs[0]);
+            ClassicAssert.AreSame(SLMSUTs[1], returnedUTs[1]);
+            ClassicAssert.AreSame(SRCUTs[0], returnedUTs[2]);
+            ClassicAssert.AreSame(SRCUTs[1], returnedUTs[3]);
+            ClassicAssert.AreSame(returnedUTs[2], ds.GetUnitTest("UT_id3"));
+            ClassicAssert.AreSame(returnedUTs[0], ds.GetItem("UT_id1"));
             var returnedItems = ds.GetItems(new TraceEntity("UnitTest", "Unit Test", "UT", TraceEntityType.Truth));
             Assert.That(returnedItems[0].ItemID, Is.EqualTo(SLMSUTs[0].ItemID));
             Assert.That(returnedItems[2].ItemID, Is.EqualTo(SRCUTs[0].ItemID));
@@ -316,11 +317,11 @@ namespace RoboClerk.Tests
             SetupSrcCodePlugin();
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedAnomalies = ds.GetAllAnomalies();
-            Assert.IsTrue(returnedAnomalies.Count > 0);
-            Assert.AreSame(ANOMALYs[0], returnedAnomalies[0]);
-            Assert.AreSame(ANOMALYs[1], returnedAnomalies[1]);
-            Assert.AreSame(ANOMALYs[1], ds.GetAnomaly("ANOMALY_id2"));
-            Assert.AreSame(ANOMALYs[0], ds.GetItem("ANOMALY_id1"));
+            ClassicAssert.IsTrue(returnedAnomalies.Count > 0);
+            ClassicAssert.AreSame(ANOMALYs[0], returnedAnomalies[0]);
+            ClassicAssert.AreSame(ANOMALYs[1], returnedAnomalies[1]);
+            ClassicAssert.AreSame(ANOMALYs[1], ds.GetAnomaly("ANOMALY_id2"));
+            ClassicAssert.AreSame(ANOMALYs[0], ds.GetItem("ANOMALY_id1"));
             var returnedItems = ds.GetItems(new TraceEntity("Anomaly","Bug","Bug",TraceEntityType.Truth));
             Assert.That(returnedItems[0].ItemID,Is.EqualTo(ANOMALYs[0].ItemID));
             Assert.That(returnedItems[1].ItemID, Is.EqualTo(ANOMALYs[1].ItemID));
@@ -343,9 +344,9 @@ namespace RoboClerk.Tests
             SetupDepPlugin();
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
             var returnedDeps = ds.GetAllExternalDependencies();
-            Assert.IsTrue(returnedDeps.Count > 0);
-            Assert.AreSame(DEPs[0], returnedDeps[0]);
-            Assert.AreSame(DEPs[1], returnedDeps[1]);
+            ClassicAssert.IsTrue(returnedDeps.Count > 0);
+            ClassicAssert.AreSame(DEPs[0], returnedDeps[0]);
+            ClassicAssert.AreSame(DEPs[1], returnedDeps[1]);
         }
 
 
@@ -356,7 +357,7 @@ namespace RoboClerk.Tests
             SetupSrcCodePlugin();
             var ds = new PluginDataSources(mockConfiguration,mockPluginLoader, mockFileSystem);
             var result = ds.GetItem("does not exist");
-            Assert.AreSame(null, result);
+            ClassicAssert.AreSame(null, result);
         }
 
         [Test]
@@ -369,8 +370,8 @@ namespace RoboClerk.Tests
             vals.FromToml(table);
             mockConfiguration.ConfigVals.Returns(vals);
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
-            Assert.AreSame("TestValue",ds.GetConfigValue("testKey"));
-            Assert.AreSame("NOT FOUND", ds.GetConfigValue("estKey"));
+            ClassicAssert.AreSame("TestValue",ds.GetConfigValue("testKey"));
+            ClassicAssert.AreSame("NOT FOUND", ds.GetConfigValue("estKey"));
         }
 
         [Test]

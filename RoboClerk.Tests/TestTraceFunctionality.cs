@@ -8,6 +8,7 @@ using System.Linq;
 using NSubstitute.Extensions;
 using RoboClerk;
 using System.IO.Abstractions;
+using NUnit.Framework.Legacy;
 
 namespace RoboClerk.Tests
 {
@@ -117,49 +118,49 @@ namespace RoboClerk.Tests
         public void Getting_The_Title_For_The_Trace_Entity_VERIFIES_Correct_Title_Returned_For_Given_Trace_Entity()
         {
             ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
-            Assert.AreEqual("ANOMALY_name", traceabilityAnalysis.GetTitleForTraceEntity("Anomaly"));
-            Assert.AreEqual("SLTP Title", traceabilityAnalysis.GetTitleForTraceEntity("SystemLevelTestPlan"));
-            Assert.AreEqual("SLTP: No title", traceabilityAnalysis.GetTitleForTraceEntity("SLTP"));
+            ClassicAssert.AreEqual("ANOMALY_name", traceabilityAnalysis.GetTitleForTraceEntity("Anomaly"));
+            ClassicAssert.AreEqual("SLTP Title", traceabilityAnalysis.GetTitleForTraceEntity("SystemLevelTestPlan"));
+            ClassicAssert.AreEqual("SLTP: No title", traceabilityAnalysis.GetTitleForTraceEntity("SLTP"));
         }
 
         [Test]
         public void Getting_The_Abbreviation_For_The_Trace_Entity_VERIFIES_Correct_Abbreviation_Returned_For_Given_Trace_Entity()
         {
             ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
-            Assert.AreEqual("ANOMALY", traceabilityAnalysis.GetAbreviationForTraceEntity("Anomaly"));
-            Assert.AreEqual("SLTP", traceabilityAnalysis.GetAbreviationForTraceEntity("SystemLevelTestPlan"));
-            Assert.AreEqual("SLTP: No abbreviation", traceabilityAnalysis.GetAbreviationForTraceEntity("SLTP"));
+            ClassicAssert.AreEqual("ANOMALY", traceabilityAnalysis.GetAbreviationForTraceEntity("Anomaly"));
+            ClassicAssert.AreEqual("SLTP", traceabilityAnalysis.GetAbreviationForTraceEntity("SystemLevelTestPlan"));
+            ClassicAssert.AreEqual("SLTP: No abbreviation", traceabilityAnalysis.GetAbreviationForTraceEntity("SLTP"));
         }
 
         [Test]
         public void Getting_The_Trace_Entity_For_The_Title_VERIFIES_Correct_Trace_Entity_Returned_For_Given_Title()
         {
             ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
-            Assert.AreEqual("SoftwareSystemTest", traceabilityAnalysis.GetTraceEntityForTitle("TC_name").ID);
-            Assert.AreEqual("RiskAssessmentRecord", traceabilityAnalysis.GetTraceEntityForTitle("RAR Title").ID);
-            Assert.AreEqual(default(TraceEntity), traceabilityAnalysis.GetTraceEntityForTitle("SLTP"));
+            ClassicAssert.AreEqual("SoftwareSystemTest", traceabilityAnalysis.GetTraceEntityForTitle("TC_name").ID);
+            ClassicAssert.AreEqual("RiskAssessmentRecord", traceabilityAnalysis.GetTraceEntityForTitle("RAR Title").ID);
+            ClassicAssert.AreEqual(default(TraceEntity), traceabilityAnalysis.GetTraceEntityForTitle("SLTP"));
         }
 
         [Test]
         public void Getting_The_Trace_Entity_For_The_Identifier_VERIFIES_Correct_Trace_Entity_Returned_For_Given_ID()
         {
             ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
-            Assert.AreEqual("Anomaly", traceabilityAnalysis.GetTraceEntityForID("Anomaly").ID);
-            Assert.AreEqual("RiskAssessmentRecord", traceabilityAnalysis.GetTraceEntityForID("RiskAssessmentRecord").ID);
-            Assert.AreEqual(default(TraceEntity), traceabilityAnalysis.GetTraceEntityForID("SLTP"));
+            ClassicAssert.AreEqual("Anomaly", traceabilityAnalysis.GetTraceEntityForID("Anomaly").ID);
+            ClassicAssert.AreEqual("RiskAssessmentRecord", traceabilityAnalysis.GetTraceEntityForID("RiskAssessmentRecord").ID);
+            ClassicAssert.AreEqual(default(TraceEntity), traceabilityAnalysis.GetTraceEntityForID("SLTP"));
         }
 
         [Test]
         public void Getting_The_Trace_Entity_For_Any_Property_VERIFIES_Correct_Trace_Entity_Returned_For_Any_Property()
         {
             ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
-            Assert.AreEqual("Anomaly", traceabilityAnalysis.GetTraceEntityForAnyProperty("Anomaly").ID);
-            Assert.AreEqual("Anomaly", traceabilityAnalysis.GetTraceEntityForAnyProperty("ANOMALY_name").ID);
-            Assert.AreEqual("Anomaly", traceabilityAnalysis.GetTraceEntityForAnyProperty("ANOMALY").ID);
-            Assert.AreEqual("RiskAssessmentRecord", traceabilityAnalysis.GetTraceEntityForAnyProperty("RiskAssessmentRecord").ID);
-            Assert.AreEqual("RiskAssessmentRecord", traceabilityAnalysis.GetTraceEntityForAnyProperty("RAR Title").ID);
-            Assert.AreEqual("RiskAssessmentRecord", traceabilityAnalysis.GetTraceEntityForAnyProperty("RAR").ID);
-            Assert.AreEqual(default(TraceEntity), traceabilityAnalysis.GetTraceEntityForAnyProperty("RARS"));
+            ClassicAssert.AreEqual("Anomaly", traceabilityAnalysis.GetTraceEntityForAnyProperty("Anomaly").ID);
+            ClassicAssert.AreEqual("Anomaly", traceabilityAnalysis.GetTraceEntityForAnyProperty("ANOMALY_name").ID);
+            ClassicAssert.AreEqual("Anomaly", traceabilityAnalysis.GetTraceEntityForAnyProperty("ANOMALY").ID);
+            ClassicAssert.AreEqual("RiskAssessmentRecord", traceabilityAnalysis.GetTraceEntityForAnyProperty("RiskAssessmentRecord").ID);
+            ClassicAssert.AreEqual("RiskAssessmentRecord", traceabilityAnalysis.GetTraceEntityForAnyProperty("RAR Title").ID);
+            ClassicAssert.AreEqual("RiskAssessmentRecord", traceabilityAnalysis.GetTraceEntityForAnyProperty("RAR").ID);
+            ClassicAssert.AreEqual(default(TraceEntity), traceabilityAnalysis.GetTraceEntityForAnyProperty("RARS"));
         }
 
         [Test]
@@ -175,15 +176,15 @@ namespace RoboClerk.Tests
                 links.Add(tl);
             }
 
-            Assert.IsTrue(links.Count == 1);
-            Assert.AreEqual("SoftwareRequirement", links[0].Source.ID);
-            Assert.AreEqual("1234", links[0].SourceID);
-            Assert.AreEqual("RiskAssessmentRecord", links[0].Target.ID);
-            Assert.AreEqual("1234", links[0].TargetID);
+            ClassicAssert.IsTrue(links.Count == 1);
+            ClassicAssert.AreEqual("SoftwareRequirement", links[0].Source.ID);
+            ClassicAssert.AreEqual("1234", links[0].SourceID);
+            ClassicAssert.AreEqual("RiskAssessmentRecord", links[0].Target.ID);
+            ClassicAssert.AreEqual("1234", links[0].TargetID);
             RoboClerkTag tagNoID = new RoboClerkTag(0, 13, "@@Trace:SWR()@@", true);
             var result = Assert.Throws<TagInvalidException>(() => { traceabilityAnalysis.AddTraceTag("RAR Title", tagNoID); });
-            Assert.IsTrue(result.Message.Contains("RAR Title"));
-            Assert.IsTrue(result.Message.Contains("Trace:SWR()"));
+            ClassicAssert.IsTrue(result.Message.Contains("RAR Title"));
+            ClassicAssert.IsTrue(result.Message.Contains("Trace:SWR()"));
         }
 
         [Test]
@@ -198,13 +199,13 @@ namespace RoboClerk.Tests
 
             var tet = traceabilityAnalysis.GetTraceEntityForTitle("SRS Title");
             var result = traceabilityAnalysis.GetTraceLinksForDocument(tet).ToList();
-            Assert.AreEqual(1, result.Count);
-            Assert.AreEqual(sourceID, result[0].SourceID);
-            Assert.AreEqual(targetID, result[0].TargetID);
-            Assert.AreEqual(source, result[0].Source);
-            Assert.AreEqual(target, result[0].Target);
+            ClassicAssert.AreEqual(1, result.Count);
+            ClassicAssert.AreEqual(sourceID, result[0].SourceID);
+            ClassicAssert.AreEqual(targetID, result[0].TargetID);
+            ClassicAssert.AreEqual(source, result[0].Source);
+            ClassicAssert.AreEqual(target, result[0].Target);
             result = traceabilityAnalysis.GetTraceLinksForDocument(default(TraceEntity)).ToList();
-            Assert.AreEqual(0, result.Count);
+            ClassicAssert.AreEqual(0, result.Count);
         }
 
         private List<RequirementItem> SYSs = null;
@@ -333,35 +334,35 @@ namespace RoboClerk.Tests
 
 
             var matrix = traceabilityAnalysis.PerformAnalysis(dataSources, tet);
-            Assert.AreEqual(4, matrix.Count);
-            Assert.AreEqual(2, matrix[tet].Count);
-            Assert.AreEqual(2, matrix[tet1].Count);
-            Assert.AreEqual(2, matrix[tet2].Count);
-            Assert.AreEqual(2, matrix[tet3].Count);
+            ClassicAssert.AreEqual(4, matrix.Count);
+            ClassicAssert.AreEqual(2, matrix[tet].Count);
+            ClassicAssert.AreEqual(2, matrix[tet1].Count);
+            ClassicAssert.AreEqual(2, matrix[tet2].Count);
+            ClassicAssert.AreEqual(2, matrix[tet3].Count);
             
-            Assert.AreEqual(1, matrix[tet][0].Count);
-            Assert.AreEqual(1, matrix[tet][1].Count);
-            Assert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
-            Assert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
+            ClassicAssert.AreEqual(1, matrix[tet][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet][1].Count);
+            ClassicAssert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
+            ClassicAssert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
 
-            Assert.AreEqual(1, matrix[tet1][0].Count);
-            Assert.AreEqual(1, matrix[tet1][1].Count);
-            Assert.AreEqual("SYS_id1", matrix[tet1][0][0].ItemID);
-            Assert.AreEqual("SYS_id2", matrix[tet1][1][0].ItemID);
+            ClassicAssert.AreEqual(1, matrix[tet1][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet1][1].Count);
+            ClassicAssert.AreEqual("SYS_id1", matrix[tet1][0][0].ItemID);
+            ClassicAssert.AreEqual("SYS_id2", matrix[tet1][1][0].ItemID);
 
-            Assert.AreEqual(1, matrix[tet2][0].Count);
-            Assert.AreEqual(1, matrix[tet2][1].Count);
-            Assert.AreEqual("SWR_id1", matrix[tet2][0][0].ItemID);
-            Assert.AreEqual("SWR_id2", matrix[tet2][1][0].ItemID);
+            ClassicAssert.AreEqual(1, matrix[tet2][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet2][1].Count);
+            ClassicAssert.AreEqual("SWR_id1", matrix[tet2][0][0].ItemID);
+            ClassicAssert.AreEqual("SWR_id2", matrix[tet2][1][0].ItemID);
 
-            Assert.AreEqual(0, matrix[tet3][0].Count);
-            Assert.AreEqual(1, matrix[tet3][1].Count);
-            Assert.AreEqual("SYS_id2", matrix[tet3][1][0].ItemID);
+            ClassicAssert.AreEqual(0, matrix[tet3][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet3][1].Count);
+            ClassicAssert.AreEqual("SYS_id2", matrix[tet3][1][0].ItemID);
 
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet).Count());
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet2).Count());
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).Count());
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet3).Count());
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet).Count());
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet2).Count());
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).Count());
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet3).Count());
         }
 
         [UnitTestAttribute(
@@ -383,18 +384,18 @@ namespace RoboClerk.Tests
                 traceabilityAnalysis.GetTraceEntityForID("DocContent"), "DOCCT_id2");
  
             var matrix = traceabilityAnalysis.PerformAnalysis(dataSources, tet);
-            Assert.AreEqual(2, matrix.Count);
-            Assert.AreEqual(2, matrix[tet].Count);
-            Assert.AreEqual(2, matrix[tet1].Count);
+            ClassicAssert.AreEqual(2, matrix.Count);
+            ClassicAssert.AreEqual(2, matrix[tet].Count);
+            ClassicAssert.AreEqual(2, matrix[tet1].Count);
 
-            Assert.AreEqual(1, matrix[tet][0].Count);
-            Assert.AreEqual(1, matrix[tet][1].Count);
-            Assert.AreEqual("DOC_id1", matrix[tet][0][0].ItemID);
-            Assert.AreEqual("DOC_id2", matrix[tet][1][0].ItemID);
+            ClassicAssert.AreEqual(1, matrix[tet][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet][1].Count);
+            ClassicAssert.AreEqual("DOC_id1", matrix[tet][0][0].ItemID);
+            ClassicAssert.AreEqual("DOC_id2", matrix[tet][1][0].ItemID);
 
-            Assert.AreEqual(1, matrix[tet1][0].Count);
-            Assert.AreEqual(0, matrix[tet1][1].Count);//empty list returned
-            Assert.AreEqual("DOCCT_id2", matrix[tet1][0][0].ItemID);            
+            ClassicAssert.AreEqual(1, matrix[tet1][0].Count);
+            ClassicAssert.AreEqual(0, matrix[tet1][1].Count);//empty list returned
+            ClassicAssert.AreEqual("DOCCT_id2", matrix[tet1][0][0].ItemID);            
         }
 
         [Test]
@@ -418,42 +419,42 @@ namespace RoboClerk.Tests
             var tet3 = traceabilityAnalysis.GetTraceEntityForID("RiskAssessmentRecord");
 
             var matrix = traceabilityAnalysis.PerformAnalysis(dataSources, tet);
-            Assert.AreEqual(4, matrix.Count);
-            Assert.AreEqual(2, matrix[tet].Count);
-            Assert.AreEqual(2, matrix[tet1].Count);
-            Assert.AreEqual(2, matrix[tet2].Count);
-            Assert.AreEqual(2, matrix[tet3].Count);
+            ClassicAssert.AreEqual(4, matrix.Count);
+            ClassicAssert.AreEqual(2, matrix[tet].Count);
+            ClassicAssert.AreEqual(2, matrix[tet1].Count);
+            ClassicAssert.AreEqual(2, matrix[tet2].Count);
+            ClassicAssert.AreEqual(2, matrix[tet3].Count);
 
-            Assert.AreEqual(1, matrix[tet][0].Count);
-            Assert.AreEqual(1, matrix[tet][1].Count);
-            Assert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
-            Assert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
+            ClassicAssert.AreEqual(1, matrix[tet][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet][1].Count);
+            ClassicAssert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
+            ClassicAssert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
 
-            Assert.AreEqual(1, matrix[tet1][0].Count);
-            Assert.AreEqual(1, matrix[tet1][1].Count);
-            Assert.AreEqual("SYS_id1", matrix[tet1][0][0].ItemID);
-            Assert.AreEqual(null, matrix[tet1][1][0]);
+            ClassicAssert.AreEqual(1, matrix[tet1][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet1][1].Count);
+            ClassicAssert.AreEqual("SYS_id1", matrix[tet1][0][0].ItemID);
+            ClassicAssert.AreEqual(null, matrix[tet1][1][0]);
 
-            Assert.AreEqual(1, matrix[tet2][0].Count);
-            Assert.AreEqual(1, matrix[tet2][1].Count);
-            Assert.AreEqual("SWR_id1", matrix[tet2][0][0].ItemID);
-            Assert.AreEqual("SWR_id2", matrix[tet2][1][0].ItemID);
+            ClassicAssert.AreEqual(1, matrix[tet2][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet2][1].Count);
+            ClassicAssert.AreEqual("SWR_id1", matrix[tet2][0][0].ItemID);
+            ClassicAssert.AreEqual("SWR_id2", matrix[tet2][1][0].ItemID);
 
-            Assert.AreEqual(0, matrix[tet3][0].Count);
-            Assert.AreEqual(1, matrix[tet3][1].Count);
-            Assert.AreEqual("SYS_id2", matrix[tet3][1][0].ItemID);
+            ClassicAssert.AreEqual(0, matrix[tet3][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet3][1].Count);
+            ClassicAssert.AreEqual("SYS_id2", matrix[tet3][1][0].ItemID);
 
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet).Count());
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet2).Count());
-            Assert.AreEqual(1, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).Count());
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet).Count());
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet2).Count());
+            ClassicAssert.AreEqual(1, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).Count());
             var issues = traceabilityAnalysis.GetTraceIssuesForDocument(tet1).ToList();
-            Assert.AreEqual(TraceIssueType.Missing, issues[0].IssueType);
-            Assert.AreEqual(tet, issues[0].Source);
-            Assert.AreEqual("SYS_id2", issues[0].SourceID);
-            Assert.AreEqual(tet1, issues[0].Target);
-            Assert.AreEqual("SYS_id2", issues[0].TargetID);
-            Assert.AreEqual(false, issues[0].Valid);
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet3).Count());
+            ClassicAssert.AreEqual(TraceIssueType.Missing, issues[0].IssueType);
+            ClassicAssert.AreEqual(tet, issues[0].Source);
+            ClassicAssert.AreEqual("SYS_id2", issues[0].SourceID);
+            ClassicAssert.AreEqual(tet1, issues[0].Target);
+            ClassicAssert.AreEqual("SYS_id2", issues[0].TargetID);
+            ClassicAssert.AreEqual(false, issues[0].Valid);
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet3).Count());
         }
 
         [Test]
@@ -473,48 +474,48 @@ namespace RoboClerk.Tests
             var tet3 = traceabilityAnalysis.GetTraceEntityForID("RiskAssessmentRecord");
 
             var matrix = traceabilityAnalysis.PerformAnalysis(dataSources, tet);
-            Assert.AreEqual(4, matrix.Count);
-            Assert.AreEqual(2, matrix[tet].Count);
-            Assert.AreEqual(2, matrix[tet1].Count);
-            Assert.AreEqual(2, matrix[tet2].Count);
-            Assert.AreEqual(2, matrix[tet3].Count);
+            ClassicAssert.AreEqual(4, matrix.Count);
+            ClassicAssert.AreEqual(2, matrix[tet].Count);
+            ClassicAssert.AreEqual(2, matrix[tet1].Count);
+            ClassicAssert.AreEqual(2, matrix[tet2].Count);
+            ClassicAssert.AreEqual(2, matrix[tet3].Count);
 
-            Assert.AreEqual(1, matrix[tet][0].Count);
-            Assert.AreEqual(1, matrix[tet][1].Count);
-            Assert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
-            Assert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
+            ClassicAssert.AreEqual(1, matrix[tet][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet][1].Count);
+            ClassicAssert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
+            ClassicAssert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
 
-            Assert.AreEqual(1, matrix[tet1][0].Count);
-            Assert.AreEqual(1, matrix[tet1][1].Count);
-            Assert.AreEqual(null, matrix[tet1][0][0]);
-            Assert.AreEqual(null, matrix[tet1][1][0]);
+            ClassicAssert.AreEqual(1, matrix[tet1][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet1][1].Count);
+            ClassicAssert.AreEqual(null, matrix[tet1][0][0]);
+            ClassicAssert.AreEqual(null, matrix[tet1][1][0]);
 
-            Assert.AreEqual(1, matrix[tet2][0].Count);
-            Assert.AreEqual(1, matrix[tet2][1].Count);
-            Assert.AreEqual("SWR_id1", matrix[tet2][0][0].ItemID);
-            Assert.AreEqual("SWR_id2", matrix[tet2][1][0].ItemID);
+            ClassicAssert.AreEqual(1, matrix[tet2][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet2][1].Count);
+            ClassicAssert.AreEqual("SWR_id1", matrix[tet2][0][0].ItemID);
+            ClassicAssert.AreEqual("SWR_id2", matrix[tet2][1][0].ItemID);
 
-            Assert.AreEqual(0, matrix[tet3][0].Count);
-            Assert.AreEqual(1, matrix[tet3][1].Count);
-            Assert.AreEqual("SYS_id2", matrix[tet3][1][0].ItemID);
+            ClassicAssert.AreEqual(0, matrix[tet3][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet3][1].Count);
+            ClassicAssert.AreEqual("SYS_id2", matrix[tet3][1][0].ItemID);
 
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet).Count());
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet2).Count());
-            Assert.AreEqual(2, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).Count());
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet).Count());
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet2).Count());
+            ClassicAssert.AreEqual(2, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).Count());
             var issues = traceabilityAnalysis.GetTraceIssuesForDocument(tet1).ToList();
-            Assert.AreEqual(TraceIssueType.Missing, issues[0].IssueType);
-            Assert.AreEqual(tet, issues[0].Source);
-            Assert.AreEqual("SYS_id1", issues[0].SourceID);
-            Assert.AreEqual(tet1, issues[0].Target);
-            Assert.AreEqual("SYS_id1", issues[0].TargetID);
-            Assert.AreEqual(false, issues[0].Valid);
-            Assert.AreEqual(TraceIssueType.Missing, issues[1].IssueType);
-            Assert.AreEqual(tet, issues[1].Source);
-            Assert.AreEqual("SYS_id2", issues[1].SourceID);
-            Assert.AreEqual(tet1, issues[1].Target);
-            Assert.AreEqual("SYS_id2", issues[1].TargetID);
-            Assert.AreEqual(false, issues[1].Valid);
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet3).Count());
+            ClassicAssert.AreEqual(TraceIssueType.Missing, issues[0].IssueType);
+            ClassicAssert.AreEqual(tet, issues[0].Source);
+            ClassicAssert.AreEqual("SYS_id1", issues[0].SourceID);
+            ClassicAssert.AreEqual(tet1, issues[0].Target);
+            ClassicAssert.AreEqual("SYS_id1", issues[0].TargetID);
+            ClassicAssert.AreEqual(false, issues[0].Valid);
+            ClassicAssert.AreEqual(TraceIssueType.Missing, issues[1].IssueType);
+            ClassicAssert.AreEqual(tet, issues[1].Source);
+            ClassicAssert.AreEqual("SYS_id2", issues[1].SourceID);
+            ClassicAssert.AreEqual(tet1, issues[1].Target);
+            ClassicAssert.AreEqual("SYS_id2", issues[1].TargetID);
+            ClassicAssert.AreEqual(false, issues[1].Valid);
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet3).Count());
         }
 
         [Test]
@@ -540,42 +541,42 @@ namespace RoboClerk.Tests
             var tet3 = traceabilityAnalysis.GetTraceEntityForID("RiskAssessmentRecord");
 
             var matrix = traceabilityAnalysis.PerformAnalysis(dataSources, tet);
-            Assert.AreEqual(4, matrix.Count);
-            Assert.AreEqual(2, matrix[tet].Count);
-            Assert.AreEqual(2, matrix[tet1].Count);
-            Assert.AreEqual(2, matrix[tet2].Count);
-            Assert.AreEqual(2, matrix[tet3].Count);
+            ClassicAssert.AreEqual(4, matrix.Count);
+            ClassicAssert.AreEqual(2, matrix[tet].Count);
+            ClassicAssert.AreEqual(2, matrix[tet1].Count);
+            ClassicAssert.AreEqual(2, matrix[tet2].Count);
+            ClassicAssert.AreEqual(2, matrix[tet3].Count);
 
-            Assert.AreEqual(1, matrix[tet][0].Count);
-            Assert.AreEqual(1, matrix[tet][1].Count);
-            Assert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
-            Assert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
+            ClassicAssert.AreEqual(1, matrix[tet][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet][1].Count);
+            ClassicAssert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
+            ClassicAssert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
 
-            Assert.AreEqual(1, matrix[tet1][0].Count);
-            Assert.AreEqual(1, matrix[tet1][1].Count);
-            Assert.AreEqual("SYS_id1", matrix[tet1][0][0].ItemID);
-            Assert.AreEqual("SYS_id2", matrix[tet1][1][0].ItemID);
+            ClassicAssert.AreEqual(1, matrix[tet1][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet1][1].Count);
+            ClassicAssert.AreEqual("SYS_id1", matrix[tet1][0][0].ItemID);
+            ClassicAssert.AreEqual("SYS_id2", matrix[tet1][1][0].ItemID);
 
-            Assert.AreEqual(1, matrix[tet2][0].Count);
-            Assert.AreEqual(1, matrix[tet2][1].Count);
-            Assert.AreEqual("SWR_id1", matrix[tet2][0][0].ItemID);
-            Assert.AreEqual("SWR_id2", matrix[tet2][1][0].ItemID);
+            ClassicAssert.AreEqual(1, matrix[tet2][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet2][1].Count);
+            ClassicAssert.AreEqual("SWR_id1", matrix[tet2][0][0].ItemID);
+            ClassicAssert.AreEqual("SWR_id2", matrix[tet2][1][0].ItemID);
 
-            Assert.AreEqual(0, matrix[tet3][0].Count);
-            Assert.AreEqual(1, matrix[tet3][1].Count);
-            Assert.AreEqual("SYS_id2", matrix[tet3][1][0].ItemID);
+            ClassicAssert.AreEqual(0, matrix[tet3][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet3][1].Count);
+            ClassicAssert.AreEqual("SYS_id2", matrix[tet3][1][0].ItemID);
 
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet).Count());
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet2).Count());
-            Assert.AreEqual(1, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).Count());
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet).Count());
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet2).Count());
+            ClassicAssert.AreEqual(1, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).Count());
             var issues = traceabilityAnalysis.GetTraceIssuesForDocument(tet1).ToList();
-            Assert.AreEqual(TraceIssueType.Extra, issues[0].IssueType);
-            Assert.AreEqual(tet1, issues[0].Source);
-            Assert.AreEqual("SYS_id3", issues[0].SourceID);
-            Assert.AreEqual(tet, issues[0].Target);
-            Assert.AreEqual("SYS_id3", issues[0].TargetID);
-            Assert.AreEqual(false, issues[0].Valid);
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet3).Count());
+            ClassicAssert.AreEqual(TraceIssueType.Extra, issues[0].IssueType);
+            ClassicAssert.AreEqual(tet1, issues[0].Source);
+            ClassicAssert.AreEqual("SYS_id3", issues[0].SourceID);
+            ClassicAssert.AreEqual(tet, issues[0].Target);
+            ClassicAssert.AreEqual("SYS_id3", issues[0].TargetID);
+            ClassicAssert.AreEqual(false, issues[0].Valid);
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForDocument(tet3).Count());
         }
 
         [Test]
@@ -717,22 +718,22 @@ namespace RoboClerk.Tests
             var tet1 = traceabilityAnalysis.GetTraceEntityForID("SystemRequirementsSpecification");
 
             var matrix = traceabilityAnalysis.PerformAnalysis(dataSources, tet);
-            Assert.AreEqual(2, matrix.Count);
-            Assert.AreEqual(2, matrix[tet].Count);
-            Assert.AreEqual(2, matrix[tet1].Count);
+            ClassicAssert.AreEqual(2, matrix.Count);
+            ClassicAssert.AreEqual(2, matrix[tet].Count);
+            ClassicAssert.AreEqual(2, matrix[tet1].Count);
 
-            Assert.AreEqual(1, matrix[tet][0].Count);
-            Assert.AreEqual(1, matrix[tet][1].Count);
-            Assert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
-            Assert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
+            ClassicAssert.AreEqual(1, matrix[tet][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet][1].Count);
+            ClassicAssert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
+            ClassicAssert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
 
-            Assert.AreEqual(0, matrix[tet1][0].Count);
-            Assert.AreEqual(1, matrix[tet1][1].Count);
-            Assert.AreEqual("SYS_id2", matrix[tet1][1][0].ItemID);
+            ClassicAssert.AreEqual(0, matrix[tet1][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet1][1].Count);
+            ClassicAssert.AreEqual("SYS_id2", matrix[tet1][1][0].ItemID);
 
-            Assert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet).Count());
-            Assert.AreEqual(1, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).Count());
-            Assert.AreEqual(TraceIssueType.Incorrect, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).First().IssueType);
+            ClassicAssert.AreEqual(0, traceabilityAnalysis.GetTraceIssuesForTruth(tet).Count());
+            ClassicAssert.AreEqual(1, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).Count());
+            ClassicAssert.AreEqual(TraceIssueType.Incorrect, traceabilityAnalysis.GetTraceIssuesForDocument(tet1).First().IssueType);
         }
 
         [Test]
@@ -779,30 +780,30 @@ namespace RoboClerk.Tests
             var tet2 = analysis.GetTraceEntityForID("SoftwareRequirement");
 
             var matrix = analysis.PerformAnalysis(dataSources, tet);
-            Assert.AreEqual(4, matrix.Count);
-            Assert.AreEqual(2, matrix[tet].Count);
-            Assert.AreEqual(2, matrix[tet2].Count);
+            ClassicAssert.AreEqual(4, matrix.Count);
+            ClassicAssert.AreEqual(2, matrix[tet].Count);
+            ClassicAssert.AreEqual(2, matrix[tet2].Count);
 
-            Assert.AreEqual(1, matrix[tet][0].Count);
-            Assert.AreEqual(1, matrix[tet][1].Count);
-            Assert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
-            Assert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
+            ClassicAssert.AreEqual(1, matrix[tet][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet][1].Count);
+            ClassicAssert.AreEqual("SYS_id1", matrix[tet][0][0].ItemID);
+            ClassicAssert.AreEqual("SYS_id2", matrix[tet][1][0].ItemID);
 
-            Assert.AreEqual(1, matrix[tet2][0].Count);
-            Assert.AreEqual(1, matrix[tet2][1].Count);
-            Assert.AreEqual(null, matrix[tet2][0][0]);
-            Assert.AreEqual(null, matrix[tet2][1][0]);
+            ClassicAssert.AreEqual(1, matrix[tet2][0].Count);
+            ClassicAssert.AreEqual(1, matrix[tet2][1].Count);
+            ClassicAssert.AreEqual(null, matrix[tet2][0][0]);
+            ClassicAssert.AreEqual(null, matrix[tet2][1][0]);
 
-            Assert.AreEqual(2, analysis.GetTraceIssuesForTruth(tet).Count());
-            Assert.AreEqual(0, analysis.GetTraceIssuesForTruth(tet2).Count());
+            ClassicAssert.AreEqual(2, analysis.GetTraceIssuesForTruth(tet).Count());
+            ClassicAssert.AreEqual(0, analysis.GetTraceIssuesForTruth(tet2).Count());
             
             var issues = analysis.GetTraceIssuesForTruth(tet).ToList();
 
-            Assert.AreEqual(TraceIssueType.PossiblyMissing, issues[0].IssueType);
-            Assert.AreEqual("SYS_id1", issues[0].SourceID);
-            Assert.AreEqual(tet2, issues[0].Target);
-            Assert.AreEqual("SYS_id1", issues[0].TargetID);
-            Assert.AreEqual(false, issues[0].Valid);
+            ClassicAssert.AreEqual(TraceIssueType.PossiblyMissing, issues[0].IssueType);
+            ClassicAssert.AreEqual("SYS_id1", issues[0].SourceID);
+            ClassicAssert.AreEqual(tet2, issues[0].Target);
+            ClassicAssert.AreEqual("SYS_id1", issues[0].TargetID);
+            ClassicAssert.AreEqual(false, issues[0].Valid);
         }
     }
 }
