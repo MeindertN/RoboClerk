@@ -12,6 +12,7 @@ namespace RoboClerk
         List<SoftwareSystemTestItem> GetAllSoftwareSystemTests();
         List<RequirementItem> GetAllSystemRequirements();
         List<ExternalDependency> GetAllExternalDependencies();
+        List<TestResult> GetAllTestResults();
         List<RequirementItem> GetAllDocumentationRequirements();
         List<RiskItem> GetAllRisks();
         List<SOUPItem> GetAllSOUP();

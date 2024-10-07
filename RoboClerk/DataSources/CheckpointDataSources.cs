@@ -171,6 +171,11 @@ namespace RoboClerk
             return pluginDatasource.GetAllExternalDependencies();
         }
 
+        public override List<TestResult> GetAllTestResults()
+        {
+            return pluginDatasource.GetAllTestResults(); 
+        }
+
         public override List<RiskItem> GetAllRisks()
         {
             return dataStorage.Risks;

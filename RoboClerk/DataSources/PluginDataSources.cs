@@ -70,6 +70,16 @@ namespace RoboClerk
             return dependencies;
         }
 
+        public override List<TestResult> GetAllTestResults()
+        {
+            var results = new List<TestResult>();
+            foreach (var plugin in plugins)
+            {
+                results.AddRange(plugin.GetTestResults());
+            }
+            return results;
+        }
+
         public override List<UnitTestItem> GetAllUnitTests()
         {
             var unitTests = new List<UnitTestItem>();

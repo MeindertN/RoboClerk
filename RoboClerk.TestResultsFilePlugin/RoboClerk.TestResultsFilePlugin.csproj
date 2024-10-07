@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+	  <OutputType>Library</OutputType>
+	  <StartupObject />
+	  <EnableDynamicLoading>true</EnableDynamicLoading>
+	  <Authors>Meindert Niemeijer</Authors>
+	  <Company>RoboClerk Project</Company>
+	  <Product>Test Results File Plugin</Product>
+	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+	  <Configurations>Debug;Release;ReleasePublish</Configurations>
+	  <BaseOutputPath>bin</BaseOutputPath>
+  </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\RoboClerk\RoboClerk.csproj">
+			<Private>false</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+	</ItemGroup>
+
+	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
+		<ItemGroup>
+			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.TestResultsFilePlugin.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.TestResultsFilePlugin.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+	</Target>
+	<Target Name="CopyPlugin" AfterTargets="Build">
+		<ItemGroup>
+			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+		</ItemGroup>
+		<Copy SourceFiles="$(ProjectDir)Configuration/TestResultsFilePlugin.toml" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig" />
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)plugins" />
+	</Target>
+	<Target Name="AdaptConfigFiles" AfterTargets="Build" Condition=" '$(Configuration)' != 'ReleasePublish' ">
+		<ReplaceFileText
+			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/TestResultsFilePlugin.toml"
+			MatchExpression="{PROJECTROOT}"
+			ReplacementText="$(ProjectDir)../" />
+	</Target>
+	<Target Name="AdaptConfigFilesRP" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
+		<ReplaceFileText
+			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/TestResultsFilePlugin.toml"
+			MatchExpression="{PROJECTROOT}"
+			ReplacementText="/mnt/" />
+	</Target>
+
+</Project>

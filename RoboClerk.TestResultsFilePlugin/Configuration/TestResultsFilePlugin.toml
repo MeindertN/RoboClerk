@@ -1,0 +1,20 @@
+# This is the RoboClerk test results file plugin configuration. Using this plugin,
+# test results, both system, integration and unit test results can be read from files. 
+# The plugin is intended to support different file formats.
+
+# Dependencies file locations array, supports multiple files
+
+FileLocations = ["{PROJECTROOT}results.json"]
+
+# The following formats are supported:
+# JSON - assumes the following format for the contents of the file:
+# [
+#  {
+#    "id": "12264",    <--- REQUIRED matching with known test cases / unit tests
+#    "name": "testLoginSuccess",
+#    "type": "UNIT", <--- REQUIRED can be either "UNIT" or "SYSTEM"
+#    "status": "PASS",    <----- REQUIRED can be either "PASS" or "FAIL"
+#	 "message": "all good",
+#    "executionTime": "2023-10-01T12:34:56Z"
+#  }
+# ]

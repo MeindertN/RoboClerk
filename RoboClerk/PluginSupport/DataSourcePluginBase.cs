@@ -18,6 +18,7 @@ namespace RoboClerk
         protected List<DocContentItem> docContents = new List<DocContentItem>();
         protected List<UnitTestItem> unitTests = new List<UnitTestItem>();
         protected List<ExternalDependency> dependencies = new List<ExternalDependency>();
+        protected List<TestResult> testResults = new List<TestResult>();
 
         public DataSourcePluginBase(IFileSystem fileSystem)
             :base(fileSystem)
@@ -77,6 +78,11 @@ namespace RoboClerk
             return dependencies;
         }
 
+        public IEnumerable<TestResult> GetTestResults()
+        {
+            return testResults;
+        }
+
         protected void ClearAllItems()
         {
             systemRequirements.Clear();
@@ -89,6 +95,7 @@ namespace RoboClerk
             docContents.Clear();
             unitTests.Clear();
             dependencies.Clear();
+            testResults.Clear();
         }
 
         private void ScrubItemsFields<T>(IEnumerable<T> items)
@@ -116,19 +123,20 @@ namespace RoboClerk
         // in tables and they need to escape the | character
         protected void ScrubItemContents()
         {
-            ScrubItemsFields<RequirementItem>(systemRequirements);
-            ScrubItemsFields<RequirementItem>(softwareRequirements);
-            ScrubItemsFields<RequirementItem>(documentationRequirements);
-            ScrubItemsFields<SoftwareSystemTestItem>(testCases);
+            ScrubItemsFields(systemRequirements);
+            ScrubItemsFields(softwareRequirements);
+            ScrubItemsFields(documentationRequirements);
+            ScrubItemsFields(testCases);
             foreach (var testCase in testCases)
             {
-                ScrubItemsFields<TestStep>(testCase.TestCaseSteps);
+                ScrubItemsFields(testCase.TestCaseSteps);
             }
-            ScrubItemsFields<AnomalyItem>(anomalies);
-            ScrubItemsFields<RiskItem>(risks);
-            ScrubItemsFields<SOUPItem>(soup);
-            ScrubItemsFields<UnitTestItem>(unitTests);
-            ScrubItemsFields<ExternalDependency>(dependencies);
+            ScrubItemsFields(anomalies);
+            ScrubItemsFields(risks);
+            ScrubItemsFields(soup);
+            ScrubItemsFields(unitTests);
+            ScrubItemsFields(dependencies);
+            ScrubItemsFields(testResults);
         }
     }
 }

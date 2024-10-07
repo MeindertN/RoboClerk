@@ -26,6 +26,8 @@ namespace RoboClerk
 
         public abstract List<ExternalDependency> GetAllExternalDependencies();
 
+        public abstract List<TestResult> GetAllTestResults();
+
         public abstract List<UnitTestItem> GetAllUnitTests();
 
         public abstract List<RequirementItem> GetAllSoftwareRequirements();

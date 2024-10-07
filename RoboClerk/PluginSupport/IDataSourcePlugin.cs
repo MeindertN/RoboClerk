@@ -15,5 +15,6 @@ namespace RoboClerk
         IEnumerable<SOUPItem> GetSOUP();
         IEnumerable<UnitTestItem> GetUnitTests();
         IEnumerable<ExternalDependency> GetDependencies();
+        IEnumerable<TestResult> GetTestResults();
     }
 }
