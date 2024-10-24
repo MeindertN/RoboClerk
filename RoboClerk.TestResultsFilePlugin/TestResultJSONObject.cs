@@ -7,10 +7,10 @@ namespace RoboClerk.TestResultsFilePlugin
     {
         [JsonPropertyName("id")]
         [JsonRequired] 
-        public string? ID { get; set; }
+        public string ID { get; set; }
 
         [JsonPropertyName("name")]
-        public string? Name { get; set; }
+        public string Name { get; set; }
 
         [JsonPropertyName("type")]
         [JsonRequired]
@@ -23,7 +23,7 @@ namespace RoboClerk.TestResultsFilePlugin
         public TestResultStatus Status { get; set; }
 
         [JsonPropertyName("message")]
-        public string? Message { get; set; }
+        public string Message { get; set; }
 
         [JsonPropertyName("executionTime")]
         public DateTime? ExecutionTime { get; set; }
