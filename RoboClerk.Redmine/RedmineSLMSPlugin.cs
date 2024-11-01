@@ -199,11 +199,10 @@ namespace RoboClerk.Redmine
             string removeItem = string.Empty;
             foreach (var item in inputItems)
             {
-                if(item.LinkedItems.Count() > 0) //orphan items are always included so they don't get lost or ingnored.
+                if(item.LinkedItems.Count() > 0) //orphan items without links are always included so they don't get lost or ingnored.
                     removeItem = item.ItemID;
                 foreach (var link in item.LinkedItems)
                 {
-                    
                     if (link != null && lt.Contains(link.LinkType) &&
                         retrievedIDs.Contains(link.TargetID) && 
                         (systemRequirements.Any(obj => obj.ItemID == link.TargetID) ||
@@ -220,7 +219,7 @@ namespace RoboClerk.Redmine
                 }
                 else
                 {
-                    logger.Info($"Removing item because it is not linked to a valid item: {item.ItemID}");
+                    logger.Warn($"Removing {item.ItemType} {item.ItemID} because item(s) {string.Join(',',item.LinkedItems.Select(item => item.TargetID))} it was originally linked to is(are) not valid.");
                     retrievedIDs.Remove(removeItem);
                     removeItem = string.Empty;
                 }
@@ -666,7 +665,7 @@ namespace RoboClerk.Redmine
                         }
                         if (!IncludeItem(property.Name, values) || ExcludeItem(property.Name, values))
                         {
-                            logger.Debug($"Ignoring requirement item {redmineItem.Id} due to \"{property.Name}\" being equal to \"{String.Join(", ", values)}\".");
+                            logger.Warn($"Ignoring {redmineItem.Tracker.Name} item {redmineItem.Id} due to \"{property.Name}\" being equal to \"{String.Join(", ", values)}\".");
                             return true;
                         }
                     }
@@ -693,7 +692,7 @@ namespace RoboClerk.Redmine
                         }
                         if (!IncludeItem(field.Name, values) || ExcludeItem(field.Name,values))
                         {
-                            logger.Debug($"Ignoring requirement item {redmineItem.Id} due to \"{field.Name}\" being equal to \"{String.Join(", ", values)}\".");
+                            logger.Warn($"Ignoring {redmineItem.Tracker.Name} item {redmineItem.Id} due to \"{field.Name}\" being equal to \"{String.Join(", ", values)}\".");
                             return true;
                         }
                     }

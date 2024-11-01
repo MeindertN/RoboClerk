@@ -1,0 +1,34 @@
+[
+  {
+    "id": "6",
+    "type": "SYSTEM",
+    "status": "FAIL",
+    "message": "incorrect password"
+  },
+  {
+    "id": "7",
+    "type": "SYSTEM",
+    "status": "PASS"
+  },
+  {
+    "id": "8",
+    "name": "testPasswordReset",
+    "type": "SYSTEM",
+    "status": "PASS",
+    "executionTime": "2023-10-02T10:10:00Z"
+  },
+  {
+    "id": "9",
+    "type": "SYSTEM",
+    "status": "FAIL",
+    "executionTime": "2023-10-02T10:15:00Z"
+  },
+  {
+    "id": "13",
+    "name": "testDataExport",
+    "type": "SYSTEM",
+    "status": "PASS",
+    "message": "data exported successfully",
+    "executionTime": "2023-10-02T10:20:00Z"
+  }
+]

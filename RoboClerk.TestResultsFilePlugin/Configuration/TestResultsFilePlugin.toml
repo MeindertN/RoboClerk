@@ -4,7 +4,7 @@
 
 # Dependencies file locations array, supports multiple files
 
-FileLocations = ["{PROJECTROOT}results.json"]
+FileLocations = ["{PROJECTROOT}RoboClerk_input/ExampleSystemLevelTestResults.json","{PROJECTROOT}RoboClerk_input/ExampleUnitLevelTestResults.json"]
 
 # The following formats are supported:
 # JSON - assumes the following format for the contents of the file:

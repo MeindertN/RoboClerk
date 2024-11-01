@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -18,10 +18,24 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="ExampleResultFiles\ExampleSystemLevelTestResults.json" />
+	  <None Remove="ExampleResultFiles\ExampleUnitLevelTestResults.json" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\RoboClerk\RoboClerk.csproj">
 			<Private>false</Private>
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</ProjectReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="ExampleResultFiles\ExampleSystemLevelTestResults.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="ExampleResultFiles\ExampleUnitLevelTestResults.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
 	</ItemGroup>
 
 	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
@@ -32,6 +46,8 @@
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.TestResultsFilePlugin.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.TestResultsFilePlugin.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)ExampleResultFiles/ExampleSystemLevelTestResults.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/Demo" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)ExampleResultFiles/ExampleUnitLevelTestResults.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/Demo" />
 	</Target>
 	<Target Name="CopyPlugin" AfterTargets="Build">
 		<ItemGroup>
@@ -41,16 +57,16 @@
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)plugins" />
 	</Target>
 	<Target Name="AdaptConfigFiles" AfterTargets="Build" Condition=" '$(Configuration)' != 'ReleasePublish' ">
-		<ReplaceFileText
-			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/TestResultsFilePlugin.toml"
-			MatchExpression="{PROJECTROOT}"
-			ReplacementText="$(ProjectDir)../" />
+		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/TestResultsFilePlugin.toml" 
+						 MatchExpression="{PROJECTROOT}" 
+						 ReplacementText="$(ProjectDir)../RoboClerk/$(OutDir)" />
+		<Copy SourceFiles="$(ProjectDir)ExampleResultFiles/ExampleSystemLevelTestResults.json" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input" />
+		<Copy SourceFiles="$(ProjectDir)ExampleResultFiles/ExampleUnitLevelTestResults.json" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input" />
 	</Target>
 	<Target Name="AdaptConfigFilesRP" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
-		<ReplaceFileText
-			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/TestResultsFilePlugin.toml"
-			MatchExpression="{PROJECTROOT}"
-			ReplacementText="/mnt/" />
+		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/TestResultsFilePlugin.toml" 
+						 MatchExpression="{PROJECTROOT}" 
+						 ReplacementText="/mnt/" />
 	</Target>
 
 </Project>

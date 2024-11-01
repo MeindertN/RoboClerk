@@ -100,4 +100,16 @@ It is also possible to create seperate tables for unit tests. Here is the table 
 Individual unit test tables
 @@@
 
+=== Automated Test Result Checking
+
+Using the Test Results File Plugin it is possible for RoboClerk to ingest test results and provide feedback about failures or mismatches. 
+
+Note that the following example uses example For example here is information about the system level tests:
+
+@@SLMS:TC(CheckResults=true)@@
+
+And here is information about the unit tests:
+
+@@FILE:UnitTest(CheckResults=true)@@
+
 

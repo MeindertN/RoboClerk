@@ -124,7 +124,7 @@ namespace RoboClerk
                                     tag.Contents = contentCreator.GetContent(tag, doc);
                                     continue;
                                 }
-                                logger.Warn($"Content creator {tag.ContentCreatorID} not found.");
+                                logger.Warn($"Content creator {tag.ContentCreatorID} not found. Check your document as any text related to this content creator has been replaced with a placeholder.");
                                 tag.Contents = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS ({tag.ContentCreatorID}) IS KNOWN TO ROBOCLERK.\n";
                             }
                         }

@@ -53,12 +53,12 @@ namespace RoboClerk.TestResultsFilePlugin
                 {
                     var fileTestResults = JsonSerializer.Deserialize<List<TestResultJSONObject>>(json);
 
-                    foreach (var result in testResults)
+                    foreach (var result in fileTestResults)
                     {
                         if (string.IsNullOrEmpty(result.ID))
                             throw new JsonException("The 'id' field is required.");
 
-                        testResults.Add(new TestResult(result.ID,result.Type,result.Status,result.Name,result.Message,result.ExecutionTime));
+                        testResults.Add(new TestResult(result.ID,result.Type,result.Status,result.Name,result.Message,result.ExecutionTime ?? DateTime.MinValue));
                     }
                 }
                 catch (JsonException)
