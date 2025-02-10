@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace RoboClerk
@@ -98,6 +99,31 @@ namespace RoboClerk
             testResults.Clear();
         }
 
+        private string EscapeNonTablePipes(string text)
+        {
+            string tableBlockPattern = @"(?ms)(^\|===\s*$.*?^\|===\s*$)";
+
+            // Use Regex.Split with a capturing group so that the table blocks are kept in the result.
+            string[] segments = Regex.Split(text, tableBlockPattern);
+            var sb = new StringBuilder();
+
+            foreach (string segment in segments)
+            {
+                // If the segment itself matches our table block pattern, leave it unmodified.
+                if (Regex.IsMatch(segment, @"(?ms)^\|===\s*$.*?^\|===\s*$"))
+                {
+                    sb.Append(segment);
+                }
+                else
+                {
+                    // Otherwise, escape any unescaped "|" in this segment.
+                    string processed = Regex.Replace(segment, @"(?<!\\)\|", @"\|");
+                    sb.Append(processed);
+                }
+            }
+            return sb.ToString();
+        }
+
         private void ScrubItemsFields<T>(IEnumerable<T> items)
         {
             foreach (var obj in items)
@@ -109,11 +135,13 @@ namespace RoboClerk
                 {
                     if (property.PropertyType == typeof(string) && property.CanWrite)
                     {
-                        // asciidoc uses | to seperate fields in a table, if the fields
-                        // themselves contain a | character it needs to be escaped.
                         string currentValue = (string)property.GetValue(obj);
-                        string newValue = Regex.Replace(currentValue, "(?<!\\\\)\\|", "\\|");
-                        property.SetValue(obj, newValue);
+                        if (currentValue != null)
+                        {
+                            // Escape pipes in non-table parts of the content.
+                            string newValue = EscapeNonTablePipes(currentValue);
+                            property.SetValue(obj, newValue);
+                        }
                     }
                 }
             }

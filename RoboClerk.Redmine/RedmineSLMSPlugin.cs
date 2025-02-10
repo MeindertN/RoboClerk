@@ -16,6 +16,8 @@ namespace RoboClerk.Redmine
         private string apiEndpoint = string.Empty;
         private string apiKey = string.Empty;
         private string projectName = string.Empty;
+        private bool convertTextile = false;
+        private TextileToAsciiDocConverter converter = null;
         private List<string> redmineVersionFields = new List<string>();
         private RestClient client = null;
         private List<Version> versions = null;
@@ -40,7 +42,12 @@ namespace RoboClerk.Redmine
                 apiKey = configuration.CommandLineOptionOrDefault("RedmineAPIKey", GetObjectForKey<string>(config, "RedmineAPIKey", true));
                 projectName = configuration.CommandLineOptionOrDefault("RedmineProject", GetObjectForKey<string>(config, "RedmineProject", true));
                 baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL", GetObjectForKey<string>(config, "RedmineBaseURL", false));
-                if(config.ContainsKey("VersionCustomFields"))
+                convertTextile = configuration.CommandLineOptionOrDefault("ConvertTextile", GetObjectForKey<bool>(config, "ConvertTextile", false)?"TRUE":"FALSE").ToUpper() == "TRUE";
+                if(convertTextile) 
+                { 
+                    converter = new TextileToAsciiDocConverter(); 
+                }
+                if (config.ContainsKey("VersionCustomFields"))
                 {
                     //this is needed specifically for Redmine because we cannot via the API figure out if a custom field is of type "version"
                     //without having admin rights. 
@@ -309,7 +316,8 @@ namespace RoboClerk.Redmine
                 resultItem.Link = new Uri($"{baseURL}{resultItem.ItemID}");
             }
             logger.Debug($"Getting test steps for item: {redmineItem.Id}");
-            var testCaseSteps = GetTestSteps(redmineItem.Description ?? string.Empty);
+            string itemDescription = redmineItem.Description ?? string.Empty;
+            var testCaseSteps = GetTestSteps(convertTextile ? converter.ConvertTextile2AsciiDoc(itemDescription) : itemDescription);
             foreach (var testCaseStep in testCaseSteps)
             {
                 resultItem.AddTestCaseStep(testCaseStep);
@@ -356,7 +364,8 @@ namespace RoboClerk.Redmine
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
             resultItem.ItemStatus = redmineItem.Status.Name ?? string.Empty;
-            resultItem.DocContent = redmineItem.Description.ToString();
+            string itemDescription = redmineItem.Description.ToString();
+            resultItem.DocContent = convertTextile?converter.ConvertTextile2AsciiDoc(itemDescription):itemDescription;
             if (redmineItem.FixedVersion != null)
             {
                 resultItem.ItemTargetVersion = redmineItem.FixedVersion.Name ?? string.Empty;
@@ -417,7 +426,8 @@ namespace RoboClerk.Redmine
                     }
                     if (field.Name == "SOUP Detailed Description")
                     {
-                        resultItem.SOUPDetailedDescription = value.GetString();
+                        string detailedDescription = value.GetString();
+                        resultItem.SOUPDetailedDescription = convertTextile ? converter.ConvertTextile2AsciiDoc(detailedDescription) : detailedDescription;
                     }
                     else if (field.Name == "Performance Critical?")
                     {
@@ -725,8 +735,8 @@ namespace RoboClerk.Redmine
             {
                 resultItem.RequirementAssignee = string.Empty;
             }
-
-            resultItem.RequirementDescription = redmineItem.Description ?? string.Empty;
+            string itemDescription = redmineItem.Description ?? string.Empty;
+            resultItem.RequirementDescription = convertTextile ? converter.ConvertTextile2AsciiDoc(itemDescription) : itemDescription;
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;

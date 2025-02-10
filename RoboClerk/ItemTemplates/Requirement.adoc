@@ -19,5 +19,5 @@ AddTrace(item.ItemID);
 
 | Title: | [csx:item.ItemTitle]
 
-| Description: a| [csx:item.RequirementDescription]
+| Description: a| [csx:EmbedAsciidocTables(item.RequirementDescription)]
 |====

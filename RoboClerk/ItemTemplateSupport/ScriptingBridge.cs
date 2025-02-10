@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace RoboClerk
 {
@@ -161,10 +163,63 @@ namespace RoboClerk
         /// Convenience function, calls ToString on input and returns resulting string.
         /// </summary>
         /// <param name="input"></param>
-        /// <returns></returns>
+        /// <returns>string representation</returns>
         public string Insert(object input)
         {
             return input.ToString();
+        }
+
+        /// <summary>
+        /// Convenience function, takes any asciidoc tables in the input and makes them
+        /// embedded tables. 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public string EmbedAsciidocTables(string input)
+        {
+            // Split the input into lines (preserving newlines)
+            var lines = input.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            var outputLines = new List<string>();
+            bool inTable = false;
+
+            foreach (var line in lines)
+            {
+                string trimmed = line.Trim();
+
+                // Detect the table delimiter
+                if (trimmed == "|===")
+                {
+                    inTable = !inTable;
+                    // Replace outer table delimiter with nested table delimiter
+                    outputLines.Add(line.Replace("|===", "!==="));
+                }
+                else if (inTable)
+                {
+                    // Preserve leading whitespace
+                    int leadingSpaces = line.Length - line.TrimStart().Length;
+                    string converted = line;
+
+                    // If the cell begins with a pipe, replace it with an exclamation mark,
+                    // but only if the pipe is not escaped.
+                    if (line.TrimStart().StartsWith("|"))
+                    {
+                        converted = new string(' ', leadingSpaces) + "!" + line.TrimStart().Substring(1);
+                    }
+
+                    // Replace any unescaped cell separator pipe.
+                    // The regex (?<!\\)\| matches any pipe that is not preceded by a backslash.
+                    converted = Regex.Replace(converted, @"(?<!\\)\|", "!");
+                    outputLines.Add(converted);
+                }
+                else
+                {
+                    // Outside a table block, leave the line unchanged.
+                    outputLines.Add(line);
+                }
+            }
+
+            // Rejoin all lines into a single string.
+            return string.Join("\n", outputLines);
         }
     }
 }

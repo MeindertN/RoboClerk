@@ -17,6 +17,13 @@ Ignore = [ "Rejected" ]
 # variable to an empty string "".
 RedmineBaseURL = "http://localhost:3001/issues/"
 
+# If so desired, the plugin can attempt to convert Textile formatting 
+# to ASCIIDOC. This will allow some of the markup applied in Redmine 
+# to be retained in the final output document. This conversion only
+# covers the most commonly used Textile markup and is not intended to
+# be complete. Set the following to true to attempt conversion.
+ConvertTextile = true
+
 # The following allows you to indicate the redmine trackers that map
 # to various entities in the RoboClerk software. Set the name to the 
 # redmine ticket type. You can also indicate if the items are subject
