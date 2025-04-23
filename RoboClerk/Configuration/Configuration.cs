@@ -135,7 +135,7 @@ namespace RoboClerk.Configuration
 
         private void AddEliminatedTraceEntity()
         {
-            TraceEntity entity = new TraceEntity("Eliminated", "Eliminated Item", "EE", TraceEntityType.Eliminated);
+            TraceEntity entity = new TraceEntity("Eliminated", "Eliminated Item", "EI", TraceEntityType.Eliminated);
 
             truthEntities.Add(entity);
         }

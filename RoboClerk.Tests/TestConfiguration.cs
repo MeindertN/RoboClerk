@@ -105,13 +105,16 @@ CompanyName = ""Acme Inc.""
 
             Assert.That(conf.LogLevel, Is.EqualTo("INFO"));
 
-            Assert.That(conf.TruthEntities.Count, Is.EqualTo(2));
+            Assert.That(conf.TruthEntities.Count, Is.EqualTo(3));
             Assert.That(conf.TruthEntities[0].ID, Is.EqualTo("SystemRequirement"));
             Assert.That(conf.TruthEntities[1].ID, Is.EqualTo("SoftwareRequirement"));
+            Assert.That(conf.TruthEntities[2].ID, Is.EqualTo("Eliminated"));
             Assert.That(conf.TruthEntities[0].Name, Is.EqualTo("Requirement"));
             Assert.That(conf.TruthEntities[1].Name, Is.EqualTo("SWRRequirement"));
+            Assert.That(conf.TruthEntities[2].Name, Is.EqualTo("Eliminated Item"));
             Assert.That(conf.TruthEntities[0].Abbreviation, Is.EqualTo("SYS"));
             Assert.That(conf.TruthEntities[1].Abbreviation, Is.EqualTo("SWR"));
+            Assert.That(conf.TruthEntities[2].Abbreviation, Is.EqualTo("EI"));
 
             Assert.That(conf.Documents.Count,Is.EqualTo(1));
             Assert.That(conf.Documents[0].DocumentID, Is.EqualTo("DOC001"));
