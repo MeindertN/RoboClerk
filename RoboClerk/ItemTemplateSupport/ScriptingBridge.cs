@@ -6,12 +6,12 @@ using System.Text.RegularExpressions;
 
 namespace RoboClerk
 {
-    public class ScriptingBridge
+    public class ScriptingBridge<T> where T : Item
     {
         private IDataSources data = null;
         private ITraceabilityAnalysis analysis = null;
         private List<string> traces = new List<string>();
-        private List<LinkedItem> items = new List<LinkedItem>();
+        private List<T> items = new List<T>();
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public ScriptingBridge(IDataSources data, ITraceabilityAnalysis trace, TraceEntity sourceTraceEntity)
@@ -24,15 +24,15 @@ namespace RoboClerk
         /// <summary>
         /// The item that needs to be rendered in the documentation. 
         /// </summary>
-        public LinkedItem Item { get; set; }
+        public T Item { get; set; }
 
         /// <summary>
         /// The items that need to be rendered in the documentation (empty if there is only a single item). 
         /// </summary>
-        public IEnumerable<LinkedItem> Items
+        public IEnumerable<T> Items
         {
             get { return items; }
-            set { items = (List<LinkedItem>)value; }
+            set { items = (List<T>)value; }
         }
 
         /// <summary>
@@ -220,6 +220,14 @@ namespace RoboClerk
 
             // Rejoin all lines into a single string.
             return string.Join("\n", outputLines);
+        }
+    }
+
+    public class ScriptingBridge : ScriptingBridge<LinkedItem>
+    {
+        public ScriptingBridge(IDataSources data, ITraceabilityAnalysis trace, TraceEntity sourceTraceEntity)
+            : base(data, trace, sourceTraceEntity)
+        {
         }
     }
 }

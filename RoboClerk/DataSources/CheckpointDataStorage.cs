@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using DocumentFormat.OpenXml.Office2010.PowerPoint;
+using System.Collections.Generic;
 
 namespace RoboClerk
 {
@@ -7,12 +8,20 @@ namespace RoboClerk
         private List<RequirementItem> systemRequirements = new List<RequirementItem>();
         private List<RequirementItem> softwareRequirements = new List<RequirementItem>();
         private List<RequirementItem> documentationRequirements = new List<RequirementItem>();
+        private List<EliminatedRequirementItem> eliminatedSystemRequirements = new List<EliminatedRequirementItem>();
+        private List<EliminatedRequirementItem> eliminatedSoftwareRequirements = new List<EliminatedRequirementItem>();
+        private List<EliminatedRequirementItem> eliminatedDocumentationRequirements = new List<EliminatedRequirementItem>();
         private List<RiskItem> risks = new List<RiskItem>();
+        private List<EliminatedRiskItem> eliminatedRisks = new List<EliminatedRiskItem>();
         private List<SOUPItem> soups = new List<SOUPItem>();
+        private List<EliminatedSOUPItem> eliminatedSOUPs = new List<EliminatedSOUPItem>();
         private List<SoftwareSystemTestItem> softwareSystemTests = new List<SoftwareSystemTestItem>();
+        private List<EliminatedSoftwareSystemTestItem> eliminatedSoftwareSystemTests = new List<EliminatedSoftwareSystemTestItem>();
         private List<UnitTestItem> unitTests = new List<UnitTestItem>();
         private List<AnomalyItem> anomalies = new List<AnomalyItem>();
+        private List<EliminatedAnomalyItem> eliminatedAnomalies = new List<EliminatedAnomalyItem>();
         private List<DocContentItem> docContents = new List<DocContentItem>();
+        private List<EliminatedDocContentItem> eliminatedDocContents = new List<EliminatedDocContentItem>();
 
         public List<RequirementItem> SystemRequirements
         {
@@ -23,6 +32,18 @@ namespace RoboClerk
             set
             {
                 systemRequirements = value;
+            }
+        }
+
+        public List<EliminatedRequirementItem> EliminatedSystemRequirements
+        {
+            get
+            {
+                return eliminatedSystemRequirements;
+            }
+            set
+            {
+                eliminatedSystemRequirements = value;
             }
         }
 
@@ -38,6 +59,18 @@ namespace RoboClerk
             }
         }
 
+        public List<EliminatedRequirementItem> EliminatedSoftwareRequirements
+        {
+            get
+            {
+                return eliminatedSoftwareRequirements;
+            }
+            set
+            {
+                eliminatedSoftwareRequirements = value;
+            }
+        }
+
         public List<RequirementItem> DocumentationRequirements
         {
             get
@@ -47,6 +80,18 @@ namespace RoboClerk
             set
             {
                 documentationRequirements = value;
+            }
+        }
+
+        public List<EliminatedRequirementItem> EliminatedDocumentationRequirements
+        {
+            get
+            { 
+                return eliminatedDocumentationRequirements;
+            }
+            set
+            {  
+                eliminatedDocumentationRequirements = value;
             }
         }
 
@@ -62,6 +107,18 @@ namespace RoboClerk
             }
         }
 
+        public List<EliminatedDocContentItem> EliminatedDocContents
+        {
+            get
+            {
+                return eliminatedDocContents;
+            }
+            set
+            {
+                eliminatedDocContents = value;
+            }
+        }
+
         public List<RiskItem> Risks
         {
             get
@@ -71,6 +128,18 @@ namespace RoboClerk
             set
             {
                 risks = value;
+            }
+        }
+
+        public List<EliminatedRiskItem> EliminatedRisks
+        {
+            get
+            {
+                return eliminatedRisks;
+            }
+            set
+            {
+                eliminatedRisks = value;
             }
         }
 
@@ -87,6 +156,18 @@ namespace RoboClerk
             }
         }
 
+        public List<EliminatedSOUPItem> EliminatedSOUPs
+        {
+            get
+            {
+                return eliminatedSOUPs;
+            }
+            set
+            {
+                eliminatedSOUPs = value;
+            }
+        }
+
         public List<SoftwareSystemTestItem> SoftwareSystemTests
         {
             get
@@ -96,6 +177,18 @@ namespace RoboClerk
             set
             {
                 softwareSystemTests = value;
+            }
+        }
+
+        public List<EliminatedSoftwareSystemTestItem> EliminatedSoftwareSystemTests
+        {
+            get
+            {
+                return eliminatedSoftwareSystemTests;
+            }
+            set
+            {
+                eliminatedSoftwareSystemTests = value;
             }
         }
 
@@ -120,6 +213,18 @@ namespace RoboClerk
             set
             {
                 anomalies = value;
+            }
+        }
+
+        public List<EliminatedAnomalyItem> EliminatedAnomalies
+        {
+            get
+            {
+                return eliminatedAnomalies;
+            }
+            set
+            {
+                eliminatedAnomalies = value;
             }
         }
 

@@ -16,5 +16,15 @@ namespace RoboClerk
         IEnumerable<UnitTestItem> GetUnitTests();
         IEnumerable<ExternalDependency> GetDependencies();
         IEnumerable<TestResult> GetTestResults();
+
+        // Add methods for eliminated items
+        IEnumerable<EliminatedRequirementItem> GetEliminatedSystemRequirements();
+        IEnumerable<EliminatedRequirementItem> GetEliminatedSoftwareRequirements();
+        IEnumerable<EliminatedRequirementItem> GetEliminatedDocumentationRequirements();
+        IEnumerable<EliminatedSoftwareSystemTestItem > GetEliminatedSoftwareSystemTests();
+        IEnumerable<EliminatedRiskItem> GetEliminatedRisks();
+        IEnumerable<EliminatedSOUPItem> GetEliminatedSOUP();
+        IEnumerable<EliminatedAnomalyItem > GetEliminatedAnomalies();
+        IEnumerable<EliminatedDocContentItem> GetEliminatedDocContents();
     }
 }

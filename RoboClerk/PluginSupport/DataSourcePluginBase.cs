@@ -20,6 +20,15 @@ namespace RoboClerk
         protected List<UnitTestItem> unitTests = new List<UnitTestItem>();
         protected List<ExternalDependency> dependencies = new List<ExternalDependency>();
         protected List<TestResult> testResults = new List<TestResult>();
+        //we also keep track of any items that have been eliminated
+        protected List<EliminatedRequirementItem> eliminatedSystemRequirements = new List<EliminatedRequirementItem>();
+        protected List<EliminatedRequirementItem> eliminatedSoftwareRequirements = new List<EliminatedRequirementItem>();
+        protected List<EliminatedRequirementItem> eliminatedDocumentationRequirements = new List<EliminatedRequirementItem>();
+        protected List<EliminatedSoftwareSystemTestItem> eliminatedSoftwareSystemTests = new List<EliminatedSoftwareSystemTestItem>();
+        protected List<EliminatedRiskItem> eliminatedRisks = new List<EliminatedRiskItem>();
+        protected List<EliminatedDocContentItem> eliminatedDocContents = new List<EliminatedDocContentItem>();
+        protected List<EliminatedSOUPItem> eliminatedSOUP = new List<EliminatedSOUPItem>();
+        protected List<EliminatedAnomalyItem> eliminatedAnomalies = new List<EliminatedAnomalyItem>();
 
         public DataSourcePluginBase(IFileSystem fileSystem)
             :base(fileSystem)
@@ -84,6 +93,46 @@ namespace RoboClerk
             return testResults;
         }
 
+        public IEnumerable<EliminatedRequirementItem> GetEliminatedSystemRequirements()
+        {
+            return eliminatedSystemRequirements;
+        }
+
+        public IEnumerable<EliminatedRequirementItem> GetEliminatedSoftwareRequirements()
+        {
+            return eliminatedSoftwareRequirements;
+        }
+
+        public IEnumerable<EliminatedRequirementItem> GetEliminatedDocumentationRequirements()
+        {
+            return eliminatedDocumentationRequirements;
+        }
+
+        public IEnumerable<EliminatedSoftwareSystemTestItem> GetEliminatedSoftwareSystemTests()
+        {
+            return eliminatedSoftwareSystemTests;
+        }
+
+        public IEnumerable<EliminatedRiskItem> GetEliminatedRisks()
+        {
+            return eliminatedRisks;
+        }
+
+        public IEnumerable<EliminatedDocContentItem> GetEliminatedDocContents()
+        {
+            return eliminatedDocContents;
+        }
+
+        public IEnumerable<EliminatedAnomalyItem> GetEliminatedAnomalies()
+        {
+            return eliminatedAnomalies;
+        }
+
+        public IEnumerable<EliminatedSOUPItem> GetEliminatedSOUP()
+        {
+            return eliminatedSOUP;
+        }
+
         protected void ClearAllItems()
         {
             systemRequirements.Clear();
@@ -97,6 +146,10 @@ namespace RoboClerk
             unitTests.Clear();
             dependencies.Clear();
             testResults.Clear();
+            eliminatedSystemRequirements.Clear();
+            eliminatedSoftwareRequirements.Clear();
+            eliminatedDocumentationRequirements.Clear();
+            eliminatedSoftwareSystemTests.Clear();
         }
 
         private string EscapeNonTablePipes(string text)

@@ -22,7 +22,11 @@ namespace RoboClerk
 
         public abstract List<SOUPItem> GetAllSOUP();
 
+        public abstract List<EliminatedSOUPItem> GetAllEliminatedSOUP();
+
         public abstract List<RiskItem> GetAllRisks();
+
+        public abstract List<EliminatedRiskItem> GetAllEliminatedRisks();
 
         public abstract List<ExternalDependency> GetAllExternalDependencies();
 
@@ -32,15 +36,27 @@ namespace RoboClerk
 
         public abstract List<RequirementItem> GetAllSoftwareRequirements();
 
+        public abstract List<EliminatedRequirementItem> GetAllEliminatedSoftwareRequirements();
+
         public abstract List<RequirementItem> GetAllSystemRequirements();
+
+        public abstract List<EliminatedRequirementItem> GetAllEliminatedSystemRequirements();
 
         public abstract List<RequirementItem> GetAllDocumentationRequirements();
 
+        public abstract List<EliminatedRequirementItem> GetAllEliminatedDocumentationRequirements();
+
         public abstract List<DocContentItem> GetAllDocContents();
+
+        public abstract List<EliminatedDocContentItem> GetAllEliminatedDocContents();
 
         public abstract List<SoftwareSystemTestItem> GetAllSoftwareSystemTests();
 
+        public abstract List<EliminatedSoftwareSystemTestItem> GetAllEliminatedSoftwareSystemTests();
+
         public abstract List<AnomalyItem> GetAllAnomalies();
+
+        public abstract List<EliminatedAnomalyItem> GetAllEliminatedAnomalies();
 
         public List<LinkedItem> GetItems(TraceEntity te)
         {
@@ -80,6 +96,18 @@ namespace RoboClerk
             {
                 return GetAllDocContents().Cast<LinkedItem>().ToList();
             }
+            else if (te.ID == "Eliminated")
+            {
+                return  GetAllEliminatedRisks().Cast<LinkedItem>()
+                        .Concat(GetAllEliminatedSystemRequirements())
+                        .Concat(GetAllEliminatedSoftwareRequirements())
+                        .Concat(GetAllEliminatedDocumentationRequirements())
+                        .Concat(GetAllEliminatedSoftwareSystemTests())
+                        .Concat(GetAllEliminatedAnomalies())
+                        .Concat(GetAllEliminatedDocContents())
+                        .Concat(GetAllEliminatedSOUP())
+                        .ToList();
+            }
             else
             {
                 throw new Exception($"No datasource available for unknown trace entity: {te.ID}");
@@ -92,9 +120,21 @@ namespace RoboClerk
             return list.Find(f => (f.ItemID == id));
         }
 
+        public EliminatedSOUPItem GetEliminatedSOUP(string id)
+        {
+            List<EliminatedSOUPItem> list = GetAllEliminatedSOUP();
+            return list.Find(f => (f.ItemID == id));
+        }
+
         public RiskItem GetRisk(string id)
         {
             List<RiskItem> list = GetAllRisks();
+            return list.Find(f => (f.ItemID == id));
+        }
+
+        public EliminatedRiskItem GetEliminatedRisk(string id)
+        {
+            List<EliminatedRiskItem> list = GetAllEliminatedRisks();
             return list.Find(f => (f.ItemID == id));
         }
 
@@ -110,9 +150,21 @@ namespace RoboClerk
             return reqs.Find(f => (f.ItemID == id));
         }
 
+        public EliminatedRequirementItem GetEliminatedSoftwareRequirement(string id)
+        {
+            var reqs = GetAllEliminatedSoftwareRequirements();
+            return reqs.Find(f => (f.ItemID == id));
+        }
+
         public RequirementItem GetSystemRequirement(string id)
         {
             var reqs = GetAllSystemRequirements();
+            return reqs.Find(f => (f.ItemID == id));
+        }
+
+        public EliminatedRequirementItem GetEliminatedSystemRequirement(string id)
+        {
+            var reqs = GetAllEliminatedSoftwareRequirements();
             return reqs.Find(f => (f.ItemID == id));
         }
 
@@ -122,9 +174,21 @@ namespace RoboClerk
             return reqs.Find(f => (f.ItemID == id));
         }
 
+        public EliminatedRequirementItem GetEliminatedDocumentationRequirement(string id)
+        {
+            var reqs = GetAllEliminatedSoftwareRequirements();
+            return reqs.Find(f => (f.ItemID == id));
+        }
+
         public DocContentItem GetDocContent(string id)
         {
             var items = GetAllDocContents();
+            return items.Find(f => (f.ItemID == id));
+        }
+
+        public EliminatedDocContentItem GetEliminatedDocContent(string id)
+        {
+            var items = GetAllEliminatedDocContents();
             return items.Find(f => (f.ItemID == id));
         }
 
@@ -134,13 +198,25 @@ namespace RoboClerk
             return items.Find(f => (f.ItemID == id));
         }
 
+        public EliminatedSoftwareSystemTestItem GetEliminatedSoftwareSystemTestItem(string id)
+        {
+            var items = GetAllEliminatedSoftwareSystemTests();
+            return items.Find(f => (f.ItemID == id));
+        }
+
         public AnomalyItem GetAnomaly(string id)
         {
             var items = GetAllAnomalies();
             return items.Find(f => (f.ItemID == id));
         }
 
-        public Item GetItem(string id)
+        public EliminatedAnomalyItem GetEliminatedAnomaly(string id)
+        {
+            var items = GetAllEliminatedAnomalies();
+            return items.Find(f => (f.ItemID == id));
+        }
+
+        public Item GetItem(string id) //this will not return eliminated items
         {
             var sreq = GetAllSoftwareRequirements();
             int idx = -1;
@@ -219,6 +295,11 @@ namespace RoboClerk
             storage.SoftwareSystemTests = GetAllSoftwareSystemTests();
             storage.SOUPs = GetAllSOUP();
             storage.Anomalies = GetAllAnomalies();
+            storage.EliminatedSystemRequirements = GetAllEliminatedSystemRequirements();
+            storage.EliminatedSoftwareRequirements = GetAllEliminatedSoftwareRequirements();
+            storage.EliminatedDocumentationRequirements = GetAllEliminatedDocumentationRequirements();
+            storage.EliminatedSoftwareSystemTests = GetAllEliminatedSoftwareSystemTests();
+            storage.EliminatedRisks = GetAllEliminatedRisks();
 
             var options = new JsonSerializerOptions { WriteIndented = true };
             return JsonSerializer.Serialize(storage, options);

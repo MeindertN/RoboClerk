@@ -130,6 +130,14 @@ namespace RoboClerk.Configuration
             ReadCheckpointConfiguration(toml);
             ReadConfigurationValues(toml);
             ReadAISystemConfigurationValues(toml); //this step depends on the fact the truth trace items have already been read from the config file
+            AddEliminatedTraceEntity(); //this is a trace entity that is used for all eliminated (i.e. ignored) items. Trace to eliminated items is not supported
+        }
+
+        private void AddEliminatedTraceEntity()
+        {
+            TraceEntity entity = new TraceEntity("Eliminated", "Eliminated Item", "EE", TraceEntityType.Eliminated);
+
+            truthEntities.Add(entity);
         }
 
         private void ReadAISystemConfigurationValues(TomlTable toml)

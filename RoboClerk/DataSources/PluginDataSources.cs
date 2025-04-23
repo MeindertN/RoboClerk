@@ -50,12 +50,32 @@ namespace RoboClerk
             return list;
         }
 
+        public override List<EliminatedSOUPItem> GetAllEliminatedSOUP()
+        {
+            List<EliminatedSOUPItem> list = new List<EliminatedSOUPItem>();
+            foreach (var plugin in plugins)
+            {
+                list.AddRange(plugin.GetEliminatedSOUP());
+            }
+            return list;
+        }
+
         public override List<RiskItem> GetAllRisks()
         {
             List<RiskItem> list = new List<RiskItem>();
             foreach (var plugin in plugins)
             {
                 list.AddRange(plugin.GetRisks());
+            }
+            return list;
+        }
+
+        public override List<EliminatedRiskItem> GetAllEliminatedRisks()
+        {
+            List<EliminatedRiskItem> list = new List<EliminatedRiskItem>();
+            foreach (var plugin in plugins)
+            {
+                list.AddRange(plugin.GetEliminatedRisks());
             }
             return list;
         }
@@ -130,6 +150,16 @@ namespace RoboClerk
             return items;
         }
 
+        public override List<EliminatedDocContentItem> GetAllEliminatedDocContents()
+        {
+            List<EliminatedDocContentItem> items = new List<EliminatedDocContentItem>();
+            foreach (var plugin in plugins)
+            {
+                items.AddRange(plugin.GetEliminatedDocContents());
+            }
+            return items;
+        }
+
         public override List<SoftwareSystemTestItem> GetAllSoftwareSystemTests()
         {
             List<SoftwareSystemTestItem> items = new List<SoftwareSystemTestItem>();
@@ -146,6 +176,56 @@ namespace RoboClerk
             foreach (var plugin in plugins)
             {
                 items.AddRange(plugin.GetAnomalies());
+            }
+            return items;
+        }
+
+        public override List<EliminatedAnomalyItem> GetAllEliminatedAnomalies()
+        {
+            List<EliminatedAnomalyItem> items = new List<EliminatedAnomalyItem>();
+            foreach (var plugin in plugins)
+            {
+                items.AddRange(plugin.GetEliminatedAnomalies());
+            }
+            return items;
+        }
+
+        public override List<EliminatedRequirementItem> GetAllEliminatedSystemRequirements()
+        {
+            List<EliminatedRequirementItem> items = new List<EliminatedRequirementItem>();
+            foreach (var plugin in plugins)
+            {
+                items.AddRange(plugin.GetEliminatedSystemRequirements());
+            }
+            return items;
+        }
+
+        public override List<EliminatedRequirementItem> GetAllEliminatedSoftwareRequirements()
+        {
+            List<EliminatedRequirementItem> items = new List<EliminatedRequirementItem>();
+            foreach (var plugin in plugins)
+            {
+                items.AddRange(plugin.GetEliminatedSoftwareRequirements());
+            }
+            return items;
+        }
+
+        public override List<EliminatedRequirementItem> GetAllEliminatedDocumentationRequirements()
+        {
+            List<EliminatedRequirementItem> items = new List<EliminatedRequirementItem>();
+            foreach (var plugin in plugins)
+            {
+                items.AddRange(plugin.GetEliminatedDocumentationRequirements());
+            }
+            return items;
+        }
+
+        public override List<EliminatedSoftwareSystemTestItem> GetAllEliminatedSoftwareSystemTests()
+        {
+            List<EliminatedSoftwareSystemTestItem> items = new List<EliminatedSoftwareSystemTestItem>();
+            foreach (var plugin in plugins)
+            {
+                items.AddRange(plugin.GetEliminatedSoftwareSystemTests());
             }
             return items;
         }
