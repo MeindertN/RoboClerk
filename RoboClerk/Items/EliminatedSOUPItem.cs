@@ -2,6 +2,11 @@
 {
     public class EliminatedSOUPItem : EliminatedLinkedItem
     {
+        public EliminatedSOUPItem() 
+        {
+            //for serialization
+        }
+
         public EliminatedSOUPItem(SOUPItem originalItem, string reason, EliminationReason eliminationType)
             : base(originalItem, reason, eliminationType)
         {

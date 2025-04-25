@@ -1,4 +1,6 @@
-﻿namespace RoboClerk
+﻿using RoboClerk.ContentCreators;
+
+namespace RoboClerk
 {
     public enum EliminationReason
     {
@@ -13,10 +15,14 @@
         private EliminationReason eliminationType;
         private LinkedItem originalItem;
 
+        public EliminatedLinkedItem()
+        {
+
+        }
+
         public EliminatedLinkedItem(LinkedItem originalItem, string reason, EliminationReason eliminationType)
         {
             // Copy all properties from the original item
-            this.originalItem = originalItem;
             this.id = originalItem.ItemID;
             this.title = originalItem.ItemTitle;
             this.type = originalItem.ItemType;
@@ -43,16 +49,13 @@
         public string EliminationReason
         {
             get => eliminationReason;
+            set => eliminationReason = value;
         }
 
         public EliminationReason EliminationType
         {
             get => eliminationType;
-        }
-
-        public LinkedItem OriginalItem
-        {
-            get => originalItem;
+            set => eliminationType = value;
         }
     }
 }

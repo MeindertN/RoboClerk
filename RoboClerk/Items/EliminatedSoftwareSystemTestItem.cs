@@ -5,6 +5,11 @@ namespace RoboClerk
 {
     public class EliminatedSoftwareSystemTestItem : EliminatedLinkedItem
     {
+        public EliminatedSoftwareSystemTestItem() 
+        {
+            //for serialization
+        }
+        
         public EliminatedSoftwareSystemTestItem(SoftwareSystemTestItem originalItem, string reason, EliminationReason eliminationType)
             : base(originalItem, reason, eliminationType)
         {

@@ -164,7 +164,7 @@ namespace RoboClerk
 
         public EliminatedRequirementItem GetEliminatedSystemRequirement(string id)
         {
-            var reqs = GetAllEliminatedSoftwareRequirements();
+            var reqs = GetAllEliminatedSystemRequirements();
             return reqs.Find(f => (f.ItemID == id));
         }
 
@@ -176,7 +176,7 @@ namespace RoboClerk
 
         public EliminatedRequirementItem GetEliminatedDocumentationRequirement(string id)
         {
-            var reqs = GetAllEliminatedSoftwareRequirements();
+            var reqs = GetAllEliminatedDocumentationRequirements();
             return reqs.Find(f => (f.ItemID == id));
         }
 

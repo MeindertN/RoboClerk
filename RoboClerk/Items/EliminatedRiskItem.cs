@@ -2,6 +2,12 @@
 {
     public class EliminatedRiskItem : EliminatedLinkedItem
     {
+
+        public EliminatedRiskItem() 
+        {
+            //for serialization
+        }
+
         public EliminatedRiskItem(RiskItem originalItem, string reason, EliminationReason eliminationType)
             : base(originalItem, reason, eliminationType)
         {

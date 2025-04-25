@@ -2,6 +2,11 @@
 {
     public class EliminatedDocContentItem : EliminatedLinkedItem
     {
+        public EliminatedDocContentItem() 
+        {
+            //for serialization
+        }
+
         public EliminatedDocContentItem(DocContentItem originalItem, string reason, EliminationReason eliminationType)
             : base(originalItem, reason, eliminationType)
         {

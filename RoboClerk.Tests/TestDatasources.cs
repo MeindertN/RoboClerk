@@ -103,6 +103,15 @@ namespace RoboClerk.Tests
         private List<DocContentItem> DOCCTs = null;
         private List<SOUPItem> SOUPs = null;
         private List<RiskItem> RISKs = null;
+        private List<EliminatedRequirementItem> eliminatedSystemRequirements;
+        private List<EliminatedRequirementItem> eliminatedSoftwareRequirements;
+        private List<EliminatedRequirementItem> eliminatedDocumentationRequirements;
+        private List<EliminatedSoftwareSystemTestItem> eliminatedSoftwareSystemTests;
+        private List<EliminatedRiskItem> eliminatedRisks;
+        private List<EliminatedSOUPItem> eliminatedSOUP;
+        private List<EliminatedAnomalyItem> eliminatedAnomalies;
+        private List<EliminatedDocContentItem> eliminatedDocContents;
+
         private void SetupSLMSPlugin()
         {
             SYSs = new List<RequirementItem> { new RequirementItem(RequirementType.SystemRequirement), new RequirementItem(RequirementType.SystemRequirement) };
@@ -164,7 +173,16 @@ namespace RoboClerk.Tests
             RISKs[1].RiskDetectabilityScore = 200;
             RISKs[1].RiskCauseOfFailure = "RISK_cause2";
             RISKs[1].ItemID = "RISK_id2";
+            SetupEliminatedItems();
             mockSLMSPlugin.GetRisks().Returns(RISKs);
+            mockSLMSPlugin.GetEliminatedSystemRequirements().Returns(eliminatedSystemRequirements);
+            mockSLMSPlugin.GetEliminatedSoftwareRequirements().Returns(eliminatedSoftwareRequirements);
+            mockSLMSPlugin.GetEliminatedDocumentationRequirements().Returns(eliminatedDocumentationRequirements);
+            mockSLMSPlugin.GetEliminatedSoftwareSystemTests().Returns(eliminatedSoftwareSystemTests);
+            mockSLMSPlugin.GetEliminatedRisks().Returns(eliminatedRisks);
+            mockSLMSPlugin.GetEliminatedSOUP().Returns(eliminatedSOUP);
+            mockSLMSPlugin.GetEliminatedAnomalies().Returns(eliminatedAnomalies);
+            mockSLMSPlugin.GetEliminatedDocContents().Returns(eliminatedDocContents);
         }
 
         private void SetupDepPlugin()
@@ -183,6 +201,113 @@ namespace RoboClerk.Tests
             SRCUTs[1].UnitTestPurpose = "UT_TestPurpose4";
             SRCUTs[1].ItemID = "UT_id4";
             mockSrcCodePlugin.GetUnitTests().Returns(SRCUTs);
+        }
+
+        private void SetupEliminatedItems()
+        {
+            // Setup eliminated system requirements
+            var sysReq1 = new RequirementItem(RequirementType.SystemRequirement);
+            sysReq1.ItemID = "SR_id1";
+            sysReq1.ItemTitle = "System Requirement 1";
+            var sysReq2 = new RequirementItem(RequirementType.SystemRequirement);
+            sysReq2.ItemID = "SR_id2";
+            sysReq2.ItemTitle = "System Requirement 2";
+            eliminatedSystemRequirements = new List<EliminatedRequirementItem>
+            {
+                new EliminatedRequirementItem(sysReq1, "Filtered by release version", EliminationReason.FilteredOut),
+                new EliminatedRequirementItem(sysReq2, "Filtered by category", EliminationReason.FilteredOut)
+            };
+
+            // Setup eliminated software requirements
+            var swReq1 = new RequirementItem(RequirementType.SoftwareRequirement);
+            swReq1.ItemID = "SWR_id1";
+            swReq1.ItemTitle = "Software Requirement 1";
+            var swReq2 = new RequirementItem(RequirementType.SoftwareRequirement);
+            swReq2.ItemID = "SWR_id2";
+            swReq2.ItemTitle = "Software Requirement 2";
+            eliminatedSoftwareRequirements = new List<EliminatedRequirementItem>
+            {
+                new EliminatedRequirementItem(swReq1, "Parent item was filtered", EliminationReason.LinkedItemMissing),
+                new EliminatedRequirementItem(swReq2, "Parent item was filtered", EliminationReason.LinkedItemMissing)
+            };
+
+            // Setup eliminated documentation requirements
+            var docReq1 = new RequirementItem(RequirementType.DocumentationRequirement);
+            docReq1.ItemID = "DOC_id1";
+            docReq1.ItemTitle = "Documentation Requirement 1";
+            var docReq2 = new RequirementItem(RequirementType.DocumentationRequirement);
+            docReq2.ItemID = "DOC_id2";
+            docReq2.ItemTitle = "Documentation Requirement 2";
+            eliminatedDocumentationRequirements = new List<EliminatedRequirementItem>
+            {
+                new EliminatedRequirementItem(docReq1, "Filtered by category", EliminationReason.FilteredOut),
+                new EliminatedRequirementItem(docReq2, "Linked to ignored item", EliminationReason.IgnoredLinkTarget)
+            };
+
+            // Setup eliminated software system tests
+            var test1 = new SoftwareSystemTestItem();
+            test1.ItemID = "SST_id1";
+            test1.ItemTitle = "Software System Test 1";
+            var test2 = new SoftwareSystemTestItem();
+            test2.ItemID = "SST_id2";
+            test2.ItemTitle = "Software System Test 2";
+            eliminatedSoftwareSystemTests = new List<EliminatedSoftwareSystemTestItem>
+            {
+                new EliminatedSoftwareSystemTestItem(test1, "Filtered by test method", EliminationReason.FilteredOut),
+                new EliminatedSoftwareSystemTestItem(test2, "Parent requirement was filtered", EliminationReason.LinkedItemMissing)
+            };
+
+            // Setup eliminated risks
+            var risk1 = new RiskItem();
+            risk1.ItemID = "RISK_id1";
+            risk1.ItemTitle = "Risk 1";
+            var risk2 = new RiskItem();
+            risk2.ItemID = "RISK_id2";
+            risk2.ItemTitle = "Risk 2";
+            eliminatedRisks = new List<EliminatedRiskItem>
+            {
+                new EliminatedRiskItem(risk1, "Filtered by risk type", EliminationReason.FilteredOut),
+                new EliminatedRiskItem(risk2, "Risk control was filtered", EliminationReason.LinkedItemMissing)
+            };
+
+            // Setup eliminated SOUP items
+            var soup1 = new SOUPItem();
+            soup1.ItemID = "SOUP_id1";
+            soup1.SOUPName = "SOUP 1";
+            var soup2 = new SOUPItem();
+            soup2.ItemID = "SOUP_id2";
+            soup2.SOUPName = "SOUP 2";
+            eliminatedSOUP = new List<EliminatedSOUPItem>
+            {
+                new EliminatedSOUPItem(soup1, "Filtered by version", EliminationReason.FilteredOut),
+                new EliminatedSOUPItem(soup2, "Filtered by licensed status", EliminationReason.FilteredOut)
+            };
+
+            // Setup eliminated anomalies
+            var anomaly1 = new AnomalyItem();
+            anomaly1.ItemID = "ANOMALY_id1";
+            anomaly1.ItemTitle = "Anomaly 1";
+            var anomaly2 = new AnomalyItem();
+            anomaly2.ItemID = "ANOMALY_id2";
+            anomaly2.ItemTitle = "Anomaly 2";
+            eliminatedAnomalies = new List<EliminatedAnomalyItem>
+            {
+                new EliminatedAnomalyItem(anomaly1, "Filtered by status", EliminationReason.FilteredOut),
+                new EliminatedAnomalyItem(anomaly2, "Related requirement was filtered", EliminationReason.LinkedItemMissing)
+            };
+
+            // Setup eliminated doc contents
+            var docContent1 = new DocContentItem();
+            docContent1.ItemID = "CONTENT_id1";
+            docContent1.DocContent = "Document content 1";
+            var docContent2 = new DocContentItem();
+            docContent2.ItemID = "CONTENT_id2";
+            docContent2.DocContent = "Document content 2";
+            eliminatedDocContents = new List<EliminatedDocContentItem>
+            {
+                new EliminatedDocContentItem(docContent1, "Filtered by document type", EliminationReason.FilteredOut),
+                new EliminatedDocContentItem(docContent2, "Parent document was filtered", EliminationReason.LinkedItemMissing)
+            };
         }
 
         [Test]
@@ -461,6 +586,169 @@ namespace RoboClerk.Tests
             Assert.That(CompareObjects(dataStorage.SOUPs, ds.GetAllSOUP()));
             Assert.That(CompareObjects(dataStorage.SoftwareSystemTests, ds.GetAllSoftwareSystemTests()));
             Assert.That(CompareObjects(dataStorage.UnitTests, ds.GetAllUnitTests()));
+        }
+
+        [Test]
+        public void EliminatedSystemRequirements_Can_Be_Retrieved_VERIFIES_Supplied_Items_Are_Returned()
+        {
+            SetupSLMSPlugin();
+            SetupSrcCodePlugin();
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var returnedItems = ds.GetAllEliminatedSystemRequirements();
+            ClassicAssert.IsTrue(returnedItems.Count > 0);
+            ClassicAssert.AreSame(eliminatedSystemRequirements[0], returnedItems[0]);
+            ClassicAssert.AreSame(eliminatedSystemRequirements[1], returnedItems[1]);
+            ClassicAssert.AreSame(eliminatedSystemRequirements[0], ds.GetEliminatedSystemRequirement("SR_id1"));
+            ClassicAssert.AreEqual("System Requirement 1", returnedItems[0].ItemTitle);
+            ClassicAssert.AreEqual(EliminationReason.FilteredOut, returnedItems[0].EliminationType);
+            ClassicAssert.AreEqual("Filtered by release version", returnedItems[0].EliminationReason);
+        }
+        
+        [Test]
+        public void EliminatedSoftwareRequirements_Can_Be_Retrieved_VERIFIES_Supplied_Items_Are_Returned()
+        {
+            SetupSLMSPlugin();
+            SetupSrcCodePlugin();
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var returnedItems = ds.GetAllEliminatedSoftwareRequirements();
+            ClassicAssert.IsTrue(returnedItems.Count > 0);
+            ClassicAssert.AreSame(eliminatedSoftwareRequirements[0], returnedItems[0]);
+            ClassicAssert.AreSame(eliminatedSoftwareRequirements[1], returnedItems[1]);
+            ClassicAssert.AreSame(eliminatedSoftwareRequirements[0], ds.GetEliminatedSoftwareRequirement("SWR_id1"));
+            ClassicAssert.AreEqual("Software Requirement 1", returnedItems[0].ItemTitle);
+            ClassicAssert.AreEqual(EliminationReason.LinkedItemMissing, returnedItems[0].EliminationType);
+            ClassicAssert.AreEqual("Parent item was filtered", returnedItems[0].EliminationReason);
+        }
+
+        [Test]
+        public void EliminatedDocumentationRequirements_Can_Be_Retrieved_VERIFIES_Supplied_Items_Are_Returned()
+        {
+            SetupSLMSPlugin();
+            SetupSrcCodePlugin();
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var returnedItems = ds.GetAllEliminatedDocumentationRequirements();
+            ClassicAssert.IsTrue(returnedItems.Count > 0);
+            ClassicAssert.AreSame(eliminatedDocumentationRequirements[0], returnedItems[0]);
+            ClassicAssert.AreSame(eliminatedDocumentationRequirements[1], returnedItems[1]);
+            ClassicAssert.AreSame(eliminatedDocumentationRequirements[0], ds.GetEliminatedDocumentationRequirement("DOC_id1"));
+            ClassicAssert.AreEqual("Documentation Requirement 1", returnedItems[0].ItemTitle);
+            ClassicAssert.AreEqual(EliminationReason.FilteredOut, returnedItems[0].EliminationType);
+            ClassicAssert.AreEqual("Filtered by category", returnedItems[0].EliminationReason);
+        }
+
+        [Test]
+        public void EliminatedSoftwareSystemTests_Can_Be_Retrieved_VERIFIES_Supplied_Items_Are_Returned()
+        {
+            SetupSLMSPlugin();
+            SetupSrcCodePlugin();
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var returnedItems = ds.GetAllEliminatedSoftwareSystemTests();
+            ClassicAssert.IsTrue(returnedItems.Count > 0);
+            ClassicAssert.AreSame(eliminatedSoftwareSystemTests[0], returnedItems[0]);
+            ClassicAssert.AreSame(eliminatedSoftwareSystemTests[1], returnedItems[1]);
+            ClassicAssert.AreSame(eliminatedSoftwareSystemTests[0], ds.GetEliminatedSoftwareSystemTestItem("SST_id1"));
+            ClassicAssert.AreEqual("Software System Test 1", returnedItems[0].ItemTitle);
+            ClassicAssert.AreEqual(EliminationReason.FilteredOut, returnedItems[0].EliminationType);
+            ClassicAssert.AreEqual("Filtered by test method", returnedItems[0].EliminationReason);
+        }
+        
+        [Test]
+        public void EliminatedRisks_Can_Be_Retrieved_VERIFIES_Supplied_Items_Are_Returned()
+        {
+            SetupSLMSPlugin();
+            SetupSrcCodePlugin();
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var returnedItems = ds.GetAllEliminatedRisks();
+            ClassicAssert.IsTrue(returnedItems.Count > 0);
+            ClassicAssert.AreSame(eliminatedRisks[0], returnedItems[0]);
+            ClassicAssert.AreSame(eliminatedRisks[1], returnedItems[1]);
+            ClassicAssert.AreSame(eliminatedRisks[0], ds.GetEliminatedRisk("RISK_id1"));
+            ClassicAssert.AreEqual("Risk 1", returnedItems[0].ItemTitle);
+            ClassicAssert.AreEqual(EliminationReason.FilteredOut, returnedItems[0].EliminationType);
+            ClassicAssert.AreEqual("Filtered by risk type", returnedItems[0].EliminationReason);
+        }
+
+        [Test]
+        public void EliminatedSOUP_Can_Be_Retrieved_VERIFIES_Supplied_Items_Are_Returned()
+        {
+            SetupSLMSPlugin();
+            SetupSrcCodePlugin();
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var returnedItems = ds.GetAllEliminatedSOUP();
+            ClassicAssert.IsTrue(returnedItems.Count > 0);
+            ClassicAssert.AreSame(eliminatedSOUP[0], returnedItems[0]);
+            ClassicAssert.AreSame(eliminatedSOUP[1], returnedItems[1]);
+            ClassicAssert.AreSame(eliminatedSOUP[0], ds.GetEliminatedSOUP("SOUP_id1"));
+            ClassicAssert.AreEqual("SOUP 1", returnedItems[0].SOUPName);
+            ClassicAssert.AreEqual(EliminationReason.FilteredOut, returnedItems[0].EliminationType);
+            ClassicAssert.AreEqual("Filtered by version", returnedItems[0].EliminationReason);
+        }
+
+        [Test]
+        public void EliminatedAnomalies_Can_Be_Retrieved_VERIFIES_Supplied_Items_Are_Returned()
+        {
+            SetupSLMSPlugin();
+            SetupSrcCodePlugin();
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var returnedItems = ds.GetAllEliminatedAnomalies();
+            ClassicAssert.IsTrue(returnedItems.Count > 0);
+            ClassicAssert.AreSame(eliminatedAnomalies[0], returnedItems[0]);
+            ClassicAssert.AreSame(eliminatedAnomalies[1], returnedItems[1]);
+            ClassicAssert.AreSame(eliminatedAnomalies[0], ds.GetEliminatedAnomaly("ANOMALY_id1"));
+            ClassicAssert.AreEqual("Anomaly 1", returnedItems[0].ItemTitle);
+            ClassicAssert.AreEqual(EliminationReason.FilteredOut, returnedItems[0].EliminationType);
+            ClassicAssert.AreEqual("Filtered by status", returnedItems[0].EliminationReason);
+        }
+
+        [Test]
+        public void EliminatedDocContents_Can_Be_Retrieved_VERIFIES_Supplied_Items_Are_Returned()
+        {
+            SetupSLMSPlugin();
+            SetupSrcCodePlugin();
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+            var returnedItems = ds.GetAllEliminatedDocContents();
+            ClassicAssert.IsTrue(returnedItems.Count > 0);
+            ClassicAssert.AreSame(eliminatedDocContents[0], returnedItems[0]);
+            ClassicAssert.AreSame(eliminatedDocContents[1], returnedItems[1]);
+            ClassicAssert.AreSame(eliminatedDocContents[0], ds.GetEliminatedDocContent("CONTENT_id1"));
+            ClassicAssert.AreEqual("Document content 1", returnedItems[0].DocContent);
+            ClassicAssert.AreEqual(EliminationReason.FilteredOut, returnedItems[0].EliminationType);
+            ClassicAssert.AreEqual("Filtered by document type", returnedItems[0].EliminationReason);
+        }
+
+        [Test]
+        public void GetItems_For_EliminatedEntity_VERIFIES_All_EliminatedItems_Are_Returned()
+        {
+            SetupSLMSPlugin();
+            SetupSrcCodePlugin();
+            var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
+
+            var eliminatedEntity = new TraceEntity("Eliminated", "Eliminated Item", "EI", TraceEntityType.Eliminated);
+            var returnedItems = ds.GetItems(eliminatedEntity);
+
+            // Verify we get all types of eliminated items combined
+            ClassicAssert.IsTrue(returnedItems.Count > 0);
+
+            // Expected count is the sum of all eliminated item types
+            int expectedCount = eliminatedSystemRequirements.Count +
+                                eliminatedSoftwareRequirements.Count +
+                                eliminatedDocumentationRequirements.Count +
+                                eliminatedSoftwareSystemTests.Count +
+                                eliminatedRisks.Count +
+                                eliminatedSOUP.Count +
+                                eliminatedAnomalies.Count +
+                                eliminatedDocContents.Count;
+
+            Assert.That(returnedItems.Count, Is.EqualTo(expectedCount));
+
+            // Verify specific items are included in the returned collection
+            var firstSysReqId = eliminatedSystemRequirements[0].ItemID;
+            var firstSoftReqId = eliminatedSoftwareRequirements[0].ItemID;
+            var firstRiskId = eliminatedRisks[0].ItemID;
+
+            Assert.That(returnedItems.Exists(i => i.ItemID == firstSysReqId), Is.True);
+            Assert.That(returnedItems.Exists(i => i.ItemID == firstSoftReqId), Is.True);
+            Assert.That(returnedItems.Exists(i => i.ItemID == firstRiskId), Is.True);
         }
     }
 }

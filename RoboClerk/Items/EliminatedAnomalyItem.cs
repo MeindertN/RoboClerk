@@ -2,6 +2,11 @@
 {
     public class EliminatedAnomalyItem : EliminatedLinkedItem
     {
+        public EliminatedAnomalyItem()
+        {
+            //for serialization
+        }
+
         public EliminatedAnomalyItem(AnomalyItem originalItem, string reason, EliminationReason eliminationType)
             : base(originalItem, reason, eliminationType)
         {

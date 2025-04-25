@@ -2,6 +2,12 @@
 {
     public class EliminatedRequirementItem : EliminatedLinkedItem
     {
+
+        public EliminatedRequirementItem() 
+        {
+            //for serialization
+        }
+
         public EliminatedRequirementItem(RequirementItem originalItem, string reason, EliminationReason eliminationType)
             : base(originalItem, reason, eliminationType)
         {
