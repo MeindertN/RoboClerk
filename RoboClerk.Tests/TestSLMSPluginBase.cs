@@ -1,8 +1,10 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Castle.Core.Smtp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using NSubstitute;
 using NSubstitute.Routing.Handlers;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using RoboClerk.Configuration;
 using RoboClerk.ContentCreators;
 using System;
@@ -86,6 +88,61 @@ namespace RoboClerk.Tests
             eliminatedSOUP.Add(new EliminatedSOUPItem(new SOUPItem(), "test7", EliminationReason.IgnoredLinkTarget) { ItemID = "16" });
             eliminatedAnomalies.Add(new EliminatedAnomalyItem(new AnomalyItem(), "test8", EliminationReason.IgnoredLinkTarget) { ItemID = "17" });
         }
+
+        public string PublicEscapeNonTablePipes(string text)
+        {
+            return EscapeNonTablePipes(text);
+        }
+
+        public void PublicScrubItemContents()
+        {
+            ScrubItemContents();
+        }
+
+        public void PublicClearAllItems()
+        {
+            ClearAllItems();
+        }
+
+        // Helper methods for tests
+        public void AddSystemRequirement(RequirementItem req)
+        {
+            systemRequirements.Add(req);
+        }
+
+        public void AddSoftwareRequirement(RequirementItem req)
+        {
+            softwareRequirements.Add(req);
+        }
+
+        public void AddDocumentationRequirement(RequirementItem docReq)
+        {
+            documentationRequirements.Add(docReq);
+        }
+
+        public void AddDocContent(DocContentItem docContent)
+        {
+            docContents.Add(docContent);
+        }
+
+        public void AddTestCase(SoftwareSystemTestItem testCase)
+        {
+            testCases.Add(testCase);
+        }
+
+        public void AddAnomaly(AnomalyItem nomaly)
+        {
+            anomalies.Add(nomaly);
+        }
+        public void AddRisk(RiskItem risk)
+        {
+            risks.Add(risk);
+        }
+
+        public void AddSOUP(SOUPItem sp)
+        {
+            soup.Add(sp);
+        }
     }
 
     internal class TestSLMSPluginBase
@@ -94,7 +151,7 @@ namespace RoboClerk.Tests
         private IFileSystem fileSystem;
         private IConfiguration config;
 
-        private void addTableToTable(TomlTable table, string tableName, string name, bool filter) 
+        private void addTableToTable(TomlTable table, string tableName, string name, bool filter)
         {
             TomlTable subTable = new TomlTable();
             subTable["name"] = name;
@@ -109,7 +166,7 @@ namespace RoboClerk.Tests
             basePlugin = new SLMSPlugin(fileSystem);
 
             config = Substitute.For<IConfiguration>();
-            
+
             string testpluginconfig = @"
 Ignore = [ ""Rejected"", ""Dejected"" ]
 
@@ -168,7 +225,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
         {
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns("");
             config = Substitute.For<IConfiguration>();
-            var ex = Assert.Throws<Exception>(()=> basePlugin.Initialize(config));
+            var ex = Assert.Throws<Exception>(() => basePlugin.Initialize(config));
             Assert.That(ex.Message.Contains("The testplugin could not read its configuration"));
         }
 
@@ -313,7 +370,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
             Assert.That(basePlugin.TestInclusionFilter("ReleaseRegion", new HashSet<string>() { "BU" }), Is.True);
             basePlugin.Initialize(config);
 
-            Assert.That(basePlugin.TestInclusionFilter("ReleaseRegion", new HashSet<string>() { "EU" }),Is.True);
+            Assert.That(basePlugin.TestInclusionFilter("ReleaseRegion", new HashSet<string>() { "EU" }), Is.True);
             Assert.That(basePlugin.TestInclusionFilter("ReleaseRegion", new HashSet<string>() { "BU" }), Is.False);
             Assert.That(basePlugin.TestInclusionFilter("DifferentField", new HashSet<string>() { "BU" }), Is.True);
         }
@@ -384,5 +441,243 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
             Assert.That(basePlugin.GetEliminatedAnomalies().Single().EliminationType, Is.EqualTo(EliminationReason.IgnoredLinkTarget));
         }
 
+        [Test]
+        [UnitTestAttribute(
+        Identifier = "C1D52A36-7893-4F28-A0EC-6B2D3E8A5F17",
+        Purpose = "Test that EscapeNonTablePipes escapes pipe characters outside of table blocks",
+        PostCondition = "Pipe characters outside of table blocks are escaped")]
+        public void TestEscapeNonTablePipes_BasicFunctionality()
+        {
+            // Arrange
+            string input = "This text has a | pipe character that should be escaped.";
+            string expected = "This text has a \\| pipe character that should be escaped.";
+            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+
+            // Act
+            string result = plugin.PublicEscapeNonTablePipes(input);
+
+            // Assert
+            ClassicAssert.AreEqual(expected, result);
+        }
+
+        [Test]
+        [UnitTestAttribute(
+        Identifier = "D2E63B47-8904-5039-B1FD-7C3E4F9B6028",
+        Purpose = "Test that EscapeNonTablePipes leaves pipe characters within table blocks unchanged",
+        PostCondition = "Pipe characters within table blocks remain unescaped")]
+        public void TestEscapeNonTablePipes_PreservesTableContent()
+        {
+            // Arrange
+            string input = "Text before table.\n|===\n| Cell 1 | Cell 2\n|===\nText after | table.";
+            string expected = "Text before table.\n|===\n| Cell 1 | Cell 2\n|===\nText after \\| table.";
+            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+
+            // Act
+            string result = plugin.PublicEscapeNonTablePipes(input);
+
+            // Assert
+            ClassicAssert.AreEqual(expected, result);
+        }
+
+        [Test]
+        [UnitTestAttribute(
+        Identifier = "E3F74C58-9015-614A-C20E-8D4F5A0C7139",
+        Purpose = "Test that EscapeNonTablePipes handles multiple tables correctly",
+        PostCondition = "Pipe characters outside of multiple table blocks are escaped while those inside remain unchanged")]
+        public void TestEscapeNonTablePipes_MultipleTableBlocks()
+        {
+            // Arrange
+            string input = "Text | before.\n|===\n| Table 1\n|===\nMiddle | text.\n|===\n| Table 2\n|===\nAfter | text.";
+            string expected = "Text \\| before.\n|===\n| Table 1\n|===\nMiddle \\| text.\n|===\n| Table 2\n|===\nAfter \\| text.";
+            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+
+            // Act
+            string result = plugin.PublicEscapeNonTablePipes(input);
+
+            // Assert
+            ClassicAssert.AreEqual(expected, result);
+        }
+
+        [Test]
+        [UnitTestAttribute(
+        Identifier = "F4085D69-A126-725B-D31F-9E5060BD824A",
+        Purpose = "Test that EscapeNonTablePipes does not re-escape already escaped pipes",
+        PostCondition = "Already escaped pipe characters remain unchanged")]
+        public void TestEscapeNonTablePipes_PreservesEscapedPipes()
+        {
+            // Arrange
+            string input = "This has an already escaped \\| pipe.";
+            string expected = "This has an already escaped \\| pipe.";
+            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+
+            // Act
+            string result = plugin.PublicEscapeNonTablePipes(input);
+
+            // Assert
+            ClassicAssert.AreEqual(expected, result);
+        }
+
+        [Test]
+        [UnitTestAttribute(
+        Identifier = "G5196E7A-B237-836C-E420-AF6171CE935B",
+        Purpose = "Test that EscapeNonTablePipes correctly handles input without any pipes",
+        PostCondition = "Input without pipe characters is returned unchanged")]
+        public void TestEscapeNonTablePipes_NoPipes()
+        {
+            // Arrange
+            string input = "This text has no pipe characters.";
+            string expected = "This text has no pipe characters.";
+            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+
+            // Act
+            string result = plugin.PublicEscapeNonTablePipes(input);
+
+            // Assert
+            ClassicAssert.AreEqual(expected, result);
+        }
+
+        [Test]
+        [UnitTestAttribute(
+        Identifier = "H62A7F8B-C348-947D-F531-B0728EDF0468",
+        Purpose = "Test that EscapeNonTablePipes handles empty input correctly",
+        PostCondition = "Empty string is returned unchanged")]
+        public void TestEscapeNonTablePipes_EmptyInput()
+        {
+            // Arrange
+            string input = "";
+            string expected = "";
+            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+
+            // Act
+            string result = plugin.PublicEscapeNonTablePipes(input);
+
+            // Assert
+            ClassicAssert.AreEqual(expected, result);
+        }
+
+
+        [Test]
+        [UnitTestAttribute(
+        Identifier = "I73B809C-D459-A58E-0642-C183A0F15579",
+        Purpose = "Test that ScrubItemContents properly escapes pipe characters in all item collections except DocContent items.",
+        PostCondition = "Pipe characters in all item string properties are escaped.")]
+        public void TestScrubItemContents_ProcessesAllItemCollections()
+        {
+            // Arrange
+            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+            plugin.Initialize(config);
+
+            // Clear all items
+            plugin.PublicClearAllItems();
+
+            // Add test items with pipe characters in various string properties
+            var sysReq = new RequirementItem(RequirementType.SystemRequirement)
+            {
+                ItemID = "SYS-001",
+                ItemTitle = "System | Requirement",
+                RequirementDescription = "This is a | description with a table:\n|===\n| Cell 1 | Cell 2\n|==="
+            };
+
+            var swReq = new RequirementItem(RequirementType.SoftwareRequirement)
+            {
+                ItemID = "SW-001",
+                ItemTitle = "Software | Requirement",
+                RequirementDescription = "Another | description"
+            };
+
+            var docReq = new RequirementItem(RequirementType.DocumentationRequirement)
+            {
+                ItemID = "DOC-001",
+                ItemTitle = "Documentation | Requirement",
+                RequirementDescription = "Documentation | description"
+            };
+
+            var docContent = new DocContentItem
+            {
+                ItemID = "CONT-001",
+                ItemTitle = "Doc | Content",
+                DocContent = "Content with | pipe"
+            };
+
+            var testCase = new SoftwareSystemTestItem
+            {
+                ItemID = "TEST-001",
+                ItemTitle = "Test | Case",
+                TestCaseDescription = "Test case | description"
+            };
+            testCase.AddTestCaseStep(new TestStep("1", "Action with | pipe", "Expected | result"));
+
+            var anomaly = new AnomalyItem
+            {
+                ItemID = "ANOM-001",
+                ItemTitle = "Anomaly | Item",
+                AnomalyDetailedDescription = "Anomaly | description"
+            };
+
+            var risk = new RiskItem
+            {
+                ItemID = "RISK-001",
+                ItemTitle = "Risk | Item",
+                RiskCauseOfFailure = "Risk | cause"
+            };
+
+            var soup = new SOUPItem
+            {
+                ItemID = "SOUP-001",
+                ItemTitle = "SOUP | Item",
+                SOUPDetailedDescription = "SOUP | description"
+            };
+
+            // Add items to their collections
+            plugin.AddSystemRequirement(sysReq);
+            plugin.AddSoftwareRequirement(swReq);
+            plugin.AddDocumentationRequirement(docReq);
+            plugin.AddDocContent(docContent);
+            plugin.AddTestCase(testCase);
+            plugin.AddAnomaly(anomaly);
+            plugin.AddRisk(risk);
+            plugin.AddSOUP(soup);
+
+            // Act
+            plugin.PublicScrubItemContents();
+
+            // Assert
+            // System requirements
+            ClassicAssert.AreEqual("System \\| Requirement", plugin.GetSystemRequirements().First().ItemTitle);
+            ClassicAssert.AreEqual("This is a \\| description with a table:\n|===\n| Cell 1 | Cell 2\n|===",
+                plugin.GetSystemRequirements().First().RequirementDescription);
+
+            // Software requirements
+            ClassicAssert.AreEqual("Software \\| Requirement", plugin.GetSoftwareRequirements().First().ItemTitle);
+            ClassicAssert.AreEqual("Another \\| description",
+                plugin.GetSoftwareRequirements().First().RequirementDescription);
+
+            // Documentation requirements
+            ClassicAssert.AreEqual("Documentation \\| Requirement", plugin.GetDocumentationRequirements().First().ItemTitle);
+            ClassicAssert.AreEqual("Documentation \\| description",
+                plugin.GetDocumentationRequirements().First().RequirementDescription);
+
+            // Doc content should not be escaped since this is typically not displayed in tables
+            ClassicAssert.AreEqual("Doc | Content", plugin.GetDocContents().First().ItemTitle);
+            ClassicAssert.AreEqual("Content with | pipe", plugin.GetDocContents().First().DocContent);
+
+            // Test cases and steps
+            ClassicAssert.AreEqual("Test \\| Case", plugin.GetSoftwareSystemTests().First().ItemTitle);
+            ClassicAssert.AreEqual("Test case \\| description", plugin.GetSoftwareSystemTests().First().TestCaseDescription);
+            ClassicAssert.AreEqual("Action with \\| pipe", plugin.GetSoftwareSystemTests().First().TestCaseSteps.First().Action);
+            ClassicAssert.AreEqual("Expected \\| result", plugin.GetSoftwareSystemTests().First().TestCaseSteps.First().ExpectedResult);
+
+            // Anomalies
+            ClassicAssert.AreEqual("Anomaly \\| Item", plugin.GetAnomalies().First().ItemTitle);
+            ClassicAssert.AreEqual("Anomaly \\| description", plugin.GetAnomalies().First().AnomalyDetailedDescription);
+
+            // Risks
+            ClassicAssert.AreEqual("Risk \\| Item", plugin.GetRisks().First().ItemTitle);
+            ClassicAssert.AreEqual("Risk \\| cause", plugin.GetRisks().First().RiskCauseOfFailure);
+
+            // SOUP
+            ClassicAssert.AreEqual("SOUP \\| Item", plugin.GetSOUP().First().ItemTitle);
+            ClassicAssert.AreEqual("SOUP \\| description", plugin.GetSOUP().First().SOUPDetailedDescription);
+        }
     }
 }

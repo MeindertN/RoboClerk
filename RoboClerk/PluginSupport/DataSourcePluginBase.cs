@@ -156,7 +156,7 @@ namespace RoboClerk
             eliminatedAnomalies.Clear();
         }
 
-        private string EscapeNonTablePipes(string text)
+        protected string EscapeNonTablePipes(string text)
         {
             string tableBlockPattern = @"(?ms)(^\|===\s*$.*?^\|===\s*$)";
 
