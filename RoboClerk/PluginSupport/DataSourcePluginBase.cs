@@ -150,6 +150,10 @@ namespace RoboClerk
             eliminatedSoftwareRequirements.Clear();
             eliminatedDocumentationRequirements.Clear();
             eliminatedSoftwareSystemTests.Clear();
+            eliminatedSOUP.Clear();
+            eliminatedRisks.Clear();
+            eliminatedDocContents.Clear();
+            eliminatedAnomalies.Clear();
         }
 
         private string EscapeNonTablePipes(string text)

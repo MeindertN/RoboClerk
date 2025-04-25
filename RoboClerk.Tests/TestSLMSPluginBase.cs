@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using NSubstitute;
 using NSubstitute.Routing.Handlers;
 using NUnit.Framework;
@@ -63,6 +64,28 @@ namespace RoboClerk.Tests
             return ExcludeItem(fieldName, values);
         }
 
+        public void AddTestItems()
+        {
+            ClearAllItems();
+            systemRequirements.Add(new RequirementItem(RequirementType.SystemRequirement) { ItemID = "1" });
+            softwareRequirements.Add(new RequirementItem(RequirementType.SoftwareRequirement) { ItemID = "2" });
+            documentationRequirements.Add(new RequirementItem(RequirementType.DocumentationRequirement) { ItemID = "3" });
+            testCases.Add(new SoftwareSystemTestItem() { ItemID = "4" });
+            anomalies.Add(new AnomalyItem() { ItemID = "5" });
+            risks.Add(new RiskItem() { ItemID = "6" });
+            soup.Add(new SOUPItem() { ItemID = "7" });
+            docContents.Add(new DocContentItem() { ItemID = "8" });
+            unitTests.Add(new UnitTestItem() { ItemID = "9" });
+            
+            eliminatedSystemRequirements.Add(new EliminatedRequirementItem(new RequirementItem(RequirementType.SystemRequirement),"test1",EliminationReason.FilteredOut) { ItemID = "10" });
+            eliminatedSoftwareRequirements.Add(new EliminatedRequirementItem(new RequirementItem(RequirementType.SoftwareRequirement), "test2", EliminationReason.FilteredOut) { ItemID = "11" });
+            eliminatedDocumentationRequirements.Add(new EliminatedRequirementItem(new RequirementItem(RequirementType.DocumentationRequirement), "test3", EliminationReason.FilteredOut) { ItemID = "12" });
+            eliminatedSoftwareSystemTests.Add(new EliminatedSoftwareSystemTestItem(new SoftwareSystemTestItem(),"test4",EliminationReason.LinkedItemMissing) { ItemID = "13" });
+            eliminatedRisks.Add(new EliminatedRiskItem(new RiskItem(), "test5", EliminationReason.LinkedItemMissing) { ItemID = "14" });
+            eliminatedDocContents.Add(new EliminatedDocContentItem(new DocContentItem(), "test6", EliminationReason.IgnoredLinkTarget) { ItemID = "15" });
+            eliminatedSOUP.Add(new EliminatedSOUPItem(new SOUPItem(), "test7", EliminationReason.IgnoredLinkTarget) { ItemID = "16" });
+            eliminatedAnomalies.Add(new EliminatedAnomalyItem(new AnomalyItem(), "test8", EliminationReason.IgnoredLinkTarget) { ItemID = "17" });
+        }
     }
 
     internal class TestSLMSPluginBase
@@ -310,6 +333,56 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
             Assert.That(basePlugin.TestExclusionFilter("DifferentVersion", new HashSet<string>() { "BU" }), Is.False);
         }
 
+        [UnitTestAttribute(
+        Identifier = "ND5S2582-AD77-43D2-B250-A37EF1B03563",
+        Purpose = "All test items can be retrieved, including the eliminated ones.",
+        PostCondition = "The expected items are returned.")]
+        [Test]
+        public void TestItemStorage()
+        {
+            basePlugin.Initialize(config);
+            basePlugin.AddTestItems();
+
+            Assert.That(basePlugin.GetSystemRequirements(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetSystemRequirements().Single().ItemID, Is.EqualTo("1"));
+            Assert.That(basePlugin.GetSoftwareRequirements(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetSoftwareRequirements().Single().ItemID, Is.EqualTo("2"));
+            Assert.That(basePlugin.GetDocumentationRequirements(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetDocumentationRequirements().Single().ItemID, Is.EqualTo("3"));
+            Assert.That(basePlugin.GetSoftwareSystemTests(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetSoftwareSystemTests().Single().ItemID, Is.EqualTo("4"));
+            Assert.That(basePlugin.GetAnomalies(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetAnomalies().Single().ItemID, Is.EqualTo("5"));
+            Assert.That(basePlugin.GetRisks(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetRisks().Single().ItemID, Is.EqualTo("6"));
+            Assert.That(basePlugin.GetSOUP(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetSOUP().Single().ItemID, Is.EqualTo("7"));
+            Assert.That(basePlugin.GetDocContents(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetDocContents().Single().ItemID, Is.EqualTo("8"));
+            Assert.That(basePlugin.GetUnitTests(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetUnitTests().Single().ItemID, Is.EqualTo("9"));
+
+            Assert.That(basePlugin.GetEliminatedSystemRequirements(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetEliminatedSystemRequirements().Single().ItemID, Is.EqualTo("10"));
+            Assert.That(basePlugin.GetEliminatedSystemRequirements().Single().EliminationReason, Is.EqualTo("test1"));
+            Assert.That(basePlugin.GetEliminatedSystemRequirements().Single().EliminationType, Is.EqualTo(EliminationReason.FilteredOut));
+            Assert.That(basePlugin.GetEliminatedSoftwareRequirements(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetEliminatedSoftwareRequirements().Single().ItemID, Is.EqualTo("11"));
+            Assert.That(basePlugin.GetEliminatedDocumentationRequirements(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetEliminatedDocumentationRequirements().Single().ItemID, Is.EqualTo("12"));
+            Assert.That(basePlugin.GetEliminatedSoftwareSystemTests(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetEliminatedSoftwareSystemTests().Single().ItemID, Is.EqualTo("13"));
+            Assert.That(basePlugin.GetEliminatedRisks(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetEliminatedRisks().Single().ItemID, Is.EqualTo("14"));
+            Assert.That(basePlugin.GetEliminatedDocContents(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetEliminatedDocContents().Single().ItemID, Is.EqualTo("15"));
+            Assert.That(basePlugin.GetEliminatedSOUP(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetEliminatedSOUP().Single().ItemID, Is.EqualTo("16"));
+            Assert.That(basePlugin.GetEliminatedAnomalies(), Has.Exactly(1).Items);
+            Assert.That(basePlugin.GetEliminatedAnomalies().Single().ItemID, Is.EqualTo("17"));
+            Assert.That(basePlugin.GetEliminatedAnomalies().Single().EliminationReason, Is.EqualTo("test8"));
+            Assert.That(basePlugin.GetEliminatedAnomalies().Single().EliminationType, Is.EqualTo(EliminationReason.IgnoredLinkTarget));
+        }
 
     }
 }
