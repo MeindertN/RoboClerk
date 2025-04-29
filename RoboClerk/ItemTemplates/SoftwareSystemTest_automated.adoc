@@ -16,6 +16,7 @@ string RenderTestSteps()
 {
     System.Text.StringBuilder sb = new System.Text.StringBuilder();
     sb.AppendLine("|====");
+    sb.AppendLine();
     if(item.TestCaseToUnitTest)
     {
         var ids = string.Join(
@@ -24,11 +25,12 @@ string RenderTestSteps()
                 .Where(l => l.LinkType == ItemLinkType.UnitTest)
                 .Select(l => l.TargetID)
         );
-        sb.AppendLine($"| This functionality is fully excercised in the following unit test(s): {ids} ");
+        sb.AppendLine($"| This functionality is fully exercised in the following unit test(s): {ids} ");
     }
     else
     {
         sb.AppendLine("| *Step* | *Action* | *Expected Result* ");
+        sb.AppendLine();
         foreach (var step in item.TestCaseSteps)
         {	                
             sb.Append($"| {step.Step} ");
