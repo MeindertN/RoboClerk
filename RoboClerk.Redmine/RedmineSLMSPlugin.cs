@@ -381,6 +381,15 @@ namespace RoboClerk.Redmine
                             resultItem.TestCaseAutomated = (value.GetString() == "Automated") || (value.GetString() == "Unit Tested");
                             resultItem.TestCaseToUnitTest = (value.GetString() == "Unit Tested");
                         }
+                        if (field.Name == "Identifier") //check if this test case is being kicked to the unit test plan
+                        {
+                            string values = value.GetString();
+                            var unitTests = values.Split(',');
+                            foreach(var unitTest in unitTests)
+                            {
+                                resultItem.KickToUnitTest(unitTest.Trim());
+                            }
+                        }
                     }
                 }
             }

@@ -13,7 +13,6 @@ namespace RoboClerk
     {
         private string eliminationReason = string.Empty;
         private EliminationReason eliminationType;
-        private LinkedItem originalItem;
 
         public EliminatedLinkedItem()
         {

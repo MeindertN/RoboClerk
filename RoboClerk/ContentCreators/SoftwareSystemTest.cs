@@ -109,6 +109,12 @@ namespace RoboClerk.ContentCreators
                     }
                     else
                     {
+                        if( tc.TestCaseToUnitTest )
+                        {
+                            //trying to kick a manual test to the unit test plan is not correct. 
+                            logger.Error($"Trying to test a manual {sourceTE.Name} ({tc.ItemID}) with a unit test is not valid.");
+                            throw new System.InvalidOperationException($"Cannot kick manual test case {tc.ItemID} to unit test. Change test type to automated.");
+                        }
                         try
                         {
                             result = rendererManual.RenderItemTemplate(dataShare);

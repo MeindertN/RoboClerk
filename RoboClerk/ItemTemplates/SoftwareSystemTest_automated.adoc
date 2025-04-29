@@ -5,6 +5,7 @@
 // Microsoft Word we have to insert the REMOVEPARAGRAPH tags. These are 
 // removed in post processing and Word then merges the two tables into one. 
 using RoboClerk;
+using System.Linq;
 
 TraceEntity te = SourceTraceEntity;
 SoftwareSystemTestItem item = (SoftwareSystemTestItem)Item;
@@ -14,11 +15,26 @@ AddTrace(item.ItemID);
 string RenderTestSteps()
 {
     System.Text.StringBuilder sb = new System.Text.StringBuilder();
-    foreach (var step in item.TestCaseSteps)
-    {	                
-        sb.Append($"| {step.Step} ");
-        sb.Append($"| {step.Action.Replace("\n", "").Replace("\r", "")} ");
-        sb.Append($"| {step.ExpectedResult.Replace("\n", "").Replace("\r", "")} \n\n");
+    sb.AppendLine("|====");
+    if(item.TestCaseToUnitTest)
+    {
+        var ids = string.Join(
+            ", ",
+            item.LinkedItems
+                .Where(l => l.LinkType == ItemLinkType.UnitTest)
+                .Select(l => l.TargetID)
+        );
+        sb.AppendLine($"| This functionality is fully excercised in the following unit test(s): {ids} ");
+    }
+    else
+    {
+        sb.AppendLine("| *Step* | *Action* | *Expected Result* ");
+        foreach (var step in item.TestCaseSteps)
+        {	                
+            sb.Append($"| {step.Step} ");
+            sb.Append($"| {step.Action.Replace("\n", "").Replace("\r", "")} ");
+            sb.Append($"| {step.ExpectedResult.Replace("\n", "").Replace("\r", "")} \n\n");
+        }
     }
     return sb.ToString();
 }
@@ -35,9 +51,5 @@ string RenderTestSteps()
 |====
 
 @@Post:REMOVEPARAGRAPH()@@
-
-|====
-
-| *Step* | *Action* | *Expected Result* 
 
 [csx:RenderTestSteps()]|====
