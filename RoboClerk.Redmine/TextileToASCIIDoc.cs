@@ -18,6 +18,20 @@ namespace RoboClerk.Redmine
             if (textile == null)
                 throw new ArgumentNullException(nameof(textile));
 
+            // Store pre tag contents with unique placeholders to protect them from conversion
+            Dictionary<string, string> preTagContents = new Dictionary<string, string>();
+            int preTagIndex = 0;
+
+            // Extract and replace pre tags with placeholders
+            textile = Regex.Replace(textile, @"<pre>(.*?)</pre>", m =>
+            {
+                string content = m.Groups[1].Value;
+                string placeholder = $"PRETAGPLACEHOLDER{preTagIndex}";
+                preTagContents[placeholder] = content;
+                preTagIndex++;
+                return placeholder;
+            }, RegexOptions.Singleline);
+
             // --- Convert Headings ---
             // Example: "h1. Heading" => "== Heading"
             textile = Regex.Replace(textile, @"^h(\d)\.\s+(.*)$", m =>
@@ -27,6 +41,17 @@ namespace RoboClerk.Redmine
                 string prefix = new string('=', level + 1);
                 return $"{prefix} {m.Groups[2].Value}";
             }, RegexOptions.Multiline);
+
+            // --- Convert Pre tags ---
+            // Convert <pre> tags to AsciiDoc literal blocks
+            textile = Regex.Replace(textile, @"<pre>(.*?)</pre>", m =>
+            {
+                // Extract content between <pre> tags
+                string content = m.Groups[1].Value;
+
+                // Return as AsciiDoc literal block
+                return "\n....\n" + content + "\n....\n";
+            }, RegexOptions.Singleline);
 
             // --- Convert Links ---
             // Textile: "link text":http://example.com
@@ -67,11 +92,6 @@ namespace RoboClerk.Redmine
             textile = Regex.Replace(textile, @"^>\s*(.*)$", m =>
                 "____\n" + m.Groups[1].Value + "\n____", RegexOptions.Multiline);
 
-            // --- Convert Code Blocks ---
-            // Textile code blocks beginning with "bc. " are wrapped in AsciiDoc source block delimiters.
-            textile = Regex.Replace(textile, @"^bc\.\s+(.*)$", m =>
-                "[source]\n----\n" + m.Groups[1].Value + "\n----", RegexOptions.Multiline);
-
             // --- Convert Inline Code ---
             // Textile inline code marked with @ characters is converted to AsciiDoc inline code.
             // Example: @print("hello")@ becomes `print("hello")`
@@ -90,6 +110,12 @@ namespace RoboClerk.Redmine
 
             // --- Ensure List Blocks Are Preceded by a Blank Line ---
             textile = EnsureListBlocksHaveLeadingBlankLine(textile);
+
+            // Restore pre tag contents with AsciiDoc literal blocks
+            foreach (var placeholder in preTagContents.Keys)
+            {
+                textile = textile.Replace(placeholder, $"\n....\n{preTagContents[placeholder]}\n....\n");
+            }
 
             return textile;
         }
