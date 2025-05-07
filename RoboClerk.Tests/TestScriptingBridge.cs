@@ -484,6 +484,126 @@ namespace RoboClerk.Tests
             ClassicAssert.AreEqual(input.ToString(), result);
         }
 
+        [UnitTestAttribute(
+        Identifier = "CF1A2D78-E341-4B9C-8B6D-F0D3A12E5B97",
+        Purpose = "Test conversion of level 1 and 2 headings to bold text",
+        PostCondition = "Headings are converted to bold text")]
+        [Test]
+        public void TestHeadingConversion_Level1And2()
+        {
+            // Level 1 heading
+            string input = "= Document Title\nSome content";
+            string expected = "*Document Title*\n\nSome content";
+            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            ClassicAssert.AreEqual(expected, result);
+
+            // Level 2 heading
+            input = "== Section Title\nSome content";
+            expected = "*Section Title*\n\nSome content";
+            result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            ClassicAssert.AreEqual(expected, result);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "B5D34F12-8A1E-47EA-A72C-9D4F5BE31C89",
+        Purpose = "Test conversion of level 3 headings to italic text",
+        PostCondition = "Headings are converted to italic text")]
+        [Test]
+        public void TestHeadingConversion_Level3()
+        {
+            string input = "=== Subsection Title\nSome content";
+            string expected = "_Subsection Title_\n\nSome content";
+            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            ClassicAssert.AreEqual(expected, result);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "3E29A867-F6CB-4D91-B8D5-D2E39F8A61C0",
+        Purpose = "Test conversion of level 4 headings to indented bold text",
+        PostCondition = "Headings are converted to indented bold text")]
+        [Test]
+        public void TestHeadingConversion_Level4()
+        {
+            string input = "==== Subsubsection Title\nSome content";
+            string expected = "&#160;&#160; _Subsubsection Title_\n\nSome content";
+            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            ClassicAssert.AreEqual(expected, result);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "7F8E6D90-1C53-4A9B-BF92-8D15E47CAF2A",
+        Purpose = "Test conversion of level 5 and 6 headings to indented monospace text",
+        PostCondition = "Headings are converted to indented monospace text")]
+        [Test]
+        public void TestHeadingConversion_Level5And6()
+        {
+            // Level 5 heading
+            string input = "===== Deep Level Title\nSome content";
+            string expected = "&#160;&#160;&#160;&#160; `Deep Level Title`\n\nSome content";
+            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            ClassicAssert.AreEqual(expected, result);
+
+            // Level 6 heading
+            input = "====== Deeper Level Title\nSome content";
+            expected = "&#160;&#160;&#160;&#160; `Deeper Level Title`\n\nSome content";
+            result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            ClassicAssert.AreEqual(expected, result);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "9D187B33-A42E-4DF7-9E91-F5C72A4EB5D3",
+        Purpose = "Test conversion of multiple headings in a single text",
+        PostCondition = "All headings are correctly converted")]
+        [Test]
+        public void TestHeadingConversion_MultipleHeadings()
+        {
+            string input = "== Main Section\nSome text here\n=== Subsection\nMore text\n==== Sub-subsection\nEven more text";
+            string expected = "*Main Section*\n\nSome text here\n_Subsection_\n\nMore text\n&#160;&#160; _Sub-subsection_\n\nEven more text";
+            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            ClassicAssert.AreEqual(expected, result);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "0A4E7D1C-B5FB-4E28-9B2C-D83E79F6A452",
+        Purpose = "Test handling of null and empty input",
+        PostCondition = "Null and empty inputs are handled gracefully")]
+        [Test]
+        public void TestHeadingConversion_NullAndEmpty()
+        {
+            // Test null input
+            string result = scriptingBridge.ConvertHeadingsForTableCell(null);
+            ClassicAssert.IsNull(result);
+
+            // Test empty input
+            result = scriptingBridge.ConvertHeadingsForTableCell(string.Empty);
+            ClassicAssert.AreEqual(string.Empty, result);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "6FC8AB5D-3E94-4C1A-BDC3-E2D47F5A1E89",
+        Purpose = "Test that non-heading content is unaffected",
+        PostCondition = "Regular text remains unchanged")]
+        [Test]
+        public void TestHeadingConversion_NonHeadingContent()
+        {
+            string input = "This is regular text\nNo headings here\n* A list item\n* Another list item";
+            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            ClassicAssert.AreEqual(input, result);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "D12E7B90-5A67-4F8E-BC32-A9E15D76F4C3",
+        Purpose = "Test that heading followed by blank line works correctly",
+        PostCondition = "No additional blank line is added if one already exists")]
+        [Test]
+        public void TestHeadingConversion_HeadingWithBlankLine()
+        {
+            string input = "== Section Title\n\nSome content after a blank line";
+            string expected = "*Section Title*\n\nSome content after a blank line";
+            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            ClassicAssert.AreEqual(expected, result);
+        }
+
         #endregion
     }
 }

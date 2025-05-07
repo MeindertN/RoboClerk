@@ -170,6 +170,22 @@ namespace RoboClerk
         }
 
         /// <summary>
+        /// Convenience function, combines other convenience functions and ensures that
+        /// ASCIDOC meant to be inside a table cell will render in an appropriate way by
+        /// embedding tables and removing embedded headings because ASCIIDOC does not 
+        /// support scoped headings and most likely the user does not want to have
+        /// embedded headings numbered with the document headers.
+        /// </summary>
+        /// <param name="input">The AsciiDoc content that may contain headings and 
+        /// or tables</param>
+        /// <returns>Modified AsciiDoc that can be embedded in a table cell</returns>
+        public string ProcessAsciidocForTableCell(string input)
+        {
+            string temp = ConvertHeadingsForTableCell(input);
+            return EmbedAsciidocTables(temp);
+        }
+
+        /// <summary>
         /// Convenience function, takes any asciidoc tables in the input and makes them
         /// embedded tables. 
         /// </summary>
@@ -221,7 +237,67 @@ namespace RoboClerk
             // Rejoin all lines into a single string.
             return string.Join("\n", outputLines);
         }
+
+        /// <summary>
+        /// Converts AsciiDoc heading syntax to alternative markup suitable for embedding in table cells.
+        /// This prevents heading content from being numbered along with main document headings.
+        /// </summary>
+        /// <param name="input">The AsciiDoc content that may contain headings</param>
+        /// <returns>Modified AsciiDoc with headings converted to alternative markup</returns>
+        public string ConvertHeadingsForTableCell(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            // Process each line to detect and transform headings
+            string[] lines = input.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i];
+
+                // Match heading patterns (e.g., "== Heading", "=== Subheading", etc.)
+                var match = System.Text.RegularExpressions.Regex.Match(line, @"^(=+)\s+(.+)$");
+                if (match.Success)
+                {
+                    int level = match.Groups[1].Length;
+                    string headingText = match.Groups[2].Value.Trim();
+
+                    // Convert heading based on its level
+                    switch (level)
+                    {
+                        case 1: // Document title level
+                        case 2: // Top section level - convert to bold
+                            lines[i] = $"*{headingText}*";
+                            break;
+                        case 3: // Subsection level - convert to italic
+                            lines[i] = $"_{headingText}_";
+                            break;
+                        case 4: // Subsubsection level - convert to italic with indentation
+                            lines[i] = $"&#160;&#160; _{headingText}_";
+                            break;
+                        case 5: // Even deeper levels - use monospace with indentation
+                        case 6:
+                            lines[i] = $"&#160;&#160;&#160;&#160; `{headingText}`";
+                            break;
+                        default: // For extremely deep levels or unexpected cases
+                            lines[i] = headingText;
+                            break;
+                    }
+
+                    // Add a blank line after the heading for better readability
+                    // only if there isn't already one and we're not at the end of the text
+                    if (i < lines.Length - 1 && !string.IsNullOrWhiteSpace(lines[i + 1]))
+                    {
+                        lines[i] += "\n";
+                    }
+                }
+            }
+
+            return string.Join("\n", lines);
+        }
     }
+
+    
 
     public class ScriptingBridge : ScriptingBridge<LinkedItem>
     {
