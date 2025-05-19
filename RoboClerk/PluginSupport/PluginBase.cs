@@ -1,4 +1,5 @@
-﻿using RoboClerk.Configuration;
+﻿using Microsoft.Extensions.DependencyInjection;
+using RoboClerk.Configuration;
 using System;
 using System.IO.Abstractions;
 using System.Reflection;
@@ -36,6 +37,8 @@ namespace RoboClerk
         }
 
         public abstract void Initialize(IConfiguration config);
+
+        public abstract void ConfigureServices(IServiceCollection services);
 
         protected T GetObjectForKey<T>(TomlTable config, string keyName, bool required)
         {

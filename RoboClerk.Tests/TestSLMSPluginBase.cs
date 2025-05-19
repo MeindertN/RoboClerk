@@ -1,5 +1,6 @@
 ﻿using Castle.Core.Smtp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using NSubstitute;
 using NSubstitute.Routing.Handlers;
@@ -27,7 +28,12 @@ namespace RoboClerk.Tests
         public SLMSPlugin(IFileSystem fileSystem) : base(fileSystem) 
         {
             name = "testplugin";
-        }    
+        }
+
+        public override void ConfigureServices(IServiceCollection services)
+        {
+            //this test plugin does not need to register any services
+        }
 
         public override void RefreshItems()
         {

@@ -10,6 +10,8 @@ using NSubstitute;
 using RoboClerk.Configuration;
 using System.IO.Abstractions;
 using Tomlyn.Model;
+using Microsoft.Extensions.DependencyInjection;
+using RestSharp;
 
 namespace RoboClerk.Redmine.Tests
 {
@@ -636,12 +638,14 @@ namespace RoboClerk.Redmine.Tests
 
         private IFileSystem fileSystem;
         private IConfiguration configuration;
+        private IRedmineClient redmineClient;
 
         [SetUp]
         public void SetUp()
         {
             fileSystem = Substitute.For<IFileSystem>();
             configuration = Substitute.For<IConfiguration>();
+            redmineClient = Substitute.For<IRedmineClient>();
         }
 
         [UnitTestAttribute(
@@ -651,7 +655,7 @@ namespace RoboClerk.Redmine.Tests
         [Test]
         public void TestRedmineSLMSPluginCreation()
         {
-            var plugin = new RedmineSLMSPlugin(fileSystem);
+            var plugin = new RedmineSLMSPlugin(fileSystem, redmineClient);
 
             ClassicAssert.AreEqual("RedmineSLMSPlugin", plugin.Name);
             ClassicAssert.AreEqual("A plugin that can interrogate Redmine via its REST API to retrieve information needed by RoboClerk to create documentation.", plugin.Description);
@@ -664,7 +668,7 @@ namespace RoboClerk.Redmine.Tests
         [Test]
         public void TestRedmineSLMSPluginInitialization()
         {
-            var plugin = new RedmineSLMSPlugin(fileSystem);
+            var plugin = new RedmineSLMSPlugin(fileSystem, redmineClient);
 
             // Setup mock configuration file content
             var configTable = new TomlTable();
@@ -739,7 +743,7 @@ namespace RoboClerk.Redmine.Tests
         [Test]
         public void TestRedmineSLMSPluginMissingConfiguration()
         {
-            var plugin = new RedmineSLMSPlugin(fileSystem);
+            var plugin = new RedmineSLMSPlugin(fileSystem, redmineClient);
 
             // Setup incomplete configuration
             var configTable = new TomlTable();
@@ -755,6 +759,164 @@ namespace RoboClerk.Redmine.Tests
             // Assert that initialization throws
             ClassicAssert.Throws<Exception>(() => plugin.Initialize(configuration));
         }
+
+        [UnitTestAttribute(
+        Identifier = "F2A3B4C5-D678-9ABC-F678-234ABCDEF013",
+        Purpose = "ConfigureServices registers IRedmineClient correctly",
+        PostCondition = "IRedmineClient is registered in the service collection")]
+        [Test]
+        public void TestConfigureServices()
+        {
+            var plugin = new RedmineSLMSPlugin(fileSystem, redmineClient);
+            var services = new ServiceCollection();
+
+            // Setup configuration for service registration
+            var configTable = new TomlTable();
+            configTable["RedmineAPIEndpoint"] = "http://localhost:3001/";
+            configTable["RedmineAPIKey"] = "test_api_key";
+
+            // Mock file system calls
+            configuration.PluginConfigDir.Returns("TestPluginDir");
+            fileSystem.Path.GetDirectoryName(Arg.Any<string>()).Returns("TestLocation");
+            fileSystem.Path.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns("TestLocation/Configuration/RedmineSLMSPlugin.toml");
+            fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
+            
+            // Mock CommandLineOptionOrDefault for the configuration
+            configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", Arg.Any<string>()).Returns("http://localhost:3001/");
+
+            // Register IConfiguration in services
+            services.AddSingleton(configuration);
+            
+            // Call ConfigureServices
+            plugin.ConfigureServices(services);
+            
+            // Build provider and resolve IRedmineClient
+            var provider = services.BuildServiceProvider();
+            var resolvedClient = provider.GetService<IRedmineClient>();
+            
+            // Verify client was registered
+            ClassicAssert.IsNotNull(resolvedClient);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "A3B4C5D6-E789-ABCD-0789-345ABCDEF014",
+        Purpose = "RedmineSLMSPlugin works with mocked IRedmineClient",
+        PostCondition = "Plugin is able to refresh items using the mocked client")]
+        [Test]
+        public void TestRedmineSLMSPluginWithMockedClient()
+        {
+            var plugin = new RedmineSLMSPlugin(fileSystem, redmineClient);
+            
+            // Setup configuration
+            var configTable = new TomlTable();
+            configTable["RedmineAPIEndpoint"] = "http://localhost:3001/";
+            configTable["RedmineAPIKey"] = "test_api_key";
+            configTable["RedmineProject"] = "TestProject";
+            configTable["RedmineBaseURL"] = "http://localhost:3001/issues/";
+            configTable["ConvertTextile"] = false;
+
+            // Configuration for trackers
+            configTable["SystemRequirement"] = new TomlTable { ["name"] = "SystemRequirement", ["filter"] = false };
+            configTable["SoftwareRequirement"] = new TomlTable { ["name"] = "SoftwareRequirement", ["filter"] = false };
+            configTable["DocumentationRequirement"] = new TomlTable { ["name"] = "Documentation", ["filter"] = false };
+            configTable["DocContent"] = new TomlTable { ["name"] = "DocContent", ["filter"] = false };
+            configTable["SoftwareSystemTest"] = new TomlTable { ["name"] = "SoftwareSystemTest", ["filter"] = false };
+            configTable["Anomaly"] = new TomlTable { ["name"] = "Bug", ["filter"] = false };
+            configTable["Risk"] = new TomlTable { ["name"] = "Risk", ["filter"] = false };
+            configTable["SOUP"] = new TomlTable { ["name"] = "SOUP", ["filter"] = false };
+
+            // Mock file system and configuration calls
+            configuration.PluginConfigDir.Returns("TestPluginDir");
+            fileSystem.Path.GetDirectoryName(Arg.Any<string>()).Returns("TestLocation");
+            fileSystem.Path.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns("TestLocation/Configuration/RedmineSLMSPlugin.toml");
+            fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
+
+            // Mock CommandLineOptionOrDefault for required config values
+            configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", Arg.Any<string>()).Returns("http://localhost:3001/");
+            configuration.CommandLineOptionOrDefault("RedmineAPIKey", Arg.Any<string>()).Returns("test_api_key");
+            configuration.CommandLineOptionOrDefault("RedmineProject", Arg.Any<string>()).Returns("TestProject");
+            configuration.CommandLineOptionOrDefault("RedmineBaseURL", Arg.Any<string>()).Returns("http://localhost:3001/issues/");
+            configuration.CommandLineOptionOrDefault("ConvertTextile", Arg.Any<string>()).Returns("FALSE");
+
+            // Setup mock responses for the client
+            // 1. Mock response for projects
+            var projectsRequest = new RestRequest("projects.json", Method.Get);
+            var projectsResponse = new RedmineProjects
+            {
+                Projects = new List<RedmineProject>
+                {
+                    new RedmineProject { Id = 1, Name = "TestProject", Description = "Test project for unit tests" }
+                },
+                TotalCount = 1,
+                Offset = 0,
+                Limit = 100
+            };
+            redmineClient.CreateRequest(Arg.Is<string>(s => s.Contains("projects.json")), Arg.Any<Method>())
+                .Returns(projectsRequest);
+            redmineClient.GetAsync<RedmineProjects>(Arg.Any<RestRequest>())
+                .Returns(projectsResponse);
+
+            // 2. Mock response for versions
+            var versionsRequest = new RestRequest("projects/1/versions.json", Method.Get);
+            var versionsResponse = new VersionList
+            {
+                Versions = new List<Version>
+                {
+                    new Version { Id = 1, Name = "1.0", Status = "open" }
+                },
+                TotalCount = 1
+            };
+            redmineClient.CreateRequest(Arg.Is<string>(s => s.Contains("versions.json")), Arg.Any<Method>())
+                .Returns(versionsRequest);
+            redmineClient.GetAsync<VersionList>(Arg.Any<RestRequest>())
+                .Returns(versionsResponse);
+
+            // 3. Mock response for trackers
+            var trackersRequest = new RestRequest("trackers.json", Method.Get);
+            var trackersResponse = new RedmineTrackers
+            {
+                Trackers = new List<RedmineTracker>
+                {
+                    new RedmineTracker { Id = 1, Name = "SystemRequirement" },
+                    new RedmineTracker { Id = 2, Name = "SoftwareRequirement" },
+                    new RedmineTracker { Id = 3, Name = "Documentation" },
+                    new RedmineTracker { Id = 4, Name = "SoftwareSystemTest" },
+                    new RedmineTracker { Id = 5, Name = "Bug" },
+                    new RedmineTracker { Id = 6, Name = "Risk" },
+                    new RedmineTracker { Id = 7, Name = "SOUP" },
+                    new RedmineTracker { Id = 8, Name = "DocContent" }
+                }
+            };
+            redmineClient.CreateRequest(Arg.Is<string>(s => s.Contains("trackers.json")), Arg.Any<Method>())
+                .Returns(trackersRequest);
+            redmineClient.GetAsync<RedmineTrackers>(Arg.Any<RestRequest>())
+                .Returns(trackersResponse);
+
+            // 4. Mock response for issues query (empty response for simplicity)
+            var issuesRequest = new RestRequest("issues.json", Method.Get);
+            var issuesResponse = new RedmineIssues
+            {
+                Issues = new List<RedmineIssue>(),
+                TotalCount = 0,
+                Offset = 0,
+                Limit = 100
+            };
+            redmineClient.CreateRequest(Arg.Is<string>(s => s.Contains("issues.json")), Arg.Any<Method>())
+                .Returns(issuesRequest);
+            redmineClient.GetAsync<RedmineIssues>(Arg.Any<RestRequest>())
+                .Returns(issuesResponse);
+
+            // Initialize the plugin
+            plugin.Initialize(configuration);
+
+            // Verify RefreshItems doesn't throw exception
+            ClassicAssert.DoesNotThrow(() => plugin.RefreshItems());
+
+            // Verify client methods were called
+            redmineClient.Received().GetAsync<RedmineProjects>(Arg.Any<RestRequest>());
+            redmineClient.Received().GetAsync<RedmineTrackers>(Arg.Any<RestRequest>());
+        }
+        
         #endregion
     }
 }

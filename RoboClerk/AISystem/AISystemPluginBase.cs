@@ -1,6 +1,7 @@
 ﻿using RoboClerk.Configuration;
 using System.Collections.Generic;
 using System.IO.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace RoboClerk.AISystem
 {
@@ -35,6 +36,12 @@ namespace RoboClerk.AISystem
         public abstract string GetFeedback(TraceEntity et, Item item);
 
         public abstract void SetPrompts(List<Document> pts);
-          
+        
+        public override void ConfigureServices(IServiceCollection services)
+        {
+            // Base implementation that can be overridden by subclasses
+            // Register as IAISystemPlugin by default
+            services.AddTransient<IAISystemPlugin>(provider => this);
+        }
     }
 }

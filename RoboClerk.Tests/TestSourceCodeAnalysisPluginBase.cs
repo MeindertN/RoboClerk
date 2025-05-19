@@ -1,4 +1,5 @@
-﻿using NSubstitute;
+﻿using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
 using NUnit.Framework;
 using RoboClerk.Configuration;
 using System;
@@ -15,6 +16,11 @@ namespace RoboClerk.Tests
             :base(fileSystem)
         {
             name = "TestSourceCodeAnalysisPlugin";
+        }
+
+        public override void ConfigureServices(IServiceCollection services)
+        {
+            //this test plugin does not need to register any services
         }
 
         public List<UnitTestItem> UnitTests => unitTests;

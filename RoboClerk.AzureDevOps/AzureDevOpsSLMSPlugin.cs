@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using RoboClerk.Configuration;
@@ -25,6 +26,12 @@ namespace RoboClerk.AzureDevOps
             logger.Debug("Azure DevOps SLMS plugin created");
             name = "AzureDevOpsSLMSPlugin";
             description = "A plugin that interfaces with azure devops to retrieve information needed by RoboClerk to create documentation.";
+        }
+
+        public override void ConfigureServices(IServiceCollection services)
+        {
+            // Register any services this plugin needs
+            // No services required for this plugin
         }
 
         public override void Initialize(IConfiguration configuration)

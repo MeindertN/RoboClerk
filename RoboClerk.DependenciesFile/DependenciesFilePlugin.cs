@@ -1,4 +1,5 @@
-﻿using RoboClerk.Configuration;
+﻿using Microsoft.Extensions.DependencyInjection;
+using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
@@ -16,6 +17,11 @@ namespace RoboClerk.DependenciesFile
         {
             name = "DependenciesFilePlugin";
             description = "A plugin that retrieves project dependencies via one or more files.";
+        }
+
+        public override void ConfigureServices(IServiceCollection services)
+        {
+            //this plugin does not need to register any services
         }
 
         public override void Initialize(IConfiguration configuration)

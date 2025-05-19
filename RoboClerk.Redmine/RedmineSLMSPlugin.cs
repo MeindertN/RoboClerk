@@ -1,4 +1,5 @@
-﻿using RestSharp;
+﻿using Microsoft.Extensions.DependencyInjection;
+using RestSharp;
 using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
@@ -9,8 +10,38 @@ using Tomlyn.Model;
 
 namespace RoboClerk.Redmine
 {
+    public interface IRedmineClient
+    {
+        // Example methods; expand as needed
+        RestRequest CreateRequest(string resource, Method method);
+        T GetAsync<T>(RestRequest request) where T : new();
+    }
+
+    // Concrete implementation using RestSharp
+    public class RestSharpRedmineClient : IRedmineClient
+    {
+        private readonly RestClient _client;
+
+        public RestSharpRedmineClient(string apiEndpoint)
+        {
+            _client = new RestClient(apiEndpoint);
+        }
+
+        public RestRequest CreateRequest(string resource, Method method)
+        {
+            return new RestRequest(resource, method);
+        }
+
+        public T GetAsync<T>(RestRequest request) where T : new()
+        {
+            // Asynchronous execution wrapped in a synchronous call
+            return _client.GetAsync<T>(request).GetAwaiter().GetResult();
+        }
+    }
+
     public class RedmineSLMSPlugin : SLMSPluginBase
     {
+        private readonly IRedmineClient _client;
         private string baseURL = string.Empty;
         private string apiEndpoint = string.Empty;
         private string apiKey = string.Empty;
@@ -18,15 +49,15 @@ namespace RoboClerk.Redmine
         private bool convertTextile = false;
         private TextileToAsciiDocConverter converter = null;
         private List<string> redmineVersionFields = new List<string>();
-        private RestClient client = null;
         private List<Version> versions = null;
 
-        public RedmineSLMSPlugin(IFileSystem fileSystem)
+        public RedmineSLMSPlugin(IFileSystem fileSystem, IRedmineClient client)
             : base(fileSystem)
         {
             logger.Debug("Redmine SLMS plugin created");
             name = "RedmineSLMSPlugin";
             description = "A plugin that can interrogate Redmine via its REST API to retrieve information needed by RoboClerk to create documentation.";
+            _client = client;
         }
 
         public override void Initialize(IConfiguration configuration)
@@ -37,7 +68,6 @@ namespace RoboClerk.Redmine
             {
                 TomlTable config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
                 apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", GetObjectForKey<string>(config, "RedmineAPIEndpoint", true));
-                client = new RestClient(apiEndpoint);
                 apiKey = configuration.CommandLineOptionOrDefault("RedmineAPIKey", GetObjectForKey<string>(config, "RedmineAPIKey", true));
                 projectName = configuration.CommandLineOptionOrDefault("RedmineProject", GetObjectForKey<string>(config, "RedmineProject", true));
                 baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL", GetObjectForKey<string>(config, "RedmineBaseURL", false));
@@ -66,6 +96,17 @@ namespace RoboClerk.Redmine
                 logger.Error(e);
                 throw new Exception($"The {name} could not read its configuration. Aborting...");
             }
+        }
+
+        public override void ConfigureServices(IServiceCollection services)
+        {
+            services.AddTransient<IRedmineClient>(provider => {
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                TomlTable config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
+                string apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", GetObjectForKey<string>(config, "RedmineAPIEndpoint", true)
+                );
+                return new RestSharpRedmineClient(apiEndpoint);
+            });
         }
 
         private List<string> GetTrackerList()
@@ -842,12 +883,12 @@ namespace RoboClerk.Redmine
                 .AddParameter("limit", 100)
                 .AddParameter("key", apiKey);
             List<RedmineProject> projects = new List<RedmineProject>();
-            var response = client.GetAsync<RedmineProjects>(request).GetAwaiter().GetResult();
+            var response = _client.GetAsync<RedmineProjects>(request);
             projects.AddRange(response.Projects);
             while (response.Limit + response.Offset < response.TotalCount)
             {
                 request.AddOrUpdateParameter("offset", response.Offset + response.Limit);
-                response = client.GetAsync<RedmineProjects>(request).GetAwaiter().GetResult();
+                response = _client.GetAsync<RedmineProjects>(request);
                 projects.AddRange(response.Projects);
             }
             foreach (var project in projects)
@@ -866,7 +907,7 @@ namespace RoboClerk.Redmine
             var request = new RestRequest("trackers.json", Method.Get)
                 .AddParameter("key", apiKey);
 
-            var response = client.GetAsync<RedmineTrackers>(request).GetAwaiter().GetResult();
+            var response = _client.GetAsync<RedmineTrackers>(request);
             Dictionary<string, int> trackers = new Dictionary<string, int>();
 
             foreach (var tracker in response.Trackers)
@@ -884,7 +925,7 @@ namespace RoboClerk.Redmine
                 .AddParameter("include", "relations")
                 .AddParameter("status_id", "*")
                 .AddParameter("issue_id", issueID);
-            var response = client.GetAsync<RedmineIssues>(request).GetAwaiter().GetResult();
+            var response = _client.GetAsync<RedmineIssues>(request);
             if (response.Issues.Count == 0)
             {
                 return null;
@@ -905,12 +946,12 @@ namespace RoboClerk.Redmine
                 .AddParameter("status_id", "*")
                 .AddParameter("tracker_id", trackerID);
             List<RedmineIssue> issues = new List<RedmineIssue>();
-            var response = client.GetAsync<RedmineIssues>(request).GetAwaiter().GetResult();
+            var response = _client.GetAsync<RedmineIssues>(request);
             issues.AddRange(response.Issues);
             while (response.Limit + response.Offset < response.TotalCount)
             {
                 request.AddOrUpdateParameter("offset", response.Offset + response.Limit);
-                response = client.GetAsync<RedmineIssues>(request).GetAwaiter().GetResult();
+                response = _client.GetAsync<RedmineIssues>(request);
                 issues.AddRange(response.Issues);
             }
             return issues;
@@ -937,7 +978,7 @@ namespace RoboClerk.Redmine
         {
             var request = new RestRequest($"projects/{projectID}/versions.json", Method.Get)
                 .AddParameter("key", apiKey);
-            var response = client.GetAsync<VersionList>(request).GetAwaiter().GetResult();
+            var response = _client.GetAsync<VersionList>(request);
             if (response.TotalCount == 0)
             {
                 return null;
