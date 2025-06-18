@@ -383,7 +383,7 @@ namespace RoboClerk.Redmine
             return output;
         }
 
-        private SoftwareSystemTestItem CreateTestCase(List<RedmineIssue> issues, RedmineIssue redmineItem)
+        protected SoftwareSystemTestItem CreateTestCase(List<RedmineIssue> issues, RedmineIssue redmineItem)
         {
             logger.Debug($"Creating test case item: {redmineItem.Id}");
             SoftwareSystemTestItem resultItem = new SoftwareSystemTestItem();
@@ -451,7 +451,7 @@ namespace RoboClerk.Redmine
             return resultItem;
         }
 
-        private DocContentItem CreateDocContent(RedmineIssue redmineItem)
+        protected DocContentItem CreateDocContent(RedmineIssue redmineItem)
         {
             logger.Debug($"Creating DocContent item: {redmineItem.Id}");
             DocContentItem resultItem = new DocContentItem();
@@ -485,7 +485,7 @@ namespace RoboClerk.Redmine
             return resultItem;
         }
 
-        private SOUPItem CreateSOUP(RedmineIssue redmineItem)
+        protected SOUPItem CreateSOUP(RedmineIssue redmineItem)
         {
             logger.Debug($"Creating SOUP item: {redmineItem.Id}");
             SOUPItem resultItem = new SOUPItem();
@@ -562,7 +562,7 @@ namespace RoboClerk.Redmine
             return resultItem;
         }
 
-        private AnomalyItem CreateBug(RedmineIssue redmineItem)
+        protected AnomalyItem CreateBug(RedmineIssue redmineItem)
         {
             logger.Debug($"Creating bug item: {redmineItem.Id}");
             AnomalyItem resultItem = new AnomalyItem();
@@ -615,7 +615,7 @@ namespace RoboClerk.Redmine
             return resultItem;
         }
 
-        private RiskItem CreateRisk(List<RedmineIssue> issues, RedmineIssue redmineItem)
+        protected RiskItem CreateRisk(List<RedmineIssue> issues, RedmineIssue redmineItem)
         {
             logger.Debug($"Creating risk item: {redmineItem.Id}");
             RiskItem resultItem = new RiskItem();
@@ -737,8 +737,7 @@ namespace RoboClerk.Redmine
             return value;
         }
 
-
-        private bool ShouldIgnoreIssue(RedmineIssue redmineItem, TruthItemConfig config, out string reason)
+        protected bool ShouldIgnoreIssue(RedmineIssue redmineItem, TruthItemConfig config, out string reason)
         {
             reason = string.Empty;
             if (!config.Filtered)
@@ -823,7 +822,7 @@ namespace RoboClerk.Redmine
             return false;
         }
        
-        private RequirementItem CreateRequirement(List<RedmineIssue> issues, RedmineIssue redmineItem, RequirementType requirementType)
+        protected RequirementItem CreateRequirement(List<RedmineIssue> issues, RedmineIssue redmineItem, RequirementType requirementType)
         {
             logger.Debug($"Creating requirement item: {redmineItem.Id}");
             RequirementItem resultItem = new RequirementItem(requirementType);

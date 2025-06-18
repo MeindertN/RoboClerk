@@ -12,6 +12,8 @@ using System.IO.Abstractions;
 using Tomlyn.Model;
 using Microsoft.Extensions.DependencyInjection;
 using RestSharp;
+using RoboClerk;
+using System.Threading.Tasks;
 
 namespace RoboClerk.Redmine.Tests
 {
@@ -19,6 +21,169 @@ namespace RoboClerk.Redmine.Tests
     [Description("These tests test the Redmine plugin JSON object deserialization and RedmineSLMSPlugin functionality")]
     public class TestRedminePlugin
     {
+        private class TestRedmineSLMSPlugin : RedmineSLMSPlugin
+        {
+            public TestRedmineSLMSPlugin(IFileSystem fileSystem, IRedmineClient client) 
+                : base(fileSystem, client)
+            {
+            }
+
+            // Expose protected methods for testing
+            public new bool ShouldIgnoreIssue(RedmineIssue redmineItem, TruthItemConfig config, out string reason)
+            {
+                return base.ShouldIgnoreIssue(redmineItem, config, out reason);
+            }
+
+            public new SoftwareSystemTestItem CreateTestCase(List<RedmineIssue> issues, RedmineIssue redmineItem)
+            {
+                return base.CreateTestCase(issues, redmineItem);
+            }
+
+            public new AnomalyItem CreateBug(RedmineIssue redmineItem)
+            {
+                return base.CreateBug(redmineItem);
+            }
+
+            public new RequirementItem CreateRequirement(List<RedmineIssue> issues, RedmineIssue redmineItem, RequirementType requirementType)
+            {
+                return base.CreateRequirement(issues, redmineItem, requirementType);
+            }
+
+            public new DocContentItem CreateDocContent(RedmineIssue redmineItem)
+            {
+                return base.CreateDocContent(redmineItem);
+            }
+
+            public new SOUPItem CreateSOUP(RedmineIssue redmineItem)
+            {
+                return base.CreateSOUP(redmineItem);
+            }
+
+            public new RiskItem CreateRisk(List<RedmineIssue> issues, RedmineIssue redmineItem)
+            {
+                return base.CreateRisk(issues, redmineItem);
+            }
+
+            // Expose protected collections for testing
+            public new List<RequirementItem> softwareRequirements => base.softwareRequirements;
+            public new List<SoftwareSystemTestItem> testCases => base.testCases;
+            public new List<EliminatedRequirementItem> eliminatedSoftwareRequirements => base.eliminatedSoftwareRequirements;
+            public new List<EliminatedSoftwareSystemTestItem> eliminatedSoftwareSystemTests => base.eliminatedSoftwareSystemTests;
+        }
+
+        #region Test Setup Helpers
+
+        private IFileSystem fileSystem;
+        private IConfiguration configuration;
+        private IRedmineClient redmineClient;
+        private TestRedmineSLMSPlugin plugin;
+
+        [SetUp]
+        public void SetUp()
+        {
+            fileSystem = Substitute.For<IFileSystem>();
+            configuration = Substitute.For<IConfiguration>();
+            redmineClient = Substitute.For<IRedmineClient>();
+            plugin = new TestRedmineSLMSPlugin(fileSystem, redmineClient);
+        }
+
+        private TomlTable CreateBaseConfiguration()
+        {
+            var configTable = new TomlTable();
+            configTable["RedmineAPIEndpoint"] = "http://localhost:3001/";
+            configTable["RedmineAPIKey"] = "test_api_key";
+            configTable["RedmineProject"] = "TestProject";
+            configTable["RedmineBaseURL"] = "http://localhost:3001/issues/";
+            configTable["ConvertTextile"] = false;
+            return configTable;
+        }
+
+        private void SetupTruthItemConfigurations(TomlTable configTable, Dictionary<string, string> trackerNames)
+        {
+            foreach (var kvp in trackerNames)
+            {
+                configTable[kvp.Key] = new TomlTable { ["name"] = kvp.Value, ["filter"] = false };
+            }
+        }
+
+        private void SetupMockFileSystem()
+        {
+            configuration.PluginConfigDir.Returns("TestPluginDir");
+            fileSystem.Path.GetDirectoryName(Arg.Any<string>()).Returns("TestLocation");
+            fileSystem.Path.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns("TestLocation/Configuration/RedmineSLMSPlugin.toml");
+        }
+
+        private void SetupMockConfiguration()
+        {
+            configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", Arg.Any<string>()).Returns("http://localhost:3001/");
+            configuration.CommandLineOptionOrDefault("RedmineAPIKey", Arg.Any<string>()).Returns("test_api_key");
+            configuration.CommandLineOptionOrDefault("RedmineProject", Arg.Any<string>()).Returns("TestProject");
+            configuration.CommandLineOptionOrDefault("RedmineBaseURL", Arg.Any<string>()).Returns("http://localhost:3001/issues/");
+            configuration.CommandLineOptionOrDefault("ConvertTextile", Arg.Any<string>()).Returns("FALSE");
+        }
+
+        private void SetupMockRedmineResponses()
+        {
+            // Mock projects response
+            var projectsResponse = new RedmineProjects
+            {
+                Projects = new List<RedmineProject>
+                {
+                    new RedmineProject { Id = 1, Name = "TestProject" }
+                }
+            };
+            redmineClient.GetAsync<RedmineProjects>(Arg.Any<RestRequest>())
+                .Returns(projectsResponse);
+
+            // Mock versions response
+            var versionsResponse = new VersionList
+            {
+                Versions = new List<Version>
+                {
+                    new Version { Id = 1, Name = "1.0" }
+                }
+            };
+            redmineClient.GetAsync<VersionList>(Arg.Any<RestRequest>())
+                .Returns(versionsResponse);
+
+            // Mock trackers response
+            var trackersResponse = new RedmineTrackers
+            {
+                Trackers = new List<RedmineTracker>
+                {
+                    new RedmineTracker { Id = 1, Name = "SystemRequirement" },
+                    new RedmineTracker { Id = 2, Name = "SoftwareRequirement" },
+                    new RedmineTracker { Id = 3, Name = "Documentation" },
+                    new RedmineTracker { Id = 4, Name = "SoftwareSystemTest" },
+                    new RedmineTracker { Id = 5, Name = "Bug" },
+                    new RedmineTracker { Id = 6, Name = "Risk" },
+                    new RedmineTracker { Id = 7, Name = "SOUP" },
+                    new RedmineTracker { Id = 8, Name = "DocContent" }
+                }
+            };
+            redmineClient.GetAsync<RedmineTrackers>(Arg.Any<RestRequest>())
+                .Returns(trackersResponse);
+
+            // Mock issues response
+            var issuesResponse = new RedmineIssues
+            {
+                Issues = new List<RedmineIssue>(),
+                TotalCount = 0,
+                Offset = 0,
+                Limit = 100
+            };
+            redmineClient.GetAsync<RedmineIssues>(Arg.Any<RestRequest>())
+                .Returns(issuesResponse);
+        }
+
+        private void InitializePluginWithConfiguration(TomlTable configTable)
+        {
+            fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
+            plugin.Initialize(configuration);
+        }
+
+        #endregion
+
         #region JSON Object Tests
 
         private string ConvertTomlTableToString(TomlTable table)
@@ -31,9 +196,23 @@ namespace RoboClerk.Redmine.Tests
                     sb.AppendLine($"[{kvp.Key}]");
                     foreach (var nestedKvp in nestedTable)
                     {
-                        if (nestedKvp.Value is bool boolValue)
+                        if (nestedKvp.Value is TomlArray arrayValue)
+                        {
+                            sb.Append($"{nestedKvp.Key} = [");
+                            for (int i = 0; i < arrayValue.Count; i++)
+                            {
+                                if (i > 0) sb.Append(", ");
+                                sb.Append($"\"{arrayValue[i]}\"");
+                            }
+                            sb.AppendLine("]");
+                        }
+                        else if (nestedKvp.Value is bool boolValue)
                         {
                             sb.AppendLine($"{nestedKvp.Key} = {boolValue.ToString().ToLower()}");
+                        }
+                        else if (nestedKvp.Value is string stringValue)
+                        {
+                            sb.AppendLine($"{nestedKvp.Key} = \"{stringValue}\"");
                         }
                         else
                         {
@@ -42,9 +221,23 @@ namespace RoboClerk.Redmine.Tests
                     }
                     sb.AppendLine();
                 }
+                else if (kvp.Value is TomlArray arrayValue)
+                {
+                    sb.Append($"{kvp.Key} = [");
+                    for (int i = 0; i < arrayValue.Count; i++)
+                    {
+                        if (i > 0) sb.Append(", ");
+                        sb.Append($"\"{arrayValue[i]}\"");
+                    }
+                    sb.AppendLine("]");
+                }
                 else if (kvp.Value is bool boolValue)
                 {
                     sb.AppendLine($"{kvp.Key} = {boolValue.ToString().ToLower()}");
+                }
+                else if (kvp.Value is string stringValue)
+                {
+                    sb.AppendLine($"{kvp.Key} = \"{stringValue}\"");
                 }
                 else
                 {
@@ -496,7 +689,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "C9D0E1F2-A345-6789-D345-91234ABCDEF0",
+        Identifier = "C9D0E1F2-A345-6789-C345-90123ABCDEF0",
         Purpose = "RedmineProjects list with multiple projects is deserialized correctly",
         PostCondition = "All projects and pagination information are properly parsed")]
         [Test]
@@ -567,7 +760,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "D0E1F2A3-B456-789A-E456-01235ABCDEF1",
+        Identifier = "D0E1F2A3-B456-789A-D456-0123ABCDEF01",
         Purpose = "RedmineTrackers list with multiple trackers is deserialized correctly",
         PostCondition = "All trackers are properly parsed")]
         [Test]
@@ -632,60 +825,65 @@ namespace RoboClerk.Redmine.Tests
             ClassicAssert.AreEqual("Open", trackers.Trackers[2].DefaultStatus.Name);
         }
 
-        #endregion
-
-        #region RedmineSLMSPlugin Tests
-
-        private IFileSystem fileSystem;
-        private IConfiguration configuration;
-        private IRedmineClient redmineClient;
-
-        [SetUp]
-        public void SetUp()
-        {
-            fileSystem = Substitute.For<IFileSystem>();
-            configuration = Substitute.For<IConfiguration>();
-            redmineClient = Substitute.For<IRedmineClient>();
-        }
-
         [UnitTestAttribute(
-        Identifier = "C9D0E1F2-A345-6789-C345-90123ABCDEF0",
-        Purpose = "RedmineSLMSPlugin is created successfully",
-        PostCondition = "No exception is thrown and plugin has correct name and description")]
+        Identifier = "E7F89012-3456-7890-ABCD-EF0123456789",
+        Purpose = "ShouldIgnoreIssue correctly filters issues based on configuration",
+        PostCondition = "Issues are correctly filtered based on status and custom fields")]
         [Test]
-        public void TestRedmineSLMSPluginCreation()
+        public void TestShouldIgnoreIssue()
         {
-            var plugin = new RedmineSLMSPlugin(fileSystem, redmineClient);
+            // Arrange
+            var redmineIssue = new RedmineIssue
+            {
+                Id = 1,
+                Subject = "Test Issue",
+                Status = new Status { Name = "Closed" },
+                Tracker = new RedmineTracker { Name = "System Requirement" },
+                CustomFields = new List<CustomField>
+                {
+                    new CustomField { Id = 1, Name = "Priority", Value = System.Text.Json.JsonSerializer.SerializeToElement("Low") }
+                }
+            };
 
-            ClassicAssert.AreEqual("RedmineSLMSPlugin", plugin.Name);
-            ClassicAssert.AreEqual("A plugin that can interrogate Redmine via its REST API to retrieve information needed by RoboClerk to create documentation.", plugin.Description);
-        }
+            var config = new TruthItemConfig("System Requirement", true);
 
-        [UnitTestAttribute(
-        Identifier = "D0E1F2A3-B456-789A-D456-0123ABCDEF01",
-        Purpose = "RedmineSLMSPlugin initialization works with valid configuration",
-        PostCondition = "Plugin is initialized without throwing exceptions")]
-        [Test]
-        public void TestRedmineSLMSPluginInitialization()
-        {
-            var plugin = new RedmineSLMSPlugin(fileSystem, redmineClient);
-
-            // Setup mock configuration file content
+            // Setup configuration with filters
             var configTable = new TomlTable();
+
+            // Add required Redmine configuration
             configTable["RedmineAPIEndpoint"] = "http://localhost:3001/";
             configTable["RedmineAPIKey"] = "test_api_key";
             configTable["RedmineProject"] = "TestProject";
             configTable["RedmineBaseURL"] = "http://localhost:3001/issues/";
             configTable["ConvertTextile"] = true;
 
-            // Setup truth item configurations
+            // Add inclusion filter for Status
+            var includedFields = new TomlTable();
+            var statusValues = new TomlArray();
+            statusValues.Add("New");
+            statusValues.Add("In Progress");
+            includedFields["Status"] = statusValues;
+            configTable["IncludedItemFilter"] = includedFields;
+
+            // Add exclusion filter for Priority
+            var excludedFields = new TomlTable();
+            var priorityValues = new TomlArray();
+            priorityValues.Add("Low");
+            excludedFields["Priority"] = priorityValues;
+            configTable["ExcludedItemFilter"] = excludedFields;
+
+            // Add empty ignore list
+            var ignoreList = new TomlArray();
+            configTable["Ignore"] = ignoreList;
+
+            // Add all required truth item configurations
             var sysReqConfig = new TomlTable();
-            sysReqConfig["name"] = "SystemRequirement";
+            sysReqConfig["name"] = "System Requirement";
             sysReqConfig["filter"] = true;
             configTable["SystemRequirement"] = sysReqConfig;
 
             var softReqConfig = new TomlTable();
-            softReqConfig["name"] = "SoftwareRequirement";
+            softReqConfig["name"] = "Software Requirement";
             softReqConfig["filter"] = true;
             configTable["SoftwareRequirement"] = softReqConfig;
 
@@ -719,21 +917,67 @@ namespace RoboClerk.Redmine.Tests
             soupConfig["filter"] = true;
             configTable["SOUP"] = soupConfig;
 
-            // Mock file system calls
+            // Mock file system and configuration calls
             configuration.PluginConfigDir.Returns("TestPluginDir");
             fileSystem.Path.GetDirectoryName(Arg.Any<string>()).Returns("TestLocation");
             fileSystem.Path.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns("TestLocation/Configuration/RedmineSLMSPlugin.toml");
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
 
-            // Mock CommandLineOptionOrDefault to return the config values
-            configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", Arg.Any<string>()).Returns("http://localhost:3001/");
-            configuration.CommandLineOptionOrDefault("RedmineAPIKey", Arg.Any<string>()).Returns("test_api_key");
-            configuration.CommandLineOptionOrDefault("RedmineProject", Arg.Any<string>()).Returns("TestProject");
-            configuration.CommandLineOptionOrDefault("RedmineBaseURL", Arg.Any<string>()).Returns("http://localhost:3001/issues/");
-            configuration.CommandLineOptionOrDefault("ConvertTextile", Arg.Any<string>()).Returns("TRUE");
+            string val = ConvertTomlTableToString(configTable);
+            var plugin = new TestRedmineSLMSPlugin(fileSystem, redmineClient);
+            plugin.Initialize(configuration);
 
-            // Assert that initialization doesn't throw
-            ClassicAssert.DoesNotThrow(() => plugin.Initialize(configuration));
+            // Act
+            string reason;
+            var shouldIgnore = plugin.ShouldIgnoreIssue(redmineIssue, config, out reason);
+
+            // Assert
+            ClassicAssert.IsTrue(shouldIgnore);
+            ClassicAssert.IsTrue(reason.Contains("Closed") || reason.Contains("Low"));
+        }
+
+        #endregion
+
+        #region RedmineSLMSPlugin Tests
+
+        [UnitTestAttribute(
+        Identifier = "C9D0E1F2-A345-6789-C345-90123ABCDEF0",
+        Purpose = "RedmineSLMSPlugin is created successfully",
+        PostCondition = "No exception is thrown and plugin has correct name and description")]
+        [Test]
+        public void TestRedmineSLMSPluginCreation()
+        {
+            ClassicAssert.AreEqual("RedmineSLMSPlugin", plugin.Name);
+            ClassicAssert.AreEqual("A plugin that can interrogate Redmine via its REST API to retrieve information needed by RoboClerk to create documentation.", plugin.Description);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "D0E1F2A3-B456-789A-D456-0123ABCDEF01",
+        Purpose = "RedmineSLMSPlugin initialization works with valid configuration",
+        PostCondition = "Plugin is initialized without throwing exceptions")]
+        [Test]
+        public void TestRedmineSLMSPluginInitialization()
+        {
+            // Arrange
+            var configTable = CreateBaseConfiguration();
+            var trackerNames = new Dictionary<string, string>
+            {
+                ["SystemRequirement"] = "SystemRequirement",
+                ["SoftwareRequirement"] = "SoftwareRequirement",
+                ["DocumentationRequirement"] = "Documentation",
+                ["DocContent"] = "DocContent",
+                ["SoftwareSystemTest"] = "SoftwareSystemTest",
+                ["Anomaly"] = "Bug",
+                ["Risk"] = "Risk",
+                ["SOUP"] = "SOUP"
+            };
+            SetupTruthItemConfigurations(configTable, trackerNames);
+            SetupMockFileSystem();
+            SetupMockConfiguration();
+            SetupMockRedmineResponses();
+
+            // Act & Assert
+            ClassicAssert.DoesNotThrow(() => InitializePluginWithConfiguration(configTable));
         }
 
         [UnitTestAttribute(
@@ -743,21 +987,15 @@ namespace RoboClerk.Redmine.Tests
         [Test]
         public void TestRedmineSLMSPluginMissingConfiguration()
         {
-            var plugin = new RedmineSLMSPlugin(fileSystem, redmineClient);
-
-            // Setup incomplete configuration
+            // Arrange
             var configTable = new TomlTable();
             configTable["RedmineAPIEndpoint"] = "http://localhost:3001/";
             // Missing RedmineAPIKey and other required fields
 
-            // Mock file system calls
-            configuration.PluginConfigDir.Returns("TestPluginDir");
-            fileSystem.Path.GetDirectoryName(Arg.Any<string>()).Returns("TestLocation");
-            fileSystem.Path.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns("TestLocation/Configuration/RedmineSLMSPlugin.toml");
-            fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
+            SetupMockFileSystem();
 
-            // Assert that initialization throws
-            ClassicAssert.Throws<Exception>(() => plugin.Initialize(configuration));
+            // Act & Assert
+            ClassicAssert.Throws<Exception>(() => InitializePluginWithConfiguration(configTable));
         }
 
         [UnitTestAttribute(
@@ -767,34 +1005,32 @@ namespace RoboClerk.Redmine.Tests
         [Test]
         public void TestConfigureServices()
         {
-            var plugin = new RedmineSLMSPlugin(fileSystem, redmineClient);
+            // Arrange
             var services = new ServiceCollection();
-
-            // Setup configuration for service registration
-            var configTable = new TomlTable();
-            configTable["RedmineAPIEndpoint"] = "http://localhost:3001/";
-            configTable["RedmineAPIKey"] = "test_api_key";
-
-            // Mock file system calls
-            configuration.PluginConfigDir.Returns("TestPluginDir");
-            fileSystem.Path.GetDirectoryName(Arg.Any<string>()).Returns("TestLocation");
-            fileSystem.Path.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns("TestLocation/Configuration/RedmineSLMSPlugin.toml");
+            var configTable = CreateBaseConfiguration();
+            var trackerNames = new Dictionary<string, string>
+            {
+                ["SystemRequirement"] = "SystemRequirement",
+                ["SoftwareRequirement"] = "SoftwareRequirement",
+                ["DocumentationRequirement"] = "Documentation",
+                ["DocContent"] = "DocContent",
+                ["SoftwareSystemTest"] = "SoftwareSystemTest",
+                ["Anomaly"] = "Bug",
+                ["Risk"] = "Risk",
+                ["SOUP"] = "SOUP"
+            };
+            SetupTruthItemConfigurations(configTable, trackerNames);
+            SetupMockFileSystem();
+            SetupMockConfiguration();
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
-            
-            // Mock CommandLineOptionOrDefault for the configuration
-            configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", Arg.Any<string>()).Returns("http://localhost:3001/");
-
-            // Register IConfiguration in services
             services.AddSingleton(configuration);
-            
-            // Call ConfigureServices
+
+            // Act
             plugin.ConfigureServices(services);
-            
-            // Build provider and resolve IRedmineClient
+
+            // Assert
             var provider = services.BuildServiceProvider();
             var resolvedClient = provider.GetService<IRedmineClient>();
-            
-            // Verify client was registered
             ClassicAssert.IsNotNull(resolvedClient);
         }
 
@@ -805,118 +1041,971 @@ namespace RoboClerk.Redmine.Tests
         [Test]
         public void TestRedmineSLMSPluginWithMockedClient()
         {
-            var plugin = new RedmineSLMSPlugin(fileSystem, redmineClient);
-            
-            // Setup configuration
-            var configTable = new TomlTable();
-            configTable["RedmineAPIEndpoint"] = "http://localhost:3001/";
-            configTable["RedmineAPIKey"] = "test_api_key";
-            configTable["RedmineProject"] = "TestProject";
-            configTable["RedmineBaseURL"] = "http://localhost:3001/issues/";
-            configTable["ConvertTextile"] = false;
-
-            // Configuration for trackers
-            configTable["SystemRequirement"] = new TomlTable { ["name"] = "SystemRequirement", ["filter"] = false };
-            configTable["SoftwareRequirement"] = new TomlTable { ["name"] = "SoftwareRequirement", ["filter"] = false };
-            configTable["DocumentationRequirement"] = new TomlTable { ["name"] = "Documentation", ["filter"] = false };
-            configTable["DocContent"] = new TomlTable { ["name"] = "DocContent", ["filter"] = false };
-            configTable["SoftwareSystemTest"] = new TomlTable { ["name"] = "SoftwareSystemTest", ["filter"] = false };
-            configTable["Anomaly"] = new TomlTable { ["name"] = "Bug", ["filter"] = false };
-            configTable["Risk"] = new TomlTable { ["name"] = "Risk", ["filter"] = false };
-            configTable["SOUP"] = new TomlTable { ["name"] = "SOUP", ["filter"] = false };
-
-            // Mock file system and configuration calls
-            configuration.PluginConfigDir.Returns("TestPluginDir");
-            fileSystem.Path.GetDirectoryName(Arg.Any<string>()).Returns("TestLocation");
-            fileSystem.Path.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns("TestLocation/Configuration/RedmineSLMSPlugin.toml");
-            fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
-
-            // Mock CommandLineOptionOrDefault for required config values
-            configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", Arg.Any<string>()).Returns("http://localhost:3001/");
-            configuration.CommandLineOptionOrDefault("RedmineAPIKey", Arg.Any<string>()).Returns("test_api_key");
-            configuration.CommandLineOptionOrDefault("RedmineProject", Arg.Any<string>()).Returns("TestProject");
-            configuration.CommandLineOptionOrDefault("RedmineBaseURL", Arg.Any<string>()).Returns("http://localhost:3001/issues/");
-            configuration.CommandLineOptionOrDefault("ConvertTextile", Arg.Any<string>()).Returns("FALSE");
-
-            // Setup mock responses for the client
-            // 1. Mock response for projects
-            var projectsRequest = new RestRequest("projects.json", Method.Get);
-            var projectsResponse = new RedmineProjects
+            // Arrange
+            var configTable = CreateBaseConfiguration();
+            var trackerNames = new Dictionary<string, string>
             {
-                Projects = new List<RedmineProject>
-                {
-                    new RedmineProject { Id = 1, Name = "TestProject", Description = "Test project for unit tests" }
-                },
-                TotalCount = 1,
-                Offset = 0,
-                Limit = 100
+                ["SystemRequirement"] = "SystemRequirement",
+                ["SoftwareRequirement"] = "SoftwareRequirement",
+                ["DocumentationRequirement"] = "Documentation",
+                ["DocContent"] = "DocContent",
+                ["SoftwareSystemTest"] = "SoftwareSystemTest",
+                ["Anomaly"] = "Bug",
+                ["Risk"] = "Risk",
+                ["SOUP"] = "SOUP"
             };
-            redmineClient.CreateRequest(Arg.Is<string>(s => s.Contains("projects.json")), Arg.Any<Method>())
-                .Returns(projectsRequest);
-            redmineClient.GetAsync<RedmineProjects>(Arg.Any<RestRequest>())
-                .Returns(projectsResponse);
+            SetupTruthItemConfigurations(configTable, trackerNames);
+            SetupMockFileSystem();
+            SetupMockConfiguration();
+            SetupMockRedmineResponses();
 
-            // 2. Mock response for versions
-            var versionsRequest = new RestRequest("projects/1/versions.json", Method.Get);
-            var versionsResponse = new VersionList
+            // Setup mock responses for issues
+            var initialIssuesResponse = new RedmineIssues
             {
-                Versions = new List<Version>
+                Issues = new List<RedmineIssue>
                 {
-                    new Version { Id = 1, Name = "1.0", Status = "open" }
-                },
-                TotalCount = 1
-            };
-            redmineClient.CreateRequest(Arg.Is<string>(s => s.Contains("versions.json")), Arg.Any<Method>())
-                .Returns(versionsRequest);
-            redmineClient.GetAsync<VersionList>(Arg.Any<RestRequest>())
-                .Returns(versionsResponse);
-
-            // 3. Mock response for trackers
-            var trackersRequest = new RestRequest("trackers.json", Method.Get);
-            var trackersResponse = new RedmineTrackers
-            {
-                Trackers = new List<RedmineTracker>
-                {
-                    new RedmineTracker { Id = 1, Name = "SystemRequirement" },
-                    new RedmineTracker { Id = 2, Name = "SoftwareRequirement" },
-                    new RedmineTracker { Id = 3, Name = "Documentation" },
-                    new RedmineTracker { Id = 4, Name = "SoftwareSystemTest" },
-                    new RedmineTracker { Id = 5, Name = "Bug" },
-                    new RedmineTracker { Id = 6, Name = "Risk" },
-                    new RedmineTracker { Id = 7, Name = "SOUP" },
-                    new RedmineTracker { Id = 8, Name = "DocContent" }
+                    new RedmineIssue
+                    {
+                        Id = 1,
+                        Subject = "System Requirement 1",
+                        Description = "Test Description",
+                        Status = new Status { Id = 1, Name = "New" },
+                        Tracker = new RedmineTracker { Id = 1, Name = "Risk" },
+                        Relations = new List<Relation>
+                        {
+                            new Relation { IssueId = 2, RelationType = "relates" }
+                        },
+                        UpdatedOn = DateTime.UtcNow,
+                        AssignedTo = new AssignedTo { Id = 1, Name = "Test User" },
+                        CustomFields = new List<CustomField>
+                        {
+                            new CustomField 
+                            { 
+                                Id = 1, 
+                                Name = "Version", 
+                                Value = System.Text.Json.JsonSerializer.SerializeToElement("1.0"),
+                                Multiple = false
+                            }
+                        },
+                        Project = new RedmineProject { Id = 1, Name = "TestProject" }
+                    }
                 }
             };
-            redmineClient.CreateRequest(Arg.Is<string>(s => s.Contains("trackers.json")), Arg.Any<Method>())
-                .Returns(trackersRequest);
-            redmineClient.GetAsync<RedmineTrackers>(Arg.Any<RestRequest>())
-                .Returns(trackersResponse);
 
-            // 4. Mock response for issues query (empty response for simplicity)
-            var issuesRequest = new RestRequest("issues.json", Method.Get);
-            var issuesResponse = new RedmineIssues
-            {
-                Issues = new List<RedmineIssue>(),
-                TotalCount = 0,
-                Offset = 0,
-                Limit = 100
-            };
-            redmineClient.CreateRequest(Arg.Is<string>(s => s.Contains("issues.json")), Arg.Any<Method>())
-                .Returns(issuesRequest);
             redmineClient.GetAsync<RedmineIssues>(Arg.Any<RestRequest>())
-                .Returns(issuesResponse);
+                .Returns(initialIssuesResponse);
 
-            // Initialize the plugin
+            InitializePluginWithConfiguration(configTable);
+
+            // Act & Assert
+            ClassicAssert.DoesNotThrow(() => plugin.RefreshItems());
+        }
+
+        [UnitTestAttribute(
+        Identifier = "C9D0E1F2-A345-6789-C345-90123ABCDEF1",
+        Purpose = "RedmineSLMSPlugin throws exception when trying to pull issues for non-existent tracker",
+        PostCondition = "Appropriate exception is thrown with descriptive message")]
+        [Test]
+        public void TestRedmineSLMSPluginNonExistentTracker()
+        {
+            // Arrange
+            var configTable = CreateBaseConfiguration();
+            var trackerNames = new Dictionary<string, string>
+            {
+                ["SystemRequirement"] = "NonExistentTracker",
+                ["SoftwareRequirement"] = "SoftwareRequirement",
+                ["DocumentationRequirement"] = "Documentation",
+                ["DocContent"] = "DocContent",
+                ["SoftwareSystemTest"] = "SoftwareSystemTest",
+                ["Anomaly"] = "Bug",
+                ["Risk"] = "Risk",
+                ["SOUP"] = "SOUP"
+            };
+            SetupTruthItemConfigurations(configTable, trackerNames);
+            SetupMockFileSystem();
+            SetupMockConfiguration();
+            SetupMockRedmineResponses();
+
+            InitializePluginWithConfiguration(configTable);
+
+            // Act & Assert
+            var exception = ClassicAssert.Throws<Exception>(() => plugin.RefreshItems());
+            ClassicAssert.That(exception.Message, Does.Contain("NonExistentTracker"));
+            ClassicAssert.That(exception.Message, Does.Contain("not present"));
+        }
+
+        [UnitTestAttribute(
+        Identifier = "B4C5D6E7-F890-1234-B890-456789ABCDEF",
+        Purpose = "CreateTestCase correctly creates a SoftwareSystemTestItem from Redmine issues",
+        PostCondition = "SoftwareSystemTestItem is created with correct properties from Redmine issues")]
+        [Test]
+        public void TestCreateTestCase()
+        {
+            // Arrange
+            var issues = new List<RedmineIssue>
+            {
+                new RedmineIssue
+                {
+                    Id = 1,
+                    Subject = "Software Requirement",
+                    Description = "Software Requirement description",
+                    Status = new Status { Id = 1, Name = "New" },
+                    Tracker = new RedmineTracker { Id = 1, Name = "SoftwareRequirement" },
+                    Relations = new List<Relation>
+                    {
+                        new Relation { IssueId = 2, RelationType = "relates" }
+                    },
+                    UpdatedOn = DateTime.UtcNow,
+                    AssignedTo = new AssignedTo { Id = 1, Name = "Test User" },
+                    CustomFields = new List<CustomField>
+                    {
+                        new CustomField
+                        {
+                            Id = 1,
+                            Name = "Version",
+                            Value = System.Text.Json.JsonSerializer.SerializeToElement("1.0"),
+                            Multiple = false
+                        }
+                    },
+                    Project = new RedmineProject { Id = 1, Name = "TestProject" }
+                }
+            };
+
+            var testCaseIssue = new RedmineIssue
+            {
+                Id = 2,
+                Subject = "Test Case 2",
+                Description = "Test case description with steps:\n1. First step\n2. Second step\n3. Expected result",
+                Status = new Status { Id = 1, Name = "New" },
+                Tracker = new RedmineTracker { Id = 1, Name = "SoftwareSystemTest" },
+                Relations = new List<Relation>
+                {
+                    new Relation { IssueId = 1, RelationType = "relates" }
+                },
+                UpdatedOn = DateTime.UtcNow,
+                AssignedTo = new AssignedTo { Id = 1, Name = "Test User" },
+                FixedVersion = new FixedVersion { Id = 1, Name = "theFixedVersion" },
+                CustomFields = new List<CustomField>
+                {
+                    new CustomField 
+                    { 
+                        Id = 1, 
+                        Name = "Test Method", 
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("Unit Tested"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 2,
+                        Name = "Identifier",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("UnitTestIdentifier"),
+                        Multiple = false
+                    }
+                },
+                Project = new RedmineProject { Id = 1, Name = "TestProject" }
+            };
+
+            var configTable = CreateBaseConfiguration();
+            var trackerNames = new Dictionary<string, string>
+            {
+                ["SystemRequirement"] = "NonExistentTracker",
+                ["SoftwareRequirement"] = "SoftwareRequirement",
+                ["DocumentationRequirement"] = "Documentation",
+                ["DocContent"] = "DocContent",
+                ["SoftwareSystemTest"] = "SoftwareSystemTest",
+                ["Anomaly"] = "Bug",
+                ["Risk"] = "Risk",
+                ["SOUP"] = "SOUP"
+            };
+            SetupTruthItemConfigurations(configTable, trackerNames);
+            SetupMockConfiguration();
+            InitializePluginWithConfiguration(configTable);
+
+            // Act
+            var testCase = plugin.CreateTestCase(issues, testCaseIssue);
+
+            // Assert
+            ClassicAssert.NotNull(testCase);
+            ClassicAssert.AreEqual("2", testCase.ItemID);
+            ClassicAssert.AreEqual("Test Case 2", testCase.ItemTitle);
+            ClassicAssert.AreEqual(4,testCase.TestCaseSteps.Count());
+            ClassicAssert.AreEqual(2, testCase.LinkedItems.Count());
+            ClassicAssert.AreEqual("1", testCase.LinkedItems.Last().TargetID);
+            ClassicAssert.AreEqual("UnitTestIdentifier", testCase.LinkedItems.First().TargetID);
+            ClassicAssert.AreEqual(ItemLinkType.Parent, testCase.LinkedItems.Last().LinkType);
+            ClassicAssert.AreEqual(ItemLinkType.UnitTest, testCase.LinkedItems.First().LinkType);
+            ClassicAssert.AreEqual("New", testCase.ItemStatus);
+            ClassicAssert.AreEqual(true, testCase.TestCaseAutomated);
+            ClassicAssert.AreEqual(true, testCase.TestCaseToUnitTest);
+            ClassicAssert.AreEqual("theFixedVersion", testCase.ItemTargetVersion);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "C5D6E7F8-9012-3456-C901-567890ABCDEF",
+        Purpose = "CreateDocContent correctly creates a DocContentItem from Redmine issues",
+        PostCondition = "DocContentItem is created with correct properties from Redmine issues")]
+        [Test]
+        public void TestCreateDocContent()
+        {
+            // Arrange
+            var docContentIssue = new RedmineIssue
+            {
+                Id = 2,
+                Subject = "Doc Content 2",
+                Description = "Documentation content with sections:\n1. Introduction\n2. Main Content\n3. Conclusion",
+                Status = new Status { Id = 1, Name = "New" },
+                Tracker = new RedmineTracker { Id = 1, Name = "DocContent" },
+                Relations = new List<Relation>
+                {
+                    new Relation { IssueId = 1, RelationType = "relates" }
+                },
+                UpdatedOn = DateTime.UtcNow,
+                AssignedTo = new AssignedTo { Id = 1, Name = "Test User" },
+                FixedVersion = new FixedVersion { Id = 1, Name = "theFixedVersion" },
+                CustomFields = new List<CustomField>
+                {
+                    new CustomField 
+                    { 
+                        Id = 1, 
+                        Name = "Functional Area", 
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("the functional area"),
+                        Multiple = false
+                    },
+                },
+                Project = new RedmineProject { Id = 1, Name = "TestProject" }
+            };
+
+            var configTable = CreateBaseConfiguration();
+            var trackerNames = new Dictionary<string, string>
+            {
+                ["SystemRequirement"] = "SystemRequirement",
+                ["SoftwareRequirement"] = "SoftwareRequirement",
+                ["DocumentationRequirement"] = "Documentation",
+                ["DocContent"] = "DocContent",
+                ["SoftwareSystemTest"] = "SoftwareSystemTest",
+                ["Anomaly"] = "Bug",
+                ["Risk"] = "Risk",
+                ["SOUP"] = "SOUP"
+            };
+            SetupTruthItemConfigurations(configTable, trackerNames);
+            SetupMockConfiguration();
+            InitializePluginWithConfiguration(configTable);
+
+            // Act
+            var docContent = plugin.CreateDocContent(docContentIssue);
+
+            // Assert
+            ClassicAssert.NotNull(docContent);
+            ClassicAssert.AreEqual("2", docContent.ItemID);
+            ClassicAssert.AreEqual("Documentation content with sections:\n1. Introduction\n2. Main Content\n3. Conclusion", docContent.DocContent);
+            ClassicAssert.AreEqual(1, docContent.LinkedItems.Count());
+            ClassicAssert.AreEqual("1", docContent.LinkedItems.First().TargetID);
+            ClassicAssert.AreEqual(ItemLinkType.Related, docContent.LinkedItems.First().LinkType);
+            ClassicAssert.AreEqual("New", docContent.ItemStatus);
+            ClassicAssert.AreEqual("theFixedVersion", docContent.ItemTargetVersion);
+            ClassicAssert.AreEqual("the functional area", docContent.ItemCategory);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "D6E7F8G9-0123-4567-D012-678901ABCDEF",
+        Purpose = "CreateSOUP correctly creates a SOUPItem from Redmine issues",
+        PostCondition = "SOUPItem is created with correct properties from Redmine issues")]
+        [Test]
+        public void TestCreateSOUP()
+        {
+            // Arrange
+            var soupIssue = new RedmineIssue
+            {
+                Id = 2,
+                Subject = "SOUP Item 2",
+                Description = "SOUP item details:\n1. Purpose\n2. Usage\n3. Dependencies",
+                Status = new Status { Id = 1, Name = "New" },
+                Tracker = new RedmineTracker { Id = 1, Name = "SOUP" },
+                Relations = new List<Relation>
+                {
+                    new Relation { IssueId = 1, RelationType = "relates" }
+                },
+                UpdatedOn = DateTime.UtcNow,
+                AssignedTo = new AssignedTo { Id = 1, Name = "Test User" },
+                FixedVersion = new FixedVersion { Id = 1, Name = "theFixedVersion" },
+                CustomFields = new List<CustomField>
+                {
+                    new CustomField
+                    {
+                        Id = 2,
+                        Name = "Version",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("1.0.0"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 3,
+                        Name = "Linked Library",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("1"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 4,
+                        Name = "SOUP Detailed Description",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("Detailed description of the SOUP component"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 5,
+                        Name = "Performance Critical?",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("This component is performance critical"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 6,
+                        Name = "CyberSecurity Critical?",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("This component is not cybersecurity critical"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 7,
+                        Name = "Anomaly List Examination",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("List of known anomalies in the component"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 8,
+                        Name = "Installed by end user?",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("Yes, installed by end user"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 9,
+                        Name = "End user training",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("Required training for end users"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 10,
+                        Name = "SOUP License",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("MIT"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 11,
+                        Name = "Manufacturer",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("Test Manufacturer"),
+                        Multiple = false
+                    }
+                },
+                Project = new RedmineProject { Id = 1, Name = "TestProject" }
+            };
+
+            var configTable = CreateBaseConfiguration();
+            var trackerNames = new Dictionary<string, string>
+            {
+                ["SystemRequirement"] = "SystemRequirement",
+                ["SoftwareRequirement"] = "SoftwareRequirement",
+                ["DocumentationRequirement"] = "Documentation",
+                ["DocContent"] = "DocContent",
+                ["SoftwareSystemTest"] = "SoftwareSystemTest",
+                ["Anomaly"] = "Bug",
+                ["Risk"] = "Risk",
+                ["SOUP"] = "SOUP"
+            };
+            SetupTruthItemConfigurations(configTable, trackerNames);
+            SetupMockConfiguration();
+            InitializePluginWithConfiguration(configTable);
+
+            // Act
+            var soup = plugin.CreateSOUP(soupIssue);
+
+            // Assert
+            ClassicAssert.NotNull(soup);
+            ClassicAssert.AreEqual("2", soup.ItemID);
+            ClassicAssert.AreEqual("Detailed description of the SOUP component", soup.SOUPDetailedDescription);
+            ClassicAssert.AreEqual(1, soup.LinkedItems.Count());
+            ClassicAssert.AreEqual("1", soup.LinkedItems.First().TargetID);
+            ClassicAssert.AreEqual(ItemLinkType.Related, soup.LinkedItems.First().LinkType);
+            ClassicAssert.AreEqual("New", soup.ItemStatus);
+            ClassicAssert.AreEqual("theFixedVersion", soup.ItemTargetVersion);
+            ClassicAssert.AreEqual("SOUP Item 2", soup.SOUPName);
+            ClassicAssert.AreEqual("1.0.0", soup.SOUPVersion);
+            ClassicAssert.AreEqual(true, soup.SOUPLinkedLib);
+            ClassicAssert.AreEqual(true, soup.SOUPPerformanceCritical);
+            ClassicAssert.AreEqual("This component is performance critical", soup.SOUPPerformanceCriticalText);
+            ClassicAssert.AreEqual(false, soup.SOUPCybersecurityCritical);
+            ClassicAssert.AreEqual("This component is not cybersecurity critical", soup.SOUPCybersecurityCriticalText);
+            ClassicAssert.AreEqual("List of known anomalies in the component", soup.SOUPAnomalyListDescription);
+            ClassicAssert.AreEqual(true, soup.SOUPInstalledByUser);
+            ClassicAssert.AreEqual("Yes, installed by end user", soup.SOUPInstalledByUserText);
+            ClassicAssert.AreEqual("Required training for end users", soup.SOUPEnduserTraining);
+            ClassicAssert.AreEqual("MIT", soup.SOUPLicense);
+            ClassicAssert.AreEqual("Test Manufacturer", soup.SOUPManufacturer);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "E7F8G9H0-1234-5678-E123-456789ABCDEF",
+        Purpose = "CreateBug correctly creates an AnomalyItem from Redmine issues",
+        PostCondition = "AnomalyItem is created with correct properties from Redmine issues")]
+        [Test]
+        public void TestCreateBug()
+        {
+            // Arrange
+            var bugIssue = new RedmineIssue
+            {
+                Id = 2,
+                Subject = "Bug Title",
+                Description = "Detailed bug description with steps to reproduce",
+                Status = new Status { Id = 1, Name = "New" },
+                Tracker = new RedmineTracker { Id = 1, Name = "Bug" },
+                Relations = new List<Relation>
+                {
+                    new Relation { IssueId = 1, RelationType = "relates" }
+                },
+                UpdatedOn = DateTime.UtcNow,
+                AssignedTo = new AssignedTo { Id = 1, Name = "Test User" },
+                FixedVersion = new FixedVersion { Id = 1, Name = "theFixedVersion" },
+                CustomFields = new List<CustomField>
+                {
+                    new CustomField 
+                    { 
+                        Id = 1, 
+                        Name = "Justification", 
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("Bug justification text"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 2,
+                        Name = "Severity",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("High"),
+                        Multiple = false
+                    }
+                },
+                Project = new RedmineProject { Id = 1, Name = "TestProject" }
+            };
+
+            var configTable = CreateBaseConfiguration();
+            var trackerNames = new Dictionary<string, string>
+            {
+                ["SystemRequirement"] = "SystemRequirement",
+                ["SoftwareRequirement"] = "SoftwareRequirement",
+                ["DocumentationRequirement"] = "Documentation",
+                ["DocContent"] = "DocContent",
+                ["SoftwareSystemTest"] = "SoftwareSystemTest",
+                ["Anomaly"] = "Bug",
+                ["Risk"] = "Risk",
+                ["SOUP"] = "SOUP"
+            };
+            SetupTruthItemConfigurations(configTable, trackerNames);
+            SetupMockConfiguration();
+            InitializePluginWithConfiguration(configTable);
+
+            // Act
+            var bug = plugin.CreateBug(bugIssue);
+
+            // Assert
+            ClassicAssert.NotNull(bug);
+            ClassicAssert.AreEqual("2", bug.ItemID);
+            ClassicAssert.AreEqual("Bug Title", bug.ItemTitle);
+            ClassicAssert.AreEqual("Detailed bug description with steps to reproduce", bug.AnomalyDetailedDescription);
+            ClassicAssert.AreEqual(1, bug.LinkedItems.Count());
+            ClassicAssert.AreEqual("1", bug.LinkedItems.First().TargetID);
+            ClassicAssert.AreEqual(ItemLinkType.Related, bug.LinkedItems.First().LinkType);
+            ClassicAssert.AreEqual("New", bug.ItemStatus);
+            ClassicAssert.AreEqual("New", bug.AnomalyState);
+            ClassicAssert.AreEqual("theFixedVersion", bug.ItemTargetVersion);
+            ClassicAssert.AreEqual("Test User", bug.AnomalyAssignee);
+            ClassicAssert.AreEqual("Bug justification text", bug.AnomalyJustification);
+            ClassicAssert.AreEqual("High", bug.AnomalySeverity);
+            ClassicAssert.AreEqual(bugIssue.UpdatedOn.ToString(), bug.ItemRevision);
+            ClassicAssert.AreEqual(bugIssue.UpdatedOn, bug.ItemLastUpdated);
+            ClassicAssert.AreEqual(new Uri("http://localhost:3001/issues/2"), bug.Link);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "F8G9H0I1-2345-6789-F234-567890ABCDEF",
+        Purpose = "CreateRisk correctly creates a RiskItem from Redmine issues",
+        PostCondition = "RiskItem is created with correct properties from Redmine issues")]
+        [Test]
+        public void TestCreateRisk()
+        {
+            // Arrange
+            var riskIssue = new RedmineIssue
+            {
+                Id = 2,
+                Subject = "Risk Title",
+                Description = "Detailed risk description with failure mode analysis",
+                Status = new Status { Id = 1, Name = "New" },
+                Tracker = new RedmineTracker { Id = 1, Name = "Risk" },
+                Relations = new List<Relation>
+                {
+                    new Relation { IssueId = 1, RelationType = "relates" }
+                },
+                UpdatedOn = DateTime.UtcNow,
+                AssignedTo = new AssignedTo { Id = 1, Name = "Test User" },
+                FixedVersion = new FixedVersion { Id = 1, Name = "theFixedVersion" },
+                CustomFields = new List<CustomField>
+                {
+                    new CustomField 
+                    { 
+                        Id = 1, 
+                        Name = "Risk Type", 
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("Technical"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 2,
+                        Name = "Risk",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("System failure"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 3,
+                        Name = "Hazard Severity",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("5-Critical"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 4,
+                        Name = "Hazard Probability",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("4-High"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 5,
+                        Name = "Hazard Detectability",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("3-Medium"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 6,
+                        Name = "Residual Probability",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("2-Low"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 7,
+                        Name = "Residual Detectability",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("1-Very Low"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 8,
+                        Name = "Risk Control Category",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("Prevention\tAdditional info"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 9,
+                        Name = "Detection Method",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("Automated testing"),
+                        Multiple = false
+                    }
+                },
+                Project = new RedmineProject { Id = 1, Name = "TestProject" }
+            };
+
+            var controlIssue = new RedmineIssue
+            {
+                Id = 1,
+                Subject = "Control Measure",
+                Description = "Implementation details of the control measure",
+                Status = new Status { Id = 1, Name = "New" },
+                Tracker = new RedmineTracker { Id = 1, Name = "SystemRequirement" }
+            };
+
+            var controlIssues = new RedmineIssues() { Issues = new List<RedmineIssue> { controlIssue } };
+
+            redmineClient.GetAsync<RedmineIssues>(Arg.Any<RestRequest>())
+                .Returns(controlIssues);
+
+            var configTable = CreateBaseConfiguration();
+            var trackerNames = new Dictionary<string, string>
+            {
+                ["SystemRequirement"] = "SystemRequirement",
+                ["SoftwareRequirement"] = "SoftwareRequirement",
+                ["DocumentationRequirement"] = "Documentation",
+                ["DocContent"] = "DocContent",
+                ["SoftwareSystemTest"] = "SoftwareSystemTest",
+                ["Anomaly"] = "Bug",
+                ["Risk"] = "Risk",
+                ["SOUP"] = "SOUP"
+            };
+            SetupTruthItemConfigurations(configTable, trackerNames);
+            SetupMockConfiguration();
+            InitializePluginWithConfiguration(configTable);
+
+            // Act
+            var risk = plugin.CreateRisk(new List<RedmineIssue> { controlIssue, riskIssue }, riskIssue);
+
+            // Assert
+            ClassicAssert.NotNull(risk);
+            ClassicAssert.AreEqual("2", risk.ItemID);
+            ClassicAssert.AreEqual("Risk Title", risk.RiskFailureMode);
+            ClassicAssert.AreEqual("Detailed risk description with failure mode analysis", risk.RiskCauseOfFailure);
+            ClassicAssert.AreEqual(1, risk.LinkedItems.Count());
+            ClassicAssert.AreEqual("1", risk.LinkedItems.First().TargetID);
+            ClassicAssert.AreEqual(ItemLinkType.RiskControl, risk.LinkedItems.First().LinkType);
+            ClassicAssert.AreEqual("New", risk.ItemStatus);
+            ClassicAssert.AreEqual("theFixedVersion", risk.ItemTargetVersion);
+            ClassicAssert.AreEqual("Technical", risk.ItemCategory);
+            ClassicAssert.AreEqual("System failure", risk.RiskPrimaryHazard);
+            ClassicAssert.AreEqual(5, risk.RiskSeverityScore);
+            ClassicAssert.AreEqual(4, risk.RiskOccurenceScore);
+            ClassicAssert.AreEqual(3, risk.RiskDetectabilityScore);
+            ClassicAssert.AreEqual(2, risk.RiskModifiedOccScore);
+            ClassicAssert.AreEqual(1, risk.RiskModifiedDetScore);
+            ClassicAssert.AreEqual("Prevention", risk.RiskControlMeasureType);
+            ClassicAssert.AreEqual("Automated testing", risk.RiskMethodOfDetection);
+            ClassicAssert.AreEqual("Control Measure", risk.RiskControlMeasure);
+            ClassicAssert.AreEqual("Implementation details of the control measure", risk.RiskControlImplementation);
+            ClassicAssert.AreEqual(riskIssue.UpdatedOn.ToString(), risk.ItemRevision);
+            ClassicAssert.AreEqual(riskIssue.UpdatedOn, risk.ItemLastUpdated);
+            ClassicAssert.AreEqual(new Uri("http://localhost:3001/issues/2"), risk.Link);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "G9H0I1J2-3456-7890-G345-678901ABCDEF",
+        Purpose = "CreateRisk throws exception when risk has multiple related issues",
+        PostCondition = "Exception is thrown with appropriate message when risk has more than one related issue")]
+        [Test]
+        public void TestCreateRiskMultipleRelatedIssues()
+        {
+            // Arrange
+            var riskIssue = new RedmineIssue
+            {
+                Id = 2,
+                Subject = "Risk Title",
+                Description = "Detailed risk description with failure mode analysis",
+                Status = new Status { Id = 1, Name = "New" },
+                Tracker = new RedmineTracker { Id = 1, Name = "Risk" },
+                Relations = new List<Relation>
+                {
+                    new Relation { IssueId = 1, RelationType = "relates" },
+                    new Relation { IssueId = 3, RelationType = "relates" }
+                },
+                UpdatedOn = DateTime.UtcNow,
+                AssignedTo = new AssignedTo { Id = 1, Name = "Test User" },
+                FixedVersion = new FixedVersion { Id = 1, Name = "theFixedVersion" },
+                CustomFields = new List<CustomField>
+                {
+                    new CustomField 
+                    { 
+                        Id = 1, 
+                        Name = "Risk Type", 
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("Technical"),
+                        Multiple = false
+                    },
+                    new CustomField
+                    {
+                        Id = 2,
+                        Name = "Risk",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("System failure"),
+                        Multiple = false
+                    }
+                },
+                Project = new RedmineProject { Id = 1, Name = "TestProject" }
+            };
+
+            var controlIssue1 = new RedmineIssue
+            {
+                Id = 1,
+                Subject = "Control Measure 1",
+                Description = "Implementation details of the first control measure",
+                Status = new Status { Id = 1, Name = "New" },
+                Tracker = new RedmineTracker { Id = 1, Name = "SystemRequirement" }
+            };
+
+            var controlIssue2 = new RedmineIssue
+            {
+                Id = 3,
+                Subject = "Control Measure 2",
+                Description = "Implementation details of the second control measure",
+                Status = new Status { Id = 1, Name = "New" },
+                Tracker = new RedmineTracker { Id = 1, Name = "SystemRequirement" }
+            };
+
+            var controlIssues = new RedmineIssues() 
+            { 
+                Issues = new List<RedmineIssue> { controlIssue1, controlIssue2 } 
+            };
+
+            redmineClient.GetAsync<RedmineIssues>(Arg.Any<RestRequest>())
+                .Returns(controlIssues);
+
+            var configTable = CreateBaseConfiguration();
+            var trackerNames = new Dictionary<string, string>
+            {
+                ["SystemRequirement"] = "SystemRequirement",
+                ["SoftwareRequirement"] = "SoftwareRequirement",
+                ["DocumentationRequirement"] = "Documentation",
+                ["DocContent"] = "DocContent",
+                ["SoftwareSystemTest"] = "SoftwareSystemTest",
+                ["Anomaly"] = "Bug",
+                ["Risk"] = "Risk",
+                ["SOUP"] = "SOUP"
+            };
+            SetupTruthItemConfigurations(configTable, trackerNames);
+            SetupMockConfiguration();
+            InitializePluginWithConfiguration(configTable);
+
+            // Act & Assert
+            var exception = ClassicAssert.Throws<Exception>(() => 
+                plugin.CreateRisk(new List<RedmineIssue> { controlIssue1, controlIssue2, riskIssue }, riskIssue));
+            ClassicAssert.That(exception.Message, Does.Contain("Only a single related link to risk item"));
+            ClassicAssert.That(exception.Message, Does.Contain("2"));
+        }
+
+        [UnitTestAttribute(
+        Identifier = "H0I1J2K3-4567-8901-H456-789012ABCDEF",
+        Purpose = "CreateRequirement correctly creates a RequirementItem with proper properties and child links",
+        PostCondition = "RequirementItem is created with correct properties and child links for issues that reference it as their parent")]
+        [Test]
+        public void TestCreateRequirement()
+        {
+            // Arrange
+            var requirementIssue = new RedmineIssue
+            {
+                Id = 1,
+                Subject = "Parent Requirement",
+                Description = "Parent requirement description",
+                Status = new Status { Id = 1, Name = "New" },
+                Tracker = new RedmineTracker { Id = 1, Name = "SystemRequirement" },
+                UpdatedOn = DateTime.UtcNow,
+                AssignedTo = new AssignedTo { Id = 1, Name = "Test User" },
+                FixedVersion = new FixedVersion { Id = 1, Name = "theFixedVersion" },
+                CustomFields = new List<CustomField>
+                {
+                    new CustomField
+                    {
+                        Id = 1,
+                        Name = "Functional Area",
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("Test Area"),
+                        Multiple = false
+                    }
+                },
+                Relations = new List<Relation>(),
+                Project = new RedmineProject { Id = 1, Name = "TestProject" }
+            };
+
+            var childIssue1 = new RedmineIssue
+            {
+                Id = 2,
+                Subject = "Child Requirement 1",
+                Description = "First child requirement",
+                Status = new Status { Id = 1, Name = "New" },
+                Tracker = new RedmineTracker { Id = 1, Name = "SoftwareRequirement" },
+                Parent = new Parent { Id = 1, Name = "Parent Requirement" },
+                Project = new RedmineProject { Id = 1, Name = "TestProject" }
+            };
+
+            var childIssue2 = new RedmineIssue
+            {
+                Id = 3,
+                Subject = "Child Requirement 2",
+                Description = "Second child requirement",
+                Status = new Status { Id = 1, Name = "New" },
+                Tracker = new RedmineTracker { Id = 1, Name = "SoftwareRequirement" },
+                Parent = new Parent { Id = 1, Name = "Parent Requirement" },
+                Project = new RedmineProject { Id = 1, Name = "TestProject" }
+            };
+
+            var unrelatedIssue = new RedmineIssue
+            {
+                Id = 4,
+                Subject = "Unrelated Requirement",
+                Description = "This requirement is not a child",
+                Status = new Status { Id = 1, Name = "New" },
+                Tracker = new RedmineTracker { Id = 1, Name = "SoftwareRequirement" },
+                Parent = new Parent { Id = 5, Name = "Different Parent" },
+                Project = new RedmineProject { Id = 1, Name = "TestProject" }
+            };
+
+            var configTable = CreateBaseConfiguration();
+            var trackerNames = new Dictionary<string, string>
+            {
+                ["SystemRequirement"] = "SystemRequirement",
+                ["SoftwareRequirement"] = "SoftwareRequirement",
+                ["DocumentationRequirement"] = "Documentation",
+                ["DocContent"] = "DocContent",
+                ["SoftwareSystemTest"] = "SoftwareSystemTest",
+                ["Anomaly"] = "Bug",
+                ["Risk"] = "Risk",
+                ["SOUP"] = "SOUP"
+            };
+            SetupTruthItemConfigurations(configTable, trackerNames);
+            SetupMockConfiguration();
+            InitializePluginWithConfiguration(configTable);
+
+            // Act
+            var requirement = plugin.CreateRequirement(
+                new List<RedmineIssue> { requirementIssue, childIssue1, childIssue2, unrelatedIssue }, 
+                requirementIssue, 
+                RequirementType.SystemRequirement);
+
+            // Assert
+            ClassicAssert.NotNull(requirement);
+            
+            // Verify basic properties
+            ClassicAssert.AreEqual("1", requirement.ItemID);
+            ClassicAssert.AreEqual("Parent Requirement", requirement.ItemTitle);
+            ClassicAssert.AreEqual("Parent requirement description", requirement.RequirementDescription);
+            ClassicAssert.AreEqual("Test Area", requirement.ItemCategory);
+            ClassicAssert.AreEqual("New", requirement.ItemStatus);
+            ClassicAssert.AreEqual("theFixedVersion", requirement.ItemTargetVersion);
+            ClassicAssert.AreEqual("Test User", requirement.RequirementAssignee);
+            ClassicAssert.AreEqual(new Uri("http://localhost:3001/issues/1"), requirement.Link);
+            ClassicAssert.AreEqual(requirementIssue.UpdatedOn.ToString(), requirement.ItemRevision);
+            ClassicAssert.AreEqual(requirementIssue.UpdatedOn, requirement.ItemLastUpdated);
+
+            // Verify child links
+            ClassicAssert.AreEqual(2, requirement.LinkedItems.Count());
+            ClassicAssert.IsTrue(requirement.LinkedItems.Any(l => l.TargetID == "2" && l.LinkType == ItemLinkType.Child));
+            ClassicAssert.IsTrue(requirement.LinkedItems.Any(l => l.TargetID == "3" && l.LinkType == ItemLinkType.Child));
+            ClassicAssert.IsFalse(requirement.LinkedItems.Any(l => l.TargetID == "4"));
+        }
+
+        #endregion
+
+        #region Custom Field Filtering Tests
+
+        [UnitTestAttribute(
+        Identifier = "I1J2K3L4-5678-9012-I567-890123ABCDEF",
+        Purpose = "ShouldIgnoreIssue correctly filters items based on custom field values",
+        PostCondition = "Items are correctly filtered based on custom field inclusion and exclusion rules")]
+        [Test]
+        public void TestShouldIgnoreIssueCustomFieldFiltering()
+        {
+            // Arrange
+            var redmineIssue = new RedmineIssue
+            {
+                Id = 1,
+                Subject = "Test Issue",
+                Status = new Status { Name = "New" },
+                Tracker = new RedmineTracker { Name = "SystemRequirement" },
+                CustomFields = new List<CustomField>
+                {
+                    new CustomField 
+                    { 
+                        Id = 1, 
+                        Name = "Priority", 
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("High"),
+                        Multiple = false
+                    },
+                    new CustomField 
+                    { 
+                        Id = 2, 
+                        Name = "Tags", 
+                        Value = (System.Text.Json.JsonSerializer.SerializeToElement(new[] { "feature", "important" })).EnumerateArray(),
+                        Multiple = true
+                    },
+                    new CustomField 
+                    { 
+                        Id = 3, 
+                        Name = "Version", 
+                        Value = System.Text.Json.JsonSerializer.SerializeToElement("1.0"),
+                        Multiple = false
+                    }
+                }
+            };
+
+            var config = new TruthItemConfig("SystemRequirement", true);
+
+            // Setup configuration with filters
+            var configTable = CreateBaseConfiguration();
+
+            // Add inclusion filter for Priority
+            var includedFields = new TomlTable();
+            var priorityValues = new TomlArray();
+            priorityValues.Add("High");
+            priorityValues.Add("Medium");
+            includedFields["Priority"] = priorityValues;
+            configTable["IncludedItemFilter"] = includedFields;
+
+            // Add exclusion filter for Tags
+            var excludedFields = new TomlTable();
+            var tagValues = new TomlArray();
+            tagValues.Add("deprecated");
+            excludedFields["Tags"] = tagValues;
+            configTable["ExcludedItemFilter"] = excludedFields;
+
+            // Add version fields
+            var versionFields = new TomlArray();
+            versionFields.Add("Version");
+            configTable["RedmineVersionFields"] = versionFields;
+
+            // Add empty ignore list
+            var ignoreList = new TomlArray();
+            configTable["Ignore"] = ignoreList;
+
+            // Add all required truth item configurations
+            var trackerNames = new Dictionary<string, string>
+            {
+                ["SystemRequirement"] = "SystemRequirement",
+                ["SoftwareRequirement"] = "SoftwareRequirement",
+                ["DocumentationRequirement"] = "Documentation",
+                ["DocContent"] = "DocContent",
+                ["SoftwareSystemTest"] = "SoftwareSystemTest",
+                ["Anomaly"] = "Bug",
+                ["Risk"] = "Risk",
+                ["SOUP"] = "SOUP"
+            };
+            SetupTruthItemConfigurations(configTable, trackerNames);
+            SetupMockFileSystem();
+            SetupMockConfiguration();
+            SetupMockRedmineResponses();
+
+            // Mock file system and configuration calls
+            fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
+
+            var plugin = new TestRedmineSLMSPlugin(fileSystem, redmineClient);
             plugin.Initialize(configuration);
 
-            // Verify RefreshItems doesn't throw exception
-            ClassicAssert.DoesNotThrow(() => plugin.RefreshItems());
+            // Act & Assert - Test 1: Should not ignore (matches inclusion, doesn't match exclusion)
+            string reason;
+            var shouldIgnore = plugin.ShouldIgnoreIssue(redmineIssue, config, out reason);
+            ClassicAssert.IsFalse(shouldIgnore, "Item should not be ignored when it matches inclusion and doesn't match exclusion");
 
-            // Verify client methods were called
-            redmineClient.Received().GetAsync<RedmineProjects>(Arg.Any<RestRequest>());
-            redmineClient.Received().GetAsync<RedmineTrackers>(Arg.Any<RestRequest>());
+            // Test 2: Should ignore due to non-matching inclusion filter
+            redmineIssue.CustomFields[0].Value = System.Text.Json.JsonSerializer.SerializeToElement("Low");
+            shouldIgnore = plugin.ShouldIgnoreIssue(redmineIssue, config, out reason);
+            ClassicAssert.IsTrue(shouldIgnore, "Item should be ignored when it doesn't match inclusion filter");
+            ClassicAssert.That(reason, Does.Contain("Priority"));
+            ClassicAssert.That(reason, Does.Contain("Low"));
+
+            // Test 3: Should ignore due to matching exclusion filter
+            redmineIssue.CustomFields[0].Value = System.Text.Json.JsonSerializer.SerializeToElement("High");
+            redmineIssue.CustomFields[1].Value = (System.Text.Json.JsonSerializer.SerializeToElement(new[] { "deprecated", "important" })).EnumerateArray();
+            shouldIgnore = plugin.ShouldIgnoreIssue(redmineIssue, config, out reason);
+            ClassicAssert.IsTrue(shouldIgnore, "Item should be ignored when it matches exclusion filter");
+            ClassicAssert.That(reason, Does.Contain("Tags"));
+            ClassicAssert.That(reason, Does.Contain("deprecated"));
+
+            // Test 4: Should not ignore with multiple values in inclusion filter
+            redmineIssue.CustomFields[1].Value = (System.Text.Json.JsonSerializer.SerializeToElement(new[] { "feature", "important" })).EnumerateArray();
+            shouldIgnore = plugin.ShouldIgnoreIssue(redmineIssue, config, out reason);
+            ClassicAssert.IsFalse(shouldIgnore, "Item should not be ignored when multiple values match inclusion filter");
+
+            // Test 5: Should handle version fields correctly
+            redmineIssue.CustomFields[2].Value = System.Text.Json.JsonSerializer.SerializeToElement("2.0");
+            shouldIgnore = plugin.ShouldIgnoreIssue(redmineIssue, config, out reason);
+            ClassicAssert.IsFalse(shouldIgnore, "Item should not be ignored when version field is present");
         }
-        
+
         #endregion
+
     }
 }
