@@ -67,3 +67,11 @@ The @@Document:Abbreviation()@@ is intended for use by the software development 
 @@@SLMS:SOUP(checkSoup=true)
 
 @@@
+
+== Eliminated Items
+
+Due to the way the combination of ROBOCLERK and the SLMS are configured, certain items can end up being ignored. Below is a list of ignored items and the reason they are ignored.
+
+@@@SLMS:Eliminated()
+
+@@@

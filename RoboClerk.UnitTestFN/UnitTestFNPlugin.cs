@@ -1,4 +1,5 @@
-﻿using RoboClerk.Configuration;
+﻿using Microsoft.Extensions.DependencyInjection;
+using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,6 +43,11 @@ namespace RoboClerk
                 throw new Exception("The Unit Test FN plugin could not read its configuration. Aborting...");
             }
             ScanDirectoriesForSourceFiles();
+        }
+
+        public override void ConfigureServices(IServiceCollection services)
+        {
+            //this plugin does not need to register any services
         }
 
         private List<string> ParseFunctionMask(string functionMask)

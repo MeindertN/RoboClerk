@@ -114,7 +114,7 @@ namespace RoboClerk.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "{F9798C27-8063-4575-B7D1-D31513C71A96}",
+        Identifier = "F9798C27-8063-4575-B7D1-D31513C71A96",
         Purpose = "Anomaly content creator is created, a tag requesting all anomalies is supplied, one anomaly is closed, no other anomalies",
         PostCondition = "Expected content is returned, closed anomaly is ignored and no trace is set")]
         [Test]

@@ -1,5 +1,4 @@
-﻿
-using RoboClerk.AISystem;
+﻿using RoboClerk.AISystem;
 using RoboClerk.Configuration;
 using RoboClerk.ContentCreators;
 using System;
@@ -124,7 +123,7 @@ namespace RoboClerk
                                     tag.Contents = contentCreator.GetContent(tag, doc);
                                     continue;
                                 }
-                                logger.Warn($"Content creator {tag.ContentCreatorID} not found.");
+                                logger.Warn($"Content creator {tag.ContentCreatorID} not found. Check your document as any text related to this content creator has been replaced with a placeholder.");
                                 tag.Contents = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS ({tag.ContentCreatorID}) IS KNOWN TO ROBOCLERK.\n";
                             }
                         }
@@ -204,18 +203,45 @@ namespace RoboClerk
 
         private IAISystemPlugin LoadAIPlugin()
         {
-            if(configuration.AIPlugin == "")
+            if(string.IsNullOrEmpty(configuration.AIPlugin))
                 return null;
+                
+            // Create a plugin loader for IAISystemPlugin
+            var pluginLoader = new PluginLoader<IAISystemPlugin>(fileSystem);
+            
+            // Register global services that plugins might need
+            pluginLoader.RegisterGlobalService(configuration);
+            
+            // Try loading plugins from each directory
             foreach (var dir in configuration.PluginDirs)
             {
-                IPluginLoader pluginLoader = new PluginLoader();
-                var plugin = pluginLoader.LoadPlugin<IPlugin>(configuration.AIPlugin, dir, fileSystem);
-                if (plugin != null)
+                try 
                 {
-                    plugin.Initialize(configuration);
-                    return plugin as IAISystemPlugin;
+                    // Load plugins from directory
+                    var serviceProvider = pluginLoader.LoadPlugins(dir);
+                    
+                    // Get all plugins and find the one with matching name
+                    var plugins = pluginLoader.GetPlugins(serviceProvider);
+                    foreach (var plugin in plugins)
+                    {
+                        if (plugin.Name == configuration.AIPlugin)
+                        {
+                            logger.Info($"Found AI plugin: {plugin.Name}");
+                            
+                            // Initialize the plugin (all IAISystemPlugins are IPlugins)
+                            plugin.Initialize(configuration);
+                            
+                            return plugin;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn($"Error loading AI plugin from directory {dir}: {ex.Message}");
                 }
             }
+            
+            logger.Warn($"Could not find AI plugin '{configuration.AIPlugin}' in any of the plugin directories.");
             return null;
         }
     }

@@ -9,7 +9,7 @@ using System.IO.Abstractions;
 using System.Reflection;
 using Tomlyn;
 
-[assembly: AssemblyVersion("1.3.*")]
+[assembly: AssemblyVersion("1.5.*")]
 
 namespace RoboClerk
 {
@@ -35,7 +35,11 @@ namespace RoboClerk
             {
                 config.AddRule(LogLevel.Debug, LogLevel.Fatal, logFile);
             }
-            else
+            else if (logLevel.ToUpper() == "WARN")
+            {
+                config.AddRule(LogLevel.Warn, LogLevel.Fatal, logFile);
+            }
+            else 
             {
                 config.AddRule(LogLevel.Info, LogLevel.Fatal, logFile);
             }
@@ -106,7 +110,7 @@ namespace RoboClerk
                            throw;
                        }
                        var logger = NLog.LogManager.GetCurrentClassLogger();
-                       logger.Info($"RoboClerk Version: {Assembly.GetExecutingAssembly().GetName().Version}");
+                       logger.Warn($"RoboClerk Version: {Assembly.GetExecutingAssembly().GetName().Version}");
                        var commandlineOptions = GetConfigOptions(options.ConfigurationOptions, logger);
                        try
                        {

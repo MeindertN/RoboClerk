@@ -4,7 +4,8 @@
     {
         Truth,
         Document,
-        Unknown
+        Unknown,
+        Eliminated
     };
 
     public class TraceEntity

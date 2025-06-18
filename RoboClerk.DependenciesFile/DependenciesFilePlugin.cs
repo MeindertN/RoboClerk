@@ -1,4 +1,5 @@
-﻿using RoboClerk.Configuration;
+﻿using Microsoft.Extensions.DependencyInjection;
+using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
@@ -11,13 +12,16 @@ namespace RoboClerk.DependenciesFile
         private List<string> fileLocations = new List<string>();
         private List<string> fileFormats = new List<string>();
 
-        private List<ExternalDependency> externalDependencies = new List<ExternalDependency>();
-
         public DependenciesFilePlugin(IFileSystem fileSystem)
             : base(fileSystem)
         {
             name = "DependenciesFilePlugin";
             description = "A plugin that retrieves project dependencies via one or more files.";
+        }
+
+        public override void ConfigureServices(IServiceCollection services)
+        {
+            //this plugin does not need to register any services
         }
 
         public override void Initialize(IConfiguration configuration)
@@ -51,7 +55,7 @@ namespace RoboClerk.DependenciesFile
         public override void RefreshItems()
         {
             logger.Info("Refreshing the external dependencies from file.");
-            externalDependencies.Clear();
+            dependencies.Clear();
             for (int i = 0; i < fileLocations.Count; i++)
             {
                 switch (fileFormats[i])
@@ -85,7 +89,7 @@ namespace RoboClerk.DependenciesFile
                     {
                         throw new Exception($"DOTNET dependencies file does not match expected format. Error in line \"{trimmedLine}\". Cannot continue.");
                     }
-                    externalDependencies.Add(new ExternalDependency(elements[1], elements[3], elements[2] != elements[3]));
+                    dependencies.Add(new ExternalDependency(elements[1], elements[3], elements[2] != elements[3]));
                 }
             }
         }
@@ -113,7 +117,7 @@ namespace RoboClerk.DependenciesFile
                         version = version.Split("->")[0].Trim();
                         conflict = true;
                     }
-                    externalDependencies.Add(new ExternalDependency($"{elements[0]}:{elements[1]}", version, conflict));
+                    dependencies.Add(new ExternalDependency($"{elements[0]}:{elements[1]}", version, conflict));
                 }
             }
         }

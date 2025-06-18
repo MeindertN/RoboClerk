@@ -13,10 +13,73 @@ namespace RoboClerk.ContentCreators
 
         }
 
+        private string CheckResults(List<LinkedItem> items, TraceEntity docTE)
+        {
+            StringBuilder errors = new StringBuilder();
+            bool errorsFound = false;
+            var results = data.GetAllTestResults();
+            foreach (var item in items)
+            {
+                bool found = false;
+                foreach (var result in results)
+                {
+                    if (result.Type == TestResultType.UNIT && result.ID == item.ItemID)
+                    {
+                        found = true;
+                        if (result.Status == TestResultStatus.FAIL)
+                        {
+                            errors.AppendLine($"* Unit test with ID \"{result.ID}\" has failed.");
+                            errorsFound = true;
+                        }
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    errorsFound = true;
+                    errors.AppendLine($"* Result for unit test with ID \"{item.ItemID}\" not found in results.");
+                }
+            }
+            foreach (var result in results)
+            {
+                if (result.Type != TestResultType.UNIT)
+                    continue;
+                bool found = false;
+                foreach (var item in items)
+                {
+                    if (result.ID == item.ItemID)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    errorsFound = true;
+                    errors.AppendLine($"* Result for unit test with ID \"{result.ID}\" found, but test plan does not contain such a unit test.");
+                }
+            }
+            if (errorsFound)
+            {
+                errors.Insert(0, "RoboClerk detected problems with the unit testing:\n\n");
+                errors.AppendLine();
+                return errors.ToString();
+            }
+            else
+            {
+                return "All unit tests from the test plan were successfully executed and passed.";
+            }
+        }
+
         protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             var dataShare = new ScriptingBridge(data, analysis, sourceTE);
-            if (tag.HasParameter("BRIEF") && tag.GetParameterOrDefault("BRIEF").ToUpper() == "TRUE")
+            if (tag.HasParameter("CHECKRESULTS") && tag.GetParameterOrDefault("CHECKRESULTS").ToUpper() == "TRUE")
+            {
+                //this will go over all unit test results (if available) and prints a summary statement or a list of found issues.
+                return CheckResults(items, docTE);
+            }
+            else if (tag.HasParameter("BRIEF") && tag.GetParameterOrDefault("BRIEF").ToUpper() == "TRUE")
             {
                 //this will print a brief list of all soups and versions that Roboclerk knows about
                 dataShare.Items = items;

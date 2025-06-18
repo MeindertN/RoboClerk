@@ -16,7 +16,7 @@ namespace RoboClerk
             parser = new ItemTemplateParser(templateContent);
         }
 
-        public string RenderItemTemplate(ScriptingBridge bridge)
+        public string RenderItemTemplate<T>(ScriptingBridge<T> bridge) where T : Item
         {
             StringBuilder sb = new StringBuilder(fileContent);
             if (parser.StartSegment.Item2 < 0 || parser.StartSegment.Item3 < 0)

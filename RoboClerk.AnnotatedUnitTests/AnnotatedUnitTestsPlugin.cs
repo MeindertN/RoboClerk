@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.Extensions.DependencyInjection;
 using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
@@ -26,6 +27,11 @@ namespace RoboClerk.AnnotatedUnitTests
         {
             name = "AnnotatedUnitTestPlugin";
             description = "A plugin that analyzes a project's source code to extract unit test information for RoboClerk.";
+        }
+
+        public override void ConfigureServices(IServiceCollection services)
+        {
+            //this plugin does not need to register services
         }
 
         private void PopulateUTInfo(string tableName, TomlTable config)

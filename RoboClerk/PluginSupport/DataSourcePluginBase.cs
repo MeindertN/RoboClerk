@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace RoboClerk
@@ -18,6 +19,16 @@ namespace RoboClerk
         protected List<DocContentItem> docContents = new List<DocContentItem>();
         protected List<UnitTestItem> unitTests = new List<UnitTestItem>();
         protected List<ExternalDependency> dependencies = new List<ExternalDependency>();
+        protected List<TestResult> testResults = new List<TestResult>();
+        //we also keep track of any items that have been eliminated
+        protected List<EliminatedRequirementItem> eliminatedSystemRequirements = new List<EliminatedRequirementItem>();
+        protected List<EliminatedRequirementItem> eliminatedSoftwareRequirements = new List<EliminatedRequirementItem>();
+        protected List<EliminatedRequirementItem> eliminatedDocumentationRequirements = new List<EliminatedRequirementItem>();
+        protected List<EliminatedSoftwareSystemTestItem> eliminatedSoftwareSystemTests = new List<EliminatedSoftwareSystemTestItem>();
+        protected List<EliminatedRiskItem> eliminatedRisks = new List<EliminatedRiskItem>();
+        protected List<EliminatedDocContentItem> eliminatedDocContents = new List<EliminatedDocContentItem>();
+        protected List<EliminatedSOUPItem> eliminatedSOUP = new List<EliminatedSOUPItem>();
+        protected List<EliminatedAnomalyItem> eliminatedAnomalies = new List<EliminatedAnomalyItem>();
 
         public DataSourcePluginBase(IFileSystem fileSystem)
             :base(fileSystem)
@@ -77,6 +88,51 @@ namespace RoboClerk
             return dependencies;
         }
 
+        public IEnumerable<TestResult> GetTestResults()
+        {
+            return testResults;
+        }
+
+        public IEnumerable<EliminatedRequirementItem> GetEliminatedSystemRequirements()
+        {
+            return eliminatedSystemRequirements;
+        }
+
+        public IEnumerable<EliminatedRequirementItem> GetEliminatedSoftwareRequirements()
+        {
+            return eliminatedSoftwareRequirements;
+        }
+
+        public IEnumerable<EliminatedRequirementItem> GetEliminatedDocumentationRequirements()
+        {
+            return eliminatedDocumentationRequirements;
+        }
+
+        public IEnumerable<EliminatedSoftwareSystemTestItem> GetEliminatedSoftwareSystemTests()
+        {
+            return eliminatedSoftwareSystemTests;
+        }
+
+        public IEnumerable<EliminatedRiskItem> GetEliminatedRisks()
+        {
+            return eliminatedRisks;
+        }
+
+        public IEnumerable<EliminatedDocContentItem> GetEliminatedDocContents()
+        {
+            return eliminatedDocContents;
+        }
+
+        public IEnumerable<EliminatedAnomalyItem> GetEliminatedAnomalies()
+        {
+            return eliminatedAnomalies;
+        }
+
+        public IEnumerable<EliminatedSOUPItem> GetEliminatedSOUP()
+        {
+            return eliminatedSOUP;
+        }
+
         protected void ClearAllItems()
         {
             systemRequirements.Clear();
@@ -89,6 +145,40 @@ namespace RoboClerk
             docContents.Clear();
             unitTests.Clear();
             dependencies.Clear();
+            testResults.Clear();
+            eliminatedSystemRequirements.Clear();
+            eliminatedSoftwareRequirements.Clear();
+            eliminatedDocumentationRequirements.Clear();
+            eliminatedSoftwareSystemTests.Clear();
+            eliminatedSOUP.Clear();
+            eliminatedRisks.Clear();
+            eliminatedDocContents.Clear();
+            eliminatedAnomalies.Clear();
+        }
+
+        protected string EscapeNonTablePipes(string text)
+        {
+            string tableBlockPattern = @"(?ms)(^\|===\s*$.*?^\|===\s*$)";
+
+            // Use Regex.Split with a capturing group so that the table blocks are kept in the result.
+            string[] segments = Regex.Split(text, tableBlockPattern);
+            var sb = new StringBuilder();
+
+            foreach (string segment in segments)
+            {
+                // If the segment itself matches our table block pattern, leave it unmodified.
+                if (Regex.IsMatch(segment, @"(?ms)^\|===\s*$.*?^\|===\s*$"))
+                {
+                    sb.Append(segment);
+                }
+                else
+                {
+                    // Otherwise, escape any unescaped "|" in this segment.
+                    string processed = Regex.Replace(segment, @"(?<!\\)\|", @"\|");
+                    sb.Append(processed);
+                }
+            }
+            return sb.ToString();
         }
 
         private void ScrubItemsFields<T>(IEnumerable<T> items)
@@ -102,11 +192,13 @@ namespace RoboClerk
                 {
                     if (property.PropertyType == typeof(string) && property.CanWrite)
                     {
-                        // asciidoc uses | to seperate fields in a table, if the fields
-                        // themselves contain a | character it needs to be escaped.
                         string currentValue = (string)property.GetValue(obj);
-                        string newValue = Regex.Replace(currentValue, "(?<!\\\\)\\|", "\\|");
-                        property.SetValue(obj, newValue);
+                        if (currentValue != null)
+                        {
+                            // Escape pipes in non-table parts of the content.
+                            string newValue = EscapeNonTablePipes(currentValue);
+                            property.SetValue(obj, newValue);
+                        }
                     }
                 }
             }
@@ -116,19 +208,20 @@ namespace RoboClerk
         // in tables and they need to escape the | character
         protected void ScrubItemContents()
         {
-            ScrubItemsFields<RequirementItem>(systemRequirements);
-            ScrubItemsFields<RequirementItem>(softwareRequirements);
-            ScrubItemsFields<RequirementItem>(documentationRequirements);
-            ScrubItemsFields<SoftwareSystemTestItem>(testCases);
+            ScrubItemsFields(systemRequirements);
+            ScrubItemsFields(softwareRequirements);
+            ScrubItemsFields(documentationRequirements);
+            ScrubItemsFields(testCases);
             foreach (var testCase in testCases)
             {
-                ScrubItemsFields<TestStep>(testCase.TestCaseSteps);
+                ScrubItemsFields(testCase.TestCaseSteps);
             }
-            ScrubItemsFields<AnomalyItem>(anomalies);
-            ScrubItemsFields<RiskItem>(risks);
-            ScrubItemsFields<SOUPItem>(soup);
-            ScrubItemsFields<UnitTestItem>(unitTests);
-            ScrubItemsFields<ExternalDependency>(dependencies);
+            ScrubItemsFields(anomalies);
+            ScrubItemsFields(risks);
+            ScrubItemsFields(soup);
+            ScrubItemsFields(unitTests);
+            ScrubItemsFields(dependencies);
+            ScrubItemsFields(testResults);
         }
     }
 }

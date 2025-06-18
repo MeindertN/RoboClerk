@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
+﻿using Microsoft.Extensions.DependencyInjection;
 using RestSharp;
 using RoboClerk.Configuration;
 using System;
@@ -10,22 +10,54 @@ using Tomlyn.Model;
 
 namespace RoboClerk.Redmine
 {
+    public interface IRedmineClient
+    {
+        // Example methods; expand as needed
+        RestRequest CreateRequest(string resource, Method method);
+        T GetAsync<T>(RestRequest request) where T : new();
+    }
+
+    // Concrete implementation using RestSharp
+    public class RestSharpRedmineClient : IRedmineClient
+    {
+        private readonly RestClient _client;
+
+        public RestSharpRedmineClient(string apiEndpoint)
+        {
+            _client = new RestClient(apiEndpoint);
+        }
+
+        public RestRequest CreateRequest(string resource, Method method)
+        {
+            return new RestRequest(resource, method);
+        }
+
+        public T GetAsync<T>(RestRequest request) where T : new()
+        {
+            // Asynchronous execution wrapped in a synchronous call
+            return _client.GetAsync<T>(request).GetAwaiter().GetResult();
+        }
+    }
+
     public class RedmineSLMSPlugin : SLMSPluginBase
     {
+        private readonly IRedmineClient _client;
         private string baseURL = string.Empty;
         private string apiEndpoint = string.Empty;
         private string apiKey = string.Empty;
         private string projectName = string.Empty;
+        private bool convertTextile = false;
+        private TextileToAsciiDocConverter converter = null;
         private List<string> redmineVersionFields = new List<string>();
-        private RestClient client = null;
         private List<Version> versions = null;
 
-        public RedmineSLMSPlugin(IFileSystem fileSystem)
+        public RedmineSLMSPlugin(IFileSystem fileSystem, IRedmineClient client)
             : base(fileSystem)
         {
             logger.Debug("Redmine SLMS plugin created");
             name = "RedmineSLMSPlugin";
             description = "A plugin that can interrogate Redmine via its REST API to retrieve information needed by RoboClerk to create documentation.";
+            _client = client;
         }
 
         public override void Initialize(IConfiguration configuration)
@@ -36,11 +68,15 @@ namespace RoboClerk.Redmine
             {
                 TomlTable config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
                 apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", GetObjectForKey<string>(config, "RedmineAPIEndpoint", true));
-                client = new RestClient(apiEndpoint);
                 apiKey = configuration.CommandLineOptionOrDefault("RedmineAPIKey", GetObjectForKey<string>(config, "RedmineAPIKey", true));
                 projectName = configuration.CommandLineOptionOrDefault("RedmineProject", GetObjectForKey<string>(config, "RedmineProject", true));
                 baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL", GetObjectForKey<string>(config, "RedmineBaseURL", false));
-                if(config.ContainsKey("VersionCustomFields"))
+                convertTextile = configuration.CommandLineOptionOrDefault("ConvertTextile", GetObjectForKey<bool>(config, "ConvertTextile", false)?"TRUE":"FALSE").ToUpper() == "TRUE";
+                if(convertTextile) 
+                { 
+                    converter = new TextileToAsciiDocConverter(); 
+                }
+                if (config.ContainsKey("VersionCustomFields"))
                 {
                     //this is needed specifically for Redmine because we cannot via the API figure out if a custom field is of type "version"
                     //without having admin rights. 
@@ -60,6 +96,17 @@ namespace RoboClerk.Redmine
                 logger.Error(e);
                 throw new Exception($"The {name} could not read its configuration. Aborting...");
             }
+        }
+
+        public override void ConfigureServices(IServiceCollection services)
+        {
+            services.AddTransient<IRedmineClient>(provider => {
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                TomlTable config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
+                string apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", GetObjectForKey<string>(config, "RedmineAPIEndpoint", true)
+                );
+                return new RestSharpRedmineClient(apiEndpoint);
+            });
         }
 
         private List<string> GetTrackerList()
@@ -94,43 +141,68 @@ namespace RoboClerk.Redmine
                 if (redmineIssue.Tracker.Name == PrsConfig.Name)
                 {
                     logger.Debug($"System level requirement found: {redmineIssue.Id}");
-                    if (!ShouldIgnoreIssue(redmineIssue,PrsConfig))
+                    var req = CreateRequirement(redmineIssues, redmineIssue, RequirementType.SystemRequirement);
+                    string reason;
+                    if (!ShouldIgnoreIssue(redmineIssue, PrsConfig, out reason))
                     {
-                        systemRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SystemRequirement));
+                        systemRequirements.Add(req);
                     }
                     else
-                    {
+                    {                      
+                        eliminatedSystemRequirements.Add(new EliminatedRequirementItem(req, reason, EliminationReason.FilteredOut));
                         retrievedIDs.Remove(redmineIssue.Id.ToString());
                     }
                 }
                 else if (redmineIssue.Tracker.Name == SrsConfig.Name)
                 {
                     logger.Debug($"Software level requirement found: {redmineIssue.Id}");
-                    if (!ShouldIgnoreIssue(redmineIssue, SrsConfig))
+                    var req = CreateRequirement(redmineIssues, redmineIssue, RequirementType.SoftwareRequirement);
+                    string reason;
+                    if (!ShouldIgnoreIssue(redmineIssue, SrsConfig, out reason))
                     {
-                        softwareRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.SoftwareRequirement));
+                        softwareRequirements.Add(req);
                     }
                     else
                     {
+                        eliminatedSoftwareRequirements.Add(new EliminatedRequirementItem(req, reason, EliminationReason.FilteredOut));
+                        retrievedIDs.Remove(redmineIssue.Id.ToString());
+                    }
+                }
+                else if (redmineIssue.Tracker.Name == DocConfig.Name)
+                {
+                    logger.Debug($"Documentation item found: {redmineIssue.Id}");
+                    var req = CreateRequirement(redmineIssues, redmineIssue, RequirementType.DocumentationRequirement);
+                    string reason;
+                    if (!ShouldIgnoreIssue(redmineIssue, DocConfig, out reason))
+                    {
+                        documentationRequirements.Add(req);
+                    }
+                    else
+                    {
+                        eliminatedDocumentationRequirements.Add(new EliminatedRequirementItem(req, reason, EliminationReason.FilteredOut));
                         retrievedIDs.Remove(redmineIssue.Id.ToString());
                     }
                 }
                 else if (redmineIssue.Tracker.Name == TcConfig.Name)
                 {
                     logger.Debug($"Testcase found: {redmineIssue.Id}");
-                    if (!ShouldIgnoreIssue(redmineIssue, TcConfig))
+                    var tc = CreateTestCase(redmineIssues, redmineIssue);
+                    string reason;
+                    if (!ShouldIgnoreIssue(redmineIssue, TcConfig, out reason))
                     {
-                        testCases.Add(CreateTestCase(redmineIssues, redmineIssue));
+                        testCases.Add(tc);
                     }
                     else
                     {
+                        eliminatedSoftwareSystemTests.Add(new EliminatedSoftwareSystemTestItem(tc, reason, EliminationReason.FilteredOut));
                         retrievedIDs.Remove(redmineIssue.Id.ToString());
                     }
                 }
                 else if (redmineIssue.Tracker.Name == BugConfig.Name)
                 {
                     logger.Debug($"Bug item found: {redmineIssue.Id}");
-                    if (!ShouldIgnoreIssue(redmineIssue, BugConfig))
+                    string reason;
+                    if (!ShouldIgnoreIssue(redmineIssue, BugConfig, out reason))
                     {
                         anomalies.Add(CreateBug(redmineIssue));
                     }
@@ -142,33 +214,25 @@ namespace RoboClerk.Redmine
                 else if (redmineIssue.Tracker.Name == RiskConfig.Name)
                 {
                     logger.Debug($"Risk item found: {redmineIssue.Id}");
-                    if (!ShouldIgnoreIssue(redmineIssue, RiskConfig))
+                    var risk = CreateRisk(redmineIssues, redmineIssue);
+                    string reason;
+                    if (!ShouldIgnoreIssue(redmineIssue, RiskConfig, out reason))
                     {
-                        risks.Add(CreateRisk(redmineIssues, redmineIssue));
+                        risks.Add(risk);
                     }
                     else
                     {
+                        eliminatedRisks.Add(new EliminatedRiskItem(risk, reason, EliminationReason.FilteredOut));
                         retrievedIDs.Remove(redmineIssue.Id.ToString());
                     }
                 }
                 else if (redmineIssue.Tracker.Name == SoupConfig.Name)
                 {
                     logger.Debug($"SOUP item found: {redmineIssue.Id}");
-                    if (!ShouldIgnoreIssue(redmineIssue, SoupConfig))
+                    string reason;
+                    if (!ShouldIgnoreIssue(redmineIssue, SoupConfig, out reason))
                     {
                         soup.Add(CreateSOUP(redmineIssue));
-                    }
-                    else
-                    {
-                        retrievedIDs.Remove(redmineIssue.Id.ToString());
-                    }
-                }
-                else if (redmineIssue.Tracker.Name == DocConfig.Name)
-                {
-                    logger.Debug($"Documentation item found: {redmineIssue.Id}");
-                    if (!ShouldIgnoreIssue(redmineIssue, DocConfig))
-                    {
-                        documentationRequirements.Add(CreateRequirement(redmineIssues, redmineIssue, RequirementType.DocumentationRequirement));
                     }
                     else
                     {
@@ -178,7 +242,8 @@ namespace RoboClerk.Redmine
                 else if (redmineIssue.Tracker.Name == CntConfig.Name)
                 {
                     logger.Debug($"DocContent item found: {redmineIssue.Id}");
-                    if (!ShouldIgnoreIssue(redmineIssue, CntConfig))
+                    string reason;
+                    if (!ShouldIgnoreIssue(redmineIssue, CntConfig, out reason))
                     {
                         docContents.Add(CreateDocContent(redmineIssue));
                     }
@@ -193,17 +258,17 @@ namespace RoboClerk.Redmine
             ScrubItemContents(); //go over all relevant items and escape any | characters
         }
 
-        private List<T> CheckForLinkedItem<T>(List<string> retrievedIDs, List<T> inputItems, List<ItemLinkType> lt) where T : LinkedItem
+        private (List<T>, List<T>) CheckForLinkedItem<T>(List<string> retrievedIDs, List<T> inputItems, List<ItemLinkType> lt) where T : LinkedItem
         {
             List<T> items = new List<T>();
+            List<T> removedItems = new List<T>();
             string removeItem = string.Empty;
             foreach (var item in inputItems)
             {
-                if(item.LinkedItems.Count() > 0) //orphan items are always included so they don't get lost or ingnored.
+                if(item.LinkedItems.Count() > 0) //orphan items without links are always included so they don't get lost or ingnored.
                     removeItem = item.ItemID;
                 foreach (var link in item.LinkedItems)
                 {
-                    
                     if (link != null && lt.Contains(link.LinkType) &&
                         retrievedIDs.Contains(link.TargetID) && 
                         (systemRequirements.Any(obj => obj.ItemID == link.TargetID) ||
@@ -220,22 +285,50 @@ namespace RoboClerk.Redmine
                 }
                 else
                 {
-                    logger.Info($"Removing item because it is not linked to a valid item: {item.ItemID}");
+                    logger.Warn($"Removing {item.ItemType} {item.ItemID} because item(s) {string.Join(',',item.LinkedItems.Select(item => item.TargetID))} it was originally linked to is(are) not valid.");
+                    removedItems.Add(item);
                     retrievedIDs.Remove(removeItem);
                     removeItem = string.Empty;
                 }
             }
-            return items;
+            return (items, removedItems);
         }
 
         private void RemoveAllItemsNotLinked(List<string> retrievedIDs)
-        {
-            softwareRequirements = CheckForLinkedItem(retrievedIDs, softwareRequirements, new List<ItemLinkType> { ItemLinkType.Parent });
-            testCases = CheckForLinkedItem(retrievedIDs, testCases, new List<ItemLinkType> { ItemLinkType.Parent, ItemLinkType.Related });
-            docContents = CheckForLinkedItem(retrievedIDs, docContents, new List<ItemLinkType> { ItemLinkType.Parent });
-            risks = CheckForLinkedItem(retrievedIDs, risks, new List<ItemLinkType> { ItemLinkType.RiskControl });
+        { 
+            var(keptSoftwareReqs, eliminatedSoftwareReqs)  = CheckForLinkedItem(retrievedIDs, softwareRequirements, new List<ItemLinkType> { ItemLinkType.Parent });
+            softwareRequirements = keptSoftwareReqs;
+            foreach(var item  in eliminatedSoftwareReqs)
+            {
+                eliminatedSoftwareRequirements.Add(new EliminatedRequirementItem(item, 
+                    $"Removing {item.ItemType} {item.ItemID} because item(s) {string.Join(',', item.LinkedItems.Select(item => item.TargetID))} it was originally linked to is(are) not valid.",
+                    EliminationReason.IgnoredLinkTarget));
+            }
+
+            var(keptTCs, eliminatedTCs) = CheckForLinkedItem(retrievedIDs, testCases, new List<ItemLinkType> { ItemLinkType.Parent, ItemLinkType.Related });
+            testCases = keptTCs;
+            foreach (var item in eliminatedTCs)
+            {
+                eliminatedSoftwareSystemTests.Add(new EliminatedSoftwareSystemTestItem(item,
+                    $"Removing {item.ItemType} {item.ItemID} because item(s) {string.Join(',', item.LinkedItems.Select(item => item.TargetID))} it was originally linked to is(are) not valid.",
+                    EliminationReason.IgnoredLinkTarget));
+            }
+
+            var (keptDCs, eliminatedDCs) = CheckForLinkedItem(retrievedIDs, docContents, new List<ItemLinkType> { ItemLinkType.Parent });
+            docContents = keptDCs;
+
+            var(keptRSKs, eliminatedRSKs) = CheckForLinkedItem(retrievedIDs, risks, new List<ItemLinkType> { ItemLinkType.RiskControl });
+            risks = keptRSKs;
+            foreach (var item in eliminatedRSKs)
+            {
+                eliminatedRisks.Add(new EliminatedRiskItem(item,
+                    $"Removing {item.ItemType} {item.ItemID} because item(s) {string.Join(',', item.LinkedItems.Select(item => item.TargetID))} it was originally linked to is(are) not valid.",
+                    EliminationReason.IgnoredLinkTarget));
+            }
+
             //need to remove any bugs connected to items that were removed.
-            anomalies = CheckForLinkedItem(retrievedIDs, anomalies, new List<ItemLinkType> { ItemLinkType.Related } );
+            var (keptBGs, eliminatedBGs) = CheckForLinkedItem(retrievedIDs, anomalies, new List<ItemLinkType> { ItemLinkType.Related });
+            anomalies = keptBGs;
         }
 
         private void RemoveIgnoredLinks(List<string> retrievedIDs)
@@ -290,7 +383,7 @@ namespace RoboClerk.Redmine
             return output;
         }
 
-        private SoftwareSystemTestItem CreateTestCase(List<RedmineIssue> issues, RedmineIssue redmineItem)
+        protected SoftwareSystemTestItem CreateTestCase(List<RedmineIssue> issues, RedmineIssue redmineItem)
         {
             logger.Debug($"Creating test case item: {redmineItem.Id}");
             SoftwareSystemTestItem resultItem = new SoftwareSystemTestItem();
@@ -310,7 +403,8 @@ namespace RoboClerk.Redmine
                 resultItem.Link = new Uri($"{baseURL}{resultItem.ItemID}");
             }
             logger.Debug($"Getting test steps for item: {redmineItem.Id}");
-            var testCaseSteps = GetTestSteps(redmineItem.Description ?? string.Empty);
+            string itemDescription = redmineItem.Description ?? string.Empty;
+            var testCaseSteps = GetTestSteps(convertTextile ? converter.ConvertTextile2AsciiDoc(itemDescription) : itemDescription);
             foreach (var testCaseStep in testCaseSteps)
             {
                 resultItem.AddTestCaseStep(testCaseStep);
@@ -327,6 +421,15 @@ namespace RoboClerk.Redmine
                         {
                             resultItem.TestCaseAutomated = (value.GetString() == "Automated") || (value.GetString() == "Unit Tested");
                             resultItem.TestCaseToUnitTest = (value.GetString() == "Unit Tested");
+                        }
+                        if (field.Name == "Identifier") //check if this test case is being kicked to the unit test plan
+                        {
+                            string values = value.GetString();
+                            var unitTests = values.Split(',');
+                            foreach(var unitTest in unitTests)
+                            {
+                                resultItem.KickToUnitTest(unitTest.Trim());
+                            }
                         }
                     }
                 }
@@ -348,7 +451,7 @@ namespace RoboClerk.Redmine
             return resultItem;
         }
 
-        private DocContentItem CreateDocContent(RedmineIssue redmineItem)
+        protected DocContentItem CreateDocContent(RedmineIssue redmineItem)
         {
             logger.Debug($"Creating DocContent item: {redmineItem.Id}");
             DocContentItem resultItem = new DocContentItem();
@@ -357,7 +460,8 @@ namespace RoboClerk.Redmine
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
             resultItem.ItemStatus = redmineItem.Status.Name ?? string.Empty;
-            resultItem.DocContent = redmineItem.Description.ToString();
+            string itemDescription = redmineItem.Description.ToString();
+            resultItem.DocContent = convertTextile?converter.ConvertTextile2AsciiDoc(itemDescription):itemDescription;
             if (redmineItem.FixedVersion != null)
             {
                 resultItem.ItemTargetVersion = redmineItem.FixedVersion.Name ?? string.Empty;
@@ -381,7 +485,7 @@ namespace RoboClerk.Redmine
             return resultItem;
         }
 
-        private SOUPItem CreateSOUP(RedmineIssue redmineItem)
+        protected SOUPItem CreateSOUP(RedmineIssue redmineItem)
         {
             logger.Debug($"Creating SOUP item: {redmineItem.Id}");
             SOUPItem resultItem = new SOUPItem();
@@ -418,7 +522,8 @@ namespace RoboClerk.Redmine
                     }
                     if (field.Name == "SOUP Detailed Description")
                     {
-                        resultItem.SOUPDetailedDescription = value.GetString();
+                        string detailedDescription = value.GetString();
+                        resultItem.SOUPDetailedDescription = convertTextile ? converter.ConvertTextile2AsciiDoc(detailedDescription) : detailedDescription;
                     }
                     else if (field.Name == "Performance Critical?")
                     {
@@ -457,7 +562,7 @@ namespace RoboClerk.Redmine
             return resultItem;
         }
 
-        private AnomalyItem CreateBug(RedmineIssue redmineItem)
+        protected AnomalyItem CreateBug(RedmineIssue redmineItem)
         {
             logger.Debug($"Creating bug item: {redmineItem.Id}");
             AnomalyItem resultItem = new AnomalyItem();
@@ -510,7 +615,7 @@ namespace RoboClerk.Redmine
             return resultItem;
         }
 
-        private RiskItem CreateRisk(List<RedmineIssue> issues, RedmineIssue redmineItem)
+        protected RiskItem CreateRisk(List<RedmineIssue> issues, RedmineIssue redmineItem)
         {
             logger.Debug($"Creating risk item: {redmineItem.Id}");
             RiskItem resultItem = new RiskItem();
@@ -632,17 +737,18 @@ namespace RoboClerk.Redmine
             return value;
         }
 
-        private bool ShouldIgnoreIssue(RedmineIssue redmineItem, TruthItemConfig config)
+        protected bool ShouldIgnoreIssue(RedmineIssue redmineItem, TruthItemConfig config, out string reason)
         {
+            reason = string.Empty;
             if (!config.Filtered)
                 return false;
 
             var properties = redmineItem.GetType().GetProperties();
             foreach (var property in properties)
             {
-                if (property.Name != "CustomFields" && 
-                    property.Name != "EstimatedHours" && 
-                    property.Name != "Relations") 
+                if (property.Name != "CustomFields" &&
+                    property.Name != "EstimatedHours" &&
+                    property.Name != "Relations")
                 {
                     HashSet<string> values = new HashSet<string>();
                     var value = property.GetValue(redmineItem);
@@ -664,9 +770,16 @@ namespace RoboClerk.Redmine
                                 values.Add(nameProperty.GetValue(value) as string);
                             }
                         }
-                        if (!IncludeItem(property.Name, values) || ExcludeItem(property.Name, values))
+                        if (!IncludeItem(property.Name, values))
                         {
-                            logger.Debug($"Ignoring requirement item {redmineItem.Id} due to \"{property.Name}\" being equal to \"{String.Join(", ", values)}\".");
+                            reason = $"Item does not match inclusion filter for \"{property.Name}\" with value \"{String.Join(", ", values)}\"";
+                            logger.Warn($"Ignoring {redmineItem.Tracker.Name} item {redmineItem.Id} due to \"{property.Name}\" not matching inclusion filter.");
+                            return true;
+                        }
+                        if (ExcludeItem(property.Name, values))
+                        {
+                            reason = $"Item matches exclusion filter for \"{property.Name}\" with value \"{String.Join(", ", values)}\"";
+                            logger.Warn($"Ignoring {redmineItem.Tracker.Name} item {redmineItem.Id} due to \"{property.Name}\" matching exclusion filter.");
                             return true;
                         }
                     }
@@ -678,22 +791,29 @@ namespace RoboClerk.Redmine
                 {
                     if (field.Value != null)
                     {
-                        bool versionField = redmineVersionFields.Contains(field.Name);                   
+                        bool versionField = redmineVersionFields.Contains(field.Name);
                         HashSet<string> values = new HashSet<string>();
                         if (field.Multiple)
                         {
-                            foreach(var value in (System.Text.Json.JsonElement.ArrayEnumerator)field.Value)
+                            foreach (var value in (System.Text.Json.JsonElement.ArrayEnumerator)field.Value)
                             {
-                                values.Add(ConvertValue(versionField,value.ToString()));
+                                values.Add(ConvertValue(versionField, value.ToString()));
                             }
                         }
                         else
                         {
-                            values.Add(ConvertValue(versionField,((System.Text.Json.JsonElement)field.Value).GetString()));
+                            values.Add(ConvertValue(versionField, ((System.Text.Json.JsonElement)field.Value).GetString()));
                         }
-                        if (!IncludeItem(field.Name, values) || ExcludeItem(field.Name,values))
+                        if (!IncludeItem(field.Name, values))
                         {
-                            logger.Debug($"Ignoring requirement item {redmineItem.Id} due to \"{field.Name}\" being equal to \"{String.Join(", ", values)}\".");
+                            reason = $"Item does not match inclusion filter for custom field \"{field.Name}\" with value \"{String.Join(", ", values)}\"";
+                            logger.Warn($"Ignoring {redmineItem.Tracker.Name} item {redmineItem.Id} due to \"{field.Name}\" not matching inclusion filter.");
+                            return true;
+                        }
+                        if (ExcludeItem(field.Name, values))
+                        {
+                            reason = $"Item matches exclusion filter for custom field \"{field.Name}\" with value \"{String.Join(", ", values)}\"";
+                            logger.Warn($"Ignoring {redmineItem.Tracker.Name} item {redmineItem.Id} due to \"{field.Name}\" matching exclusion filter.");
                             return true;
                         }
                     }
@@ -701,8 +821,8 @@ namespace RoboClerk.Redmine
             }
             return false;
         }
-
-        private RequirementItem CreateRequirement(List<RedmineIssue> issues, RedmineIssue redmineItem, RequirementType requirementType)
+       
+        protected RequirementItem CreateRequirement(List<RedmineIssue> issues, RedmineIssue redmineItem, RequirementType requirementType)
         {
             logger.Debug($"Creating requirement item: {redmineItem.Id}");
             RequirementItem resultItem = new RequirementItem(requirementType);
@@ -726,8 +846,8 @@ namespace RoboClerk.Redmine
             {
                 resultItem.RequirementAssignee = string.Empty;
             }
-
-            resultItem.RequirementDescription = redmineItem.Description ?? string.Empty;
+            string itemDescription = redmineItem.Description ?? string.Empty;
+            resultItem.RequirementDescription = convertTextile ? converter.ConvertTextile2AsciiDoc(itemDescription) : itemDescription;
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
@@ -762,12 +882,12 @@ namespace RoboClerk.Redmine
                 .AddParameter("limit", 100)
                 .AddParameter("key", apiKey);
             List<RedmineProject> projects = new List<RedmineProject>();
-            var response = client.GetAsync<RedmineProjects>(request).GetAwaiter().GetResult();
+            var response = _client.GetAsync<RedmineProjects>(request);
             projects.AddRange(response.Projects);
             while (response.Limit + response.Offset < response.TotalCount)
             {
                 request.AddOrUpdateParameter("offset", response.Offset + response.Limit);
-                response = client.GetAsync<RedmineProjects>(request).GetAwaiter().GetResult();
+                response = _client.GetAsync<RedmineProjects>(request);
                 projects.AddRange(response.Projects);
             }
             foreach (var project in projects)
@@ -786,7 +906,7 @@ namespace RoboClerk.Redmine
             var request = new RestRequest("trackers.json", Method.Get)
                 .AddParameter("key", apiKey);
 
-            var response = client.GetAsync<RedmineTrackers>(request).GetAwaiter().GetResult();
+            var response = _client.GetAsync<RedmineTrackers>(request);
             Dictionary<string, int> trackers = new Dictionary<string, int>();
 
             foreach (var tracker in response.Trackers)
@@ -804,7 +924,7 @@ namespace RoboClerk.Redmine
                 .AddParameter("include", "relations")
                 .AddParameter("status_id", "*")
                 .AddParameter("issue_id", issueID);
-            var response = client.GetAsync<RedmineIssues>(request).GetAwaiter().GetResult();
+            var response = _client.GetAsync<RedmineIssues>(request);
             if (response.Issues.Count == 0)
             {
                 return null;
@@ -825,12 +945,12 @@ namespace RoboClerk.Redmine
                 .AddParameter("status_id", "*")
                 .AddParameter("tracker_id", trackerID);
             List<RedmineIssue> issues = new List<RedmineIssue>();
-            var response = client.GetAsync<RedmineIssues>(request).GetAwaiter().GetResult();
+            var response = _client.GetAsync<RedmineIssues>(request);
             issues.AddRange(response.Issues);
             while (response.Limit + response.Offset < response.TotalCount)
             {
                 request.AddOrUpdateParameter("offset", response.Offset + response.Limit);
-                response = client.GetAsync<RedmineIssues>(request).GetAwaiter().GetResult();
+                response = _client.GetAsync<RedmineIssues>(request);
                 issues.AddRange(response.Issues);
             }
             return issues;
@@ -857,7 +977,7 @@ namespace RoboClerk.Redmine
         {
             var request = new RestRequest($"projects/{projectID}/versions.json", Method.Get)
                 .AddParameter("key", apiKey);
-            var response = client.GetAsync<VersionList>(request).GetAwaiter().GetResult();
+            var response = _client.GetAsync<VersionList>(request);
             if (response.TotalCount == 0)
             {
                 return null;

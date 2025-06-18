@@ -55,6 +55,15 @@ namespace RoboClerk
         {
             testCaseSteps.Clear();
         }
+
+        public void KickToUnitTest(string id)
+        {
+            if (id != null && id.Length > 0)
+            {
+                testCaseToUnitTest = true;
+                linkedItems.Add(new ItemLink(id, ItemLinkType.UnitTest));
+            }
+        }
     }
 }
 

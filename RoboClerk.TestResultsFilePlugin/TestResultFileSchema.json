@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "A unique identifier for the test case",
+        "minLength": 1
+      },
+      "name": {
+        "type": "string",
+        "description": "The name of the test case",
+        "minLength": 1
+      },
+      "type": {
+        "type": "string",
+        "description": "The type of the test case, either 'UNIT' or 'SYSTEM'",
+        "enum": [ "UNIT", "SYSTEM" ]
+      },
+      "status": {
+        "type": "string",
+        "description": "The status of the test case, either 'PASS' or 'FAIL'",
+        "enum": [ "PASS", "FAIL" ]
+      },
+      "message": {
+        "type": "string",
+        "description": "Optional message related to the test result",
+        "minLength": 1
+      },
+      "executionTime": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Optional timestamp of when the test was executed"
+      }
+    },
+    "required": [ "id", "type", "status" ],
+    "additionalProperties": false
+  }
+}

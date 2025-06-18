@@ -166,9 +166,19 @@ namespace RoboClerk
             return dataStorage.Anomalies;
         }
 
+        public override List<EliminatedAnomalyItem> GetAllEliminatedAnomalies()
+        {
+            return dataStorage.EliminatedAnomalies;
+        }
+
         public override List<ExternalDependency> GetAllExternalDependencies()
         {
             return pluginDatasource.GetAllExternalDependencies();
+        }
+
+        public override List<TestResult> GetAllTestResults()
+        {
+            return pluginDatasource.GetAllTestResults(); 
         }
 
         public override List<RiskItem> GetAllRisks()
@@ -176,14 +186,29 @@ namespace RoboClerk
             return dataStorage.Risks;
         }
 
+        public override List<EliminatedRiskItem> GetAllEliminatedRisks()
+        {
+            return dataStorage.EliminatedRisks;
+        }
+
         public override List<RequirementItem> GetAllSoftwareRequirements()
         {
             return dataStorage.SoftwareRequirements;
         }
 
+        public override List<EliminatedRequirementItem> GetAllEliminatedSoftwareRequirements()
+        {
+            return dataStorage.EliminatedSoftwareRequirements;
+        }
+
         public override List<SoftwareSystemTestItem> GetAllSoftwareSystemTests()
         {
             return dataStorage.SoftwareSystemTests;
+        }
+
+        public override List<EliminatedSoftwareSystemTestItem> GetAllEliminatedSoftwareSystemTests()
+        {
+            return dataStorage.EliminatedSoftwareSystemTests;
         }
 
         public override List<UnitTestItem> GetAllUnitTests()
@@ -196,9 +221,19 @@ namespace RoboClerk
             return dataStorage.SOUPs;
         }
 
+        public override List<EliminatedSOUPItem> GetAllEliminatedSOUP()
+        {
+            return dataStorage.EliminatedSOUPs;
+        }
+
         public override List<RequirementItem> GetAllSystemRequirements()
         {
             return dataStorage.SystemRequirements;
+        }
+
+        public override List<EliminatedRequirementItem> GetAllEliminatedSystemRequirements()
+        {
+            return dataStorage.EliminatedSystemRequirements;
         }
 
         public override List<RequirementItem> GetAllDocumentationRequirements()
@@ -206,9 +241,19 @@ namespace RoboClerk
             return dataStorage.DocumentationRequirements;
         }
 
+        public override List<EliminatedRequirementItem> GetAllEliminatedDocumentationRequirements()
+        {
+            return dataStorage.EliminatedDocumentationRequirements;
+        }
+
         public override List<DocContentItem> GetAllDocContents()
         {
             return dataStorage.DocContents;
+        }
+
+        public override List<EliminatedDocContentItem> GetAllEliminatedDocContents()
+        {
+            return dataStorage.EliminatedDocContents;
         }
     }
 }

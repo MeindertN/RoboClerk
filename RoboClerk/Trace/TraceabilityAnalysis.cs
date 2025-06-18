@@ -383,7 +383,6 @@ namespace RoboClerk
                     return et;
                 }
             }
-            logger.Warn($"TraceEntity with property: {prop} not found!");
             return default(TraceEntity);
         }
 

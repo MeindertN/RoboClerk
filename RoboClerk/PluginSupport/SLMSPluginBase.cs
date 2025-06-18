@@ -169,7 +169,10 @@ namespace RoboClerk
                 List<ItemLink> linkedItemsToRemove = new List<ItemLink>();
                 foreach (var itemLink in linkedItem.LinkedItems)
                 {
-                    if (!retrievedIDs.Contains(itemLink.TargetID))
+                    // unit tests are a special case, we cannot use this function to remove those links because
+                    // the unit tests do not come from the SLMS. Otherwise this function would remove all software
+                    // system tests that are "kicked" to the unit level test plan.
+                    if (!retrievedIDs.Contains(itemLink.TargetID) && itemLink.LinkType != ItemLinkType.UnitTest)
                     {
                         logger.Warn($"Removing a {itemLink.LinkType} link from item \"{linkedItem.ItemID}\" to item with ID \"{itemLink.TargetID}\" because that item has a status that causes it to be ignored.");
                         linkedItemsToRemove.Add(itemLink);

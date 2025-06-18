@@ -1,15 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace RoboClerk
 {
-    public class ScriptingBridge
+    public class ScriptingBridge<T> where T : Item
     {
         private IDataSources data = null;
         private ITraceabilityAnalysis analysis = null;
         private List<string> traces = new List<string>();
-        private List<LinkedItem> items = new List<LinkedItem>();
+        private List<T> items = new List<T>();
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public ScriptingBridge(IDataSources data, ITraceabilityAnalysis trace, TraceEntity sourceTraceEntity)
@@ -22,15 +24,15 @@ namespace RoboClerk
         /// <summary>
         /// The item that needs to be rendered in the documentation. 
         /// </summary>
-        public LinkedItem Item { get; set; }
+        public T Item { get; set; }
 
         /// <summary>
         /// The items that need to be rendered in the documentation (empty if there is only a single item). 
         /// </summary>
-        public IEnumerable<LinkedItem> Items
+        public IEnumerable<T> Items
         {
             get { return items; }
-            set { items = (List<LinkedItem>)value; }
+            set { items = (List<T>)value; }
         }
 
         /// <summary>
@@ -161,10 +163,147 @@ namespace RoboClerk
         /// Convenience function, calls ToString on input and returns resulting string.
         /// </summary>
         /// <param name="input"></param>
-        /// <returns></returns>
+        /// <returns>string representation</returns>
         public string Insert(object input)
         {
             return input.ToString();
+        }
+
+        /// <summary>
+        /// Convenience function, combines other convenience functions and ensures that
+        /// ASCIDOC meant to be inside a table cell will render in an appropriate way by
+        /// embedding tables and removing embedded headings because ASCIIDOC does not 
+        /// support scoped headings and most likely the user does not want to have
+        /// embedded headings numbered with the document headers.
+        /// </summary>
+        /// <param name="input">The AsciiDoc content that may contain headings and 
+        /// or tables</param>
+        /// <returns>Modified AsciiDoc that can be embedded in a table cell</returns>
+        public string ProcessAsciidocForTableCell(string input)
+        {
+            string temp = ConvertHeadingsForTableCell(input);
+            return EmbedAsciidocTables(temp);
+        }
+
+        /// <summary>
+        /// Convenience function, takes any asciidoc tables in the input and makes them
+        /// embedded tables. 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public string EmbedAsciidocTables(string input)
+        {
+            // Split the input into lines (preserving newlines)
+            var lines = input.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            var outputLines = new List<string>();
+            bool inTable = false;
+
+            foreach (var line in lines)
+            {
+                string trimmed = line.Trim();
+
+                // Detect the table delimiter
+                if (trimmed == "|===")
+                {
+                    inTable = !inTable;
+                    // Replace outer table delimiter with nested table delimiter
+                    outputLines.Add(line.Replace("|===", "!==="));
+                }
+                else if (inTable)
+                {
+                    // Preserve leading whitespace
+                    int leadingSpaces = line.Length - line.TrimStart().Length;
+                    string converted = line;
+
+                    // If the cell begins with a pipe, replace it with an exclamation mark,
+                    // but only if the pipe is not escaped.
+                    if (line.TrimStart().StartsWith("|"))
+                    {
+                        converted = new string(' ', leadingSpaces) + "!" + line.TrimStart().Substring(1);
+                    }
+
+                    // Replace any unescaped cell separator pipe.
+                    // The regex (?<!\\)\| matches any pipe that is not preceded by a backslash.
+                    converted = Regex.Replace(converted, @"(?<!\\)\|", "!");
+                    outputLines.Add(converted);
+                }
+                else
+                {
+                    // Outside a table block, leave the line unchanged.
+                    outputLines.Add(line);
+                }
+            }
+
+            // Rejoin all lines into a single string.
+            return string.Join("\n", outputLines);
+        }
+
+        /// <summary>
+        /// Converts AsciiDoc heading syntax to alternative markup suitable for embedding in table cells.
+        /// This prevents heading content from being numbered along with main document headings.
+        /// </summary>
+        /// <param name="input">The AsciiDoc content that may contain headings</param>
+        /// <returns>Modified AsciiDoc with headings converted to alternative markup</returns>
+        public string ConvertHeadingsForTableCell(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            // Process each line to detect and transform headings
+            string[] lines = input.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i];
+
+                // Match heading patterns (e.g., "== Heading", "=== Subheading", etc.)
+                var match = System.Text.RegularExpressions.Regex.Match(line, @"^(=+)\s+(.+)$");
+                if (match.Success)
+                {
+                    int level = match.Groups[1].Length;
+                    string headingText = match.Groups[2].Value.Trim();
+
+                    // Convert heading based on its level
+                    switch (level)
+                    {
+                        case 1: // Document title level
+                        case 2: // Top section level - convert to bold
+                            lines[i] = $"*{headingText}*";
+                            break;
+                        case 3: // Subsection level - convert to italic
+                            lines[i] = $"_{headingText}_";
+                            break;
+                        case 4: // Subsubsection level - convert to italic with indentation
+                            lines[i] = $"&#160;&#160; _{headingText}_";
+                            break;
+                        case 5: // Even deeper levels - use monospace with indentation
+                        case 6:
+                            lines[i] = $"&#160;&#160;&#160;&#160; `{headingText}`";
+                            break;
+                        default: // For extremely deep levels or unexpected cases
+                            lines[i] = headingText;
+                            break;
+                    }
+
+                    // Add a blank line after the heading for better readability
+                    // only if there isn't already one and we're not at the end of the text
+                    if (i < lines.Length - 1 && !string.IsNullOrWhiteSpace(lines[i + 1]))
+                    {
+                        lines[i] += "\n";
+                    }
+                }
+            }
+
+            return string.Join("\n", lines);
+        }
+    }
+
+    
+
+    public class ScriptingBridge : ScriptingBridge<LinkedItem>
+    {
+        public ScriptingBridge(IDataSources data, ITraceabilityAnalysis trace, TraceEntity sourceTraceEntity)
+            : base(data, trace, sourceTraceEntity)
+        {
         }
     }
 }

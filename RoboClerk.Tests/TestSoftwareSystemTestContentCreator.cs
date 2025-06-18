@@ -20,6 +20,7 @@ namespace RoboClerk.Tests
         private IFileSystem fs = null;
         private DocumentConfig documentConfig = null;
         private List<LinkedItem> testcaseItems = new List<LinkedItem>();
+        private List<TestResult> results = new List<TestResult>();
 
         [SetUp]
         public void TestSetup()
@@ -37,6 +38,10 @@ namespace RoboClerk.Tests
             fs = Substitute.For<IFileSystem>();
             documentConfig = new DocumentConfig("SystemLevelTestPlan", "docID", "docTitle", "docAbbr", @"c:\in\template.adoc");
 
+            results.Clear();
+            results.Add(new TestResult("tcid1", TestResultType.SYSTEM, TestResultStatus.PASS, "the first test", "all good", DateTime.Now));
+            results.Add(new TestResult("unit1", TestResultType.UNIT, TestResultStatus.FAIL, "the first unit test", "all bad", DateTime.Now));
+            
             testcaseItems.Clear();
             var testcaseItem = new SoftwareSystemTestItem();
             testcaseItem.ItemID = "tcid1";
@@ -69,6 +74,8 @@ namespace RoboClerk.Tests
             testcaseItem.AddTestCaseStep(new TestStep("2", "input22", "expected result22" ));
             testcaseItem.Link = new Uri("http://localhost/");
             testcaseItems.Add(testcaseItem);
+
+            dataSources.GetAllTestResults().Returns(results);
             dataSources.GetItems(te).Returns(testcaseItems);
             dataSources.GetTemplateFile("./ItemTemplates/SoftwareSystemTest_automated.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/SoftwareSystemTest_automated.adoc"));
             dataSources.GetTemplateFile("./ItemTemplates/SoftwareSystemTest_manual.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/SoftwareSystemTest_manual.adoc"));
@@ -133,6 +140,122 @@ namespace RoboClerk.Tests
             var tag = new RoboClerkTag(0, 25, "@@SLMS:TC(itemid=tcid5)@@", true);
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "Unable to find specified Test Case(s). Check if Test Cases are provided or if a valid Test Case identifier is specified.";
+
+            Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
+        }
+
+        [UnitTestAttribute(
+        Identifier = "AA8E3271-8778-4504-8753-04EB6B51EC3C",
+        Purpose = "Software System Test content creator is provided with a tag that does a comparison between known results and test cases.",
+        PostCondition = "Appropriate response is produced")]
+        [Test]
+        public void SoftwareSystemRenderTest5()
+        {
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
+            var tag = new RoboClerkTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
+
+            results.Add(new TestResult("tcid3", TestResultType.SYSTEM, TestResultStatus.PASS, "the second test", "all good", DateTime.Now));
+            SoftwareSystemTestItem testcaseItem = new SoftwareSystemTestItem();
+            testcaseItem.ItemID = "tcid3";
+            testcaseItem.ItemRevision = "tcrev3";
+            testcaseItem.ItemLastUpdated = new DateTime(1993, 10, 13);
+            testcaseItem.ItemTargetVersion = "3";
+            testcaseItem.AddLinkedItem(new ItemLink("target3", ItemLinkType.Parent));
+            testcaseItem.TestCaseState = "state3";
+            testcaseItem.TestCaseToUnitTest = false;
+            testcaseItem.ItemTitle = "title3";
+            testcaseItem.TestCaseAutomated = true;
+            testcaseItem.TestCaseDescription = "description3";
+            testcaseItem.AddTestCaseStep(new TestStep("1", "input31", "expected result31"));
+            testcaseItem.AddTestCaseStep(new TestStep("2", "input32", "expected result32"));
+            testcaseItem.Link = new Uri("http://localhost/");
+            testcaseItems.Add(testcaseItem);
+
+            string content = sst.GetContent(tag, documentConfig);
+            string expectedContent = "All automated tests from the test plan were successfully executed and passed.";
+
+            Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
+        }
+
+        [UnitTestAttribute(
+        Identifier = "67555D6B-72D0-45E6-8B15-A13056BCD380",
+        Purpose = "Software System Test content creator is provided with a tag that does a comparison between known results and test cases. There is a result for a missing test case.",
+        PostCondition = "Appropriate response is produced")]
+        [Test]
+        public void SoftwareSystemRenderTest6()
+        {
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
+            var tag = new RoboClerkTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
+
+            results.Add(new TestResult("tcid3", TestResultType.SYSTEM, TestResultStatus.PASS, "the second test", "all good", DateTime.Now));
+
+            string content = sst.GetContent(tag, documentConfig);
+            string expectedContent = "RoboClerk detected problems with the automated testing:\n\n* Result for test with ID \"tcid3\" found, but test plan does not contain such an automated test.\n\n";
+
+            Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
+        }
+
+        [UnitTestAttribute(
+        Identifier = "4C3B948D-CD26-470C-9A80-4282ECACC6DA",
+        Purpose = "Software System Test content creator is provided with a tag that does a comparison between known results and test cases. There is a test case with a missing result.",
+        PostCondition = "Appropriate response is produced")]
+        [Test]
+        public void SoftwareSystemRenderTest7()
+        {
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
+            var tag = new RoboClerkTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
+
+            SoftwareSystemTestItem testcaseItem = new SoftwareSystemTestItem();
+            testcaseItem.ItemID = "tcid3";
+            testcaseItem.ItemRevision = "tcrev3";
+            testcaseItem.ItemLastUpdated = new DateTime(1993, 10, 13);
+            testcaseItem.ItemTargetVersion = "3";
+            testcaseItem.AddLinkedItem(new ItemLink("target3", ItemLinkType.Parent));
+            testcaseItem.TestCaseState = "state3";
+            testcaseItem.TestCaseToUnitTest = false;
+            testcaseItem.ItemTitle = "title3";
+            testcaseItem.TestCaseAutomated = true;
+            testcaseItem.TestCaseDescription = "description3";
+            testcaseItem.AddTestCaseStep(new TestStep("1", "input31", "expected result31"));
+            testcaseItem.AddTestCaseStep(new TestStep("2", "input32", "expected result32"));
+            testcaseItem.Link = new Uri("http://localhost/");
+            testcaseItems.Add(testcaseItem);
+
+            string content = sst.GetContent(tag, documentConfig);
+            string expectedContent = "RoboClerk detected problems with the automated testing:\n\n* Result for test with ID \"tcid3\" not found in results.\n\n";
+
+            Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
+        }
+
+        [UnitTestAttribute(
+        Identifier = "3DE923FB-0C8A-4F5D-95EC-053037E9D792",
+        Purpose = "Software System Test content creator is provided with a tag that does a comparison between known results and test cases. There is a test case with a missing result and a failed test case.",
+        PostCondition = "Appropriate response is produced")]
+        [Test]
+        public void SoftwareSystemRenderTest8()
+        {
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
+            var tag = new RoboClerkTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
+
+            results[0].Status = TestResultStatus.FAIL;
+            SoftwareSystemTestItem testcaseItem = new SoftwareSystemTestItem();
+            testcaseItem.ItemID = "tcid3";
+            testcaseItem.ItemRevision = "tcrev3";
+            testcaseItem.ItemLastUpdated = new DateTime(1993, 10, 13);
+            testcaseItem.ItemTargetVersion = "3";
+            testcaseItem.AddLinkedItem(new ItemLink("target3", ItemLinkType.Parent));
+            testcaseItem.TestCaseState = "state3";
+            testcaseItem.TestCaseToUnitTest = false;
+            testcaseItem.ItemTitle = "title3";
+            testcaseItem.TestCaseAutomated = true;
+            testcaseItem.TestCaseDescription = "description3";
+            testcaseItem.AddTestCaseStep(new TestStep("1", "input31", "expected result31"));
+            testcaseItem.AddTestCaseStep(new TestStep("2", "input32", "expected result32"));
+            testcaseItem.Link = new Uri("http://localhost/");
+            testcaseItems.Add(testcaseItem);
+
+            string content = sst.GetContent(tag, documentConfig);
+            string expectedContent = "RoboClerk detected problems with the automated testing:\n\n* Test with ID \"tcid1\" has failed.\n* Result for test with ID \"tcid3\" not found in results.\n\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
         }

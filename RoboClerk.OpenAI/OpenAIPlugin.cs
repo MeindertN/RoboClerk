@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using RoboClerk.AISystem;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace RoboClerk.OpenAI
 {
@@ -36,8 +37,9 @@ namespace RoboClerk.OpenAI
                 string openAIKey = configuration.CommandLineOptionOrDefault("OpenAIKey", GetObjectForKey<string>(config, "OpenAIKey", true));
                 openAIClient = new OpenAIClient(openAIKey);
             }
-
         }
+
+        // Using base.ConfigureServices implementation which registers this as IAISystemPlugin
 
         public override string GetFeedback(TraceEntity et, Item item)
         {
