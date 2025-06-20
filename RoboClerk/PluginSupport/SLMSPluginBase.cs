@@ -27,7 +27,7 @@ namespace RoboClerk
         private Dictionary<string,HashSet<string>> exclusionFilters = new Dictionary<string,HashSet<string>>();
 
 
-        public SLMSPluginBase(IFileSystem fileSystem)
+        public SLMSPluginBase(IFileProviderPlugin fileSystem)
             : base(fileSystem)
         {
 

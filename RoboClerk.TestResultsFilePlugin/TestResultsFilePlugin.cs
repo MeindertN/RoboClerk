@@ -12,7 +12,7 @@ namespace RoboClerk.TestResultsFilePlugin
     {
         private List<string> fileLocations = new List<string>();
 
-        public TestResultsFilePlugin(IFileSystem fileSystem)
+        public TestResultsFilePlugin(IFileProviderPlugin fileSystem)
             : base(fileSystem)
         {
             name = "TestResultsFilePlugin";
@@ -54,7 +54,7 @@ namespace RoboClerk.TestResultsFilePlugin
             testResults.Clear();
             for (int i = 0; i < fileLocations.Count; i++)
             {
-                string json = fileSystem.File.ReadAllText(fileLocations[i]);
+                string json = fileProvider.ReadAllText(fileLocations[i]);
                 try
                 {
                     var fileTestResults = JsonSerializer.Deserialize<List<TestResultJSONObject>>(json);

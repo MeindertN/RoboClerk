@@ -12,7 +12,7 @@ namespace RoboClerk.Tests
 {
     internal class TestSourceCodeAnalysisPlugin : SourceCodeAnalysisPluginBase
     {
-        public TestSourceCodeAnalysisPlugin(IFileSystem fileSystem) 
+        public TestSourceCodeAnalysisPlugin(IFileProviderPlugin fileSystem) 
             :base(fileSystem)
         {
             name = "TestSourceCodeAnalysisPlugin";
@@ -43,6 +43,7 @@ namespace RoboClerk.Tests
     {
         private IConfiguration config = null;
         private IFileSystem fs = null;
+        private IFileProviderPlugin fileProvider = null;
         
         [SetUp]
         public void TestSetup()
@@ -75,7 +76,7 @@ UseGit = false";
                 { TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\SubDir\TestStuff4.cs"), new MockFileData("this is a mock file4") },
                 { TestingHelpers.ConvertFileName(@"C:\RoboClerkTest2\TestStuff5.cs"), new MockFileData("this is a mock file5") },
             });
-
+            fileProvider = new LocalFileSystemPlugin(fs);
             config = Substitute.For<IConfiguration>();
             config.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"C:\"));
             config.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest"));
@@ -88,7 +89,7 @@ UseGit = false";
         [Test]
         public void CreateSourceCodeAnalysisPlugin()
         {
-            var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
+            var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
         }
 
         [UnitTestAttribute(
@@ -98,7 +99,7 @@ UseGit = false";
         [Test]
         public void TestEmptyAnnotationFields()
         {
-            var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
+            var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
         }
 
         [UnitTestAttribute(
@@ -108,7 +109,7 @@ UseGit = false";
         [Test]
         public void TestSourceCodeAnalysisPlugin1()
         {
-            var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
+            var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
             testPlugin.Initialize(config);
 
             Assert.That(testPlugin.FileMasks.Count, Is.EqualTo(1));
@@ -146,7 +147,7 @@ UseGit = false";
 
             fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
 
-            var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
+            var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
             testPlugin.Initialize(config);
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(3));
@@ -182,7 +183,7 @@ UseGit = false";
 
             fs.File.WriteAllText(@"c:\TestSourceCodeAnalysisPlugin.toml", tomlFile);
 
-            var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
+            var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
             testPlugin.Initialize(config);
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(4));
@@ -219,7 +220,7 @@ UseGit = false";
 
             fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
 
-            var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
+            var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
             testPlugin.Initialize(config);
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(4));
@@ -256,7 +257,7 @@ UseGit = false";
 
             fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
 
-            var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
+            var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
             testPlugin.Initialize(config);
             Assert.Throws<System.IO.DirectoryNotFoundException>(()=>testPlugin.RefreshItems());
         }

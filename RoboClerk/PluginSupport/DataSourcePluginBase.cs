@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace RoboClerk
 {
-    public abstract class DataSourcePluginBase : PluginBase, IDataSourcePlugin
+    public abstract class DataSourcePluginBase : FileAccessPluginBase, IDataSourcePlugin
     {
         protected List<RequirementItem> systemRequirements = new List<RequirementItem>();
         protected List<RequirementItem> softwareRequirements = new List<RequirementItem>();
@@ -30,7 +30,7 @@ namespace RoboClerk
         protected List<EliminatedSOUPItem> eliminatedSOUP = new List<EliminatedSOUPItem>();
         protected List<EliminatedAnomalyItem> eliminatedAnomalies = new List<EliminatedAnomalyItem>();
 
-        public DataSourcePluginBase(IFileSystem fileSystem)
+        public DataSourcePluginBase(IFileProviderPlugin fileSystem)
             :base(fileSystem)
         {
 

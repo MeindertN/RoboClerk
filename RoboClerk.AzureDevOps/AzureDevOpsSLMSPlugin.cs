@@ -20,7 +20,7 @@ namespace RoboClerk.AzureDevOps
         private string projectName = string.Empty;
         private WorkItemTrackingHttpClient witClient;
 
-        public AzureDevOpsSLMSPlugin(IFileSystem fileSystem)
+        public AzureDevOpsSLMSPlugin(IFileProviderPlugin fileSystem)
             : base(fileSystem)
         {
             logger.Debug("Azure DevOps SLMS plugin created");

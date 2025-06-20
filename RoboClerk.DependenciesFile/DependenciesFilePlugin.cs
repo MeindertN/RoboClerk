@@ -12,7 +12,7 @@ namespace RoboClerk.DependenciesFile
         private List<string> fileLocations = new List<string>();
         private List<string> fileFormats = new List<string>();
 
-        public DependenciesFilePlugin(IFileSystem fileSystem)
+        public DependenciesFilePlugin(IFileProviderPlugin fileSystem)
             : base(fileSystem)
         {
             name = "DependenciesFilePlugin";
@@ -74,12 +74,12 @@ namespace RoboClerk.DependenciesFile
 
         private void ParseDotnetFile(string filename)
         {
-            if (!fileSystem.File.Exists(filename))
+            if (!fileProvider.FileExists(filename))
             {
                 logger.Warn($"Cannot find Gradle file \"{filename}\" no dependencies will be loaded from this file.");
                 return;
             }
-            foreach (string line in fileSystem.File.ReadLines(filename))
+            foreach (string line in fileProvider.ReadLines(filename))
             {
                 string trimmedLine = line.Trim();
                 if(trimmedLine.StartsWith("> "))
@@ -96,12 +96,12 @@ namespace RoboClerk.DependenciesFile
 
         private void ParseGradleFile(string filename)
         {
-            if (!fileSystem.File.Exists(filename))
+            if (!fileProvider.FileExists(filename))
             {
                 logger.Warn($"Cannot find Gradle file \"{filename}\" no dependencies will be loaded from this file.");
                 return;
             }
-            foreach (string line in fileSystem.File.ReadLines(filename))
+            foreach (string line in fileProvider.ReadLines(filename))
             {
                 if (line.StartsWith("+---") || line.StartsWith("\\---"))
                 {

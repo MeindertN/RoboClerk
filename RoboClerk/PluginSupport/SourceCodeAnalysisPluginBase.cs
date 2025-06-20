@@ -15,7 +15,7 @@ namespace RoboClerk
         protected List<string> sourceFiles = new List<string>();
         protected GitRepository gitRepo = null;
 
-        public SourceCodeAnalysisPluginBase(IFileSystem fileSystem)
+        public SourceCodeAnalysisPluginBase(IFileProviderPlugin fileSystem)
             : base(fileSystem)
         {
         }
@@ -53,15 +53,15 @@ namespace RoboClerk
             sourceFiles.Clear();
             foreach (var testDirectory in directories)
             {
-                IDirectoryInfo dir = fileSystem.DirectoryInfo.New(testDirectory);
+                fileProvider.CreateDirectory(testDirectory);
                 try
                 {
                     foreach (var fileMask in fileMasks)
                     {
-                        IFileInfo[] files = dir.GetFiles(fileMask, subDir ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+                        var files = fileProvider.GetFiles(testDirectory, fileMask, subDir ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
                         foreach (var file in files)
                         {
-                            sourceFiles.Add(file.FullName);
+                            sourceFiles.Add(file);
                         }
                     }
                 }

@@ -14,7 +14,7 @@ namespace RoboClerk.OpenAI
         private OpenAIClient? openAIClient = null;
         private Dictionary<string,OpenAIPromptTemplate> prompts = new Dictionary<string, OpenAIPromptTemplate>();
 
-        public OpenAIPlugin(IFileSystem fileSystem)
+        public OpenAIPlugin(IFileProviderPlugin fileSystem)
             :base(fileSystem)
         {
             name = "OpenAIPlugin";

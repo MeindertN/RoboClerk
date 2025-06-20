@@ -1,0 +1,29 @@
+# SharePoint File Provider Configuration
+# This file configures the SharePoint file provider plugin for RoboClerk
+
+# The SharePoint site URL (required)
+# Example: "contoso.sharepoint.com" or "contoso.sharepoint.com/sites/mysite"
+SiteUrl = "your-sharepoint-site.sharepoint.com"
+
+# Azure AD access token for authentication (required)
+# This should be a valid access token with permissions to access the SharePoint site
+# You can obtain this through Azure AD authentication or Microsoft Graph API
+AccessToken = "your-azure-ad-access-token"
+
+# Optional: Specific Drive ID (document library)
+# If not provided, the provider will use the default document library
+# You can find the Drive ID by calling the Microsoft Graph API: /sites/{site-id}/drives
+DriveId = ""
+
+# Optional: Additional configuration options
+# These can be extended based on your specific needs
+
+# Example for a specific site with subsite:
+# SiteUrl = "contoso.sharepoint.com/sites/engineering"
+# AccessToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q..."
+# DriveId = "b!1234567890abcdef"
+
+# Example for root site:
+# SiteUrl = "contoso.sharepoint.com"
+# AccessToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q..."
+# DriveId = "" 

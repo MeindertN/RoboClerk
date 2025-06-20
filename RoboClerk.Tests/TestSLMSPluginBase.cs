@@ -25,7 +25,7 @@ namespace RoboClerk.Tests
     {
         public bool contentsChecked = true;
 
-        public SLMSPlugin(IFileSystem fileSystem) : base(fileSystem) 
+        public SLMSPlugin(IFileProviderPlugin fileSystem) : base(fileSystem) 
         {
             name = "testplugin";
         }
@@ -155,6 +155,7 @@ namespace RoboClerk.Tests
     {
         private SLMSPlugin basePlugin;
         private IFileSystem fileSystem;
+        private IFileProviderPlugin fileProviderPlugin;
         private IConfiguration config;
 
         private void addTableToTable(TomlTable table, string tableName, string name, bool filter)
@@ -169,7 +170,8 @@ namespace RoboClerk.Tests
         public void TestSetup()
         {
             fileSystem = Substitute.For<IFileSystem>();
-            basePlugin = new SLMSPlugin(fileSystem);
+            fileProviderPlugin = Substitute.For<IFileProviderPlugin>();
+            basePlugin = new SLMSPlugin(fileProviderPlugin);
 
             config = Substitute.For<IConfiguration>();
 
@@ -457,7 +459,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
             // Arrange
             string input = "This text has a | pipe character that should be escaped.";
             string expected = "This text has a \\| pipe character that should be escaped.";
-            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+            SLMSPlugin plugin = new SLMSPlugin(fileProviderPlugin);
 
             // Act
             string result = plugin.PublicEscapeNonTablePipes(input);
@@ -476,7 +478,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
             // Arrange
             string input = "Text before table.\n|===\n| Cell 1 | Cell 2\n|===\nText after | table.";
             string expected = "Text before table.\n|===\n| Cell 1 | Cell 2\n|===\nText after \\| table.";
-            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+            SLMSPlugin plugin = new SLMSPlugin(fileProviderPlugin);
 
             // Act
             string result = plugin.PublicEscapeNonTablePipes(input);
@@ -495,7 +497,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
             // Arrange
             string input = "Text | before.\n|===\n| Table 1\n|===\nMiddle | text.\n|===\n| Table 2\n|===\nAfter | text.";
             string expected = "Text \\| before.\n|===\n| Table 1\n|===\nMiddle \\| text.\n|===\n| Table 2\n|===\nAfter \\| text.";
-            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+            SLMSPlugin plugin = new SLMSPlugin(fileProviderPlugin);
 
             // Act
             string result = plugin.PublicEscapeNonTablePipes(input);
@@ -514,7 +516,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
             // Arrange
             string input = "This has an already escaped \\| pipe.";
             string expected = "This has an already escaped \\| pipe.";
-            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+            SLMSPlugin plugin = new SLMSPlugin(fileProviderPlugin);
 
             // Act
             string result = plugin.PublicEscapeNonTablePipes(input);
@@ -533,7 +535,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
             // Arrange
             string input = "This text has no pipe characters.";
             string expected = "This text has no pipe characters.";
-            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+            SLMSPlugin plugin = new SLMSPlugin(fileProviderPlugin);
 
             // Act
             string result = plugin.PublicEscapeNonTablePipes(input);
@@ -552,7 +554,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
             // Arrange
             string input = "";
             string expected = "";
-            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+            SLMSPlugin plugin = new SLMSPlugin(fileProviderPlugin);
 
             // Act
             string result = plugin.PublicEscapeNonTablePipes(input);
@@ -570,7 +572,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
         public void TestScrubItemContents_ProcessesAllItemCollections()
         {
             // Arrange
-            SLMSPlugin plugin = new SLMSPlugin(fileSystem);
+            SLMSPlugin plugin = new SLMSPlugin(fileProviderPlugin);
             plugin.Initialize(config);
 
             // Clear all items

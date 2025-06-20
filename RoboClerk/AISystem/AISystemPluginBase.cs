@@ -5,11 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace RoboClerk.AISystem
 {
-    public abstract class AISystemPluginBase : PluginBase, IAISystemPlugin
+    public abstract class AISystemPluginBase : FileAccessPluginBase, IAISystemPlugin
     {
         private Dictionary<string,string> promptTemplateFiles = new Dictionary<string, string>();
 
-        protected AISystemPluginBase(IFileSystem fileSystem) : base(fileSystem)
+        protected AISystemPluginBase(IFileProviderPlugin fileSystem) : base(fileSystem)
         {
         }
 

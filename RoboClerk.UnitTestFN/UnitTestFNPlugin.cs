@@ -15,7 +15,7 @@ namespace RoboClerk
         private List<string> functionMaskElements = new List<string>();
         private string sectionSeparator = string.Empty;
 
-        public UnitTestFNPlugin(IFileSystem fileSystem)
+        public UnitTestFNPlugin(IFileProviderPlugin fileSystem)
             : base(fileSystem)
         {
             name = "UnitTestFNPlugin";
@@ -248,7 +248,7 @@ namespace RoboClerk
             return longestString.Substring(0, index);
         }
 
-        private void FindAndProcessFunctions(string[] lines, string fileName)
+        private void FindAndProcessFunctions(List<string> lines, string fileName)
         {
             bool nextLineIsFunction = testFunctionDecoration == string.Empty;
             int currentLineNumber = 0;
@@ -283,7 +283,7 @@ namespace RoboClerk
         {
             foreach (var sourceFile in sourceFiles)
             {
-                var lines = fileSystem.File.ReadAllLines(sourceFile);
+                var lines = fileProvider.ReadLines(sourceFile);
                 FindAndProcessFunctions(lines, sourceFile);
             }
         }
