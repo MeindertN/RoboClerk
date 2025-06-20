@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.Scripting;
 using RoboClerk.Configuration;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace RoboClerk.ContentCreators
@@ -18,16 +19,19 @@ namespace RoboClerk.ContentCreators
             StringBuilder errors = new StringBuilder();
             bool errorsFound = false;
             var results = data.GetAllTestResults();
-            foreach (var item in items)
+            foreach (var i in items)
             {
-                if (!((SoftwareSystemTestItem)item).TestCaseAutomated)
+                SoftwareSystemTestItem item = (SoftwareSystemTestItem)i;
+                if (!item.TestCaseAutomated)
                 {
                     continue;
                 }
                 bool found = false;
                 foreach (var result in results)
                 {
-                    if (result.Type == TestResultType.SYSTEM && result.ID == item.ItemID)
+                    if ( (result.Type == TestResultType.SYSTEM && result.ID == item.ItemID) || 
+                         (item.TestCaseToUnitTest && result.Type == TestResultType.UNIT && 
+                          item.LinkedItems.Any(o => o.LinkType == ItemLinkType.UnitTest && o.TargetID == result.ID)) )
                     {
                         found = true;
                         if (result.Status == TestResultStatus.FAIL)
@@ -41,7 +45,8 @@ namespace RoboClerk.ContentCreators
                 if (!found)
                 {
                     errorsFound = true;
-                    errors.AppendLine($"* Result for test with ID \"{item.ItemID}\" not found in results.");
+                    string additional = item.TestCaseToUnitTest ? "Unit test r" : "R";
+                    errors.AppendLine($"* {additional}esult for test with ID \"{item.ItemID}\" not found in results.");
                 }
             }
             foreach (var result in results)
