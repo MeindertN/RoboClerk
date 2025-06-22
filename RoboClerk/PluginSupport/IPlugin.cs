@@ -1,6 +1,7 @@
 ﻿using RoboClerk.Configuration;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace RoboClerk
 {
@@ -8,7 +9,7 @@ namespace RoboClerk
     {
         string Name { get; }
         string Description { get; }
-        void Initialize(IConfiguration config);
+        void InitializePlugin(IConfiguration config);
         void ConfigureServices(IServiceCollection services);
     }
 }

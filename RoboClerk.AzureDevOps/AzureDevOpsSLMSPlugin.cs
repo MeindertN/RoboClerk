@@ -24,20 +24,19 @@ namespace RoboClerk.AzureDevOps
             : base(fileSystem)
         {
             logger.Debug("Azure DevOps SLMS plugin created");
+            SetBaseParam();
+        }
+
+        private void SetBaseParam()
+        {
             name = "AzureDevOpsSLMSPlugin";
             description = "A plugin that interfaces with azure devops to retrieve information needed by RoboClerk to create documentation.";
         }
 
-        public override void ConfigureServices(IServiceCollection services)
-        {
-            // Register any services this plugin needs
-            // No services required for this plugin
-        }
-
-        public override void Initialize(IConfiguration configuration)
+        public override void InitializePlugin(IConfiguration configuration)
         {
             logger.Info("Initializing the Azure DevOps SLMS Plugin");
-            base.Initialize(configuration);
+            base.InitializePlugin(configuration);
             try
             {
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");

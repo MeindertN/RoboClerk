@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFramework>net6.0</TargetFramework>
+	  <TargetFramework>net8.0</TargetFramework>
 	  <ApplicationIcon />
 	  <OutputType>Library</OutputType>
 	  <StartupObject />
@@ -41,15 +41,9 @@
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)plugins" />
 	</Target>
 	<Target Name="AdaptConfigFiles" AfterTargets="Build" Condition=" '$(Configuration)' != 'ReleasePublish' ">
-		<ReplaceFileText
-			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/AnnotatedUnitTestPlugin.toml"
-			MatchExpression="{PROJECTROOT}"
-			ReplacementText="$(ProjectDir)../" />
+		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/AnnotatedUnitTestPlugin.toml" MatchExpression="{PROJECTROOT}" ReplacementText="$(ProjectDir)../" />
 	</Target>
 	<Target Name="AdaptConfigFilesRP" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
-		<ReplaceFileText
-			InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/AnnotatedUnitTestPlugin.toml"
-			MatchExpression="{PROJECTROOT}"
-			ReplacementText="/mnt/" />
+		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/AnnotatedUnitTestPlugin.toml" MatchExpression="{PROJECTROOT}" ReplacementText="/mnt/" />
 	</Target>
 </Project>

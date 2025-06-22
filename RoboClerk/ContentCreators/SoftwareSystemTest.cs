@@ -29,6 +29,7 @@ namespace RoboClerk.ContentCreators
                 bool found = false;
                 foreach (var result in results)
                 {
+
                     if ((result.Type == TestResultType.SYSTEM && result.ID == item.ItemID) ||
                          (item.TestCaseToUnitTest && result.Type == TestResultType.UNIT &&
                           item.LinkedItems.Any(o => o.LinkType == ItemLinkType.UnitTest && o.TargetID == result.ID)))

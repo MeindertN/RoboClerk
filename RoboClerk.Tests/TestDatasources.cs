@@ -13,6 +13,7 @@ using NUnit.Framework.Internal;
 using System.Text;
 using System.Linq;
 using NUnit.Framework.Legacy;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace RoboClerk.Tests
 {
@@ -66,10 +67,10 @@ namespace RoboClerk.Tests
 
             mockConfiguration.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin1", "testPlugin2", "testDepPlugin", "testSrcPlugin" });
             mockConfiguration.PluginDirs.ReturnsForAnyArgs(new List<string> { TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist"), TestingHelpers.ConvertFileName("c:\\temp\\") });
-            mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>(),mockFileSystem).Returns<IPlugin>(l => null);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem).Returns((IPlugin)mockSLMSPlugin);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testDepPlugin"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem).Returns((IPlugin)mockDepMgmtPlugin);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testSrcPlugin"), Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem).Returns((IPlugin)mockSrcCodePlugin);
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Action<IServiceCollection>>() ).Returns<IDataSourcePlugin>(l => null);
+            mockPluginLoader.Configure().LoadByName<IDataSourcePlugin>(Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")), Arg.Is("testPlugin2"), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)mockSLMSPlugin);
+            mockPluginLoader.Configure().LoadByName<IDataSourcePlugin>(Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")), Arg.Is("testDepPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)mockDepMgmtPlugin);
+            mockPluginLoader.Configure().LoadByName<IDataSourcePlugin>(Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")), Arg.Is("testSrcPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)mockSrcCodePlugin);
         }
 
         [Test]
@@ -82,14 +83,22 @@ namespace RoboClerk.Tests
         public void Plugin_Search_Functionality_Works_Correctly_VERIFIES_DataSources_Traverses_All_Plugins_And_All_Directories()
         {
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin1"), 
-                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")), mockFileSystem));
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin1"), 
-                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\")),mockFileSystem));
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin2"), 
-                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),mockFileSystem));
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadPlugin<IPlugin>(Arg.Is<string>("testPlugin2"), 
-                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\")),mockFileSystem));
+            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadByName<IDataSourcePlugin>( 
+                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),
+                Arg.Is<string>("testPlugin1"),
+                Arg.Any<Action<IServiceCollection>>()));
+            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadByName<IDataSourcePlugin>( 
+                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\")),
+                Arg.Is<string>("testPlugin1"),
+                Arg.Any<Action<IServiceCollection>>()));
+            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadByName<IDataSourcePlugin>( 
+                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),
+                Arg.Is<string>("testPlugin2"),
+                Arg.Any<Action<IServiceCollection>>()));
+            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadByName<IDataSourcePlugin>(
+                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\")),
+                Arg.Is<string>("testPlugin2"),
+                Arg.Any<Action<IServiceCollection>>()));
         }
 
         private List<RequirementItem> SYSs = null;

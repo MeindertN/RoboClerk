@@ -15,16 +15,16 @@ namespace RoboClerk.TestResultsFilePlugin
         public TestResultsFilePlugin(IFileProviderPlugin fileSystem)
             : base(fileSystem)
         {
+            SetBaseParam();
+        }
+
+        private void SetBaseParam()
+        {
             name = "TestResultsFilePlugin";
             description = "A plugin that retrieves the test results via one or more files.";
         }
 
-        public override void ConfigureServices(IServiceCollection services)
-        {
-            //this plugin does not need to register services
-        }
-
-        public override void Initialize(IConfiguration configuration)
+        public override void InitializePlugin(IConfiguration configuration)
         {
             logger.Info("Initializing the Test Results File Plugin");
             try

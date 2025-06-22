@@ -109,6 +109,7 @@ UseGit = false";
         [Test]
         public void TestSourceCodeAnalysisPlugin1()
         {
+
             var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
             testPlugin.Initialize(config);
 
@@ -149,6 +150,7 @@ UseGit = false";
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
             testPlugin.Initialize(config);
+          
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(3));
             Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff1.cs")));
@@ -185,6 +187,7 @@ UseGit = false";
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
             testPlugin.Initialize(config);
+
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(4));
             Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff1.cs")));
@@ -222,6 +225,7 @@ UseGit = false";
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
             testPlugin.Initialize(config);
+
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(4));
             Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff1.cs")));
@@ -259,6 +263,7 @@ UseGit = false";
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
             testPlugin.Initialize(config);
+
             Assert.Throws<System.IO.DirectoryNotFoundException>(()=>testPlugin.RefreshItems());
         }
 

@@ -17,13 +17,18 @@ namespace RoboClerk.OpenAI
         public OpenAIPlugin(IFileProviderPlugin fileSystem)
             :base(fileSystem)
         {
+            SetBaseParam();
+        }
+
+        private void SetBaseParam()
+        {
             name = "OpenAIPlugin";
             description = "A plugin that interfaces with the OpenAI or Azure OpenAI API.";
         }
 
-        public override void Initialize(IConfiguration configuration)
+        public override void InitializePlugin(IConfiguration configuration)
         {
-            base.Initialize(configuration);
+            base.InitializePlugin(configuration);
             var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
             bool useAzureOpenAI = configuration.CommandLineOptionOrDefault("UseAzureOpenAI", GetObjectForKey<string>(config, "UseAzureOpenAI", true)).ToUpper() == "TRUE";
             if (useAzureOpenAI)

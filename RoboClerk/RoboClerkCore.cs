@@ -1,4 +1,7 @@
-﻿using RoboClerk.AISystem;
+﻿using DocumentFormat.OpenXml.Vml;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using RoboClerk.AISystem;
 using RoboClerk.Configuration;
 using RoboClerk.ContentCreators;
 using System;
@@ -7,6 +10,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Reflection;
+using IConfiguration = RoboClerk.Configuration.IConfiguration;
 
 namespace RoboClerk
 {
@@ -19,13 +23,15 @@ namespace RoboClerk
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private List<Document> documents = new List<Document>();
         private IFileSystem fileSystem = null;
+        private IPluginLoader pluginLoader = null;
 
-        public RoboClerkCore(IConfiguration config, IDataSources dataSources, ITraceabilityAnalysis traceAnalysis, IFileSystem fs)
+        public RoboClerkCore(IConfiguration config, IDataSources dataSources, ITraceabilityAnalysis traceAnalysis, IFileSystem fs, IPluginLoader loader)
         {
             configuration = config;
             this.dataSources = dataSources;
             this.traceAnalysis = traceAnalysis;
             fileSystem = fs;
+            pluginLoader = loader;
             aiPlugin = LoadAIPlugin();
         }
 
@@ -205,34 +211,26 @@ namespace RoboClerk
         {
             if(string.IsNullOrEmpty(configuration.AIPlugin))
                 return null;
-                
-            // Create a plugin loader for IAISystemPlugin
-            var pluginLoader = new PluginLoader<IAISystemPlugin>(fileSystem);
-            
-            // Register global services that plugins might need
-            pluginLoader.RegisterGlobalService(configuration);
-            
+                        
             // Try loading plugins from each directory
             foreach (var dir in configuration.PluginDirs)
             {
                 try 
                 {
-                    // Load plugins from directory
-                    var serviceProvider = pluginLoader.LoadPlugins(dir);
-                    
-                    // Get all plugins and find the one with matching name
-                    var plugins = pluginLoader.GetPlugins(serviceProvider);
-                    foreach (var plugin in plugins)
-                    {
-                        if (plugin.Name == configuration.AIPlugin)
+                    var plugin = pluginLoader.LoadByName<IAISystemPlugin>(
+                        pluginDir: dir,
+                        typeName: configuration.AIPlugin,
+                        configureGlobals: sc =>
                         {
-                            logger.Info($"Found AI plugin: {plugin.Name}");
-                            
-                            // Initialize the plugin (all IAISystemPlugins are IPlugins)
-                            plugin.Initialize(configuration);
-                            
-                            return plugin;
-                        }
+                            sc.AddSingleton(fileSystem);
+                            sc.AddSingleton(configuration);
+                        });
+
+                    if (plugin is not null)
+                    {
+                        logger.Info($"Found AI plugin: {plugin.Name}");
+                        plugin.InitializePlugin(configuration);
+                        return plugin;
                     }
                 }
                 catch (Exception ex)

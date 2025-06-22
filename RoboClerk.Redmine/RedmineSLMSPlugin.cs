@@ -55,15 +55,27 @@ namespace RoboClerk.Redmine
             : base(fileSystem)
         {
             logger.Debug("Redmine SLMS plugin created");
-            name = "RedmineSLMSPlugin";
-            description = "A plugin that can interrogate Redmine via its REST API to retrieve information needed by RoboClerk to create documentation.";
+            SetBaseParam();
             _client = client;
         }
 
-        public override void Initialize(IConfiguration configuration)
+        public RedmineSLMSPlugin(IFileSystem fileSystem)
+            : base(fileSystem)
+        {
+            SetBaseParam();
+            //only used to configure services
+        }
+
+        private void SetBaseParam()
+        {
+            name = "RedmineSLMSPlugin";
+            description = "A plugin that can interrogate Redmine via its REST API to retrieve information needed by RoboClerk to create documentation.";
+        }
+
+        public override void InitializePlugin(IConfiguration configuration)
         {
             logger.Info("Initializing the Redmine SLMS Plugin");
-            base.Initialize(configuration);
+            base.InitializePlugin(configuration);
             try
             {
                 TomlTable config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
@@ -107,6 +119,7 @@ namespace RoboClerk.Redmine
                 );
                 return new RestSharpRedmineClient(apiEndpoint);
             });
+            services.AddTransient(this.GetType());
         }
 
         private List<string> GetTrackerList()

@@ -25,7 +25,7 @@ namespace RoboClerk.AISystem
             return templates;
         }
 
-        public override void Initialize(IConfiguration configuration)
+        public override void InitializePlugin(IConfiguration configuration)
         {
             var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
             promptTemplateFiles["SystemRequirement"]=configuration.CommandLineOptionOrDefault("SystemRequirement", GetObjectForKey<string>(config, "SystemRequirement", true));
@@ -36,12 +36,5 @@ namespace RoboClerk.AISystem
         public abstract string GetFeedback(TraceEntity et, Item item);
 
         public abstract void SetPrompts(List<Document> pts);
-        
-        public override void ConfigureServices(IServiceCollection services)
-        {
-            // Base implementation that can be overridden by subclasses
-            // Register as IAISystemPlugin by default
-            services.AddTransient<IAISystemPlugin>(provider => this);
-        }
     }
 }

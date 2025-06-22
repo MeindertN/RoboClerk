@@ -181,7 +181,7 @@ namespace RoboClerk.Redmine.Tests
         private void InitializePluginWithConfiguration(TomlTable configTable)
         {
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
-            plugin.Initialize(configuration);
+            plugin.InitializePlugin(configuration);
         }
 
         #endregion
@@ -926,6 +926,7 @@ namespace RoboClerk.Redmine.Tests
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
 
             string val = ConvertTomlTableToString(configTable);
+
             fileProviderPlugin = new LocalFileSystemPlugin(fileSystem);
             var plugin = new TestRedmineSLMSPlugin(fileProviderPlugin, redmineClient);
             plugin.Initialize(configuration);

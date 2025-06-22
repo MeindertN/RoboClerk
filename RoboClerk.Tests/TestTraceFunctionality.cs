@@ -9,6 +9,7 @@ using NSubstitute.Extensions;
 using RoboClerk;
 using System.IO.Abstractions;
 using NUnit.Framework.Legacy;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace RoboClerk.Tests
 {
@@ -302,8 +303,8 @@ namespace RoboClerk.Tests
         {
             SetupPlugin();
             IPluginLoader mockPluginLoader = Substitute.For<IPluginLoader>();
-            mockPluginLoader.LoadPlugin<IPlugin>(Arg.Any<string>(), Arg.Any<string>(), mockFileSystem).Returns<IPlugin>(l => null);
-            mockPluginLoader.Configure().LoadPlugin<IPlugin>(Arg.Is("testPlugin2"), Arg.Is("c:\\temp\\does_not_exist"), mockFileSystem).Returns((IPlugin)mockPlugin);
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Action<IServiceCollection>>()).Returns<IDataSourcePlugin>(l => null);
+            mockPluginLoader.Configure().LoadByName<IDataSourcePlugin>(Arg.Is("c:\\temp\\does_not_exist"), Arg.Is("testPlugin2"), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)mockPlugin);
             IDataSources dataSources = new PluginDataSources(mockConfig, mockPluginLoader, mockFileSystem);
             SYSs.AddRange(systemReqs);
             SWRs.AddRange(softwareReqs);

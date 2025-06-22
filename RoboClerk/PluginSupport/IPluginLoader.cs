@@ -1,9 +1,13 @@
-﻿using System.IO.Abstractions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.IO.Abstractions;
 
 namespace RoboClerk
 {
     public interface IPluginLoader
     {
-        public T LoadPlugin<T>(string name, string pluginDir, IFileSystem fileSystem) where T : class;
+        public T LoadByName<T>(string pluginDir,
+            string typeName,
+            Action<IServiceCollection> configureGlobals) where T : class, IPlugin;
     }
 }

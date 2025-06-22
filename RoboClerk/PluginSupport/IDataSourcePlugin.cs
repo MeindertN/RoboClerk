@@ -2,7 +2,7 @@
 
 namespace RoboClerk
 {
-    public interface IDataSourcePlugin
+    public interface IDataSourcePlugin : IPlugin
     {
         void RefreshItems();
         IEnumerable<RequirementItem> GetSystemRequirements();

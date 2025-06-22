@@ -33,7 +33,7 @@ namespace RoboClerk
 
         }
 
-        public override void Initialize(IConfiguration configuration)
+        public override void InitializePlugin(IConfiguration configuration)
         {
             try
             {
