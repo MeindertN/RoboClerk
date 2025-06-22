@@ -22,7 +22,7 @@ namespace RoboClerk.Tests
             _plugin = new LocalFileSystemPlugin(_mockFileSystem);
             
             // Create a simple mock configuration
-            _mockConfiguration = new RoboClerk.Configuration.Configuration(_mockFileSystem, "test.toml", "test.toml", new System.Collections.Generic.Dictionary<string, string>());
+            _mockConfiguration = new RoboClerk.Configuration.Configuration(_plugin, "test.toml", "test.toml", new System.Collections.Generic.Dictionary<string, string>());
         }
 
         [UnitTestAttribute(

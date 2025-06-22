@@ -11,7 +11,7 @@ namespace RoboClerk
         private CheckpointDataStorage dataStorage = new CheckpointDataStorage();
         private IDataSources pluginDatasource = null;
 
-        public CheckpointDataSources(IConfiguration configuration, IPluginLoader pluginLoader, IFileSystem fileSystem, string checkpointFile)
+        public CheckpointDataSources(IConfiguration configuration, IPluginLoader pluginLoader, IFileProviderPlugin fileSystem, string checkpointFile)
             : base(configuration, fileSystem)
         {
             logger.Info($"RoboClerk is using the following checkpoint file in the template directory to read its input data: {checkpointFile}");
@@ -22,8 +22,8 @@ namespace RoboClerk
 
         public void SetFileSource(string fileName)
         {
-            string fullFilePath = fileSystem.Path.Join(configuration.TemplateDir, fileName);
-            if (!fileSystem.File.Exists(fullFilePath))
+            string fullFilePath = fileSystem.Combine(new string[] { configuration.TemplateDir, fileName });
+            if (!fileSystem.FileExists(fullFilePath))
             {
                 throw new Exception($"Could not find checkpoint file \"{fullFilePath}\". Unable to continue.");
             }

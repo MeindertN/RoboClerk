@@ -59,7 +59,7 @@ namespace RoboClerk.Redmine
             _client = client;
         }
 
-        public RedmineSLMSPlugin(IFileSystem fileSystem)
+        public RedmineSLMSPlugin(IFileProviderPlugin fileSystem)
             : base(fileSystem)
         {
             SetBaseParam();

@@ -111,7 +111,7 @@ UseGit = false";
         {
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
-            testPlugin.Initialize(config);
+            testPlugin.InitializePlugin(config);
 
             Assert.That(testPlugin.FileMasks.Count, Is.EqualTo(1));
             Assert.That(testPlugin.FileMasks[0], Is.EqualTo("Test*.cs"));
@@ -149,7 +149,7 @@ UseGit = false";
             fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
-            testPlugin.Initialize(config);
+            testPlugin.InitializePlugin(config);
           
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(3));
@@ -186,7 +186,7 @@ UseGit = false";
             fs.File.WriteAllText(@"c:\TestSourceCodeAnalysisPlugin.toml", tomlFile);
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
-            testPlugin.Initialize(config);
+            testPlugin.InitializePlugin(config);
 
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(4));
@@ -224,7 +224,7 @@ UseGit = false";
             fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
-            testPlugin.Initialize(config);
+            testPlugin.InitializePlugin(config);
 
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(4));
@@ -262,7 +262,7 @@ UseGit = false";
             fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
-            testPlugin.Initialize(config);
+            testPlugin.InitializePlugin(config);
 
             Assert.Throws<System.IO.DirectoryNotFoundException>(()=>testPlugin.RefreshItems());
         }

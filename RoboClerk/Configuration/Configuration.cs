@@ -10,7 +10,7 @@ namespace RoboClerk.Configuration
 {
     public class Configuration : IConfiguration
     {
-        private readonly IFileSystem fileSystem = null;
+        private readonly IFileProviderPlugin fileSystem = null;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         //The information contained in the general configuration file
@@ -37,7 +37,7 @@ namespace RoboClerk.Configuration
         //The information supplied on the commandline
         private Dictionary<string, string> commandLineOptions = new Dictionary<string, string>();
 
-        public Configuration(IFileSystem fileSystem, string configFileName, string projectConfigFileName, Dictionary<string, string> commandLineOptions)
+        public Configuration(IFileProviderPlugin fileSystem, string configFileName, string projectConfigFileName, Dictionary<string, string> commandLineOptions)
         {
             this.commandLineOptions = commandLineOptions;
             this.fileSystem = fileSystem;
@@ -70,7 +70,7 @@ namespace RoboClerk.Configuration
             string projectConfig;
             try
             {
-                config = fileSystem.File.ReadAllText(configFile);
+                config = fileSystem.ReadAllText(configFile);
             }
             catch (IOException)
             {
@@ -78,7 +78,7 @@ namespace RoboClerk.Configuration
             }
             try
             {
-                projectConfig = fileSystem.File.ReadAllText(projectConfigFile);
+                projectConfig = fileSystem.ReadAllText(projectConfigFile);
             }
             catch (IOException)
             {

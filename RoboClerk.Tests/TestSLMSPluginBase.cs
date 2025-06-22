@@ -573,7 +573,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
         {
             // Arrange
             SLMSPlugin plugin = new SLMSPlugin(fileProviderPlugin);
-            plugin.Initialize(config);
+            plugin.InitializePlugin(config);
 
             // Clear all items
             plugin.PublicClearAllItems();

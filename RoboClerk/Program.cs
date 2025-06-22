@@ -115,8 +115,8 @@ namespace RoboClerk
                        try
                        {
                            var serviceCollection = new ServiceCollection();
-                           serviceCollection.AddTransient<IFileSystem, FileSystem>();
-                           serviceCollection.AddSingleton<IConfiguration>(x => new RoboClerk.Configuration.Configuration(x.GetRequiredService<IFileSystem>(), roboClerkConfigFile, projectConfigFile, commandlineOptions));
+                           serviceCollection.AddTransient<IFileProviderPlugin>(x=> new LocalFileSystemPlugin(new FileSystem()));
+                           serviceCollection.AddSingleton<IConfiguration>(x => new RoboClerk.Configuration.Configuration(x.GetRequiredService<IFileProviderPlugin>(), roboClerkConfigFile, projectConfigFile, commandlineOptions));
                            serviceCollection.AddSingleton<IPluginLoader, PluginLoader>();
                            serviceCollection.AddSingleton<ITraceabilityAnalysis, TraceabilityAnalysis>();
                            serviceCollection.AddSingleton<IRoboClerkCore, RoboClerkCore>();
@@ -135,7 +135,7 @@ namespace RoboClerk
                            }
                            else
                            {
-                               serviceCollection.AddSingleton<IDataSources>(x => new CheckpointDataSources(x.GetRequiredService<IConfiguration>(), x.GetRequiredService<IPluginLoader>(), x.GetRequiredService<IFileSystem>(), config.CheckpointConfig.CheckpointFile));
+                               serviceCollection.AddSingleton<IDataSources>(x => new CheckpointDataSources(x.GetRequiredService<IConfiguration>(), x.GetRequiredService<IPluginLoader>(), x.GetRequiredService<IFileProviderPlugin>(), config.CheckpointConfig.CheckpointFile));
                            }
                            serviceProvider = serviceCollection.BuildServiceProvider();
 

@@ -11,24 +11,8 @@ namespace RoboClerk
     /// This allows RoboClerk to work with different file storage backends
     /// such as local filesystem, SharePoint, OneDrive, S3, etc.
     /// </summary>
-    public interface IFileProviderPlugin
+    public interface IFileProviderPlugin : IPlugin
     {
-        /// <summary>
-        /// Gets the name of the file provider plugin.
-        /// </summary>
-        string Name { get; }
-
-        /// <summary>
-        /// Gets the description of the file provider plugin.
-        /// </summary>
-        string Description { get; }
-
-        /// <summary>
-        /// Initializes the file provider plugin with configuration.
-        /// </summary>
-        /// <param name="configuration">The configuration object containing plugin settings.</param>
-        void Initialize(IConfiguration configuration);
-
         /// <summary>
         /// Checks if a file exists at the specified path.
         /// </summary>

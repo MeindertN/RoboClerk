@@ -929,7 +929,7 @@ namespace RoboClerk.Redmine.Tests
 
             fileProviderPlugin = new LocalFileSystemPlugin(fileSystem);
             var plugin = new TestRedmineSLMSPlugin(fileProviderPlugin, redmineClient);
-            plugin.Initialize(configuration);
+            plugin.InitializePlugin(configuration);
 
             // Act
             string reason;
@@ -1977,7 +1977,7 @@ namespace RoboClerk.Redmine.Tests
             fileProviderPlugin = new LocalFileSystemPlugin(fileSystem);
 
             var plugin = new TestRedmineSLMSPlugin(fileProviderPlugin, redmineClient);
-            plugin.Initialize(configuration);
+            plugin.InitializePlugin(configuration);
 
             // Act & Assert - Test 1: Should not ignore (matches inclusion, doesn't match exclusion)
             string reason;

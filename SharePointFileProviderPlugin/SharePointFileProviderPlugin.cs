@@ -73,7 +73,7 @@ namespace RoboClerk.SharePointFileProvider
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
-        public override void Initialize(IConfiguration configuration)
+        public override void InitializePlugin(IConfiguration configuration)
         {
             try
             {

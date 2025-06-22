@@ -114,15 +114,32 @@ namespace RoboClerk
 
                 foreach (var type in pluginTypes)
                 {
-                    implTypes.Add(type);
+                    ConstructorInfo? ctor = null;
+                    object?[] args;
 
                     // 3) find the single‐arg ctor
-                    var ctor = type.GetConstructor(new[] { typeof(IFileSystem) })!;
+                    ctor = type.GetConstructor(new[] { typeof(IFileSystem) });
+
+                    if (ctor != null)
+                    {
+                        args = new object[] { _fileSystem };
+                    }
+                    else
+                    {
+                        // Fallback to parameterless constructor
+                        ctor = type.GetConstructor(Type.EmptyTypes);
+                        if (ctor == null)
+                            throw new InvalidOperationException($"Type {type.FullName} has no supported constructor.");
+
+                        args = Array.Empty<object>();
+                    }
+
+                    implTypes.Add(type);
+
                     // 4) invoke it to get the PluginBase/IPluginRegistrar
-                    var metadataInstance = (TPluginInterface)ctor.Invoke(new object[] { _fileSystem });
+                    var metadataInstance = (TPluginInterface)ctor.Invoke(args);
 
                     // 5) let the plugin register everything it needs,
-                    //    including services.AddTransient<IPlugin, ThisType>()
                     metadataInstance.ConfigureServices(services);
                 }
             }

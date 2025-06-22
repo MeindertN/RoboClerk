@@ -24,7 +24,7 @@ namespace RoboClerk
             description = "Provides access to the local file system using standard .NET IO operations.";
         }
 
-        public override void Initialize(IConfiguration configuration)
+        public override void InitializePlugin(IConfiguration configuration)
         {
             LogInfo("Local file system plugin initialized");
         }
