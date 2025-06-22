@@ -20,7 +20,7 @@ namespace RoboClerk
         {
         }
 
-        public override void Initialize(IConfiguration configuration)
+        public override void InitializePlugin(IConfiguration configuration)
         {
             var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
             subDir = (bool)config["SubDirs"];

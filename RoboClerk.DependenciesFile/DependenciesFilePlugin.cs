@@ -15,16 +15,16 @@ namespace RoboClerk.DependenciesFile
         public DependenciesFilePlugin(IFileSystem fileSystem)
             : base(fileSystem)
         {
+            SetBaseParam();
+        }
+
+        private void SetBaseParam()
+        {
             name = "DependenciesFilePlugin";
             description = "A plugin that retrieves project dependencies via one or more files.";
         }
 
-        public override void ConfigureServices(IServiceCollection services)
-        {
-            //this plugin does not need to register any services
-        }
-
-        public override void Initialize(IConfiguration configuration)
+        public override void InitializePlugin(IConfiguration configuration)
         {
             logger.Info("Initializing the Dependencies Files Plugin");
             try

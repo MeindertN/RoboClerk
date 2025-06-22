@@ -36,9 +36,13 @@ namespace RoboClerk
             }
         }
 
-        public abstract void Initialize(IConfiguration config);
+        public abstract void InitializePlugin(IConfiguration config);
 
-        public abstract void ConfigureServices(IServiceCollection services);
+        public virtual void ConfigureServices(IServiceCollection services)
+        {
+            //by default a plugin will register itself only
+            services.AddTransient(this.GetType());
+        }
 
         protected T GetObjectForKey<T>(TomlTable config, string keyName, bool required)
         {

@@ -231,7 +231,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
         {
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns("");
             config = Substitute.For<IConfiguration>();
-            var ex = Assert.Throws<Exception>(() => basePlugin.Initialize(config));
+            var ex = Assert.Throws<Exception>(() => basePlugin.InitializePlugin(config));
             Assert.That(ex.Message.Contains("The testplugin could not read its configuration"));
         }
 
@@ -242,7 +242,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
         [Test]
         public void CreateSLMSPlugin2()
         {
-            basePlugin.Initialize(config);
+            basePlugin.InitializePlugin(config);
         }
 
         [UnitTestAttribute(
@@ -252,7 +252,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
         [Test]
         public void CreateSLMSPlugin3()
         {
-            basePlugin.Initialize(config);
+            basePlugin.InitializePlugin(config);
             basePlugin.RefreshItems();
             Assert.That(basePlugin.contentsChecked, Is.True);
         }
@@ -276,7 +276,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
 	filter = true
 ";
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(testpluginconfig);
-            var ex = Assert.Throws<Exception>(() => basePlugin.Initialize(config));
+            var ex = Assert.Throws<Exception>(() => basePlugin.InitializePlugin(config));
             Assert.That(ex.Message.Contains("The testplugin could not read its configuration"));
         }
 
@@ -332,7 +332,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
 	ReleaseRegion = [""EU"",true]
 ";
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(testpluginconfig);
-            var ex = Assert.Throws<Exception>(() => basePlugin.Initialize(config));
+            var ex = Assert.Throws<Exception>(() => basePlugin.InitializePlugin(config));
             Assert.That(ex.Message.Contains("The testplugin could not read its configuration"));
         }
 
@@ -343,7 +343,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
         [Test]
         public void TestTrimLinkedItems1()
         {
-            basePlugin.Initialize(config);
+            basePlugin.InitializePlugin(config);
             RequirementItem item1 = new RequirementItem(RequirementType.SystemRequirement);
             RequirementItem item2 = new RequirementItem(RequirementType.SoftwareRequirement);
             ItemLink item2item1 = new ItemLink(item1.ItemID, ItemLinkType.Parent);
@@ -374,7 +374,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
         public void TestInclusionFilter1()
         {
             Assert.That(basePlugin.TestInclusionFilter("ReleaseRegion", new HashSet<string>() { "BU" }), Is.True);
-            basePlugin.Initialize(config);
+            basePlugin.InitializePlugin(config);
 
             Assert.That(basePlugin.TestInclusionFilter("ReleaseRegion", new HashSet<string>() { "EU" }), Is.True);
             Assert.That(basePlugin.TestInclusionFilter("ReleaseRegion", new HashSet<string>() { "BU" }), Is.False);
@@ -389,7 +389,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
         public void TestExclusionFilter1()
         {
             Assert.That(basePlugin.TestExclusionFilter("TestVersion", new HashSet<string>() { "0.5.0" }), Is.False);
-            basePlugin.Initialize(config);
+            basePlugin.InitializePlugin(config);
 
             Assert.That(basePlugin.TestExclusionFilter("TestVersion", new HashSet<string>() { "0.5.0" }), Is.True);
             Assert.That(basePlugin.TestExclusionFilter("TestVersion", new HashSet<string>() { "0.4.0" }), Is.False);
@@ -403,7 +403,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
         [Test]
         public void TestItemStorage()
         {
-            basePlugin.Initialize(config);
+            basePlugin.InitializePlugin(config);
             basePlugin.AddTestItems();
 
             Assert.That(basePlugin.GetSystemRequirements(), Has.Exactly(1).Items);
@@ -571,7 +571,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
         {
             // Arrange
             SLMSPlugin plugin = new SLMSPlugin(fileSystem);
-            plugin.Initialize(config);
+            plugin.InitializePlugin(config);
 
             // Clear all items
             plugin.PublicClearAllItems();

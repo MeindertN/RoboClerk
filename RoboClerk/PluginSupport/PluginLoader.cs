@@ -41,137 +41,122 @@ namespace RoboClerk
         }
     }
 
-    public class PluginLoader<T> where T : class
-    {
-        private readonly IFileSystem _fileSystem;
-        private readonly ServiceCollection _services;
-
-        public PluginLoader(IFileSystem fileSystem)
-        {
-            _fileSystem = fileSystem;
-            _services = new ServiceCollection();
-            
-            // Register the file system as a singleton
-            _services.AddSingleton<IFileSystem>(fileSystem);
-        }
-
-        public void RegisterGlobalService<TService>(TService service) where TService : class
-        {
-            _services.AddSingleton<TService>(service);
-        }
-
-        public void RegisterGlobalService<TService, TImplementation>() 
-            where TService : class 
-            where TImplementation : class, TService
-        {
-            _services.AddTransient<TService, TImplementation>();
-        }
-
-        public IServiceProvider LoadPlugins(string pluginDirectory)
-        {
-            if (!_fileSystem.Directory.Exists(pluginDirectory))
-            {
-                throw new DirectoryNotFoundException($"Plugin directory not found: {pluginDirectory}");
-            }
-
-            var pluginDlls = _fileSystem.Directory.GetFiles(pluginDirectory, "*.dll");
-
-            foreach (var file in pluginDlls)
-            {
-                try
-                {
-                    var loadCtx = new PluginLoadContext(file);
-                    var assembly = loadCtx.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(file)));
-
-                    // 1) Let the module register its own services
-                    foreach (var modType in assembly.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsAbstract && t.IsClass))
-                    {
-                        var module = (IPlugin)Activator.CreateInstance(modType)!;
-                        module.ConfigureServices(_services);
-                    } 
-
-                    // 2) Then register the actual plugin classes
-                    foreach (var type in assembly.GetTypes())
-                    {
-                        if (typeof(T).IsAssignableFrom(type) && !type.IsAbstract && type.IsClass)
-                            _services.AddTransient(typeof(T), type);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log the exception but continue loading other plugins
-                    Console.WriteLine($"Error loading plugin {file}: {ex.Message}");
-                }
-            }
-
-            return _services.BuildServiceProvider();
-        }
-
-        public IEnumerable<T> GetPlugins(IServiceProvider serviceProvider)
-        {
-            return serviceProvider.GetServices<T>();
-        }
-    }
-
     public class PluginLoader : IPluginLoader
     {
-        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private readonly IFileSystem _fileSystem;
+        private readonly PluginAssemblyLoader _assemblyLoader;
 
         public PluginLoader(IFileSystem fileSystem)
         {
             _fileSystem = fileSystem;
+            _assemblyLoader = new PluginAssemblyLoader(fileSystem);
         }
 
-        public T LoadPlugin<T>(string name, string pluginDir, IFileSystem fileSystem) where T : class
+        // -------------------------
+        // PUBLIC: load *all* plugins
+        // -------------------------
+        public IServiceProvider LoadAll<TPluginInterface>(
+            string pluginDir,
+            Action<IServiceCollection>? configureGlobals = null
+        ) where TPluginInterface : class, IPlugin
+        {
+            var (services, _) = BuildContainer<TPluginInterface>(pluginDir, configureGlobals);
+            return services.BuildServiceProvider();
+        }
+
+        // ----------------------------------------
+        // PUBLIC: load one plugin by its class-name
+        // ----------------------------------------
+        public TPluginInterface? LoadByName<TPluginInterface>(
+            string pluginDir,
+            string typeName,
+            Action<IServiceCollection>? configureGlobals = null
+        ) where TPluginInterface : class, IPlugin
+        {
+            // 1) Build the container and capture the list of discovered impl types:
+            var (services, implTypes) = BuildContainer<TPluginInterface>(pluginDir, configureGlobals);
+            var provider = services.BuildServiceProvider();
+
+            // 2) Find the one whose class name matches
+            var match = implTypes
+                .FirstOrDefault(t => t.Name.Equals(typeName, StringComparison.Ordinal));
+            if (match is null)
+                return null;
+
+            // 3) Resolve via DI (honors ctor injection, modules� registrations, etc.)
+            return provider.GetService(match) as TPluginInterface;
+        }
+
+        // -------------------------------------------------
+        // INTERNAL: assemble IServiceCollection + impl types
+        // -------------------------------------------------
+        private (IServiceCollection services, List<Type> implTypes) BuildContainer<TPluginInterface>
+            (string pluginDir,Action<IServiceCollection>? configureGlobals) where TPluginInterface : class, IPlugin
         {
             if (!_fileSystem.Directory.Exists(pluginDir))
+                throw new DirectoryNotFoundException($"Plugin directory not found: {pluginDir}");
+
+            var services = new ServiceCollection();
+            var implTypes = new List<Type>();
+
+            // 1) globals
+            services.AddSingleton<IFileSystem>(_fileSystem);
+            configureGlobals?.Invoke(services);
+
+            // 2) per‐assembly scan
+            foreach (var asm in _assemblyLoader.LoadFromDirectory(pluginDir))
             {
-                logger.Warn($"Plugin directory not found: {pluginDir}");
-                return null;
+                var pluginTypes = asm
+                    .GetTypes()
+                    .Where(t => typeof(TPluginInterface).IsAssignableFrom(t)
+                             && !t.IsAbstract
+                             && t.GetConstructor(new[] { typeof(IFileSystem) }) != null);
+
+                foreach (var type in pluginTypes)
+                {
+                    implTypes.Add(type);
+
+                    // 3) find the single‐arg ctor
+                    var ctor = type.GetConstructor(new[] { typeof(IFileSystem) })!;
+                    // 4) invoke it to get the PluginBase/IPluginRegistrar
+                    var metadataInstance = (TPluginInterface)ctor.Invoke(new object[] { _fileSystem });
+
+                    // 5) let the plugin register everything it needs,
+                    //    including services.AddTransient<IPlugin, ThisType>()
+                    metadataInstance.ConfigureServices(services);
+                }
             }
 
-            var pluginDlls = _fileSystem.Directory.GetFiles(pluginDir, "*.dll");
-            
-            foreach (var file in pluginDlls)
+            return (services, implTypes);
+        }
+    }
+
+    // --- helper for loading raw assemblies ---
+    public class PluginAssemblyLoader
+    {
+        private readonly IFileSystem _fs;
+
+        public PluginAssemblyLoader(IFileSystem fs) => _fs = fs;
+
+        public IEnumerable<Assembly> LoadFromDirectory(string pluginDir)
+        {
+            var dlls = _fs.Directory.GetFiles(pluginDir, "RoboClerk.*.dll");
+            foreach (var dll in dlls)
             {
+                var ctx = new PluginLoadContext(dll);
+                var asmName = new AssemblyName(_fs.Path.GetFileNameWithoutExtension(dll));
+                Assembly? asm = null;
                 try
                 {
-                    var loadCtx = new PluginLoadContext(file);
-                    var assembly = loadCtx.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(file)));
-
-                    // Find types that implement T
-                    foreach (var type in assembly.GetTypes())
-                    {
-                        if (typeof(T).IsAssignableFrom(type) && !type.IsAbstract && type.IsClass)
-                        {
-                            // Check if this class has the right name
-                            if (type.Name == name)
-                            {
-                                // Create an instance of the plugin
-                                var constructors = type.GetConstructors();
-                                foreach (var constructor in constructors)
-                                {
-                                    var parameters = constructor.GetParameters();
-                                    // Look for a constructor that takes IFileSystem
-                                    if (parameters.Length == 1 && parameters[0].ParameterType == typeof(IFileSystem))
-                                    {
-                                        logger.Debug($"Found plugin {name} in {file}");
-                                        return (T)Activator.CreateInstance(type, fileSystem);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    asm = ctx.LoadFromAssemblyName(asmName);
                 }
                 catch (Exception ex)
                 {
-                    // Log the exception but continue loading other plugins
-                    logger.Warn($"Error loading plugin from {file}: {ex.Message}");
+                    Console.WriteLine($"Skipping plugin {dll}: {ex.Message}");
                 }
+                if (asm != null)
+                    yield return asm;
             }
-
-            return null;
         }
     }
-} 
+}

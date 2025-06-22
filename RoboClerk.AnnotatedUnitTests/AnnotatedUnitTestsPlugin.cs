@@ -25,13 +25,13 @@ namespace RoboClerk.AnnotatedUnitTests
         public AnnotatedUnitTestsPlugin(IFileSystem fileSystem)
             : base(fileSystem)
         {
-            name = "AnnotatedUnitTestPlugin";
-            description = "A plugin that analyzes a project's source code to extract unit test information for RoboClerk.";
+            SetBaseParam();
         }
 
-        public override void ConfigureServices(IServiceCollection services)
+        private void SetBaseParam()
         {
-            //this plugin does not need to register services
+            name = "AnnotatedUnitTestPlugin";
+            description = "A plugin that analyzes a project's source code to extract unit test information for RoboClerk.";
         }
 
         private void PopulateUTInfo(string tableName, TomlTable config)
@@ -53,12 +53,12 @@ namespace RoboClerk.AnnotatedUnitTests
             information[tableName] = info;
         }
 
-        public override void Initialize(IConfiguration configuration)
+        public override void InitializePlugin(IConfiguration configuration)
         {
             logger.Info("Initializing the Annotated Unit Test Plugin");
             try
             {
-                base.Initialize(configuration);
+                base.InitializePlugin(configuration);
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
 
                 decorationMarker = configuration.CommandLineOptionOrDefault("DecorationMarker", GetObjectForKey<string>(config, "DecorationMarker", true));

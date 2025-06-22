@@ -18,16 +18,21 @@ namespace RoboClerk
         public UnitTestFNPlugin(IFileSystem fileSystem)
             : base(fileSystem)
         {
+            SetBaseParam();
+        }
+
+        private void SetBaseParam()
+        {
             name = "UnitTestFNPlugin";
             description = "A plugin that analyzes a project's source code to extract unit test information for RoboClerk.";
         }
 
-        public override void Initialize(IConfiguration configuration)
+        public override void InitializePlugin(IConfiguration configuration)
         {
             logger.Info("Initializing the Unit Test Function Name Plugin");
             try
             {
-                base.Initialize(configuration);
+                base.InitializePlugin(configuration);
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
 
                 testFunctionDecoration = configuration.CommandLineOptionOrDefault("TestFunctionDecoration", GetObjectForKey<string>(config, "TestFunctionDecoration", false));
@@ -43,11 +48,6 @@ namespace RoboClerk
                 throw new Exception("The Unit Test FN plugin could not read its configuration. Aborting...");
             }
             ScanDirectoriesForSourceFiles();
-        }
-
-        public override void ConfigureServices(IServiceCollection services)
-        {
-            //this plugin does not need to register any services
         }
 
         private List<string> ParseFunctionMask(string functionMask)

@@ -179,7 +179,7 @@ namespace RoboClerk.Redmine.Tests
         private void InitializePluginWithConfiguration(TomlTable configTable)
         {
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
-            plugin.Initialize(configuration);
+            plugin.InitializePlugin(configuration);
         }
 
         #endregion
@@ -925,7 +925,7 @@ namespace RoboClerk.Redmine.Tests
 
             string val = ConvertTomlTableToString(configTable);
             var plugin = new TestRedmineSLMSPlugin(fileSystem, redmineClient);
-            plugin.Initialize(configuration);
+            plugin.InitializePlugin(configuration);
 
             // Act
             string reason;
@@ -1972,7 +1972,7 @@ namespace RoboClerk.Redmine.Tests
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
 
             var plugin = new TestRedmineSLMSPlugin(fileSystem, redmineClient);
-            plugin.Initialize(configuration);
+            plugin.InitializePlugin(configuration);
 
             // Act & Assert - Test 1: Should not ignore (matches inclusion, doesn't match exclusion)
             string reason;

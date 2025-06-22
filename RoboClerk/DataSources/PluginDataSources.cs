@@ -1,4 +1,6 @@
-﻿using RoboClerk.Configuration;
+﻿using Microsoft.Extensions.DependencyInjection;
+using RoboClerk.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 
@@ -14,7 +16,6 @@ namespace RoboClerk
             : base(configuration, fileSystem)
         {
             this.pluginLoader = pluginLoader;
-
             LoadPlugins();
         }
 
@@ -24,10 +25,17 @@ namespace RoboClerk
             {
                 foreach (var dir in configuration.PluginDirs)
                 {
-                    var plugin = pluginLoader.LoadPlugin<IPlugin>(val, dir, fileSystem);
+                    var plugin = pluginLoader.LoadByName<IDataSourcePlugin>(
+                        pluginDir: dir,
+                        typeName: val,
+                        configureGlobals: sc =>
+                        {
+                            sc.AddSingleton(fileSystem);
+                            sc.AddSingleton(configuration);
+                        });
                     if (plugin != null)
                     {
-                        plugin.Initialize(configuration);
+                        plugin.InitializePlugin(configuration);
                         if (plugin as IDataSourcePlugin != null)
                         {
                             var temp = plugin as IDataSourcePlugin;

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
 	  <OutputType>Library</OutputType>
 	  <StartupObject />
 	  <EnableDynamicLoading>true</EnableDynamicLoading>
@@ -57,16 +57,12 @@
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)plugins" />
 	</Target>
 	<Target Name="AdaptConfigFiles" AfterTargets="Build" Condition=" '$(Configuration)' != 'ReleasePublish' ">
-		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/TestResultsFilePlugin.toml" 
-						 MatchExpression="{PROJECTROOT}" 
-						 ReplacementText="$(ProjectDir)../RoboClerk/$(OutDir)" />
+		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/TestResultsFilePlugin.toml" MatchExpression="{PROJECTROOT}" ReplacementText="$(ProjectDir)../RoboClerk/$(OutDir)" />
 		<Copy SourceFiles="$(ProjectDir)ExampleResultFiles/ExampleSystemLevelTestResults.json" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input" />
 		<Copy SourceFiles="$(ProjectDir)ExampleResultFiles/ExampleUnitLevelTestResults.json" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input" />
 	</Target>
 	<Target Name="AdaptConfigFilesRP" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
-		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/TestResultsFilePlugin.toml" 
-						 MatchExpression="{PROJECTROOT}" 
-						 ReplacementText="/mnt/" />
+		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/TestResultsFilePlugin.toml" MatchExpression="{PROJECTROOT}" ReplacementText="/mnt/" />
 	</Target>
 
 </Project>
