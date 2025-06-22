@@ -23,7 +23,7 @@ namespace RoboClerk.Redmine.Tests
     {
         private class TestRedmineSLMSPlugin : RedmineSLMSPlugin
         {
-            public TestRedmineSLMSPlugin(IFileSystem fileSystem, IRedmineClient client) 
+            public TestRedmineSLMSPlugin(IFileProviderPlugin fileSystem, IRedmineClient client) 
                 : base(fileSystem, client)
             {
             }
@@ -74,6 +74,7 @@ namespace RoboClerk.Redmine.Tests
         #region Test Setup Helpers
 
         private IFileSystem fileSystem;
+        private IFileProviderPlugin fileProviderPlugin;
         private IConfiguration configuration;
         private IRedmineClient redmineClient;
         private TestRedmineSLMSPlugin plugin;
@@ -82,9 +83,10 @@ namespace RoboClerk.Redmine.Tests
         public void SetUp()
         {
             fileSystem = Substitute.For<IFileSystem>();
+            fileProviderPlugin = Substitute.For<IFileProviderPlugin>();
             configuration = Substitute.For<IConfiguration>();
             redmineClient = Substitute.For<IRedmineClient>();
-            plugin = new TestRedmineSLMSPlugin(fileSystem, redmineClient);
+            plugin = new TestRedmineSLMSPlugin(fileProviderPlugin, redmineClient);
         }
 
         private TomlTable CreateBaseConfiguration()
@@ -924,8 +926,10 @@ namespace RoboClerk.Redmine.Tests
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
 
             string val = ConvertTomlTableToString(configTable);
-            var plugin = new TestRedmineSLMSPlugin(fileSystem, redmineClient);
-            plugin.InitializePlugin(configuration);
+
+            fileProviderPlugin = new LocalFileSystemPlugin(fileSystem);
+            var plugin = new TestRedmineSLMSPlugin(fileProviderPlugin, redmineClient);
+            plugin.Initialize(configuration);
 
             // Act
             string reason;
@@ -1970,9 +1974,10 @@ namespace RoboClerk.Redmine.Tests
 
             // Mock file system and configuration calls
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
+            fileProviderPlugin = new LocalFileSystemPlugin(fileSystem);
 
-            var plugin = new TestRedmineSLMSPlugin(fileSystem, redmineClient);
-            plugin.InitializePlugin(configuration);
+            var plugin = new TestRedmineSLMSPlugin(fileProviderPlugin, redmineClient);
+            plugin.Initialize(configuration);
 
             // Act & Assert - Test 1: Should not ignore (matches inclusion, doesn't match exclusion)
             string reason;

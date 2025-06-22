@@ -1,5 +1,10 @@
 ﻿# This is the RoboClerk configuration file
 
+# Provide the name of the file provider plugin. The default is the LocalFileProvider 
+# that assumes files are being read off of the local filesystem. The other is the
+# SharePointFileProvider if the files are hosted in a sharepoint library.
+FileProviderPlugin = "LocalFileProvider"
+
 # Provide the names of the DataSource plugin(s) in a comma seperated list
 # For example: DataSourcePlugin = [ "AzureDevOpsSLMSPlugin", "RedmineCSVSLMSPlugin" ]
 DataSourcePlugin = [ "RedmineSLMSPlugin", "DependenciesFilePlugin", "UnitTestFNPlugin", "AnnotatedUnitTestPlugin", "TestResultsFilePlugin" ]
@@ -28,5 +33,8 @@ ClearOutputDir = "True"
 
 # Logging level (DEBUG, INFO or WARN)
 LogLevel = "WARN"
+
+# Output format (ASCIIDOC or HTML)
+OutputFormat = "ASCIIDOC"
 
 

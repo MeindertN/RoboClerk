@@ -51,7 +51,7 @@ namespace RoboClerk.Redmine
         private List<string> redmineVersionFields = new List<string>();
         private List<Version> versions = null;
 
-        public RedmineSLMSPlugin(IFileSystem fileSystem, IRedmineClient client)
+        public RedmineSLMSPlugin(IFileProviderPlugin fileSystem, IRedmineClient client)
             : base(fileSystem)
         {
             logger.Debug("Redmine SLMS plugin created");

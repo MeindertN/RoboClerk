@@ -22,7 +22,7 @@ namespace RoboClerk.AnnotatedUnitTests
 
         private Dictionary<string, UTInformation> information = new Dictionary<string, UTInformation>();
 
-        public AnnotatedUnitTestsPlugin(IFileSystem fileSystem)
+        public AnnotatedUnitTestsPlugin(IFileProviderPlugin fileSystem)
             : base(fileSystem)
         {
             SetBaseParam();
@@ -187,10 +187,10 @@ namespace RoboClerk.AnnotatedUnitTests
             return foundParameters;
         }
 
-        private void FindAndProcessAnnotations(string[] lines, string filename)
+        private void FindAndProcessAnnotations(List<string> lines, string filename)
         {
             StringBuilder foundAnnotation = new StringBuilder();
-            for (int i = 0; i < lines.Length; i++)
+            for (int i = 0; i < lines.Count; i++)
             {
                 int index = lines[i].IndexOf(decorationMarker, StringComparison.OrdinalIgnoreCase);
                 int paramStartIndex = -1;
@@ -201,7 +201,7 @@ namespace RoboClerk.AnnotatedUnitTests
                     startLine = i;
                     foundAnnotation.Append(lines[i].Substring(index));
                     //keep iterating until we find the beginning of the parameters of the annotation
-                    for (int j = i; j < lines.Length; j++)
+                    for (int j = i; j < lines.Count; j++)
                     {
                         paramStartIndex = foundAnnotation.ToString().IndexOf(parameterStartDelimiter);
                         if (paramStartIndex < 0)
@@ -214,7 +214,7 @@ namespace RoboClerk.AnnotatedUnitTests
                             break;
                         }
                     }
-                    for (int j = i; j < lines.Length; j++)
+                    for (int j = i; j < lines.Count; j++)
                     {
                         paramEndIndex = ParameterEnd(foundAnnotation.ToString());
                         if (paramEndIndex >= 0)
@@ -241,7 +241,7 @@ namespace RoboClerk.AnnotatedUnitTests
                     // extract the function name
                     int startI = i;
                     string functionName = string.Empty;
-                    for (int j = i ; j < lines.Length && j-startI<3 ; j++)
+                    for (int j = i ; j < lines.Count && j-startI<3 ; j++)
                     {
                         int startIndex = lines[j].IndexOf(functionNameStartSeq);
                         if( startIndex>=0 )
@@ -317,7 +317,7 @@ namespace RoboClerk.AnnotatedUnitTests
         {
             foreach (var sourceFile in sourceFiles)
             {
-                var lines = fileSystem.File.ReadAllLines(sourceFile);
+                var lines = fileProvider.ReadLines(sourceFile);
                 FindAndProcessAnnotations(lines, sourceFile);
             }
         }

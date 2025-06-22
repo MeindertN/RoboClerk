@@ -29,9 +29,10 @@ namespace RoboClerk.ContentCreators
                 bool found = false;
                 foreach (var result in results)
                 {
-                    if ( (result.Type == TestResultType.SYSTEM && result.ID == item.ItemID) || 
-                         (item.TestCaseToUnitTest && result.Type == TestResultType.UNIT && 
-                          item.LinkedItems.Any(o => o.LinkType == ItemLinkType.UnitTest && o.TargetID == result.ID)) )
+
+                    if ((result.Type == TestResultType.SYSTEM && result.ID == item.ItemID) ||
+                         (item.TestCaseToUnitTest && result.Type == TestResultType.UNIT &&
+                          item.LinkedItems.Any(o => o.LinkType == ItemLinkType.UnitTest && o.TargetID == result.ID)))
                     {
                         found = true;
                         if (result.Status == TestResultStatus.FAIL)
@@ -114,7 +115,7 @@ namespace RoboClerk.ContentCreators
                     }
                     else
                     {
-                        if( tc.TestCaseToUnitTest )
+                        if (tc.TestCaseToUnitTest)
                         {
                             //trying to kick a manual test to the unit test plan is not correct. 
                             logger.Error($"Trying to test a manual {sourceTE.Name} ({tc.ItemID}) with a unit test is not valid.");

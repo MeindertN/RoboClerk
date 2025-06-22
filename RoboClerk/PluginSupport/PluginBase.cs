@@ -13,11 +13,9 @@ namespace RoboClerk
         protected string name = string.Empty;
         protected string description = string.Empty;
         protected static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        protected IFileSystem fileSystem = null;
               
-        public PluginBase(IFileSystem fileSystem)
+        public PluginBase()
         {
-            this.fileSystem = fileSystem;
         }
 
         public string Name
@@ -59,21 +57,11 @@ namespace RoboClerk
                 }
                 else
                 {
-                    logger.Warn($"Key \\\"{keyName}\\\" missing from configuration file for {name}. Attempting to continue.");
+                    logger.Warn($"Key \"{keyName}\" missing from configuration file for {name}. Attempting to continue.");
                     return default(T);
                 }
             }
         }
 
-        protected TomlTable GetConfigurationTable(string pluginConfDir, string confFileName)
-        {
-            var assembly = Assembly.GetAssembly(this.GetType());
-            var configFileLocation = $"{fileSystem.Path.GetDirectoryName(assembly?.Location)}/Configuration/{confFileName}";
-            if (pluginConfDir != string.Empty)
-            {
-                configFileLocation = fileSystem.Path.Combine(pluginConfDir, confFileName);
-            }
-            return Toml.Parse(fileSystem.File.ReadAllText(configFileLocation)).ToModel();
-        }
     }
 }
