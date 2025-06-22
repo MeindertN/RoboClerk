@@ -19,5 +19,5 @@ if [ "$1" == "demo" ]; then
 
     # Modify the CheckpointFile line in the config file
     sed -i 's|CheckpointFile = ""|CheckpointFile = "DataSourceData.json"|' "$project_config_file"
-    sed -i 's|DataSourcePlugin = \[ "RedmineSLMSPlugin", "DependenciesFilePlugin", "UnitTestFNPlugin", "AnnotatedUnitTestPlugin" \]|DataSourcePlugin = \[\]|' "$config_file"
+    sed -i 's|DataSourcePlugin = \[[^]]*\]|DataSourcePlugin = []|' "$config_file"
 fi
