@@ -1,4 +1,5 @@
-﻿using Azure;
+﻿#nullable enable
+using Azure;
 using Azure.AI.OpenAI;
 using RoboClerk.Configuration;
 using System;

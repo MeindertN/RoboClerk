@@ -113,6 +113,7 @@ namespace RoboClerk.Redmine.Tests
             configuration.PluginConfigDir.Returns("TestPluginDir");
             fileSystem.Path.GetDirectoryName(Arg.Any<string>()).Returns("TestLocation");
             fileSystem.Path.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns("TestLocation/Configuration/RedmineSLMSPlugin.toml");
+            fileProviderPlugin = new LocalFileSystemPlugin(fileSystem);
         }
 
         private void SetupMockConfiguration()
