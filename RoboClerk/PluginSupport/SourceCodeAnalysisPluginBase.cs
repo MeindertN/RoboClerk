@@ -53,7 +53,6 @@ namespace RoboClerk
             sourceFiles.Clear();
             foreach (var testDirectory in directories)
             {
-                fileProvider.CreateDirectory(testDirectory);
                 try
                 {
                     foreach (var fileMask in fileMasks)

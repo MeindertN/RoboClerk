@@ -83,7 +83,7 @@ namespace RoboClerk.Redmine.Tests
         public void SetUp()
         {
             fileSystem = Substitute.For<IFileSystem>();
-            fileProviderPlugin = Substitute.For<IFileProviderPlugin>();
+            fileProviderPlugin = new LocalFileSystemPlugin(fileSystem);
             configuration = Substitute.For<IConfiguration>();
             redmineClient = Substitute.For<IRedmineClient>();
             plugin = new TestRedmineSLMSPlugin(fileProviderPlugin, redmineClient);
@@ -112,8 +112,9 @@ namespace RoboClerk.Redmine.Tests
         {
             configuration.PluginConfigDir.Returns("TestPluginDir");
             fileSystem.Path.GetDirectoryName(Arg.Any<string>()).Returns("TestLocation");
-            fileSystem.Path.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns("TestLocation/Configuration/RedmineSLMSPlugin.toml");
-            fileProviderPlugin = new LocalFileSystemPlugin(fileSystem);
+            fileSystem.Path.Combine(Arg.Any<string[]>()).Returns("TestLocation/Configuration/RedmineSLMSPlugin.toml");
+            fileSystem.Path.Combine(Arg.Any<string>(),Arg.Any<string>()).Returns("TestLocation/Configuration/RedmineSLMSPlugin.toml");
+            fileProviderPlugin.FileExists("TestLocation/Configuration/RedmineSLMSPlugin.toml").Returns(true);
         }
 
         private void SetupMockConfiguration()
@@ -921,9 +922,7 @@ namespace RoboClerk.Redmine.Tests
             configTable["SOUP"] = soupConfig;
 
             // Mock file system and configuration calls
-            configuration.PluginConfigDir.Returns("TestPluginDir");
-            fileSystem.Path.GetDirectoryName(Arg.Any<string>()).Returns("TestLocation");
-            fileSystem.Path.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns("TestLocation/Configuration/RedmineSLMSPlugin.toml");
+            SetupMockFileSystem();
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
 
             string val = ConvertTomlTableToString(configTable);
@@ -1029,6 +1028,7 @@ namespace RoboClerk.Redmine.Tests
             SetupMockConfiguration();
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(ConvertTomlTableToString(configTable));
             services.AddSingleton(configuration);
+            services.AddSingleton(fileProviderPlugin);
 
             // Act
             plugin.ConfigureServices(services);
@@ -1224,6 +1224,7 @@ namespace RoboClerk.Redmine.Tests
             };
             SetupTruthItemConfigurations(configTable, trackerNames);
             SetupMockConfiguration();
+            SetupMockFileSystem();
             InitializePluginWithConfiguration(configTable);
 
             // Act
@@ -1294,6 +1295,7 @@ namespace RoboClerk.Redmine.Tests
             };
             SetupTruthItemConfigurations(configTable, trackerNames);
             SetupMockConfiguration();
+            SetupMockFileSystem();
             InitializePluginWithConfiguration(configTable);
 
             // Act
@@ -1423,6 +1425,7 @@ namespace RoboClerk.Redmine.Tests
             };
             SetupTruthItemConfigurations(configTable, trackerNames);
             SetupMockConfiguration();
+            SetupMockFileSystem();
             InitializePluginWithConfiguration(configTable);
 
             // Act
@@ -1508,6 +1511,7 @@ namespace RoboClerk.Redmine.Tests
             };
             SetupTruthItemConfigurations(configTable, trackerNames);
             SetupMockConfiguration();
+            SetupMockFileSystem();
             InitializePluginWithConfiguration(configTable);
 
             // Act
@@ -1651,6 +1655,7 @@ namespace RoboClerk.Redmine.Tests
             };
             SetupTruthItemConfigurations(configTable, trackerNames);
             SetupMockConfiguration();
+            SetupMockFileSystem();
             InitializePluginWithConfiguration(configTable);
 
             // Act
@@ -1765,6 +1770,7 @@ namespace RoboClerk.Redmine.Tests
             };
             SetupTruthItemConfigurations(configTable, trackerNames);
             SetupMockConfiguration();
+            SetupMockFileSystem();
             InitializePluginWithConfiguration(configTable);
 
             // Act & Assert
@@ -1853,6 +1859,7 @@ namespace RoboClerk.Redmine.Tests
             };
             SetupTruthItemConfigurations(configTable, trackerNames);
             SetupMockConfiguration();
+            SetupMockFileSystem();
             InitializePluginWithConfiguration(configTable);
 
             // Act

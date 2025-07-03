@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
 using NUnit.Framework;
 using RoboClerk.Configuration;
 
@@ -12,17 +13,13 @@ namespace RoboClerk.Tests
     public class TestLocalFileSystemPlugin
     {
         private MockFileSystem _mockFileSystem;
-        private LocalFileSystemPlugin _plugin;
-        private IConfiguration _mockConfiguration;
+        private IFileProviderPlugin _plugin;
 
         [SetUp]
         public void Setup()
         {
             _mockFileSystem = new MockFileSystem();
             _plugin = new LocalFileSystemPlugin(_mockFileSystem);
-            
-            // Create a simple mock configuration
-            _mockConfiguration = new RoboClerk.Configuration.Configuration(_plugin, "test.toml", "test.toml", new System.Collections.Generic.Dictionary<string, string>());
         }
 
         [UnitTestAttribute(

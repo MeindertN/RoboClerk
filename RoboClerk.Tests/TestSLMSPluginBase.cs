@@ -170,7 +170,7 @@ namespace RoboClerk.Tests
         public void TestSetup()
         {
             fileSystem = Substitute.For<IFileSystem>();
-            fileProviderPlugin = Substitute.For<IFileProviderPlugin>();
+            fileProviderPlugin = new LocalFileSystemPlugin(fileSystem);
             basePlugin = new SLMSPlugin(fileProviderPlugin);
 
             config = Substitute.For<IConfiguration>();
@@ -221,7 +221,9 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
 ";
 
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(testpluginconfig);
+            fileSystem.File.Exists(Arg.Any<string>()).Returns(true);
             config.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp"));
+            fileProviderPlugin.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns("C:\\temp\\testplugin.toml");
         }
 
         [UnitTestAttribute(
