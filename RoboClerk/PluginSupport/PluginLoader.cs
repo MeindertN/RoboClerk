@@ -44,12 +44,14 @@ namespace RoboClerk
 
     public class PluginLoader : IPluginLoader
     {
-        private readonly IFileProviderPlugin _fileSystem;
+        private readonly IFileSystem _fileSystem;
+        private readonly IFileProviderPlugin _pluginFileProvider;
         private readonly PluginAssemblyLoader _assemblyLoader;
 
-        public PluginLoader(IFileSystem fileSystem)
+        public PluginLoader(IFileSystem fileSystem, IFileProviderPlugin pluginFileProvider)
         {
-            _fileSystem = new LocalFileSystemPlugin(fileSystem);
+            _fileSystem = fileSystem;
+            _pluginFileProvider = pluginFileProvider;
             _assemblyLoader = new PluginAssemblyLoader(_fileSystem);
         }
 
@@ -94,14 +96,14 @@ namespace RoboClerk
         private (IServiceCollection services, List<Type> implTypes) BuildContainer<TPluginInterface>
             (string pluginDir,Action<IServiceCollection>? configureGlobals) where TPluginInterface : class, IPlugin
         {
-            if (!_fileSystem.DirectoryExists(pluginDir))
+            if (!_fileSystem.Directory.Exists(pluginDir))
                 throw new DirectoryNotFoundException($"Plugin directory not found: {pluginDir}");
 
             var services = new ServiceCollection();
             var implTypes = new List<Type>();
 
             // 1) globals
-            services.AddSingleton<IFileProviderPlugin>(_fileSystem);
+            services.AddSingleton<IFileProviderPlugin>(_pluginFileProvider);
             configureGlobals?.Invoke(services);
 
             // 2) per‐assembly scan
@@ -123,7 +125,7 @@ namespace RoboClerk
 
                     if (ctor != null)
                     {
-                        args = new object[] { _fileSystem };
+                        args = new object[] { _pluginFileProvider };
                     }
                     else
                     {
@@ -152,17 +154,17 @@ namespace RoboClerk
     // --- helper for loading raw assemblies ---
     public class PluginAssemblyLoader
     {
-        private readonly IFileProviderPlugin _fs;
+        private readonly IFileSystem _fs;
 
-        public PluginAssemblyLoader(IFileProviderPlugin fs) => _fs = fs;
+        public PluginAssemblyLoader(IFileSystem fs) => _fs = fs;
 
         public IEnumerable<Assembly> LoadFromDirectory(string pluginDir)
         {
-            var dlls = _fs.GetFiles(pluginDir, "RoboClerk.*.dll");
+            var dlls = _fs.Directory.GetFiles(pluginDir, "RoboClerk.*.dll");
             foreach (var dll in dlls)
             {
                 var ctx = new PluginLoadContext(dll);
-                var asmName = new AssemblyName(_fs.GetFileNameWithoutExtension(dll));
+                var asmName = new AssemblyName(_fs.Path.GetFileNameWithoutExtension(dll));
                 Assembly? asm = null;
                 try
                 {
