@@ -116,6 +116,7 @@ namespace RoboClerk
                        {
                            var serviceCollection = new ServiceCollection();
                            serviceCollection.AddTransient<IFileProviderPlugin>(x=> new LocalFileSystemPlugin(new FileSystem()));
+                           serviceCollection.AddTransient<IFileSystem, FileSystem>();
                            serviceCollection.AddSingleton<IConfiguration>(x => new RoboClerk.Configuration.Configuration(x.GetRequiredService<IFileProviderPlugin>(), roboClerkConfigFile, projectConfigFile, commandlineOptions));
                            serviceCollection.AddSingleton<IPluginLoader, PluginLoader>();
                            serviceCollection.AddSingleton<ITraceabilityAnalysis, TraceabilityAnalysis>();

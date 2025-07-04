@@ -44,13 +44,13 @@ namespace RoboClerk
 
     public class PluginLoader : IPluginLoader
     {
-        private readonly IFileSystem _fileSystem;
+        private readonly IFileProviderPlugin _fileSystem;
         private readonly PluginAssemblyLoader _assemblyLoader;
 
         public PluginLoader(IFileSystem fileSystem)
         {
-            _fileSystem = fileSystem;
-            _assemblyLoader = new PluginAssemblyLoader(fileSystem);
+            _fileSystem = new LocalFileSystemPlugin(fileSystem);
+            _assemblyLoader = new PluginAssemblyLoader(_fileSystem);
         }
 
         // -------------------------
@@ -94,14 +94,14 @@ namespace RoboClerk
         private (IServiceCollection services, List<Type> implTypes) BuildContainer<TPluginInterface>
             (string pluginDir,Action<IServiceCollection>? configureGlobals) where TPluginInterface : class, IPlugin
         {
-            if (!_fileSystem.Directory.Exists(pluginDir))
+            if (!_fileSystem.DirectoryExists(pluginDir))
                 throw new DirectoryNotFoundException($"Plugin directory not found: {pluginDir}");
 
             var services = new ServiceCollection();
             var implTypes = new List<Type>();
 
             // 1) globals
-            services.AddSingleton<IFileSystem>(_fileSystem);
+            services.AddSingleton<IFileProviderPlugin>(_fileSystem);
             configureGlobals?.Invoke(services);
 
             // 2) per‐assembly scan
@@ -111,7 +111,7 @@ namespace RoboClerk
                     .GetTypes()
                     .Where(t => typeof(TPluginInterface).IsAssignableFrom(t)
                              && !t.IsAbstract
-                             && t.GetConstructor(new[] { typeof(IFileSystem) }) != null);
+                             && t.GetConstructor(new[] { typeof(IFileProviderPlugin) }) != null);
 
                 foreach (var type in pluginTypes)
                 {
@@ -119,7 +119,7 @@ namespace RoboClerk
                     object?[] args;
 
                     // 3) find the single‐arg ctor
-                    ctor = type.GetConstructor(new[] { typeof(IFileSystem) });
+                    ctor = type.GetConstructor(new[] { typeof(IFileProviderPlugin) });
 
                     if (ctor != null)
                     {
@@ -152,17 +152,17 @@ namespace RoboClerk
     // --- helper for loading raw assemblies ---
     public class PluginAssemblyLoader
     {
-        private readonly IFileSystem _fs;
+        private readonly IFileProviderPlugin _fs;
 
-        public PluginAssemblyLoader(IFileSystem fs) => _fs = fs;
+        public PluginAssemblyLoader(IFileProviderPlugin fs) => _fs = fs;
 
         public IEnumerable<Assembly> LoadFromDirectory(string pluginDir)
         {
-            var dlls = _fs.Directory.GetFiles(pluginDir, "RoboClerk.*.dll");
+            var dlls = _fs.GetFiles(pluginDir, "RoboClerk.*.dll");
             foreach (var dll in dlls)
             {
                 var ctx = new PluginLoadContext(dll);
-                var asmName = new AssemblyName(_fs.Path.GetFileNameWithoutExtension(dll));
+                var asmName = new AssemblyName(_fs.GetFileNameWithoutExtension(dll));
                 Assembly? asm = null;
                 try
                 {
