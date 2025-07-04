@@ -1,0 +1,33 @@
+﻿[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+using RoboClerk;
+
+TraceEntity te = SourceTraceEntity;
+
+string CreateRows()
+{
+	System.Text.StringBuilder sb = new System.Text.StringBuilder();
+	foreach( var item in Items)
+	{
+		UnitTestItem ut = (UnitTestItem)item;
+		AddTrace(ut.ItemID);
+		sb.Append($"<tr><td>{GetItemLinkString(ut)}</td><td>{ut.UnitTestFunctionName} / {ut.UnitTestFileName}</td><td>{ut.UnitTestPurpose}</td><td>{ut.UnitTestAcceptanceCriteria}</td></tr>");
+	}
+	return sb.ToString();
+}
+]
+
+<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse;">
+	<thead>
+		<tr>
+			<th>[csx:te.Name] ID</th>
+			<th>Function / File Name</th>
+			<th>[csx:te.Name] Purpose</th>
+			<th>Acceptance Criteria</th>
+		</tr>
+	</thead>
+	<tbody>
+		[csx:CreateRows()]
+	</tbody>
+</table>

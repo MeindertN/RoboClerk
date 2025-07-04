@@ -12,6 +12,7 @@ namespace RoboClerk.Configuration
         string ProjectRoot { get; }
         bool ClearOutputDir { get; }
         string LogLevel { get; }
+        string OutputFormat { get; }
         string MediaDir { get; }
         bool AICheckTemplateContents { get; }
         string AIPlugin { get; }

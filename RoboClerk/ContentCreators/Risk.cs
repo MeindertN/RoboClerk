@@ -11,11 +11,11 @@ namespace RoboClerk.ContentCreators
         {
         }
 
-        protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
+        protected override string GenerateContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             var dataShare = new ScriptingBridge(data, analysis, sourceTE);
             dataShare.Items = items;
-            var file = data.GetTemplateFile(@"./ItemTemplates/Risk.adoc");
+            var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/Risk.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
             var renderer = new ItemTemplateRenderer(file);
             try
             {

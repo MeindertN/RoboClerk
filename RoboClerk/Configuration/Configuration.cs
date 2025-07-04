@@ -21,6 +21,7 @@ namespace RoboClerk.Configuration
         private string logLevel = string.Empty;
         private string pluginConfigDir = string.Empty;
         private bool clearOutput = false;
+        private string outputFormat = string.Empty;
 
         //The information contained in the project configuration file
         private List<TraceEntity> truthEntities = new List<TraceEntity>();
@@ -50,6 +51,7 @@ namespace RoboClerk.Configuration
         public List<string> PluginDirs => pluginDirs;
         public string OutputDir => outputDir;
         public string LogLevel => logLevel;
+        public string OutputFormat => outputFormat;
         public List<TraceEntity> TruthEntities => truthEntities;
         public List<TraceEntity> AICheckTraceEntities => checkTraceEntitiesAI;
         public bool AICheckTemplateContents => checkTemplateContentsAI;
@@ -109,6 +111,7 @@ namespace RoboClerk.Configuration
             outputDir = CommandLineOptionOrDefault("OutputDirectory", (string)toml["OutputDirectory"]);
             clearOutput = CommandLineOptionOrDefault("ClearOutputDir", (string)toml["ClearOutputDir"]).ToUpper() == "TRUE";
             logLevel = CommandLineOptionOrDefault("LogLevel", (string)toml["LogLevel"]);
+            outputFormat = CommandLineOptionOrDefault("OutputFormat", (string)toml["OutputFormat"]);
         }
 
         private void ReadProjectConfigFile(string projectConfig)

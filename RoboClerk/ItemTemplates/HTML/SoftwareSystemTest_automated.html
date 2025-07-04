@@ -1,0 +1,85 @@
+﻿[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+using RoboClerk;
+using System.Linq;
+
+TraceEntity te = SourceTraceEntity;
+SoftwareSystemTestItem item = (SoftwareSystemTestItem)Item;
+string pl = GetLinkedField(item, ItemLinkType.Parent);
+AddTrace(item.ItemID);
+
+string RenderTestStepRows()
+{
+    System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+    if(item.TestCaseToUnitTest)
+    {
+        var ids = string.Join(
+            ", ",
+            item.LinkedItems
+                .Where(l => l.LinkType == ItemLinkType.UnitTest)
+                .Select(l => l.TargetID)
+        );
+        sb.AppendLine($"<tr><td colspan=\"5\">This functionality is fully exercised in the following unit test(s): {ids}</td></tr>");
+    }
+    else
+    {
+        sb.AppendLine("<tr>
+    ");
+    sb.AppendLine("
+    <th>Step</th>
+    <th>Action</th>
+    <th>Expected Result</th>
+    <th>Actual Result</th>
+    <th>Test Status</th>");
+    sb.AppendLine("
+</tr>");
+
+        int stepNumber = 1;
+        foreach (var step in item.TestCaseSteps)
+        {
+            string action = step.Action.Replace("\n", "").Replace("\r", "");
+            string result = step.ExpectedResult.Replace("\n", "").Replace("\r", "");
+            string actualResult = "";
+            string testStatus = string.IsNullOrWhiteSpace(result) ? "" : "Pass / Fail";
+
+            sb.AppendLine("<tr>
+    ");
+    sb.AppendLine($"
+    <td>{stepNumber}</td>
+    <td>{action}</td>
+    <td>{result}</td>
+    <td>{actualResult}</td>
+    <td>{testStatus}</td>");
+    sb.AppendLine("
+</tr>");
+
+            stepNumber++;
+        }
+    }
+
+    return sb.ToString();
+}
+]
+
+<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse;">
+    <tr>
+        <th style="text-align:left;"><strong>Test Case ID:</strong></th>
+        <td colspan="4">[csx:GetItemLinkString(item)]</td>
+    </tr>
+    <tr>
+        <th style="text-align:left;"><strong>Test Case Revision:</strong></th>
+        <td colspan="4">[csx:item.ItemRevision]</td>
+    </tr>
+    <tr>
+        <th style="text-align:left;"><strong>Parent ID:</strong></th>
+        <td colspan="4">[csx:pl]</td>
+    </tr>
+    <tr>
+        <th style="text-align:left;"><strong>Title:</strong></th>
+        <td colspan="4">[csx:item.ItemTitle]</td>
+    </tr>
+
+    [csx:RenderTestStepRows()]
+</table>

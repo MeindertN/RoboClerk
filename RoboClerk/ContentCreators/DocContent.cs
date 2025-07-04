@@ -14,11 +14,11 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
+        protected override string GenerateContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             StringBuilder output = new StringBuilder();
             var dataShare = new ScriptingBridge(data, analysis, sourceTE);
-            var file = data.GetTemplateFile(@"./ItemTemplates/DocContent.adoc");
+            var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/DocContent.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
             var renderer = new ItemTemplateRenderer(file);
             foreach (var item in items)
             {

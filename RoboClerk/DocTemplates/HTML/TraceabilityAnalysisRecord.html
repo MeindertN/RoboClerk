@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@@Document:Title()@@</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+
+        ol {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 1em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>@@Document:Title()@@</h1>
+
+    <p>
+        for<br />
+        @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@
+    </p>
+
+    <p>
+        <strong>Authors:</strong><br />
+        ROBOCLERK
+    </p>
+
+    <p>@@Post:TOC()@@</p>
+
+    <h2>Introduction</h2>
+
+    <h3>Purpose</h3>
+    <p>
+        The @@Document:Title()@@ (@@Document:Abbreviation()@@) is a document created in accordance with ISO 62304 standards to provide a comprehensive record of the traceability of requirements and risks throughout the software development lifecycle for the medical device software project. The purpose of this document is to demonstrate that all software requirements are traceable to higher-level system requirements, risk controls, and are validated. The TAR also identifies any issues with the trace and provides an analysis of the software of unknown provenance (SOUP) dependencies.
+    </p>
+
+    <h3>Document Conventions</h3>
+    <p>The @@Document:Abbreviation()@@ will include the following sections:</p>
+    <ol>
+        <li><strong>System Level Trace Matrix:</strong> This table will trace system level requirements to the System Requirements Specification, software requirements, risk assessment record and risks.</li>
+        <li><strong>Software Level Trace Matrix:</strong> This table will trace software level requirements to the Software Requirements Specification, system requirements, and the System Level Test Plan.</li>
+        <li><strong>Risk Trace Matrix:</strong> This table will trace risks to the system requirements defining the risk control measure.</li>
+        <li><strong>Documentation Trace Matrix:</strong> This table will trace documentation requirements to DocContent items.</li>
+        <li><strong>DocContent Trace Matrix:</strong> This table will trace DocContent items to the documents they appear in.</li>
+    </ol>
+    <p><strong>Traceability Issues:</strong> Any issues with the traceability of requirements will be listed below the tables.</p>
+    <p><strong>SOUP Issues:</strong> This section will analyze and describe all SOUP items and match them with dependencies. Any mismatches will be reported.</p>
+
+    <h3>Intended Audience</h3>
+    <p>
+        The @@Document:Abbreviation()@@ is intended for use by the software development team, including developers and managers, to ensure that all software requirements are traceable to higher-level system requirements, risk controls, and validations. The @@Document:Abbreviation()@@ will also be reviewed by regulatory agencies to evaluate compliance with relevant standards and regulations governing the development and use of medical software.
+    </p>
+
+    <h3>System Level Trace Matrix</h3>
+    @@@SLMS:TraceMatrix(source=SystemRequirement)@@@
+
+    <h3>Software Level Trace Matrix</h3>
+    @@@SLMS:TraceMatrix(source=SoftwareRequirement)@@@
+
+    <h3>Risk Trace Matrix</h3>
+    @@@SLMS:TraceMatrix(source=Risk)@@@
+
+    <h3>Documentation Trace Matrix</h3>
+    @@@SLMS:TraceMatrix(source=DocumentationRequirement)@@@
+
+    <h3>DocContent Trace Matrix</h3>
+    @@@SLMS:TraceMatrix(source=DocContent)@@@
+
+    <h2>OTS Information</h2>
+    @@@SLMS:SOUP(checkSoup=true)@@@
+
+    <h2>Eliminated Items</h2>
+    <p>Due to the way the combination of ROBOCLERK and the SLMS are configured, certain items can end up being ignored. Below is a list of ignored items and the reason they are ignored.</p>
+    @@@SLMS:Eliminated()@@@
+
+</body>
+</html>

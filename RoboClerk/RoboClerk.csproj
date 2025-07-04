@@ -37,15 +37,15 @@
 	</Target>
 	<Target Name="CopyResources" BeforeTargets="Start" AfterTargets="Build">
 		<ItemGroup>
-			<TemplateFiles Include="$(ProjectDir)/DocTemplates/*.*" />
-			<ItemTemplateFiles Include="$(ProjectDir)/ItemTemplates/*.*" />
+			<TemplateFiles Include="$(ProjectDir)/DocTemplates/ASCIIDOC/*.*" />
+			<ItemTemplateFiles Include="$(ProjectDir)/ItemTemplates/**\*" />
 			<DocxProcessingScripts Include="$(ProjectDir)../DocxProcessingScripts/*.*" />
 			<MediaFiles Include="$(ProjectDir)/DocTemplates/media/*.*" />
 		</ItemGroup>
 		<Copy SourceFiles="$(ProjectDir)Configuration/Project/projectConfig.toml" DestinationFolder="$(ProjectDir)$(OutDir)RoboClerk_input/RoboClerkConfig" />
 		<Copy SourceFiles="$(ProjectDir)Configuration/RoboClerk/RoboClerk.toml" DestinationFolder="$(ProjectDir)$(OutDir)RoboClerk_input/RoboClerkConfig" />
 		<Copy SourceFiles="@(TemplateFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input" />
-		<Copy SourceFiles="@(ItemTemplateFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/ItemTemplates" />
+		<Copy SourceFiles="@(ItemTemplateFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/ItemTemplates/%(RecursiveDir)" />
 		<Copy SourceFiles="@(DocxProcessingScripts)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/DocxProcessingScripts" />
 		<Copy SourceFiles="@(MediaFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/media" />
 	</Target>

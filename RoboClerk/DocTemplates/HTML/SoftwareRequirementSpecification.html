@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@@Document:Title()@@</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+
+        ul, ol {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 1em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>@@Document:Title()@@</h1>
+
+    <p>
+        for<br />
+        @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@
+    </p>
+
+    <p>
+        <strong>Authors:</strong><br />
+        ROBOCLERK
+    </p>
+
+    <p>@@Post:TOC()@@</p>
+
+    <h2>Introduction</h2>
+
+    <h3>Purpose</h3>
+    <p>
+        The purpose of this @@Document:Title()@@ (@@Document:Abbreviation()@@) is to define the functional and non-functional requirements for the development of @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@, a medical device software product developed by @@Config:CompanyName()@@ in accordance with the requirements of ISO 62304. This document provides a comprehensive overview of the software product's intended use, performance criteria, safety requirements, and other relevant specifications necessary for the design, implementation, and testing of the software product. The Software Requirements Specification is intended to be a detailed and traceable document that can be used throughout the software development life cycle to ensure compliance with regulatory requirements and to facilitate effective communication and collaboration between stakeholders involved in the development of the software product.
+    </p>
+
+    <h3>Document Conventions</h3>
+
+    <h4>Software Requirements Format</h4>
+    <p>Each software requirement in this document shall be formatted as follows:</p>
+    <ul>
+        <li><strong>Software Requirement ID:</strong> A unique identifier assigned to the requirement, with a hyperlink back to the Software Lifecycle Management System for traceability purposes.</li>
+        <li><strong>Requirement Revision:</strong> The revision number of the requirement, along with the date and time of the latest revision.</li>
+        <li><strong>Requirement Category:</strong> The category to which the requirement belongs. Requirements are organized by category for ease of use and management.</li>
+        <li><strong>Parent System Requirement ID:</strong> The ID of the parent System Requirement item, along with its title.</li>
+        <li><strong>Requirement Title:</strong> A short, descriptive title that summarizes the requirement.</li>
+        <li><strong>Requirement Description:</strong> A detailed description of the requirement, including any specific performance criteria, safety requirements, or other relevant information necessary for the design, implementation, and testing of the software product.</li>
+    </ul>
+
+    <h4>Software Requirements Categories</h4>
+    <p>The following categories shall be used to organize the software requirements in this document:</p>
+    <ul>
+        <li><strong>Functional Requirements:</strong> Intended behavior or functionality of the software product.</li>
+        <li><strong>Non-Functional Requirements:</strong> Constraints or criteria related to performance, reliability, or maintainability.</li>
+        <li><strong>Risk Control Requirements:</strong> Measures or features intended to control risks associated with use.</li>
+        <li><strong>User Interface Requirements:</strong> Appearance, layout, or behavior of the user interface.</li>
+        <li><strong>Performance Requirements:</strong> Performance criteria or benchmarks the software must meet.</li>
+        <li><strong>Security Requirements:</strong> Measures to ensure security and protect against unauthorized access or use.</li>
+        <li><strong>Data Management Requirements:</strong> Data elements, structures, or formats used by the software.</li>
+        <li><strong>Compatibility Requirements:</strong> Compatibility with other systems, platforms, or devices.</li>
+        <li><strong>Transfer To Production Requirements:</strong> Measures or features of the transfer to production process.</li>
+    </ul>
+
+    <h4>Parent System Requirements</h4>
+    <p>
+        Every Software Requirement must have a parent System Requirement item, which is defined in the System Requirements Specification document. The parent System Requirement item provides a high-level overview of the software product's intended use, and each software requirement is linked back to a specific parent System Requirement item to ensure traceability and alignment with the overall product vision.
+    </p>
+
+    <h3>Intended Audience</h3>
+    <p>This @@Document:Abbreviation()@@ is intended for the following audiences:</p>
+    <ul>
+        <li>Software developers at @@Config:CompanyName()@@ responsible for the design, development, and testing of the software product</li>
+        <li>Management responsible for overseeing the software development process, including project managers, product owners, and quality assurance personnel</li>
+        <li>Regulatory agencies responsible for overseeing the development and approval of medical device software products</li>
+    </ul>
+    <p>
+        The document provides each audience with the necessary information about the software product's requirements and specifications to support informed decision-making, compliance with regulatory requirements, and successful software development.
+    </p>
+
+    <p>@@POST:PAGEBREAK()@@</p>
+
+    <h2>Software Requirements</h2>
+
+    <h3>Performance Software Requirements</h3>
+    @@@SLMS:SWR(itemCategory=Performance)@@@
+
+    <h3>Data Management Software Requirements</h3>
+    @@@SLMS:SWR(itemCategory=Data Management)@@@
+
+    <h3>Transfer to Production Software Requirements</h3>
+    <p>
+        This project does not have software requirements of this category. If you still have RoboClerk search for it it'll warn you as follows:
+    </p>
+    @@@SLMS:SWR(itemCategory=Transfer to Production)@@@
+
+    <h3>Risk Control Software Requirements</h3>
+    @@@SLMS:SWR(itemCategory=Risk Control Measure)@@@
+
+    <h3>Next are only Software Requirements changed before 2023/04/01 03:00:00 PM:</h3>
+    @@@SLMS:SWR(OlderThan=2023/04/01 03:00:00 PM)@@@
+
+    <h3>Next are only User Interface Software Requirements changed after 2023/02/04 03:07:12 PM:</h3>
+    @@@SLMS:SWR(itemCategory=User Interface,NewerThan=2023/02/04 03:07:12 PM)@@@
+
+    <p>This document contains @@Document:CountEntities(entity=Software Requirement)@@ software requirements.</p>
+
+</body>
+</html>

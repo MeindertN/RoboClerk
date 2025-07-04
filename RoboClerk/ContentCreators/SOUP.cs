@@ -19,10 +19,10 @@ namespace RoboClerk.ContentCreators
             var extDeps = data.GetAllExternalDependencies();
             var soups = data.GetAllSOUP();
 
-            StringBuilder output = new StringBuilder();
-            output.AppendLine($"Roboclerk detected the following potential {soupName} issues:");
-            output.AppendLine();
+            var issues = new List<string>();
             bool issueDetected = false;
+            
+            // Collect all issues (format-agnostic logic)
             foreach (var extDep in extDeps)
             {
                 bool soupNameMatch = false;
@@ -47,18 +47,19 @@ namespace RoboClerk.ContentCreators
                 {
                     if (!soupVersionMatch)
                     {
-                        output.AppendLine($"* An external dependency ({extDep.Name}) has a matching {soupName} " +
+                        issues.Add($"An external dependency ({extDep.Name}) has a matching {soupName} " +
                             $"item with a mismatched version (\"{soupVersion}\" instead of \"{extDep.Version}\").");
                         issueDetected = true;
                     }
                 }
                 else
                 {
-                    output.AppendLine($"* An external dependency {extDep.Name} {extDep.Version} " +
+                    issues.Add($"An external dependency {extDep.Name} {extDep.Version} " +
                         $"does not seem to have a matching {soupName} item.");
                     issueDetected = true;
                 }
             }
+            
             foreach (var soup in soups)
             {
                 if (soup.SOUPLinkedLib)
@@ -74,27 +75,64 @@ namespace RoboClerk.ContentCreators
                     }
                     if (!depNameMatch)
                     {
-                        output.AppendLine($"* A {soupName} item (i.e. \"{soup.SOUPName} {soup.SOUPVersion}\") that is marked as being linked into " +
+                        issues.Add($"A {soupName} item (i.e. \"{soup.SOUPName} {soup.SOUPVersion}\") that is marked as being linked into " +
                             $"the software does not have a matching external dependency.");
                         issueDetected = true;
                     }
                 }
             }
+            
             if (!issueDetected)
             {
-                output.AppendLine($"* No {soupName} related issues detected!");
+                issues.Add($"No {soupName} related issues detected!");
             }
-            return output.ToString();
+
+            // Generate format-specific output
+            if (configuration.OutputFormat.ToUpper() == "HTML")
+            {
+                return GenerateHTMLSoupCheck(soupName, issues);
+            }
+            else
+            {
+                return GenerateASCIIDocSoupCheck(soupName, issues);
+            }
         }
 
-        protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
+        private string GenerateASCIIDocSoupCheck(string soupName, List<string> issues)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"Roboclerk detected the following potential {soupName} issues:");
+            sb.AppendLine();
+            foreach (var issue in issues)
+            {
+                sb.AppendLine($"* {issue}");
+            }
+            return sb.ToString();
+        }
+
+        private string GenerateHTMLSoupCheck(string soupName, List<string> issues)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("<div>");
+            sb.AppendLine($"    <h3>Roboclerk detected the following potential {soupName} issues:</h3>");
+            sb.AppendLine("    <ul>");
+            foreach (var issue in issues)
+            {
+                sb.AppendLine($"        <li>{issue}</li>");
+            }
+            sb.AppendLine("    </ul>");
+            sb.AppendLine("</div>");
+            return sb.ToString();
+        }
+
+        protected override string GenerateContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             var dataShare = new ScriptingBridge(data, analysis, sourceTE);
             if (tag.HasParameter("BRIEF") && tag.GetParameterOrDefault("BRIEF").ToUpper() == "TRUE")
             {
                 //this will print a brief list of all soups and versions that Roboclerk knows about
                 dataShare.Items = items;
-                var file = data.GetTemplateFile(@"./ItemTemplates/SOUP_brief.adoc");
+                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SOUP_brief.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
                 var renderer = new ItemTemplateRenderer(file);
                 var result = renderer.RenderItemTemplate(dataShare);
                 ProcessTraces(docTE, dataShare);
@@ -108,7 +146,7 @@ namespace RoboClerk.ContentCreators
             }
             else
             {
-                var file = data.GetTemplateFile(@"./ItemTemplates/SOUP.adoc");
+                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SOUP.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
                 var renderer = new ItemTemplateRenderer(file);
                 StringBuilder output = new StringBuilder();
                 foreach (var item in items)

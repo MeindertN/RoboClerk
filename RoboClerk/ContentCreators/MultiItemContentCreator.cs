@@ -13,7 +13,7 @@ namespace RoboClerk.ContentCreators
         {
         }
 
-        protected abstract string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE);
+        protected abstract string GenerateContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE);
 
         public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
@@ -45,7 +45,7 @@ namespace RoboClerk.ContentCreators
             string content = string.Empty;
             try
             {
-                content = GenerateADocContent(tag, includedItems, te, analysis.GetTraceEntityForTitle(doc.DocumentTitle));
+                content = GenerateContent(tag, includedItems, te, analysis.GetTraceEntityForTitle(doc.DocumentTitle));
             }
             catch
             {

@@ -79,7 +79,7 @@ namespace RoboClerk.SharePointFileProvider
 
         public SharePointFileProviderPlugin(ISharePointClient client)
         {
-            name = "SharePointFileProvider";
+            name = "SharePointFileProviderPlugin";
             description = "Provides access to SharePoint Online document libraries using Microsoft Graph API.";
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }

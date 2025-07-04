@@ -1,0 +1,45 @@
+﻿[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+
+using RoboClerk; //must be included or nothing will work
+
+TraceEntity te = SourceTraceEntity;
+AnomalyItem item = (AnomalyItem)Item;
+AddTrace(item.ItemID);
+]
+
+<table border="1" cellspacing="0" cellpadding="4">
+    <tr>
+        <th>[csx:te.Name] ID:</th>
+        <td>[csx:GetItemLinkString(item)]</td>
+    </tr>
+    <tr>
+        <th>[csx:te.Name] Revision:</th>
+        <td>[csx:GetValOrDef(item.ItemRevision,"N/A")]</td>
+    </tr>
+    <tr>
+        <th>State:</th>
+        <td>[csx:GetValOrDef(item.AnomalyState,"N/A")]</td>
+    </tr>
+    <tr>
+        <th>Assigned To:</th>
+        <td>[csx:GetValOrDef(item.AnomalyAssignee,"NOT ASSIGNED")]</td>
+    </tr>
+    <tr>
+        <th>Title:</th>
+        <td>[csx:GetValOrDef(item.ItemTitle,"MISSING")]</td>
+    </tr>
+    <tr>
+        <th>Severity:</th>
+        <td>[csx:GetValOrDef(item.AnomalySeverity,"N/A")]</td>
+    </tr>
+    <tr>
+        <th>Description:</th>
+        <td>[csx:GetValOrDef(item.AnomalyDetailedDescription,"MISSING")]</td>
+    </tr>
+    <tr>
+        <th>Justification:</th>
+        <td>[csx:GetValOrDef(item.AnomalyJustification,"N/A")]</td>
+    </tr>
+</table>

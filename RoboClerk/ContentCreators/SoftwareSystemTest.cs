@@ -16,9 +16,11 @@ namespace RoboClerk.ContentCreators
 
         private string CheckResults(List<LinkedItem> items, TraceEntity docTE)
         {
-            StringBuilder errors = new StringBuilder();
-            bool errorsFound = false;
             var results = data.GetAllTestResults();
+            var errorItems = new List<string>();
+            bool errorsFound = false;
+            
+            // Collect all error messages (format-agnostic logic)
             foreach (var i in items)
             {
                 SoftwareSystemTestItem item = (SoftwareSystemTestItem)i;
@@ -29,7 +31,6 @@ namespace RoboClerk.ContentCreators
                 bool found = false;
                 foreach (var result in results)
                 {
-
                     if ((result.Type == TestResultType.SYSTEM && result.ID == item.ItemID) ||
                          (item.TestCaseToUnitTest && result.Type == TestResultType.UNIT &&
                           item.LinkedItems.Any(o => o.LinkType == ItemLinkType.UnitTest && o.TargetID == result.ID)))
@@ -37,7 +38,7 @@ namespace RoboClerk.ContentCreators
                         found = true;
                         if (result.Status == TestResultStatus.FAIL)
                         {
-                            errors.AppendLine($"* Test with ID \"{result.ID}\" has failed.");
+                            errorItems.Add($"Test with ID \"{result.ID}\" has failed.");
                             errorsFound = true;
                         }
                         break;
@@ -47,9 +48,10 @@ namespace RoboClerk.ContentCreators
                 {
                     errorsFound = true;
                     string additional = item.TestCaseToUnitTest ? "Unit test r" : "R";
-                    errors.AppendLine($"* {additional}esult for test with ID \"{item.ItemID}\" not found in results.");
+                    errorItems.Add($"{additional}esult for test with ID \"{item.ItemID}\" not found in results.");
                 }
             }
+            
             foreach (var result in results)
             {
                 if (result.Type != TestResultType.SYSTEM)
@@ -66,22 +68,69 @@ namespace RoboClerk.ContentCreators
                 if (!found)
                 {
                     errorsFound = true;
-                    errors.AppendLine($"* Result for test with ID \"{result.ID}\" found, but test plan does not contain such an automated test.");
+                    errorItems.Add($"Result for test with ID \"{result.ID}\" found, but test plan does not contain such an automated test.");
                 }
             }
-            if (errorsFound)
+
+            // Generate format-specific output
+            if (configuration.OutputFormat.ToUpper() == "HTML")
             {
-                errors.Insert(0, "RoboClerk detected problems with the automated testing:\n\n");
-                errors.AppendLine();
-                return errors.ToString();
+                return GenerateHTMLCheckResults(errorsFound, errorItems);
             }
             else
             {
-                return "All automated tests from the test plan were successfully executed and passed.";
+                return GenerateASCIIDocCheckResults(errorsFound, errorItems);
             }
         }
 
-        protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
+        private string GenerateASCIIDocCheckResults(bool errorsFound, List<string> errorItems)
+        {
+            StringBuilder sb = new StringBuilder();
+            
+            if (errorsFound)
+            {
+                sb.AppendLine("RoboClerk detected problems with the automated testing:\n");
+                foreach (var error in errorItems)
+                {
+                    sb.AppendLine($"* {error}");
+                }
+                sb.AppendLine();
+            }
+            else
+            {
+                sb.AppendLine("All automated tests from the test plan were successfully executed and passed.");
+            }
+            
+            return sb.ToString();
+        }
+
+        private string GenerateHTMLCheckResults(bool errorsFound, List<string> errorItems)
+        {
+            StringBuilder sb = new StringBuilder();
+            
+            if (errorsFound)
+            {
+                sb.AppendLine("<div>");
+                sb.AppendLine("    <h3>RoboClerk detected problems with the automated testing:</h3>");
+                sb.AppendLine("    <ul>");
+                foreach (var error in errorItems)
+                {
+                    sb.AppendLine($"        <li>{error}</li>");
+                }
+                sb.AppendLine("    </ul>");
+                sb.AppendLine("</div>");
+            }
+            else
+            {
+                sb.AppendLine("<div>");
+                sb.AppendLine("    <p>All automated tests from the test plan were successfully executed and passed.</p>");
+                sb.AppendLine("</div>");
+            }
+            
+            return sb.ToString();
+        }
+
+        protected override string GenerateContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             StringBuilder output = new StringBuilder();
             var dataShare = new ScriptingBridge(data, analysis, sourceTE);
@@ -92,9 +141,9 @@ namespace RoboClerk.ContentCreators
             }
             else
             {
-                var file = data.GetTemplateFile(@"./ItemTemplates/SoftwareSystemTest_automated.adoc");
+                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_automated.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
                 var rendererAutomated = new ItemTemplateRenderer(file);
-                file = data.GetTemplateFile(@"./ItemTemplates/SoftwareSystemTest_manual.adoc");
+                file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_manual.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
                 var rendererManual = new ItemTemplateRenderer(file);
                 foreach (var item in items)
                 {

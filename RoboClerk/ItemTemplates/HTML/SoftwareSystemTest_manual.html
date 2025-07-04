@@ -1,0 +1,90 @@
+﻿[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+// These tables are now rendered as unified HTML without Word-specific directives.
+using RoboClerk;
+
+TraceEntity te = SourceTraceEntity;
+SoftwareSystemTestItem item = (SoftwareSystemTestItem)Item;
+string pl = GetLinkedField(item, ItemLinkType.Parent);
+AddTrace(item.ItemID);
+
+string RenderTestSteps()
+{
+    System.Text.StringBuilder sb = new System.Text.StringBuilder();
+    int stepNum = 1;
+
+    foreach (var step in item.TestCaseSteps)
+    {
+        string action = step.Action.Replace("\n", "").Replace("\r", "");
+        string expected = step.ExpectedResult.Replace("\n", "").Replace("\r", "");
+
+        string actualResultCell = "<td></td>";
+        string statusCell = "<td></td>";
+
+        if (!string.IsNullOrWhiteSpace(expected))
+        {
+            actualResultCell = "<td></td>";
+            statusCell = "<td>Pass / Fail</td>";
+        }
+
+        sb.AppendLine("<tr>
+    ");
+    sb.AppendLine($"
+    <td>{stepNum}</td>");
+    sb.AppendLine($"
+    <td>{action}</td>");
+    sb.AppendLine($"
+    <td>{expected}</td>");
+    sb.AppendLine(actualResultCell);
+    sb.AppendLine(statusCell);
+    sb.AppendLine("
+</tr>");
+
+        stepNum++;
+    }
+
+    return sb.ToString();
+}
+]
+
+<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse;">
+    <!-- Metadata Section -->
+    <tr>
+        <th style="text-align:left;"><strong>[csx:te.Name] ID:</strong></th>
+        <td colspan="4">[csx:GetItemLinkString(item)]</td>
+    </tr>
+    <tr>
+        <th style="text-align:left;"><strong>[csx:te.Name] Revision:</strong></th>
+        <td colspan="4">[csx:item.ItemRevision]</td>
+    </tr>
+    <tr>
+        <th style="text-align:left;"><strong>Parent ID:</strong></th>
+        <td colspan="4">[csx:pl]</td>
+    </tr>
+    <tr>
+        <th style="text-align:left;"><strong>Title:</strong></th>
+        <td colspan="4">[csx:item.ItemTitle]</td>
+    </tr>
+
+    <!-- Header Row for Test Steps -->
+    <tr>
+        <th>Step</th>
+        <th>Action</th>
+        <th>Expected Result</th>
+        <th>Actual Result</th>
+        <th>Test Status</th>
+    </tr>
+
+    <!-- Dynamic Test Step Rows -->
+    [csx:RenderTestSteps()]
+
+    <!-- Final Signature Row -->
+    <tr>
+        <th>Initial:</th>
+        <td></td>
+        <th>Date:</th>
+        <td></td>
+        <th>Asset ID:</th>
+    </tr>
+</table>

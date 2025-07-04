@@ -1,5 +1,6 @@
 ﻿using RoboClerk.Configuration;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace RoboClerk.ContentCreators
@@ -32,28 +33,30 @@ namespace RoboClerk.ContentCreators
                 throw new Exception($"{truthSource.Name} level trace matrix is empty.");
             }
 
-            StringBuilder matrix = new StringBuilder();
-            matrix.AppendLine("|====");
+            // Collect matrix data (format-agnostic logic)
+            var matrixData = new List<List<string>>();
+            var headers = new List<string>();
+            
             foreach (var entry in traceMatrix)
             {
                 if (entry.Key.ID == "SystemRequirement" || entry.Key.ID == "SoftwareRequirement" || entry.Key.ID == "Risk")
                 {
-                    matrix.Append($"| {entry.Key.Name}s ");
+                    headers.Add($"{entry.Key.Name}s");
                 }
                 else
                 {
-                    matrix.Append($"| {entry.Key.Abbreviation} ");
+                    headers.Add(entry.Key.Abbreviation);
                 }
             }
-            matrix.AppendLine();
 
             for (int index = 0; index < traceMatrix[truthSource].Count; ++index)
             {
+                var row = new List<string>();
                 foreach (var entry in traceMatrix)
                 {
                     if (entry.Value[index].Count == 0)
                     {
-                        matrix.Append("| N/A ");
+                        row.Add("N/A");
                     }
                     else
                     {
@@ -78,23 +81,23 @@ namespace RoboClerk.ContentCreators
                             combinedString.Append(", ");
                         }
                         combinedString.Remove(combinedString.Length - 2, 2); //remove extra comma and space
-                        matrix.Append($"| {combinedString.ToString()} ");
+                        row.Add(combinedString.ToString());
                     }
                 }
-                matrix.AppendLine();
+                matrixData.Add(row);
             }
-            matrix.AppendLine("|====");
-            matrix.AppendLine();
 
-            matrix.AppendLine("\nTrace issues:\n");
+            // Collect trace issues (format-agnostic logic)
+            var traceIssues = new List<string>();
             bool traceIssuesFound = false;
+            
             //now visualize the trace issues, first the truth
             var truthTraceIssues = analysis.GetTraceIssuesForTruth(truthSource);
             foreach (var issue in truthTraceIssues)
             {
                 traceIssuesFound = true;
                 Item item = data.GetItem(issue.SourceID);
-                matrix.AppendLine($". {truthSource.Name} {(item.HasLink ? $"{item.Link}[{item.ItemID}]" : item.ItemID)} is potentially missing a corresponding {issue.Target.Name}.");
+                traceIssues.Add($"{truthSource.Name} {(item.HasLink ? $"{item.Link}[{item.ItemID}]" : item.ItemID)} is potentially missing a corresponding {issue.Target.Name}.");
             }
 
             foreach (var tet in traceMatrix)
@@ -108,8 +111,8 @@ namespace RoboClerk.ContentCreators
                     continue;
                 }
 
-                var traceIssues = analysis.GetTraceIssuesForDocument(tet.Key);
-                foreach (var issue in traceIssues)
+                var documentTraceIssues = analysis.GetTraceIssuesForDocument(tet.Key);
+                foreach (var issue in documentTraceIssues)
                 {
                     traceIssuesFound = true;
                     string sourceTitle = issue.Source.Name;
@@ -123,19 +126,19 @@ namespace RoboClerk.ContentCreators
                     }
                     if (issue.IssueType == TraceIssueType.Extra)
                     {
-                        matrix.AppendLine($". An item with identifier {sourceID} appeared in {sourceTitle} without tracing to {targetTitle}.");
+                        traceIssues.Add($"An item with identifier {sourceID} appeared in {sourceTitle} without tracing to {targetTitle}.");
                     }
                     else if (issue.IssueType == TraceIssueType.Missing)
                     {
-                        matrix.AppendLine($". An expected trace from {sourceID} in {sourceTitle} to {targetTitle} is missing.");
+                        traceIssues.Add($"An expected trace from {sourceID} in {sourceTitle} to {targetTitle} is missing.");
                     }
                     else if (issue.IssueType == TraceIssueType.PossiblyExtra)
                     {
-                        matrix.AppendLine($". A possibly extra item with identifier {sourceID} appeared in {sourceTitle} without appearing in {targetTitle}.");
+                        traceIssues.Add($"A possibly extra item with identifier {sourceID} appeared in {sourceTitle} without appearing in {targetTitle}.");
                     }
                     else if (issue.IssueType == TraceIssueType.PossiblyMissing)
                     {
-                        matrix.AppendLine($". A possibly expected trace from {sourceID} in {sourceTitle} to {targetTitle} is missing.");
+                        traceIssues.Add($"A possibly expected trace from {sourceID} in {sourceTitle} to {targetTitle} is missing.");
                     }
                     else if (issue.IssueType == TraceIssueType.Incorrect)
                     {
@@ -143,23 +146,109 @@ namespace RoboClerk.ContentCreators
                         if (targetItem != null)
                         {
                             targetID = (targetItem.HasLink ? $"{targetItem.Link}[{targetItem.ItemID}]" : targetItem.ItemID);
-                            matrix.AppendLine($". An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not found.");
+                            traceIssues.Add($"An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not found.");
                         }
                         else if (targetID != null)
                         {
-                            matrix.AppendLine($". An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not a valid identifier.");
+                            traceIssues.Add($"An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not a valid identifier.");
                         }
                         else
                         {
-                            matrix.AppendLine($". A missing trace was detected in {sourceTitle}. The item with ID {sourceID} does not have a parent while it was expected to trace to {targetTitle}.");
+                            traceIssues.Add($"A missing trace was detected in {sourceTitle}. The item with ID {sourceID} does not have a parent while it was expected to trace to {targetTitle}.");
                         }
                     }
                 }
             }
+            
             if (!traceIssuesFound)
             {
-                matrix.AppendLine($"* No {truthSource.Name} level trace problems detected!");
+                traceIssues.Add($"No {truthSource.Name} level trace problems detected!");
             }
+
+            // Generate format-specific output
+            if (configuration.OutputFormat.ToUpper() == "HTML")
+            {
+                return GenerateHTMLTraceabilityMatrix(headers, matrixData, traceIssues);
+            }
+            else
+            {
+                return GenerateASCIIDocTraceabilityMatrix(headers, matrixData, traceIssues);
+            }
+        }
+
+        private string GenerateASCIIDocTraceabilityMatrix(List<string> headers, List<List<string>> matrixData, List<string> traceIssues)
+        {
+            StringBuilder matrix = new StringBuilder();
+            matrix.AppendLine("|====");
+            
+            // Add headers
+            foreach (var header in headers)
+            {
+                matrix.Append($"| {header} ");
+            }
+            matrix.AppendLine();
+
+            // Add matrix data
+            foreach (var row in matrixData)
+            {
+                foreach (var cell in row)
+                {
+                    matrix.Append($"| {cell} ");
+                }
+                matrix.AppendLine();
+            }
+            matrix.AppendLine("|====");
+            matrix.AppendLine();
+
+            // Add trace issues
+            matrix.AppendLine("\nTrace issues:\n");
+            foreach (var issue in traceIssues)
+            {
+                matrix.AppendLine($". {issue}");
+            }
+            
+            return matrix.ToString();
+        }
+
+        private string GenerateHTMLTraceabilityMatrix(List<string> headers, List<List<string>> matrixData, List<string> traceIssues)
+        {
+            StringBuilder matrix = new StringBuilder();
+            matrix.AppendLine("<div>");
+            matrix.AppendLine("    <table border=\"1\" cellspacing=\"0\" cellpadding=\"4\">");
+            
+            // Add headers
+            matrix.AppendLine("        <tr>");
+            foreach (var header in headers)
+            {
+                matrix.AppendLine($"            <th>{header}</th>");
+            }
+            matrix.AppendLine("        </tr>");
+
+            // Add matrix data
+            foreach (var row in matrixData)
+            {
+                matrix.AppendLine("        <tr>");
+                foreach (var cell in row)
+                {
+                    matrix.AppendLine($"            <td>{cell}</td>");
+                }
+                matrix.AppendLine("        </tr>");
+            }
+            matrix.AppendLine("    </table>");
+            matrix.AppendLine("</div>");
+            matrix.AppendLine();
+
+            // Add trace issues
+            matrix.AppendLine("<div>");
+            matrix.AppendLine("    <h3>Trace issues:</h3>");
+            matrix.AppendLine("    <ul>");
+            foreach (var issue in traceIssues)
+            {
+                matrix.AppendLine($"        <li>{issue}</li>");
+            }
+            matrix.AppendLine("    </ul>");
+            matrix.AppendLine("</div>");
+            
             return matrix.ToString();
         }
     }

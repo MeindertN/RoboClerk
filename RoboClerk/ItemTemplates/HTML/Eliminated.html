@@ -1,0 +1,30 @@
+[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+using RoboClerk;
+
+TraceEntity te = SourceTraceEntity;
+
+string CreateRows()
+{
+	System.Text.StringBuilder sb = new System.Text.StringBuilder();
+	foreach( var item in Items)
+	{
+		EliminatedLinkedItem eli = (EliminatedLinkedItem)item;
+		sb.Append($"<tr><td>{GetItemLinkString(item)}</td><td>{eli.ItemType}</td><td>{eli.ItemTitle}</td><td>{eli.EliminationReason}</td></tr>");
+	}
+	return sb.ToString();
+}]
+<table border="1" cellspacing="0" cellpadding="4">
+	<thead>
+		<tr>
+			<th>Item ID</th>
+			<th>Item Type</th>
+			<th>Item Title</th>
+			<th>Elimination Reason</th>
+		</tr>
+	</thead>
+	<tbody>
+		[csx:CreateRows()]
+	</tbody>
+</table>

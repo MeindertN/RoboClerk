@@ -1,0 +1,31 @@
+﻿[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+using RoboClerk;
+
+TraceEntity te = SourceTraceEntity;
+
+string CreateRows()
+{
+	System.Text.StringBuilder sb = new System.Text.StringBuilder();
+	foreach( var item in Items )
+	{
+		SOUPItem soup = (SOUPItem)item;
+		AddTrace(soup.ItemID);
+		sb.Append($"<tr><td>{GetItemLinkString(soup)}</td><td>{soup.SOUPName} {soup.SOUPVersion}</td></tr>");
+	}
+	return sb.ToString();
+}
+]
+
+<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse;">
+	<thead>
+		<tr>
+			<th>[csx:te.Name] ID</th>
+			<th>[csx:te.Name] Name and Version</th>
+		</tr>
+	</thead>
+	<tbody>
+		[csx:CreateRows()]
+	</tbody>
+</table>

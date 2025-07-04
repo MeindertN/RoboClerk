@@ -86,6 +86,7 @@ namespace RoboClerk
         Document, //tag for referencing a property of the document
         File, //a file in the template directory
         AI, //the AI system
+        Web, //a web based service, can be a local webpage if so configured
         Unknown //it is not known where to retrieve this information
     }
 

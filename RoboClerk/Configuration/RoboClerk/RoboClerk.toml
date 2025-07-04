@@ -1,9 +1,9 @@
 ﻿# This is the RoboClerk configuration file
 
-# Provide the name of the file provider plugin. The default is the LocalFileProvider 
+# Provide the name of the file provider plugin. The default is the LocalFileProviderPlugin 
 # that assumes files are being read off of the local filesystem. The other is the
-# SharePointFileProvider if the files are hosted in a sharepoint library.
-FileProviderPlugin = "LocalFileProvider"
+# SharePointFileProviderPlugin if the files are hosted in a sharepoint library.
+FileProviderPlugin = "LocalFileSystemPlugin"
 
 # Provide the names of the DataSource plugin(s) in a comma seperated list
 # For example: DataSourcePlugin = [ "AzureDevOpsSLMSPlugin", "RedmineCSVSLMSPlugin" ]
