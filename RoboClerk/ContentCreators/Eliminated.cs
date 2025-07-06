@@ -16,7 +16,7 @@ namespace RoboClerk.ContentCreators
 
         protected override string GenerateContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
-            var dataShare = new ScriptingBridge<EliminatedLinkedItem>(data, analysis, sourceTE);
+            var dataShare = new ScriptingBridge<EliminatedLinkedItem>(data, analysis, sourceTE, configuration);
 
             // Get all eliminated items based on the type requested
             List<EliminatedLinkedItem> eliminatedItems = new List<EliminatedLinkedItem>();

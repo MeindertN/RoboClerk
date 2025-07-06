@@ -28,18 +28,7 @@ string RenderTestSteps()
             statusCell = "<td>Pass / Fail</td>";
         }
 
-        sb.AppendLine("<tr>
-    ");
-    sb.AppendLine($"
-    <td>{stepNum}</td>");
-    sb.AppendLine($"
-    <td>{action}</td>");
-    sb.AppendLine($"
-    <td>{expected}</td>");
-    sb.AppendLine(actualResultCell);
-    sb.AppendLine(statusCell);
-    sb.AppendLine("
-</tr>");
+        sb.AppendLine("<tr><td>" + stepNum + "</td><td>" + action + "</td><td>" + expected + "</td>" + actualResultCell + statusCell + "</tr>");
 
         stepNum++;
     }
@@ -48,7 +37,7 @@ string RenderTestSteps()
 }
 ]
 
-<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse;">
+<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse; margin-bottom: 20px;">
     <!-- Metadata Section -->
     <tr>
         <th style="text-align:left;"><strong>[csx:te.Name] ID:</strong></th>
@@ -81,10 +70,8 @@ string RenderTestSteps()
 
     <!-- Final Signature Row -->
     <tr>
-        <th>Initial:</th>
-        <td></td>
-        <th>Date:</th>
-        <td></td>
-        <th>Asset ID:</th>
+        <td style="vertical-align: top; height: 40px;" colspan="1"><strong>Initial:</strong></td>
+        <td style="vertical-align: top; height: 40px;" colspan="2"><strong>Date:</strong></td>
+        <td style="vertical-align: top; height: 40px;" colspan="2"><strong>Asset ID:</strong></td>
     </tr>
 </table>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RoboClerk.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,14 +11,16 @@ namespace RoboClerk
     {
         private IDataSources data = null;
         private ITraceabilityAnalysis analysis = null;
+        private IConfiguration configuration = null;
         private List<string> traces = new List<string>();
         private List<T> items = new List<T>();
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public ScriptingBridge(IDataSources data, ITraceabilityAnalysis trace, TraceEntity sourceTraceEntity)
+        public ScriptingBridge(IDataSources data, ITraceabilityAnalysis trace, TraceEntity sourceTraceEntity, IConfiguration config)
         {
             this.data = data;
-            this.analysis = trace;
+            analysis = trace;
+            configuration = config;
             SourceTraceEntity = sourceTraceEntity;
         }
 
@@ -116,7 +119,7 @@ namespace RoboClerk
                     if (linkedItem != null)
                     {
                         AddTrace(linkedItem.ItemID);
-                        field.Append(linkedItem.HasLink ? $"{linkedItem.Link}[{linkedItem.ItemID}]" : linkedItem.ItemID);
+                        field.Append(linkedItem.HasLink ? GetItemLinkString(linkedItem) : linkedItem.ItemID);
                         if (includeTitle && linkedItem.ItemTitle != string.Empty)
                         {
                             field.Append($": \"{linkedItem.ItemTitle}\"");
@@ -134,13 +137,32 @@ namespace RoboClerk
         }
 
         /// <summary>
-        /// Returns an asciidoc hyperlink for the provided item.
+        /// Returns a hyperlink string for the provided item, formatted according to the configured output format.
         /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
+        /// <param name="item">The item for which to generate a hyperlink.</param>
+        /// <returns>
+        /// A formatted hyperlink string. If the output format is HTML, returns an &lt;a&gt; tag.
+        /// If the format is ASCIIDOC, returns an AsciiDoc-style link. 
+        /// If the item has no link, returns just the item ID.
+        /// </returns>
+        /// <exception cref="NotSupportedException">Thrown if the configured output format is not supported.</exception>
         public string GetItemLinkString(Item item)
         {
-            return item.HasLink ? $"{item.Link}[{item.ItemID}]" : $"{item.ItemID}";
+            string format = configuration.OutputFormat.ToUpper();
+            string result = item.ItemID;
+            if (item.HasLink)
+            {
+                if (format == "HTML")
+                {
+                    result = $"<a href=\"{item.Link}\">{item.ItemID}</a>";
+                }
+                else if (format == "ASCIIDOC")
+                {
+                    result = $"{item.Link}[{item.ItemID}]";
+                }
+                logger.Warn($"Unknown output format \"{format}\" specified. Links may be missing from output.");
+            }
+            return result;
         }
 
         /// <summary>
@@ -181,7 +203,7 @@ namespace RoboClerk
         /// <returns>Modified AsciiDoc that can be embedded in a table cell</returns>
         public string ProcessAsciidocForTableCell(string input)
         {
-            string temp = ConvertHeadingsForTableCell(input);
+            string temp = ConvertHeadingsForASCIIDOCTableCell(input);
             return EmbedAsciidocTables(temp);
         }
 
@@ -244,7 +266,7 @@ namespace RoboClerk
         /// </summary>
         /// <param name="input">The AsciiDoc content that may contain headings</param>
         /// <returns>Modified AsciiDoc with headings converted to alternative markup</returns>
-        public string ConvertHeadingsForTableCell(string input)
+        public string ConvertHeadingsForASCIIDOCTableCell(string input)
         {
             if (string.IsNullOrEmpty(input))
                 return input;
@@ -301,8 +323,8 @@ namespace RoboClerk
 
     public class ScriptingBridge : ScriptingBridge<LinkedItem>
     {
-        public ScriptingBridge(IDataSources data, ITraceabilityAnalysis trace, TraceEntity sourceTraceEntity)
-            : base(data, trace, sourceTraceEntity)
+        public ScriptingBridge(IDataSources data, ITraceabilityAnalysis trace, TraceEntity sourceTraceEntity, IConfiguration config)
+            : base(data, trace, sourceTraceEntity, config)
         {
         }
     }

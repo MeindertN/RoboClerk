@@ -127,7 +127,7 @@ namespace RoboClerk.ContentCreators
 
         protected override string GenerateContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
-            var dataShare = new ScriptingBridge(data, analysis, sourceTE);
+            var dataShare = new ScriptingBridge(data, analysis, sourceTE, configuration);
             if (tag.HasParameter("BRIEF") && tag.GetParameterOrDefault("BRIEF").ToUpper() == "TRUE")
             {
                 //this will print a brief list of all soups and versions that Roboclerk knows about

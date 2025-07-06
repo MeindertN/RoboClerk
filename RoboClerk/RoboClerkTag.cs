@@ -175,8 +175,7 @@ namespace RoboClerk
             tagEnd = endIndex + 1;
             contentStart = startIndex + 2; //remove starting tag
             contentEnd = endIndex; //remove ending tag
-            contents = rawDocument.Substring(contentStart, contentEnd - contentStart);
-            //contentEnd = contentStart + tagContents.IndexOf('(') - 1; //do not include ( itself 
+            contents = rawDocument.Substring(contentStart, contentEnd - contentStart); 
             try
             {
                 ValidateTagContents(contents);
@@ -190,7 +189,10 @@ namespace RoboClerk
             var items = contents.Split('(')[0].Split(':');
             contentCreatorID = items[1].Trim();
             source = GetSource(items[0].Trim().ToUpper());
-            //contents = rawDocument.Substring(contentStart,contentEnd - contentStart + 1);
+            if (source == DataSource.Unknown)
+            {
+                throw new TagInvalidException(contents, $"Unknown datasource {items[0].Trim()}");
+            }
         }
 
         private void ValidateTagContents(string tagContents)
@@ -253,6 +255,10 @@ namespace RoboClerk
             }
             var items = tagContents.Split(':');
             source = GetSource(items[0].Trim().ToUpper());
+            if(source == DataSource.Unknown)
+            {
+                throw new TagInvalidException(tagContents, $"Unknown datasource {items[0].Trim()}");
+            }
             contentCreatorID = items[1].Split('(')[0].Trim();
             ExtractParameters(tagContents);
             var prelimTagContents = rawDocument.Substring(startIndex, endIndex - startIndex + 1);
@@ -304,6 +310,7 @@ namespace RoboClerk
                 case "REF": return DataSource.Reference;
                 case "FILE": return DataSource.File;
                 case "AI": return DataSource.AI;
+                case "WEB": return DataSource.Web;
             }
             return DataSource.Unknown;
         }

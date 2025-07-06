@@ -8,7 +8,7 @@ UnitTestItem item = (UnitTestItem)Item;
 AddTrace(item.ItemID);
 ]
 
-<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse;">
+<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse; margin-bottom: 20px;">
     <tr>
         <th><strong>[csx:te.Name] ID:</strong></th>
         <td>[csx:GetItemLinkString(item)]</td>
@@ -21,8 +21,7 @@ AddTrace(item.ItemID);
         <th><strong>Revision:</strong></th>
         <td>[csx:item.ItemRevision]</td>
     </tr>
-    [csx:item.ItemLastUpdated != System.DateTime.MinValue ? $"
-    <tr><th><strong>Last Updated:</strong></th><td>{item.ItemLastUpdated.ToString("yyyy/MM/dd HH:mm:ss")}</td></tr>" : ""]
+    [csx:item.ItemLastUpdated != System.DateTime.MinValue ? "<tr><th><strong>Last Updated:</strong></th><td>" + item.ItemLastUpdated.ToString("yyyy/MM/dd HH:mm:ss") + "</td></tr>" : ""]
     <tr>
         <th><strong>Trace Link:</strong></th>
         <td>[csx:GetLinkedField(item, ItemLinkType.Related)]</td>

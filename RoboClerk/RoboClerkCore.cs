@@ -81,7 +81,7 @@ namespace RoboClerk
                         {
                             logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID", "ERROR")}");
                             //grab trace tag and add to the trace analysis
-                            IContentCreator contentCreator = new Trace(dataSources, traceAnalysis);
+                            IContentCreator contentCreator = new Trace(dataSources, traceAnalysis, configuration);
                             tag.Contents = contentCreator.GetContent(tag, doc);
                             continue;
                         }
@@ -116,6 +116,11 @@ namespace RoboClerk
                             {
                                 IContentCreator cc = new AIContentCreator(dataSources, traceAnalysis, configuration, aiPlugin, fileSystem);
                                 tag.Contents = cc.GetContent(tag, doc);
+                            }
+                            else if (tag.Source == DataSource.Web)
+                            {
+                                IContentCreator cc = new KrokiDiagram(dataSources, traceAnalysis, configuration, )
+                                tag.Contents = 
                             }
                             else
                             {

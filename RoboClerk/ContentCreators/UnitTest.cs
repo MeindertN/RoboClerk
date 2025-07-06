@@ -123,7 +123,7 @@ namespace RoboClerk.ContentCreators
 
         protected override string GenerateContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
-            var dataShare = new ScriptingBridge(data, analysis, sourceTE);
+            var dataShare = new ScriptingBridge(data, analysis, sourceTE, configuration);
             if (tag.HasParameter("CHECKRESULTS") && tag.GetParameterOrDefault("CHECKRESULTS").ToUpper() == "TRUE")
             {
                 //this will go over all unit test results (if available) and prints a summary statement or a list of found issues.

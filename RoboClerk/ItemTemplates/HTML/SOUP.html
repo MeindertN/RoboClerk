@@ -8,7 +8,7 @@ SOUPItem item = (SOUPItem)Item;
 AddTrace(item.ItemID);
 ]
 
-<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse;">
+<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse; margin-bottom: 20px;">
     <tr>
         <th>[csx:te.Name] ID:</th>
         <td>[csx:GetItemLinkString(item)]</td>
@@ -29,14 +29,12 @@ AddTrace(item.ItemID);
         <th>Is [csx:te.Name] Critical for Cyber Security:</th>
         <td>[csx:item.SOUPCybersecurityCriticalText]</td>
     </tr>
-    [csx:item.SOUPPerformanceCritical ? $"
-    <tr><th>Result Anomaly List Examination:</th><td>{item.SOUPAnomalyListDescription}</td></tr>" : ""]
+    [csx:item.SOUPPerformanceCritical ? "<tr><th>Result Anomaly List Examination:</th><td>" + item.SOUPAnomalyListDescription + "</td></tr>" : ""]
     <tr>
         <th>Is [csx:te.Name] Installed by End-User:</th>
         <td>[csx:item.SOUPInstalledByUserText]</td>
     </tr>
-    [csx:item.SOUPInstalledByUser ? $"
-    <tr><th>Required End-User Training:</th><td>{item.SOUPEnduserTraining}</td></tr>" : ""]
+    [csx:item.SOUPInstalledByUser ? "<tr><th>Required End-User Training:</th><td>" + item.SOUPEnduserTraining + "</td></tr>" : ""]
     <tr>
         <th>Detailed Description:</th>
         <td>[csx:item.SOUPDetailedDescription]</td>

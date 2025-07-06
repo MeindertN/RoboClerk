@@ -9,13 +9,18 @@
 	<Authors>Meindert Niemeijer</Authors>
 	<Company>RoboClerk Project</Company>
 	<Product>AzureDevOps plugin</Product>
-	<Configurations>Debug;Release;ReleasePublish</Configurations>
+	<Configurations>Debug;Release;ReleasePublish;DebugHTML</Configurations>
 	<DebugType>portable</DebugType>
 	<BaseOutputPath>bin</BaseOutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile></DocumentationFile>
+    <OutputPath />
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugHTML|AnyCPU'">
+    <DocumentationFile />
     <OutputPath />
   </PropertyGroup>
 

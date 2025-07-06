@@ -20,7 +20,7 @@ namespace RoboClerk.ContentCreators
         protected override string GenerateContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity te, TraceEntity docTE)
         {
             StringBuilder output = new StringBuilder();
-            var dataShare = new ScriptingBridge(data, analysis, te);
+            var dataShare = new ScriptingBridge(data, analysis, te,configuration);
             var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/Requirement.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
             var renderer = new ItemTemplateRenderer(file);
             foreach (var item in items)

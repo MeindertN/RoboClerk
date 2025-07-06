@@ -6,14 +6,14 @@ using System.Text.RegularExpressions;
 
 namespace RoboClerk.Redmine
 {
-    public class TextileToAsciiDocConverter
+    public class TextileToAsciiDocConverter : ITextileConverter
     {
         /// <summary>
         /// Converts a Textile string (as used by Redmine) into an AsciiDoc string.
         /// </summary>
         /// <param name="textile">The Textile formatted string.</param>
         /// <returns>The converted AsciiDoc string.</returns>
-        public string ConvertTextile2AsciiDoc(string textile)
+        public string Convert(string textile)
         {
             if (textile == null)
                 throw new ArgumentNullException(nameof(textile));

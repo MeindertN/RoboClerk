@@ -10,7 +10,7 @@
 	  <Company>RoboClerk Project</Company>
 	  <Product>Dependencies File Plugin</Product>
 	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-	  <Configurations>Debug;Release;ReleasePublish</Configurations>
+	  <Configurations>Debug;Release;ReleasePublish;DebugHTML</Configurations>
 	  <BaseOutputPath>bin</BaseOutputPath>
   </PropertyGroup>
 

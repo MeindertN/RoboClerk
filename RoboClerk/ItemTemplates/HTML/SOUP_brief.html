@@ -12,13 +12,13 @@ string CreateRows()
 	{
 		SOUPItem soup = (SOUPItem)item;
 		AddTrace(soup.ItemID);
-		sb.Append($"<tr><td>{GetItemLinkString(soup)}</td><td>{soup.SOUPName} {soup.SOUPVersion}</td></tr>");
+		sb.Append("<tr><td>" + GetItemLinkString(soup) + "</td><td>" + soup.SOUPName + " " + soup.SOUPVersion + "</td></tr>");
 	}
 	return sb.ToString();
 }
 ]
 
-<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse;">
+<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse; margin-bottom: 20px;">
 	<thead>
 		<tr>
 			<th>[csx:te.Name] ID</th>

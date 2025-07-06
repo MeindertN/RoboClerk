@@ -35,6 +35,6 @@ ClearOutputDir = "True"
 LogLevel = "WARN"
 
 # Output format (ASCIIDOC or HTML)
-OutputFormat = "ASCIIDOC"
+OutputFormat = "{OUTPUTFORMAT}"
 
 

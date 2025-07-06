@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <StartupObject>RoboClerk.Program</StartupObject>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <Configurations>Debug;Release;ReleasePublish</Configurations>
+    <Configurations>Debug;Release;ReleasePublish;DebugHTML</Configurations>
     <DebugType>portable</DebugType>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
 	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -37,20 +37,17 @@
 	</Target>
 	<Target Name="CopyResources" BeforeTargets="Start" AfterTargets="Build">
 		<ItemGroup>
-			<TemplateFiles Include="$(ProjectDir)/DocTemplates/ASCIIDOC/*.*" />
 			<ItemTemplateFiles Include="$(ProjectDir)/ItemTemplates/**\*" />
 			<DocxProcessingScripts Include="$(ProjectDir)../DocxProcessingScripts/*.*" />
 			<MediaFiles Include="$(ProjectDir)/DocTemplates/media/*.*" />
 		</ItemGroup>
 		<Copy SourceFiles="$(ProjectDir)Configuration/Project/projectConfig.toml" DestinationFolder="$(ProjectDir)$(OutDir)RoboClerk_input/RoboClerkConfig" />
 		<Copy SourceFiles="$(ProjectDir)Configuration/RoboClerk/RoboClerk.toml" DestinationFolder="$(ProjectDir)$(OutDir)RoboClerk_input/RoboClerkConfig" />
-		<Copy SourceFiles="@(TemplateFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input" />
 		<Copy SourceFiles="@(ItemTemplateFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/ItemTemplates/%(RecursiveDir)" />
 		<Copy SourceFiles="@(DocxProcessingScripts)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/DocxProcessingScripts" />
 		<Copy SourceFiles="@(MediaFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/media" />
 	</Target>
 	<Target Name="AdaptConfigFiles_local" BeforeTargets="Start" AfterTargets="Build" Condition="'$(Configuration)' != 'ReleasePublish'">
-		<InsertFileIntoFile InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{POSTBUILDPROCESS}" ReplacementFilename="$(ProjectDir)Configuration/Project/POSTBUILDPROCESS_OUTSIDE_DOCKER.txt" />
 		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{DOCUMENTATIONROOT}" ReplacementText="$(ProjectDir)$(OutDir)" />
 		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{PROJECTROOT}" ReplacementText="$(ProjectDir)../" />
 		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{DOCUMENTATIONROOT}" ReplacementText="$(ProjectDir)$(OutDir)" />
@@ -62,6 +59,25 @@
 		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{PROJECTROOT}" ReplacementText="/mnt/" />
 		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{DOCUMENTATIONROOT}" ReplacementText="/mnt/" />
 		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{PLUGINROOT}" ReplacementText="/home/RoboClerk" />
+		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{OUTPUTFORMAT}" ReplacementText="ASCIIDOC" />
+	</Target>
+	<Target Name="CopyASCIIDOCTemplateFiles" BeforeTargets="Start" AfterTargets="Build" Condition="'$(Configuration)' != 'DebugHTML'">
+		<ItemGroup>
+			<TemplateFiles Include="$(ProjectDir)/DocTemplates/ASCIIDOC/*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(TemplateFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input" />
+	</Target>
+	<Target Name="SetupConfigFilesLocal" BeforeTargets="Start" AfterTargets="Build" Condition="'$(Configuration)' != 'DebugHTML' and '$(Configuration)' != 'ReleasePublish'">
+		<InsertFileIntoFile InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{POSTBUILDPROCESS}" ReplacementFilename="$(ProjectDir)Configuration/Project/POSTBUILDPROCESS_OUTSIDE_DOCKER.txt" />
+		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{OUTPUTFORMAT}" ReplacementText="ASCIIDOC" />
+	</Target>
+	<Target Name="CopyHTMLTemplateFiles" BeforeTargets="Start" AfterTargets="Build" Condition="'$(Configuration)' == 'DebugHTML'">
+		<ItemGroup>
+			<TemplateFiles Include="$(ProjectDir)/DocTemplates/HTML/*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(TemplateFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input" />
+		<InsertFileIntoFile InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\projectConfig.toml" MatchExpression="{POSTBUILDPROCESS}" ReplacementFilename="$(ProjectDir)Configuration/Project/POSTBUILDPROCESS_HTML.txt" />
+		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{OUTPUTFORMAT}" ReplacementText="HTML" />
 	</Target>
 	<Target Name="PublishFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
 		<ItemGroup>

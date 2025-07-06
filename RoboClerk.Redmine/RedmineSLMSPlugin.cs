@@ -47,7 +47,8 @@ namespace RoboClerk.Redmine
         private string apiKey = string.Empty;
         private string projectName = string.Empty;
         private bool convertTextile = false;
-        private TextileToAsciiDocConverter converter = null;
+        private string outputFormat = string.Empty;
+        private ITextileConverter textileConverter = null;
         private List<string> redmineVersionFields = new List<string>();
         private List<Version> versions = null;
 
@@ -85,8 +86,20 @@ namespace RoboClerk.Redmine
                 baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL", GetObjectForKey<string>(config, "RedmineBaseURL", false));
                 convertTextile = configuration.CommandLineOptionOrDefault("ConvertTextile", GetObjectForKey<bool>(config, "ConvertTextile", false)?"TRUE":"FALSE").ToUpper() == "TRUE";
                 if(convertTextile) 
-                { 
-                    converter = new TextileToAsciiDocConverter(); 
+                {
+                    outputFormat = configuration.OutputFormat.ToUpper();
+                    if (outputFormat == "HTML")
+                    {
+                        textileConverter = new TextileToHTMLConverter();
+                    }
+                    else if (outputFormat == "ASCIIDOC")
+                    {
+                        textileConverter = new TextileToAsciiDocConverter();
+                    }
+                    else
+                    {
+                        throw new Exception($"Unknown output format specified in configuration file: {outputFormat}");
+                    }
                 }
                 if (config.ContainsKey("VersionCustomFields"))
                 {
@@ -268,7 +281,10 @@ namespace RoboClerk.Redmine
             }
             RemoveAllItemsNotLinked(retrievedIDs);
             RemoveIgnoredLinks(retrievedIDs); //go over all items and remove any links to ignored items
-            ScrubItemContents(); //go over all relevant items and escape any | characters
+            if (outputFormat == "ASCIIDOC")
+            {
+                ScrubItemContents(); //go over all relevant items and escape any | characters as that messes with the asciidoc output
+            }
         }
 
         private (List<T>, List<T>) CheckForLinkedItem<T>(List<string> retrievedIDs, List<T> inputItems, List<ItemLinkType> lt) where T : LinkedItem
@@ -417,7 +433,7 @@ namespace RoboClerk.Redmine
             }
             logger.Debug($"Getting test steps for item: {redmineItem.Id}");
             string itemDescription = redmineItem.Description ?? string.Empty;
-            var testCaseSteps = GetTestSteps(convertTextile ? converter.ConvertTextile2AsciiDoc(itemDescription) : itemDescription);
+            var testCaseSteps = GetTestSteps(convertTextile ? textileConverter.Convert(itemDescription) : itemDescription);
             foreach (var testCaseStep in testCaseSteps)
             {
                 resultItem.AddTestCaseStep(testCaseStep);
@@ -474,7 +490,7 @@ namespace RoboClerk.Redmine
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
             resultItem.ItemStatus = redmineItem.Status.Name ?? string.Empty;
             string itemDescription = redmineItem.Description.ToString();
-            resultItem.DocContent = convertTextile?converter.ConvertTextile2AsciiDoc(itemDescription):itemDescription;
+            resultItem.DocContent = convertTextile?textileConverter.Convert(itemDescription):itemDescription;
             if (redmineItem.FixedVersion != null)
             {
                 resultItem.ItemTargetVersion = redmineItem.FixedVersion.Name ?? string.Empty;
@@ -536,7 +552,7 @@ namespace RoboClerk.Redmine
                     if (field.Name == "SOUP Detailed Description")
                     {
                         string detailedDescription = value.GetString();
-                        resultItem.SOUPDetailedDescription = convertTextile ? converter.ConvertTextile2AsciiDoc(detailedDescription) : detailedDescription;
+                        resultItem.SOUPDetailedDescription = convertTextile ? textileConverter.Convert(detailedDescription) : detailedDescription;
                     }
                     else if (field.Name == "Performance Critical?")
                     {
@@ -860,7 +876,7 @@ namespace RoboClerk.Redmine
                 resultItem.RequirementAssignee = string.Empty;
             }
             string itemDescription = redmineItem.Description ?? string.Empty;
-            resultItem.RequirementDescription = convertTextile ? converter.ConvertTextile2AsciiDoc(itemDescription) : itemDescription;
+            resultItem.RequirementDescription = convertTextile ? textileConverter.Convert(itemDescription) : itemDescription;
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;

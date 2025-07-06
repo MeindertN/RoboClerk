@@ -6,6 +6,7 @@ using NUnit.Framework;
 using NSubstitute;
 using RoboClerk;
 using NUnit.Framework.Legacy;
+using RoboClerk.Configuration;
 
 namespace RoboClerk.Tests
 {
@@ -17,6 +18,7 @@ namespace RoboClerk.Tests
     {
         private IDataSources mockDataSources;
         private ITraceabilityAnalysis mockTraceAnalysis;
+        private IConfiguration mockConfiguration;
         private TraceEntity mockSourceTraceEntity;
         private ScriptingBridge scriptingBridge;
 
@@ -25,8 +27,9 @@ namespace RoboClerk.Tests
         {
             mockDataSources = Substitute.For<IDataSources>();
             mockTraceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            mockConfiguration = Substitute.For<IConfiguration>();
             mockSourceTraceEntity = new TraceEntity("TEST", "Test Entity", "TE", TraceEntityType.Truth);
-            scriptingBridge = new ScriptingBridge(mockDataSources, mockTraceAnalysis, mockSourceTraceEntity);
+            scriptingBridge = new ScriptingBridge(mockDataSources, mockTraceAnalysis, mockSourceTraceEntity, mockConfiguration);
         }
 
         #region EmbedAsciidocTables Tests
@@ -494,13 +497,13 @@ namespace RoboClerk.Tests
             // Level 1 heading
             string input = "= Document Title\nSome content";
             string expected = "*Document Title*\n\nSome content";
-            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            string result = scriptingBridge.ConvertHeadingsForASCIIDOCTableCell(input);
             ClassicAssert.AreEqual(expected, result);
 
             // Level 2 heading
             input = "== Section Title\nSome content";
             expected = "*Section Title*\n\nSome content";
-            result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            result = scriptingBridge.ConvertHeadingsForASCIIDOCTableCell(input);
             ClassicAssert.AreEqual(expected, result);
         }
 
@@ -513,7 +516,7 @@ namespace RoboClerk.Tests
         {
             string input = "=== Subsection Title\nSome content";
             string expected = "_Subsection Title_\n\nSome content";
-            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            string result = scriptingBridge.ConvertHeadingsForASCIIDOCTableCell(input);
             ClassicAssert.AreEqual(expected, result);
         }
 
@@ -526,7 +529,7 @@ namespace RoboClerk.Tests
         {
             string input = "==== Subsubsection Title\nSome content";
             string expected = "&#160;&#160; _Subsubsection Title_\n\nSome content";
-            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            string result = scriptingBridge.ConvertHeadingsForASCIIDOCTableCell(input);
             ClassicAssert.AreEqual(expected, result);
         }
 
@@ -540,13 +543,13 @@ namespace RoboClerk.Tests
             // Level 5 heading
             string input = "===== Deep Level Title\nSome content";
             string expected = "&#160;&#160;&#160;&#160; `Deep Level Title`\n\nSome content";
-            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            string result = scriptingBridge.ConvertHeadingsForASCIIDOCTableCell(input);
             ClassicAssert.AreEqual(expected, result);
 
             // Level 6 heading
             input = "====== Deeper Level Title\nSome content";
             expected = "&#160;&#160;&#160;&#160; `Deeper Level Title`\n\nSome content";
-            result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            result = scriptingBridge.ConvertHeadingsForASCIIDOCTableCell(input);
             ClassicAssert.AreEqual(expected, result);
         }
 
@@ -559,7 +562,7 @@ namespace RoboClerk.Tests
         {
             string input = "== Main Section\nSome text here\n=== Subsection\nMore text\n==== Sub-subsection\nEven more text";
             string expected = "*Main Section*\n\nSome text here\n_Subsection_\n\nMore text\n&#160;&#160; _Sub-subsection_\n\nEven more text";
-            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            string result = scriptingBridge.ConvertHeadingsForASCIIDOCTableCell(input);
             ClassicAssert.AreEqual(expected, result);
         }
 
@@ -571,11 +574,11 @@ namespace RoboClerk.Tests
         public void TestHeadingConversion_NullAndEmpty()
         {
             // Test null input
-            string result = scriptingBridge.ConvertHeadingsForTableCell(null);
+            string result = scriptingBridge.ConvertHeadingsForASCIIDOCTableCell(null);
             ClassicAssert.IsNull(result);
 
             // Test empty input
-            result = scriptingBridge.ConvertHeadingsForTableCell(string.Empty);
+            result = scriptingBridge.ConvertHeadingsForASCIIDOCTableCell(string.Empty);
             ClassicAssert.AreEqual(string.Empty, result);
         }
 
@@ -587,7 +590,7 @@ namespace RoboClerk.Tests
         public void TestHeadingConversion_NonHeadingContent()
         {
             string input = "This is regular text\nNo headings here\n* A list item\n* Another list item";
-            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            string result = scriptingBridge.ConvertHeadingsForASCIIDOCTableCell(input);
             ClassicAssert.AreEqual(input, result);
         }
 
@@ -600,7 +603,7 @@ namespace RoboClerk.Tests
         {
             string input = "== Section Title\n\nSome content after a blank line";
             string expected = "*Section Title*\n\nSome content after a blank line";
-            string result = scriptingBridge.ConvertHeadingsForTableCell(input);
+            string result = scriptingBridge.ConvertHeadingsForASCIIDOCTableCell(input);
             ClassicAssert.AreEqual(expected, result);
         }
 

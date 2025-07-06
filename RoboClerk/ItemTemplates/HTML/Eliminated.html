@@ -11,11 +11,11 @@ string CreateRows()
 	foreach( var item in Items)
 	{
 		EliminatedLinkedItem eli = (EliminatedLinkedItem)item;
-		sb.Append($"<tr><td>{GetItemLinkString(item)}</td><td>{eli.ItemType}</td><td>{eli.ItemTitle}</td><td>{eli.EliminationReason}</td></tr>");
+		sb.Append("<tr><td>" + GetItemLinkString(item) + "</td><td>" + eli.ItemType + "</td><td>" + eli.ItemTitle + "</td><td>" + eli.EliminationReason + "</td></tr>");
 	}
 	return sb.ToString();
 }]
-<table border="1" cellspacing="0" cellpadding="4">
+<table border="1" cellspacing="0" cellpadding="4" style="margin-bottom: 20px;">
 	<thead>
 		<tr>
 			<th>Item ID</th>
