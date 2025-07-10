@@ -20,19 +20,22 @@ namespace RoboClerk
         private readonly ITraceabilityAnalysis traceAnalysis = null;
         private readonly IConfiguration configuration = null;
         private readonly IAISystemPlugin aiPlugin = null;
+        private readonly IContentCreatorFactory contentCreatorFactory = null;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private List<Document> documents = new List<Document>();
         private IFileSystem fileSystem = null;
         private IPluginLoader pluginLoader = null;
 
-        public RoboClerkCore(IConfiguration config, IDataSources dataSources, ITraceabilityAnalysis traceAnalysis, IFileSystem fs, IPluginLoader loader)
+        public RoboClerkCore(IConfiguration config, IDataSources dataSources, ITraceabilityAnalysis traceAnalysis, 
+            IFileSystem fs, IPluginLoader loader, IContentCreatorFactory contentCreatorFactory, IAISystemPlugin aiPlugin = null)
         {
             configuration = config;
             this.dataSources = dataSources;
             this.traceAnalysis = traceAnalysis;
+            this.aiPlugin = aiPlugin;
             fileSystem = fs;
             pluginLoader = loader;
-            aiPlugin = LoadAIPlugin();
+            this.contentCreatorFactory = contentCreatorFactory;
         }
 
         public void GenerateDocs()
@@ -81,61 +84,21 @@ namespace RoboClerk
                         {
                             logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID", "ERROR")}");
                             //grab trace tag and add to the trace analysis
-                            IContentCreator contentCreator = new Trace(dataSources, traceAnalysis, configuration);
+                            IContentCreator contentCreator = contentCreatorFactory.CreateContentCreator(DataSource.Trace, null);
                             tag.Contents = contentCreator.GetContent(tag, doc);
                             continue;
                         }
                         if (tag.Source != DataSource.Unknown)
                         {
-                            if (tag.Source == DataSource.Config)
+                            try
                             {
-                                logger.Debug($"Configuration file item requested: {tag.ContentCreatorID}");
-                                IContentCreator cc = new ConfigurationValue(dataSources, traceAnalysis, configuration);
-                                tag.Contents = cc.GetContent(tag, doc);
+                                IContentCreator contentCreator = contentCreatorFactory.CreateContentCreator(tag.Source, tag.ContentCreatorID);
+                                tag.Contents = contentCreator.GetContent(tag, doc);
                             }
-                            else if (tag.Source == DataSource.Comment)
+                            catch (InvalidOperationException ex)
                             {
-                                tag.Contents = string.Empty;
-                            }
-                            else if (tag.Source == DataSource.Post)
-                            {
-                                IContentCreator cc = new PostLayout();
-                                tag.Contents = cc.GetContent(tag, doc);
-                            }
-                            else if (tag.Source == DataSource.Reference)
-                            {
-                                IContentCreator cc = new Reference(dataSources, traceAnalysis, configuration);
-                                tag.Contents = cc.GetContent(tag, doc);
-                            }
-                            else if (tag.Source == DataSource.Document)
-                            {
-                                IContentCreator cc = new ContentCreators.Document(traceAnalysis);
-                                tag.Contents = cc.GetContent(tag, doc);
-                            }
-                            else if (tag.Source == DataSource.AI)
-                            {
-                                IContentCreator cc = new AIContentCreator(dataSources, traceAnalysis, configuration, aiPlugin, fileSystem);
-                                tag.Contents = cc.GetContent(tag, doc);
-                            }
-                            else if (tag.Source == DataSource.Web)
-                            {
-                                IContentCreator cc = new KrokiDiagram(dataSources, traceAnalysis, configuration, )
-                                tag.Contents = 
-                            }
-                            else
-                            {
-                                logger.Debug($"Looking for content creator class: {tag.ContentCreatorID}");
-                                var te = traceAnalysis.GetTraceEntityForAnyProperty(tag.ContentCreatorID);
-
-                                IContentCreator contentCreator = GetContentObject(te == default(TraceEntity) ? tag.ContentCreatorID : te.ID);
-                                if (contentCreator != null)
-                                {
-                                    logger.Debug($"Content creator {tag.ContentCreatorID} found.");
-                                    tag.Contents = contentCreator.GetContent(tag, doc);
-                                    continue;
-                                }
-                                logger.Warn($"Content creator {tag.ContentCreatorID} not found. Check your document as any text related to this content creator has been replaced with a placeholder.");
-                                tag.Contents = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS ({tag.ContentCreatorID}) IS KNOWN TO ROBOCLERK.\n";
+                                logger.Warn($"Content creator for source '{tag.Source}' not found: {ex.Message}");
+                                tag.Contents = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS FOR SOURCE '{tag.Source}' IS KNOWN TO ROBOCLERK.\n";
                             }
                         }
                     }
@@ -194,58 +157,8 @@ namespace RoboClerk
             }
         }
 
-        private IContentCreator GetContentObject(string contentCreatorID)
-        {
-            Assembly thisAssembly = Assembly.GetAssembly(this.GetType());
-            Type[] contentTypes = thisAssembly
-                .GetTypes()
-                .Where(t => typeof(IContentCreator).IsAssignableFrom(t) && t.IsClass)
-                .ToArray();
 
-            foreach (Type contentType in contentTypes)
-            {
-                if (contentType.Name.ToUpper() == contentCreatorID.ToUpper())
-                {
-                    return Activator.CreateInstance(contentType, dataSources, traceAnalysis, configuration) as IContentCreator;
-                }
-            }
-            return null;
-        }
 
-        private IAISystemPlugin LoadAIPlugin()
-        {
-            if(string.IsNullOrEmpty(configuration.AIPlugin))
-                return null;
-                        
-            // Try loading plugins from each directory
-            foreach (var dir in configuration.PluginDirs)
-            {
-                try 
-                {
-                    var plugin = pluginLoader.LoadByName<IAISystemPlugin>(
-                        pluginDir: dir,
-                        typeName: configuration.AIPlugin,
-                        configureGlobals: sc =>
-                        {
-                            sc.AddSingleton(fileSystem);
-                            sc.AddSingleton(configuration);
-                        });
 
-                    if (plugin is not null)
-                    {
-                        logger.Info($"Found AI plugin: {plugin.Name}");
-                        plugin.InitializePlugin(configuration);
-                        return plugin;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    logger.Warn($"Error loading AI plugin from directory {dir}: {ex.Message}");
-                }
-            }
-            
-            logger.Warn($"Could not find AI plugin '{configuration.AIPlugin}' in any of the plugin directories.");
-            return null;
-        }
     }
 }

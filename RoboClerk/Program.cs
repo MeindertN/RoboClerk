@@ -1,11 +1,15 @@
 ﻿using CommandLine;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
+using RoboClerk.AISystem;
 using RoboClerk.Configuration;
+using RoboClerk.ContentCreators;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 using System.Reflection;
 using Tomlyn;
 
@@ -80,6 +84,82 @@ namespace RoboClerk
             }
         }
 
+        private static void RegisterContentCreators(IServiceCollection services)
+        {
+            // Get the assembly containing the content creators
+            var assembly = typeof(Program).Assembly;
+            
+            // Find all types that implement IContentCreator
+            var contentCreatorTypes = assembly.GetTypes()
+                .Where(t => typeof(IContentCreator).IsAssignableFrom(t) && 
+                           !t.IsInterface && 
+                           !t.IsAbstract &&
+                           !t.IsGenericType)
+                .ToList();
+
+            var logger = NLog.LogManager.GetCurrentClassLogger();
+            logger.Debug($"Found {contentCreatorTypes.Count} content creator types to register");
+
+            foreach (var type in contentCreatorTypes)
+            {
+                try
+                {
+                    // Register each content creator as transient
+                    services.AddTransient(type);
+                    logger.Debug($"Registered content creator: {type.Name}");
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn($"Failed to register content creator {type.Name}: {ex.Message}");
+                }
+            }
+        }
+
+        private static void RegisterAIPlugin(IServiceCollection services, IConfiguration config, IPluginLoader pluginLoader)
+        {
+            // Load and register AI plugin if configured
+            if (!string.IsNullOrEmpty(config.AIPlugin))
+            {
+                var aiPlugin = LoadAIPlugin(config, pluginLoader);
+                if (aiPlugin != null)
+                {
+                    services.AddSingleton(aiPlugin);
+                }
+            }
+        }
+
+        private static IAISystemPlugin LoadAIPlugin(IConfiguration config, IPluginLoader pluginLoader)
+        {
+            // Try loading plugins from each directory
+            var logger = NLog.LogManager.GetCurrentClassLogger();
+            foreach (var dir in config.PluginDirs)
+            {
+                try 
+                {
+                    var plugin = pluginLoader.LoadByName<IAISystemPlugin>(
+                        pluginDir: dir,
+                        typeName: config.AIPlugin,
+                        configureGlobals: sc =>
+                        {
+                            sc.AddSingleton(config);
+                        });
+
+                    if (plugin is not null)
+                    {
+                        logger.Info($"Found AI plugin: {plugin.Name}");
+                        plugin.InitializePlugin(config);
+                        return plugin;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn($"Error loading AI plugin from directory {dir}: {ex.Message}");
+                }
+            }
+            logger.Warn($"Could not find AI plugin '{config.AIPlugin}' in any of the plugin directories.");
+            return null;
+        }
+
         static int Main(string[] args)
         {
             try
@@ -122,7 +202,17 @@ namespace RoboClerk
                            serviceCollection.AddSingleton<ITraceabilityAnalysis, TraceabilityAnalysis>();
                            serviceCollection.AddSingleton<IRoboClerkCore, RoboClerkCore>();
 
+                           // Register all content creators
+                           RegisterContentCreators(serviceCollection);
+
+                           // Register the content creator factory with service provider injection
+                           serviceCollection.AddSingleton<IContentCreatorFactory>(serviceProvider =>
+                               new ContentCreatorFactory(serviceProvider, serviceProvider.GetRequiredService<ITraceabilityAnalysis>()));
+
                            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+                           // Register AI plugin after service provider is built
+                           RegisterAIPlugin(serviceCollection, serviceProvider.GetService<IConfiguration>(), serviceProvider.GetService<IPluginLoader>());
 
                            //clean the output directory before we start working
                            var config = serviceProvider.GetService<IConfiguration>();
