@@ -98,7 +98,7 @@ namespace RoboClerk
                             catch (InvalidOperationException ex)
                             {
                                 logger.Warn($"Content creator for source '{tag.Source}' not found: {ex.Message}");
-                                tag.Contents = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS FOR SOURCE '{tag.Source}' IS KNOWN TO ROBOCLERK.\n";
+                                tag.Contents = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS '{tag.Source}:{tag.ContentCreatorID}' IS KNOWN TO ROBOCLERK.\n";
                             }
                         }
                     }

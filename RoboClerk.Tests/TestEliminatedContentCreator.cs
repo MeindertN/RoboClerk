@@ -26,6 +26,8 @@ namespace RoboClerk.Tests
         public void TestSetup()
         {
             config = Substitute.For<IConfiguration>();
+            config.OutputFormat.Returns("ASCIIDOC");
+
             dataSources = Substitute.For<IDataSources>();
             traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
             documentConfig = new DocumentConfig("EliminatedItems", "docID", "Eliminated Items Document", "EID", @"c:\in\template.adoc");
@@ -39,7 +41,7 @@ namespace RoboClerk.Tests
             eliminatedContentCreator = new Eliminated(dataSources, traceAnalysis, config);
 
             tag = new RoboClerkTag(0, 29, "@@SLMS:Eliminated(TYPE=ALL)@@", true);
-            dataSources.GetTemplateFile(@"./ItemTemplates/Eliminated.adoc").Returns(
+            dataSources.GetTemplateFile(@"./ItemTemplates/ASCIIDOC/Eliminated.adoc").Returns(
                 "[csx:\n" +
                 "using RoboClerk;\n" +
                 "TraceEntity te = SourceTraceEntity;\n" +

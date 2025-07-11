@@ -24,7 +24,7 @@ this is some contents
 it is even multiline
 # it contains a *header*
 @@@
-There is some text @@Foo:inline()@@ in this line.
+There is some text @@SLMS:inline()@@ in this line.
 @@Trace:SWR(id=1234, name  =test name    )@@";
 
         [SetUp]
@@ -137,7 +137,7 @@ There is some text @@Foo:inline()@@ in this line.
         public void Parameter_Syntax_Can_Be_Parsed_VERIFIES_No_Exception_Thrown_When_Not_Malformed_Parameters()
         {
             StringBuilder sb = new StringBuilder(validText);
-            sb.AppendLine("text@@Info:SWR(foo= barr,   huff=puff     )@@ test");
+            sb.AppendLine("text@@SlMs:SWR(foo= barr,   huff=puff     )@@ test");
             Assert.DoesNotThrow(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
         }
 
@@ -150,7 +150,7 @@ There is some text @@Foo:inline()@@ in this line.
             ClassicAssert.AreEqual("Config:testinfo2()", tags[2].Contents);
             ClassicAssert.AreEqual("", tags[3].Contents);
             ClassicAssert.AreEqual("this is some contents\nit is even multiline\n# it contains a *header*\n", tags[4].Contents);
-            ClassicAssert.AreEqual("Foo:inline()", tags[5].Contents);
+            ClassicAssert.AreEqual("SLMS:inline()", tags[5].Contents);
             ClassicAssert.AreEqual("Trace:SWR(id=1234, name  =test name    )", tags[6].Contents);
         }
 
@@ -176,7 +176,7 @@ There is some text @@Foo:inline()@@ in this line.
             ClassicAssert.AreEqual(DataSource.Config, tags[2].Source);
             ClassicAssert.AreEqual(DataSource.OTS, tags[3].Source);
             ClassicAssert.AreEqual(DataSource.Comment, tags[4].Source);
-            ClassicAssert.AreEqual(DataSource.Unknown, tags[5].Source);
+            ClassicAssert.AreEqual(DataSource.SLMS, tags[5].Source);
             ClassicAssert.AreEqual(DataSource.Trace, tags[6].Source);
         }
 

@@ -29,6 +29,8 @@ namespace RoboClerk.Tests
         {
             dataSources = Substitute.For<IDataSources>();
             traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            config = Substitute.For<IConfiguration>();
+            config.OutputFormat.Returns("ASCIIDOC");
             var te = new TraceEntity("Anomaly", "Anomaly", "spabrrv", TraceEntityType.Truth);
             var teDoc = new TraceEntity("docID", "docTitle", "docAbbr", TraceEntityType.Document);
             traceAnalysis.GetTraceEntityForID("Anomaly").Returns(te);
@@ -64,7 +66,7 @@ namespace RoboClerk.Tests
             dataSources.GetItems(te).Returns(anomalyItems);
             dataSources.GetItem("tcid1").Returns(anomalyItems[0]);
             dataSources.GetItem("tcid2").Returns(anomalyItems[1]);
-            dataSources.GetTemplateFile("./ItemTemplates/Anomaly.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/Anomaly.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/Anomaly.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/Anomaly.adoc"));
         }
 
         [UnitTestAttribute(Purpose = "(TEST) Anomaly content creator is created",

@@ -28,6 +28,7 @@ namespace RoboClerk.Tests
             mockDataSources = Substitute.For<IDataSources>();
             mockTraceAnalysis = Substitute.For<ITraceabilityAnalysis>();
             mockConfiguration = Substitute.For<IConfiguration>();
+            mockConfiguration.OutputFormat.Returns("ASCIIDOC");
             mockSourceTraceEntity = new TraceEntity("TEST", "Test Entity", "TE", TraceEntityType.Truth);
             scriptingBridge = new ScriptingBridge(mockDataSources, mockTraceAnalysis, mockSourceTraceEntity, mockConfiguration);
         }

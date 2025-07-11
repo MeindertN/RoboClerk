@@ -24,6 +24,7 @@ PluginDirs = [ ""I:/test/plugindir"" ]
 PluginConfigurationDir = ""testdir""
 OutputDirectory = ""I:/temp/Roboclerk_output""
 ClearOutputDir = ""True""
+OutputFormat = ""ASCIIDOC""
 LogLevel = ""INFO""";
 
             string roboProjectConf = @"

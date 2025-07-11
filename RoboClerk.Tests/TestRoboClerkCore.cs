@@ -7,6 +7,12 @@ using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using NUnit.Framework.Legacy;
 using RoboClerk.AISystem;
+using RoboClerk.ContentCreators;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.TestPlatform.TestHost;
+using System.Linq;
+using System.Reflection;
+using System.IO;
 
 namespace RoboClerk.Tests
 {
@@ -20,17 +26,63 @@ namespace RoboClerk.Tests
         private IDataSources dataSources = null;
         private ITraceabilityAnalysis traceAnalysis = null;
         private IFileSystem fs = null;
+        private IContentCreatorFactory contentCreatorFactory = null;
         private IAISystemPlugin ai = null;
 
         [SetUp]
         public void TestSetup()
         {
+            
             config = Substitute.For<IConfiguration>();
+            config.OutputFormat.Returns("ASCIIDOC");
             dataSources = Substitute.For<IDataSources>();
             traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
             fs = Substitute.For<IFileSystem>();
             pluginLoader = Substitute.For<IPluginLoader>();
             ai = Substitute.For<IAISystemPlugin>();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddTransient<IFileProviderPlugin>(x => new LocalFileSystemPlugin(fs));
+            serviceCollection.AddTransient<IFileSystem>(x => fs);
+            serviceCollection.AddSingleton<IConfiguration>(x => config );
+            serviceCollection.AddSingleton<ITraceabilityAnalysis>(x => traceAnalysis);
+            serviceCollection.AddSingleton<IDataSources>(x => dataSources);
+            RegisterContentCreators(serviceCollection);
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+            contentCreatorFactory = new ContentCreatorFactory(serviceProvider, traceAnalysis);
+        }
+
+        private static void RegisterContentCreators(IServiceCollection services)
+        {
+            // Get the assembly containing the content creators
+            string pathToMainAssembly = Path.Combine(AppContext.BaseDirectory, "roboclerk.dll");
+
+            var assembly = Assembly.LoadFrom(pathToMainAssembly);
+
+            // Find all types that implement IContentCreator
+            var contentCreatorTypes = assembly.GetTypes()
+                .Where(t => typeof(IContentCreator).IsAssignableFrom(t) &&
+                           !t.IsInterface &&
+                           !t.IsAbstract &&
+                           !t.IsGenericType)
+                .ToList();
+
+            var logger = NLog.LogManager.GetCurrentClassLogger();
+            logger.Debug($"Found {contentCreatorTypes.Count} content creator types to register");
+
+            foreach (var type in contentCreatorTypes)
+            {
+                try
+                {
+                    // Register each content creator as transient
+                    services.AddTransient(type);
+                    logger.Debug($"Registered content creator: {type.Name}");
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn($"Failed to register content creator {type.Name}: {ex.Message}");
+                }
+            }
         }
 
         [UnitTestAttribute(
@@ -165,7 +217,7 @@ namespace RoboClerk.Tests
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
             dataSources.GetConfigValue("SoftwareName").Returns("testvalue");
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
@@ -194,7 +246,7 @@ namespace RoboClerk.Tests
             item.Link = new Uri("http://localhost/");
             dataSources.GetItem("19").Returns(item);
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
@@ -202,7 +254,7 @@ namespace RoboClerk.Tests
             Assert.That(content == "(89) (http://localhost/[19])");
 
             fileSystem.File.WriteAllText(TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), "@@Trace:SWR()@@");
-            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             Assert.Throws<TagInvalidException>(() => core.GenerateDocs());
         }
 
@@ -224,7 +276,7 @@ namespace RoboClerk.Tests
                 "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFileName(@"c:\in\template.adoc"));
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
@@ -250,7 +302,7 @@ namespace RoboClerk.Tests
                 "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFileName(@"c:\in\template.adoc"));
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
@@ -277,7 +329,7 @@ namespace RoboClerk.Tests
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
             traceAnalysis.GetTraceEntityForID("roboclerkID").Returns(new TraceEntity("roboclerkID","documentTitle","ABR",TraceEntityType.Document));
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
@@ -285,7 +337,7 @@ namespace RoboClerk.Tests
             Assert.That(content == $"{config2.DocumentTitle} {config2.DocumentID} {config2.DocumentTitle} ({config2.DocumentAbbreviation}) {config2.DocumentTemplate}");
 
             fileSystem.File.WriteAllText(TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), "@@Ref:nonexistentID()@@ @@Ref:nonexistentID(abbr=true)@@");
-            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             Assert.Throws<TagInvalidException>(() => core.GenerateDocs());
         }
 
@@ -308,7 +360,7 @@ namespace RoboClerk.Tests
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
             traceAnalysis.GetTraceEntityForID("roboclerkID").Returns(new TraceEntity("roboclerkID", "documentTitle", "ABR", TraceEntityType.Document));
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
@@ -316,7 +368,7 @@ namespace RoboClerk.Tests
             Assert.That(content == $"{config2.DocumentTitle} {config2.DocumentID} {config2.DocumentTitle} ({config2.DocumentAbbreviation}) {config2.DocumentTemplate}");
 
             fileSystem.File.WriteAllText(TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), "@@Ref:roboclerkID()@@ @@Ref:roboclerkID(doesnotexist=true)@@");
-            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             Assert.Throws<TagInvalidException>(() => core.GenerateDocs());
         }
 
@@ -338,7 +390,7 @@ namespace RoboClerk.Tests
                 "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFileName(@"c:\in\template.adoc"));
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
@@ -346,7 +398,7 @@ namespace RoboClerk.Tests
             Assert.That(content == @"documentTitle ABR documentID "+ TestingHelpers.ConvertFileName(@"c:\in\template.adoc") +" roboclerkID");
 
             fileSystem.File.WriteAllText(TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), "@@document:nonexistentID()@@");
-            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             Assert.Throws<Exception>(() => core.GenerateDocs());
         }
 
@@ -375,7 +427,7 @@ namespace RoboClerk.Tests
             testRequirement.ItemID = "14";
             var te = new TraceEntity("SoftwareRequirement", "typename", "SWR", TraceEntityType.Truth);
             dataSources.GetItems(te).Returns(new List<LinkedItem> { testRequirement });
-            dataSources.GetTemplateFile(@"./ItemTemplates/Requirement.adoc").Returns(@"[csx:
+            dataSources.GetTemplateFile(@"./ItemTemplates/ASCIIDOC/Requirement.adoc").Returns(@"[csx:
 // this first scripting block can be used to set up any prerequisites
 // pre-calculate fields for later use etc.
 using RoboClerk;
@@ -397,7 +449,7 @@ AddTrace(item.ItemID);
             traceAnalysis.GetTraceEntityForAnyProperty("SWR").Returns(te);
             traceAnalysis.GetTraceEntityForID("SoftwareRequirement").Returns(te);
 
-            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
+            var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
@@ -405,11 +457,11 @@ AddTrace(item.ItemID);
             Assert.That(content == "\n|====\n| typename ID: | 14\n| typename Revision: | rev1\n| typename Category: | \n| Parent ID: | N/A\n| Title: | title\n| Description: a| description\n|====\n");
 
             fileSystem.File.WriteAllText(TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), "@@SLMS:unknown(ItemID=33)@@");
-            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
+            core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
-            Assert.That(content == "UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS (unknown) IS KNOWN TO ROBOCLERK.\n");
+            Assert.That(content == "UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS 'SLMS:unknown' IS KNOWN TO ROBOCLERK.\n");
         }
 
     }
