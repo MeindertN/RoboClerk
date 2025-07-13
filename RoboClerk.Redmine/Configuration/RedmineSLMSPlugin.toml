@@ -1,11 +1,14 @@
 ﻿# This is the RoboClerk Redmine plugin configuration
-
 RedmineAPIEndpoint = "http://localhost:3001/"
 RedmineAPIKey = "014a75c443c18891c3baf8f7f2d2ce37aa27b94c"
 
 # The name of the project that we will be pulling from Redmine
-
 RedmineProject = "TestProject"
+
+# The names of the sub-projects to pull in. Can be empty if
+# there are no sub-projects. Provide a comma seperated list of 
+# sub-project names.
+SubProjects = ["Subproject1"]
 
 # certain items in redmine should be ignored because they are no longer
 # relevant. Indicate which item statuses should be ignored.

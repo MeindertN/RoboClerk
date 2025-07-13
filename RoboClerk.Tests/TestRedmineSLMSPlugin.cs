@@ -93,6 +93,7 @@ namespace RoboClerk.Redmine.Tests
             configTable["RedmineAPIEndpoint"] = "http://localhost:3001/";
             configTable["RedmineAPIKey"] = "test_api_key";
             configTable["RedmineProject"] = "TestProject";
+            configTable["SubProjects"] = new TomlArray() { "subproject1" };
             configTable["RedmineBaseURL"] = "http://localhost:3001/issues/";
             configTable["ConvertTextile"] = false;
             return configTable;
