@@ -1,12 +1,15 @@
-﻿using Textile;
+﻿using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using Textile;
 
 namespace RoboClerk.Redmine
 {
-    internal class TextileToHTMLConverter : ITextileConverter
+    public class TextileToHTMLConverter : TextileConverterBase
     {
-        public string Convert(string text)
+        protected override string ConvertTextile(string textile)
         {
-            return TextileFormatter.FormatString(text);
+            return TextileFormatter.FormatString(textile);
         }
     }
 }
