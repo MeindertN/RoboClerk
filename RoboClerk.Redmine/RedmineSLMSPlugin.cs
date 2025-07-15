@@ -46,6 +46,7 @@ namespace RoboClerk.Redmine
         private string apiEndpoint = string.Empty;
         private string apiKey = string.Empty;
         private string projectName = string.Empty;
+        private List<string> subProjects = new List<string>();
         private bool convertTextile = false;
         private string outputFormat = string.Empty;
         private ITextileConverter textileConverter = null;
@@ -83,6 +84,11 @@ namespace RoboClerk.Redmine
                 apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", GetObjectForKey<string>(config, "RedmineAPIEndpoint", true));
                 apiKey = configuration.CommandLineOptionOrDefault("RedmineAPIKey", GetObjectForKey<string>(config, "RedmineAPIKey", true));
                 projectName = configuration.CommandLineOptionOrDefault("RedmineProject", GetObjectForKey<string>(config, "RedmineProject", true));
+                var subPrj = GetObjectForKey<TomlArray>(config, "SubProjects", true);
+                foreach (var o in subPrj)
+                {
+                    subProjects.Add((string)o);
+                }
                 baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL", GetObjectForKey<string>(config, "RedmineBaseURL", false));
                 convertTextile = configuration.CommandLineOptionOrDefault("ConvertTextile", GetObjectForKey<bool>(config, "ConvertTextile", false)?"TRUE":"FALSE").ToUpper() == "TRUE";
                 if(convertTextile) 
@@ -987,17 +993,22 @@ namespace RoboClerk.Redmine
 
         private List<RedmineIssue> PullAllIssuesFromServer(List<string> queryTrackers)
         {
-            int projectID = GetProjectID(projectName);
-            versions = PullAllVersionsFromServer(projectID);
-            var trackers = GetTrackers();
+            List<string> projectNames = new List<string>() { projectName };
+            projectNames.AddRange(subProjects);
             List<RedmineIssue> issueList = new List<RedmineIssue>();
-            foreach (var queryTracker in queryTrackers)
+            foreach (var pName in projectNames)
             {
-                if (!trackers.ContainsKey(queryTracker))
+                int projectID = GetProjectID(pName);
+                versions = PullAllVersionsFromServer(projectID);
+                var trackers = GetTrackers();
+                foreach (var queryTracker in queryTrackers)
                 {
-                    throw new Exception($"Tracker \"{queryTracker}\" is not present on the Redmine server. Please check plugin configuration file and Redmine server.");
+                    if (!trackers.ContainsKey(queryTracker))
+                    {
+                        throw new Exception($"Tracker \"{queryTracker}\" is not present on the Redmine server. Please check plugin configuration file and Redmine server.");
+                    }
+                    issueList.AddRange(GetIssues(projectID, trackers[queryTracker]));
                 }
-                issueList.AddRange(GetIssues(projectID, trackers[queryTracker]));
             }
             return issueList;
         }

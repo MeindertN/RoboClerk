@@ -18,6 +18,31 @@ namespace RoboClerk.Redmine
             if (textile == null)
                 throw new ArgumentNullException(nameof(textile));
 
+            // Store RoboClerk tags with unique placeholders to protect them from conversion
+            Dictionary<string, string> roboClerkTagContents = new Dictionary<string, string>();
+            int roboClerkTagIndex = 0;
+
+            // Extract and replace RoboClerk tags with placeholders
+            // Match both inline tags (@@tag@@) and block tags (@@@block@@@)
+            // Block tags can span multiple lines, so we need to use non-greedy matching
+            textile = Regex.Replace(textile, @"@@@(.*?)@@@", m =>
+            {
+                string content = m.Groups[1].Value;
+                string placeholder = $"ROBOCLERKBLOCKPLACEHOLDER{roboClerkTagIndex}";
+                roboClerkTagContents[placeholder] = m.Value; // Store the complete tag including @@@
+                roboClerkTagIndex++;
+                return placeholder;
+            }, RegexOptions.Singleline);
+
+            textile = Regex.Replace(textile, @"@@([^@]+)@@", m =>
+            {
+                string content = m.Groups[1].Value;
+                string placeholder = $"ROBOCLERKINLINEPLACEHOLDER{roboClerkTagIndex}";
+                roboClerkTagContents[placeholder] = m.Value; // Store the complete tag including @@
+                roboClerkTagIndex++;
+                return placeholder;
+            }, RegexOptions.Singleline);
+
             // Store pre tag contents with unique placeholders to protect them from conversion
             Dictionary<string, string> preTagContents = new Dictionary<string, string>();
             int preTagIndex = 0;
@@ -95,12 +120,13 @@ namespace RoboClerk.Redmine
             // --- Convert Inline Code ---
             // Textile inline code marked with @ characters is converted to AsciiDoc inline code.
             // Example: @print("hello")@ becomes `print("hello")`
+            // Note: This will not affect RoboClerk tags since they have been replaced with placeholders
             textile = Regex.Replace(textile, @"@([^@]+)@", m =>
                 "`" + m.Groups[1].Value + "`");
 
             // --- Convert Strikethrough ---
             // Textile uses hyphen-delimited text for strikethrough, e.g.: -deleted text-
-            // We convert it to AsciiDoc’s inline strike format: [strike]#text#
+            // We convert it to AsciiDoc's inline strike format: [strike]#text#
             textile = Regex.Replace(textile, @"(^|\s)-(.+?)-(?=$|\s)", m =>
                 m.Groups[1].Value + "[strike]#" + m.Groups[2].Value + "#");
 
@@ -115,6 +141,12 @@ namespace RoboClerk.Redmine
             foreach (var placeholder in preTagContents.Keys)
             {
                 textile = textile.Replace(placeholder, $"\n....\n{preTagContents[placeholder]}\n....\n");
+            }
+
+            // Restore RoboClerk tags
+            foreach (var placeholder in roboClerkTagContents.Keys)
+            {
+                textile = textile.Replace(placeholder, roboClerkTagContents[placeholder]);
             }
 
             return textile;
