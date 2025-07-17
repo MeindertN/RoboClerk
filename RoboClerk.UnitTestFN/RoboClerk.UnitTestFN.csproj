@@ -19,6 +19,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="SkiaSharp" Version="2.88.9" />
+	  <PackageReference Include="System.Text.Json" Version="8.0.5" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\RoboClerk\RoboClerk.csproj">
 			<Private>false</Private>
 			<ExcludeAssets>runtime</ExcludeAssets>

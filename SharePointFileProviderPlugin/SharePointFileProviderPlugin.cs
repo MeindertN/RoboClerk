@@ -4,104 +4,50 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using RoboClerk.Configuration;
+using Tomlyn;
 using Tomlyn.Model;
 using Microsoft.Extensions.DependencyInjection;
-using RestSharp;
+using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using Azure.Identity;
 
 namespace RoboClerk.SharePointFileProvider
 {
-    public interface ISharePointClient
-    {
-        RestRequest CreateRequest(string resource, Method method);
-        Task<RestResponse<T>> ExecuteAsync<T>(RestRequest request) where T : new();
-        Task<RestResponse> ExecuteAsync(RestRequest request);
-        RestResponse<T> Execute<T>(RestRequest request) where T : new();
-        RestResponse Execute(RestRequest request);
-        void AddDefaultHeader(string name, string value);
-    }
-
-    // Concrete implementation using RestSharp
-    public class RestSharpSharePointClient : ISharePointClient
-    {
-        private readonly RestClient _client;
-        private readonly string _graphApiBase = "https://graph.microsoft.com/v1.0";
-
-        public RestSharpSharePointClient()
-        {
-            _client = new RestClient(_graphApiBase);
-        }
-
-        public RestRequest CreateRequest(string resource, Method method)
-        {
-            return new RestRequest(resource, method);
-        }
-
-        public RestResponse Execute(RestRequest request)
-        {
-            return _client.ExecuteAsync(request).GetAwaiter().GetResult();
-        }
-
-        public RestResponse<T> Execute<T>(RestRequest request) where T : new()
-        {
-            return _client.ExecuteAsync<T>(request).GetAwaiter().GetResult();
-        }
-
-        public async Task<RestResponse<T>> ExecuteAsync<T>(RestRequest request) where T : new()
-        {
-            return await _client.ExecuteAsync<T>(request);
-        }
-
-        public async Task<RestResponse> ExecuteAsync(RestRequest request)
-        {
-            return await _client.ExecuteAsync(request);
-        }
-
-        public void AddDefaultHeader(string name, string value)
-        {
-            _client.AddDefaultHeader(name, value);
-        }
-    }
-
     /// <summary>
     /// SharePoint file provider plugin that provides access to SharePoint Online document libraries
-    /// using Microsoft Graph API.
+    /// using Microsoft Graph SDK with OAuth2 authentication.
     /// </summary>
     public class SharePointFileProviderPlugin : FileProviderPluginBase, IFileProviderPlugin
     {
-        private string siteUrl=string.Empty;
-        private string accessToken=string.Empty;
+        private string siteUrl = string.Empty;
+        private string clientId = string.Empty;
+        private string clientSecret = string.Empty;
+        private string tenantId = string.Empty;
         private string driveId = string.Empty;
-        private readonly ISharePointClient _client;
-        private readonly string graphApiBase = "https://graph.microsoft.com/v1.0";
+        private GraphServiceClient graphClient = null;
 
-        public SharePointFileProviderPlugin(ISharePointClient client)
+        public SharePointFileProviderPlugin()
         {
             name = "SharePointFileProviderPlugin";
-            description = "Provides access to SharePoint Online document libraries using Microsoft Graph API.";
-            _client = client ?? throw new ArgumentNullException(nameof(client));
+            description = "Provides access to SharePoint Online document libraries using Microsoft Graph SDK.";
         }
 
-        public override void InitializePlugin(IConfiguration configuration)
+        public override async void InitializePlugin(IConfiguration configuration)
         {
             try
             {
-                /*var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
+                var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
                 siteUrl = GetObjectForKey<string>(config, "SiteUrl", true);
-                accessToken = GetObjectForKey<string>(config, "AccessToken", true);
-                driveId = GetObjectForKey<string>(config, "DriveId", false);
+                clientId = GetObjectForKey<string>(config, "ClientId", true);
+                clientSecret = GetObjectForKey<string>(config, "ClientSecret", true);
+                tenantId = GetObjectForKey<string>(config, "TenantId", true);
+                driveId = GetObjectForKey<string>(config, "DriveId", true);
 
-                // Set up HTTP client with authentication
-                _client.AddDefaultHeader("Authorization", $"Bearer {accessToken}");
-                _client.AddDefaultHeader("Accept", "application/json");
-
-                // If DriveId is not provided, get the default document library
-                if (string.IsNullOrEmpty(driveId))
-                {
-                    driveId = GetDefaultDriveId().Result;
-                }*/
+                // Initialize Graph client with OAuth2 authentication
+                var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+                graphClient = new GraphServiceClient(credential);
 
                 logger.Info($"SharePoint provider initialized for site: {siteUrl}, Drive ID: {driveId}");
             }
@@ -112,13 +58,50 @@ namespace RoboClerk.SharePointFileProvider
             }
         }
 
+        /// <summary>
+        /// Gets the configuration table from the specified file.
+        /// </summary>
+        /// <param name="pluginConfDir">The plugin configuration directory.</param>
+        /// <param name="confFileName">The configuration file name.</param>
+        /// <returns>The configuration table.</returns>
+        private TomlTable GetConfigurationTable(string pluginConfDir, string confFileName)
+        {
+            if (string.IsNullOrEmpty(pluginConfDir) || string.IsNullOrEmpty(confFileName))
+            {
+                throw new ArgumentException("Cannot get configuration table because the plugin configuration directory or the config filename are empty.");
+            }
+            
+            var configFileLocation = Path.Combine(pluginConfDir, confFileName);
+            return Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
+        }
+
+        /// <summary>
+        /// Sets the Drive ID dynamically after initialization.
+        /// </summary>
+        /// <param name="newDriveId">The new Drive ID to set.</param>
+        public void SetDriveId(string newDriveId)
+        {
+            if (string.IsNullOrWhiteSpace(newDriveId))
+            {
+                throw new ArgumentException("Drive ID cannot be null or empty.", nameof(newDriveId));
+            }
+
+            driveId = newDriveId;
+            logger.Info($"Drive ID updated to: {driveId}");
+        }
+
+        /// <summary>
+        /// Gets the current Drive ID.
+        /// </summary>
+        /// <returns>The current Drive ID.</returns>
+        public string GetDriveId()
+        {
+            return driveId;
+        }
+
         public override void ConfigureServices(IServiceCollection services)
         {
-            services.AddTransient<ISharePointClient>(provider => {
-                return new RestSharpSharePointClient();
-            });
-            
-
+            services.AddTransient<SharePointFileProviderPlugin>();
         }
 
         public override bool FileExists(string path)
@@ -126,8 +109,8 @@ namespace RoboClerk.SharePointFileProvider
             ValidatePath(path);
             try
             {
-                var item = GetDriveItem(path).Result;
-                return item.HasValue && !item.Value.GetProperty("folder").ValueKind.Equals(JsonValueKind.Undefined);
+                var item = GetDriveItemAsync(path).Result;
+                return item != null && item.Folder == null;
             }
             catch
             {
@@ -140,8 +123,8 @@ namespace RoboClerk.SharePointFileProvider
             ValidatePath(path);
             try
             {
-                var item = GetDriveItem(path).Result;
-                return item.HasValue && item.Value.GetProperty("folder").ValueKind.Equals(JsonValueKind.Object);
+                var item = GetDriveItemAsync(path).Result;
+                return item != null && item.Folder != null;
             }
             catch
             {
@@ -154,7 +137,7 @@ namespace RoboClerk.SharePointFileProvider
             ValidatePath(path);
             try
             {
-                var content = GetFileContent(path).Result;
+                var content = GetFileContentAsync(path).Result;
                 return Encoding.UTF8.GetString(content);
             }
             catch (Exception ex)
@@ -194,7 +177,7 @@ namespace RoboClerk.SharePointFileProvider
             ValidatePath(path);
             try
             {
-                return GetFileContent(path).Result;
+                return GetFileContentAsync(path).Result;
             }
             catch (Exception ex)
             {
@@ -216,8 +199,8 @@ namespace RoboClerk.SharePointFileProvider
             try
             {
                 var bytes = Encoding.UTF8.GetBytes(contents);
-                UploadFile(path, bytes).Wait();
-                logger.Info($"File written to SharePoint: {path}");
+                UploadFileAsync(path, bytes).Wait();
+                logger.Debug($"File written to SharePoint: {path}");
             }
             catch (Exception ex)
             {
@@ -241,8 +224,8 @@ namespace RoboClerk.SharePointFileProvider
             
             try
             {
-                UploadFile(path, bytes).Wait();
-                logger.Info($"File written to SharePoint: {path}");
+                UploadFileAsync(path, bytes).Wait();
+                logger.Debug($"File written to SharePoint: {path}");
             }
             catch (Exception ex)
             {
@@ -261,7 +244,7 @@ namespace RoboClerk.SharePointFileProvider
             ValidatePath(path);
             try
             {
-                var content = GetFileContent(path).Result;
+                var content = GetFileContentAsync(path).Result;
                 return new MemoryStream(content);
             }
             catch (Exception ex)
@@ -285,7 +268,7 @@ namespace RoboClerk.SharePointFileProvider
             ValidatePath(path);
             try
             {
-                CreateFolder(path).Wait();
+                CreateFolderAsync(path).Wait();
                 logger.Info($"Directory created in SharePoint: {path}");
             }
             catch (Exception ex)
@@ -300,7 +283,7 @@ namespace RoboClerk.SharePointFileProvider
             ValidatePath(path);
             try
             {
-                DeleteItem(path).Wait();
+                DeleteItemAsync(path).Wait();
                 logger.Info($"File deleted from SharePoint: {path}");
             }
             catch (Exception ex)
@@ -318,19 +301,21 @@ namespace RoboClerk.SharePointFileProvider
                 if (recursive)
                 {
                     // Get all items in the directory and delete them
-                    var items = GetItemsInFolder(path).Result;
-                    foreach (var item in items)
+                    var itemsResponse = GetItemsInFolderAsync(path).Result;
+                    if (itemsResponse?.Value != null)
                     {
-                        var itemPath = item.GetProperty("name").GetString();
-                        if (itemPath != null)
+                        foreach (var item in itemsResponse.Value)
                         {
-                            var fullPath = Combine(path, itemPath);
-                            DeleteItem(fullPath).Wait();
+                            if (item.Name != null)
+                            {
+                                var fullPath = Combine(path, item.Name);
+                                DeleteItemAsync(fullPath).Wait();
+                            }
                         }
                     }
                 }
                 
-                DeleteItem(path).Wait();
+                DeleteItemAsync(path).Wait();
                 logger.Info($"Directory deleted from SharePoint: {path}");
             }
             catch (Exception ex)
@@ -345,27 +330,11 @@ namespace RoboClerk.SharePointFileProvider
             ValidatePath(path);
             try
             {
-                var items = GetItemsInFolder(path).Result;
-                var files = items
-                    .Where(item =>
-                    {
-                        // Try to get the "folder" property and check if it's not an object
-                        if (!item.TryGetProperty("folder", out var folderProp) || folderProp.ValueKind == JsonValueKind.Object)
-                            return false;
-
-                        // Try to get the "name" property and ensure it's a string
-                        if (!item.TryGetProperty("name", out var nameProp) || nameProp.ValueKind != JsonValueKind.String)
-                            return false;
-
-                        var name = nameProp.GetString();
-                        return name != null && MatchesPattern(name, searchPattern);
-                    })
-                    .Select(item =>
-                    {
-                        var name = item.GetProperty("name").GetString(); // Safe now, already checked
-                        return Combine(path, name!);
-                    })
-                    .ToArray();
+                var itemsResponse = GetItemsInFolderAsync(path).Result;
+                var files = itemsResponse?.Value?
+                    .Where(item => item.Folder == null && item.Name != null && MatchesPattern(item.Name, searchPattern))
+                    .Select(item => Combine(path, item.Name))
+                    .ToArray() ?? Array.Empty<string>();
 
                 if (searchOption == SearchOption.AllDirectories)
                 {
@@ -388,28 +357,11 @@ namespace RoboClerk.SharePointFileProvider
             ValidatePath(path);
             try
             {
-                var items = GetItemsInFolder(path).Result;
-                var directories = items
-                    .Where(item =>
-                    {
-                        // Ensure "folder" exists and is an object
-                        if (!item.TryGetProperty("folder", out var folderProp) || folderProp.ValueKind != JsonValueKind.Object)
-                            return false;
-
-                        // Ensure "name" exists and is a string
-                        if (!item.TryGetProperty("name", out var nameProp) || nameProp.ValueKind != JsonValueKind.String)
-                            return false;
-
-                        var name = nameProp.GetString();
-                        return name != null && MatchesPattern(name, searchPattern);
-                    })
-                    .Select(item =>
-                    {
-                        var name = item.GetProperty("name").GetString(); // Safe because we filtered above
-                        return Combine(path, name!);
-                    })
-                    .ToArray();
-
+                var itemsResponse = GetItemsInFolderAsync(path).Result;
+                var directories = itemsResponse?.Value?
+                    .Where(item => item.Folder != null && item.Name != null && MatchesPattern(item.Name, searchPattern))
+                    .Select(item => Combine(path, item.Name))
+                    .ToArray() ?? Array.Empty<string>();
 
                 if (searchOption == SearchOption.AllDirectories)
                 {
@@ -434,8 +386,8 @@ namespace RoboClerk.SharePointFileProvider
             try
             {
                 // Read from source and write to destination
-                var content = GetFileContent(sourcePath).Result;
-                UploadFile(destinationPath, content).Wait();
+                var content = GetFileContentAsync(sourcePath).Result;
+                UploadFileAsync(destinationPath, content).Wait();
                 logger.Info($"File copied in SharePoint: {sourcePath} -> {destinationPath}");
             }
             catch (Exception ex)
@@ -469,14 +421,10 @@ namespace RoboClerk.SharePointFileProvider
             ValidatePath(path);
             try
             {
-                var item = GetDriveItem(path).Result;
-                if (item.HasValue && item.Value.TryGetProperty("lastModifiedDateTime", out var lastModified))
+                var item = GetDriveItemAsync(path).Result;
+                if (item?.LastModifiedDateTime?.DateTime != null)
                 {
-                    var str = lastModified.GetString();
-                    if (!string.IsNullOrEmpty(str))
-                    {
-                        return DateTime.Parse(str);
-                    }
+                    return item.LastModifiedDateTime.Value.DateTime;
                 }
                 return DateTime.MinValue;
             }
@@ -492,12 +440,8 @@ namespace RoboClerk.SharePointFileProvider
             ValidatePath(path);
             try
             {
-                var item = GetDriveItem(path).Result;
-                if (item.HasValue && item.Value.TryGetProperty("size", out var size))
-                {
-                    return size.GetInt64();
-                }
-                return 0;
+                var item = GetDriveItemAsync(path).Result;
+                return item?.Size ?? 0;
             }
             catch (Exception ex)
             {
@@ -578,122 +522,60 @@ namespace RoboClerk.SharePointFileProvider
 
         #region Private Helper Methods
 
-        private async Task<string> GetDefaultDriveId()
+        private async Task<DriveItem?> GetDriveItemAsync(string path)
         {
-            var url = $"/sites/{siteUrl}/drives";
-            var request = _client.CreateRequest(url, Method.Get);
-            var response = await _client.ExecuteAsync<dynamic>(request);
-            
-            if (response.IsSuccessful && response.Content != null)
+            try
             {
-                var drives = JsonDocument.Parse(response.Content);
-                var defaultDrive = drives.RootElement.GetProperty("value").EnumerateArray().First();
-                var id = defaultDrive.GetProperty("id").GetString();
-                if (!string.IsNullOrEmpty(id))
-                {
-                    return id;
-                }
-                throw new Exception("Drive ID is null or empty.");
+                var normalizedPath = path.TrimStart('/');
+                return await graphClient.Drives[driveId].Root.ItemWithPath(normalizedPath).GetAsync();
             }
-            throw new Exception($"Failed to get default drive ID: {response.ErrorMessage}");
+            catch (ServiceException ex) when (ex.ResponseStatusCode == (int)System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
         }
 
-        private async Task<JsonElement?> GetDriveItem(string path)
+        private async Task<byte[]> GetFileContentAsync(string path)
         {
             var normalizedPath = path.TrimStart('/');
-            var url = $"/drives/{driveId}/root:/{normalizedPath}";
-            var request = _client.CreateRequest(url, Method.Get);
-            var response = await _client.ExecuteAsync<dynamic>(request);
-            
-            if (response.IsSuccessful && response.Content != null)
-            {
-                return JsonDocument.Parse(response.Content).RootElement;
-            }
-            return null;
+            var content = await graphClient.Drives[driveId].Root.ItemWithPath(normalizedPath).Content.GetAsync();
+            using var memoryStream = new MemoryStream();
+            await content.CopyToAsync(memoryStream);
+            return memoryStream.ToArray();
         }
 
-        private async Task<byte[]> GetFileContent(string path)
+        public async Task UploadFileAsync(string path, byte[] content)
         {
             var normalizedPath = path.TrimStart('/');
-            var url = $"/drives/{driveId}/root:/{normalizedPath}:/content";
-            var request = _client.CreateRequest(url, Method.Get);
-            var response = await _client.ExecuteAsync(request);
-            
-            if (response.IsSuccessful)
-            {
-                return response.RawBytes ?? Array.Empty<byte>();
-            }
-            
-            throw new Exception($"Failed to get file content: {response.ErrorMessage}");
+            using var stream = new MemoryStream(content);
+            await graphClient.Drives[driveId].Root.ItemWithPath(normalizedPath).Content.PutAsync(stream);
         }
 
-        public async Task UploadFile(string path, byte[] content)
-        {
-            var normalizedPath = path.TrimStart('/');
-            var url = $"/drives/{driveId}/root:/{normalizedPath}:/content";
-            var request = _client.CreateRequest(url, Method.Put);
-            request.AddBody(content);
-            
-            var response = await _client.ExecuteAsync(request);
-            if (!response.IsSuccessful)
-            {
-                throw new Exception($"Failed to upload file: {response.ErrorMessage}");
-            }
-        }
-
-        private async Task CreateFolder(string path)
+        private async Task CreateFolderAsync(string path)
         {
             var folderName = GetFileName(path);
             var parentPath = GetDirectoryName(path);
             var normalizedParentPath = parentPath.TrimStart('/');
             
-            var url = $"/drives/{driveId}/root:/{normalizedParentPath}:/children";
-            var request = _client.CreateRequest(url, Method.Post);
-            
-            var folderData = new
+            var driveItem = new DriveItem
             {
-                name = folderName,
-                folder = new { },
-                conflictBehavior = "rename"
+                Name = folderName,
+                Folder = new Folder()
             };
             
-            var json = JsonSerializer.Serialize(folderData);
-            request.AddJsonBody(folderData);
-            
-            var response = await _client.ExecuteAsync(request);
-            if (!response.IsSuccessful)
-            {
-                throw new Exception($"Failed to create folder: {response.ErrorMessage}");
-            }
+            await graphClient.Drives[driveId].Root.ItemWithPath(normalizedParentPath).Children.PostAsync(driveItem);
         }
 
-        private async Task DeleteItem(string path)
+        private async Task DeleteItemAsync(string path)
         {
             var normalizedPath = path.TrimStart('/');
-            var url = $"/drives/{driveId}/root:/{normalizedPath}";
-            var request = _client.CreateRequest(url, Method.Delete);
-            var response = await _client.ExecuteAsync(request);
-            
-            if (!response.IsSuccessful)
-            {
-                throw new Exception($"Failed to delete item: {response.ErrorMessage}");
-            }
+            await graphClient.Drives[driveId].Root.ItemWithPath(normalizedPath).DeleteAsync();
         }
 
-        private async Task<JsonElement[]> GetItemsInFolder(string path)
+        private async Task<DriveItemCollectionResponse?> GetItemsInFolderAsync(string path)
         {
             var normalizedPath = path.TrimStart('/');
-            var url = $"/drives/{driveId}/root:/{normalizedPath}:/children";
-            var request = _client.CreateRequest(url, Method.Get);
-            var response = await _client.ExecuteAsync<dynamic>(request);
-            var content = response.Content;
-            if (response.IsSuccessful && content != null)
-            {
-                var items = JsonDocument.Parse(content);
-                return items.RootElement.GetProperty("value").EnumerateArray().ToArray();
-            }
-            
-            throw new Exception($"Failed to get items in folder: {response.ErrorMessage}");
+            return await graphClient.Drives[driveId].Root.ItemWithPath(normalizedPath).Children.GetAsync();
         }
 
         private bool MatchesPattern(string fileName, string pattern)
@@ -730,7 +612,7 @@ namespace RoboClerk.SharePointFileProvider
                     try
                     {
                         var content = ToArray();
-                        provider.UploadFile(path, content).Wait();
+                        provider.UploadFileAsync(path, content).Wait();
                     }
                     catch (Exception ex)
                     {
