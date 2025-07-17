@@ -92,8 +92,7 @@ namespace RoboClerk.Redmine.Tests
             var configTable = new TomlTable();
             configTable["RedmineAPIEndpoint"] = "http://localhost:3001/";
             configTable["RedmineAPIKey"] = "test_api_key";
-            configTable["RedmineProject"] = "TestProject";
-            configTable["SubProjects"] = new TomlArray() { };
+            configTable["RedmineProjects"] = new TomlArray() { "TestProject" };
             configTable["RedmineBaseURL"] = "http://localhost:3001/issues/";
             configTable["ConvertTextile"] = false;
             return configTable;
@@ -118,7 +117,6 @@ namespace RoboClerk.Redmine.Tests
         {
             configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", Arg.Any<string>()).Returns("http://localhost:3001/");
             configuration.CommandLineOptionOrDefault("RedmineAPIKey", Arg.Any<string>()).Returns("test_api_key");
-            configuration.CommandLineOptionOrDefault("RedmineProject", Arg.Any<string>()).Returns("TestProject");
             configuration.CommandLineOptionOrDefault("RedmineBaseURL", Arg.Any<string>()).Returns("http://localhost:3001/issues/");
             configuration.CommandLineOptionOrDefault("ConvertTextile", Arg.Any<string>()).Returns("FALSE");
         }
@@ -854,8 +852,7 @@ namespace RoboClerk.Redmine.Tests
             // Add required Redmine configuration
             configTable["RedmineAPIEndpoint"] = "http://localhost:3001/";
             configTable["RedmineAPIKey"] = "test_api_key";
-            configTable["RedmineProject"] = "TestProject";
-            configTable["SubProjects"] = new TomlArray() { };
+            configTable["RedmineProjects"] = new TomlArray() { "TestProject" };
             configTable["RedmineBaseURL"] = "http://localhost:3001/issues/";
             configTable["ConvertTextile"] = true;
 

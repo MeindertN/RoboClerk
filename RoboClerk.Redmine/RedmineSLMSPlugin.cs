@@ -45,8 +45,7 @@ namespace RoboClerk.Redmine
         private string baseURL = string.Empty;
         private string apiEndpoint = string.Empty;
         private string apiKey = string.Empty;
-        private string projectName = string.Empty;
-        private List<string> subProjects = new List<string>();
+        private List<string> projectNames = new List<string>();
         private bool convertTextile = false;
         private TextileToAsciiDocConverter converter = null;
         private List<string> redmineVersionFields = new List<string>();
@@ -82,11 +81,10 @@ namespace RoboClerk.Redmine
                 TomlTable config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
                 apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", GetObjectForKey<string>(config, "RedmineAPIEndpoint", true));
                 apiKey = configuration.CommandLineOptionOrDefault("RedmineAPIKey", GetObjectForKey<string>(config, "RedmineAPIKey", true));
-                projectName = configuration.CommandLineOptionOrDefault("RedmineProject", GetObjectForKey<string>(config, "RedmineProject", true));
-                var subPrj = GetObjectForKey<TomlArray>(config, "SubProjects", true);
+                var subPrj = GetObjectForKey<TomlArray>(config, "RedmineProjects", true);
                 foreach (var o in subPrj)
                 {
-                    subProjects.Add((string)o);
+                    projectNames.Add((string)o);
                 }
                 baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL", GetObjectForKey<string>(config, "RedmineBaseURL", false));
                 convertTextile = configuration.CommandLineOptionOrDefault("ConvertTextile", GetObjectForKey<bool>(config, "ConvertTextile", false)?"TRUE":"FALSE").ToUpper() == "TRUE";
@@ -977,8 +975,6 @@ namespace RoboClerk.Redmine
 
         private List<RedmineIssue> PullAllIssuesFromServer(List<string> queryTrackers)
         {
-            List<string> projectNames = new List<string>() { projectName };
-            projectNames.AddRange(subProjects);
             List<RedmineIssue> issueList = new List<RedmineIssue>();
             foreach (var pName in projectNames)
             {
