@@ -8,9 +8,23 @@ namespace RoboClerk.Tests
 {
     public static class TestingHelpers
     {
-        public static string ConvertFileName(string fileName)
+        public static string ConvertFileName(string input)
         {
-            return fileName.Replace('\\', Path.DirectorySeparatorChar);
+            StringBuilder sb = new StringBuilder(input);
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (sb[1] == ':')
+                {
+                    sb[1] = sb[0];
+                    sb[0] = '/';
+                }
+                sb.Replace('\\', '/');
+                return sb.ToString();
+            }
+            else
+            {
+                return input;
+            }
         }
 
         public static class LogCapture
