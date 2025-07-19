@@ -11,7 +11,7 @@ using Tomlyn.Model;
 
 namespace RoboClerk.AnnotatedUnitTests
 {
-    public class AnnotatedUnitTestsPlugin : SourceCodeAnalysisPluginBase
+    public class AnnotatedUnitTestPlugin : SourceCodeAnalysisPluginBase
     {
         private string decorationMarker = string.Empty;
         private string parameterStartDelimiter = string.Empty;
@@ -22,7 +22,8 @@ namespace RoboClerk.AnnotatedUnitTests
 
         private Dictionary<string, UTInformation> information = new Dictionary<string, UTInformation>();
 
-        public AnnotatedUnitTestsPlugin(IFileProviderPlugin fileSystem)
+
+        public AnnotatedUnitTestPlugin(IFileProviderPlugin fileSystem)
             : base(fileSystem)
         {
             SetBaseParam();
@@ -55,7 +56,7 @@ namespace RoboClerk.AnnotatedUnitTests
 
         public override void InitializePlugin(IConfiguration configuration)
         {
-            logger.Info("Initializing the Annotated Unit Test Plugin");
+            logger.Info("Initializing the Annotated Unit Tests Plugin");
             try
             {
                 base.InitializePlugin(configuration);

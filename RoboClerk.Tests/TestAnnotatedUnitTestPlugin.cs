@@ -96,9 +96,8 @@ output media directory exists including subdirs""
         [Test]
         public void TestUnitTestPlugin1()
         {
-            var temp = new AnnotatedUnitTestsPlugin(fileProviderPlugin);
+            var temp = new AnnotatedUnitTestPlugin(fileProviderPlugin);
             temp.InitializePlugin(configuration);
-
         }
 
         [UnitTestAttribute(Purpose = "AnnotatedUnitTestPlugin is created, refresh is called",
@@ -107,7 +106,8 @@ output media directory exists including subdirs""
         [Test]
         public void TestUnitTestPlugin2()
         {
-            var temp = new AnnotatedUnitTestsPlugin(fileProviderPlugin);
+            var temp = new AnnotatedUnitTestPlugin(fileProviderPlugin);
+          
             temp.InitializePlugin(configuration);
 
             temp.RefreshItems();

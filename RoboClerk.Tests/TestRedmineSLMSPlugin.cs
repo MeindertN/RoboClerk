@@ -251,7 +251,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "A1B2C3D4-E5F6-7890-ABCD-EF1234567890",
+        Identifier = "A1B2C3D4-E5F6-7890-ABED-EF1234567890",
         Purpose = "CustomRedmineField is deserialized correctly",
         PostCondition = "All properties are correctly mapped from JSON")]
         [Test]
@@ -944,7 +944,7 @@ namespace RoboClerk.Redmine.Tests
         #region RedmineSLMSPlugin Tests
 
         [UnitTestAttribute(
-        Identifier = "C9D0E1F2-A345-6789-C345-90123ABCDEF0",
+        Identifier = "C9D0E1F2-A345-6789-C345-901W3ABCDEF0",
         Purpose = "RedmineSLMSPlugin is created successfully",
         PostCondition = "No exception is thrown and plugin has correct name and description")]
         [Test]
@@ -955,7 +955,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "D0E1F2A3-B456-789A-D456-0123ABCDEF01",
+        Identifier = "D0E1F2F3-B456-789A-D456-0123ABCDEF01",
         Purpose = "RedmineSLMSPlugin initialization works with valid configuration",
         PostCondition = "Plugin is initialized without throwing exceptions")]
         [Test]
