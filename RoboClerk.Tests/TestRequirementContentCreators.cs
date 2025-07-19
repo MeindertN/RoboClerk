@@ -33,6 +33,7 @@ namespace RoboClerk.Tests
         public void TestSetup()
         {
             config = Substitute.For<IConfiguration>();
+            config.OutputFormat.Returns("ASCIIDOC");
             dataSources = Substitute.For<IDataSources>();
             traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
             aiPlugin = Substitute.For<IAISystemPlugin>();
@@ -91,7 +92,7 @@ namespace RoboClerk.Tests
             dataSources.GetAllSystemRequirements().Returns(sysReqItems2);
             dataSources.GetAllSoftwareRequirements().Returns(softReqItems2);
             dataSources.GetAllDocumentationRequirements().Returns(docReqItems2);
-            dataSources.GetTemplateFile("./ItemTemplates/Requirement.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/Requirement.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/Requirement.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/Requirement.adoc"));
         }
 
         [UnitTestAttribute(

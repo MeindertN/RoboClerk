@@ -6,43 +6,15 @@ using System.Text.RegularExpressions;
 
 namespace RoboClerk.Redmine
 {
-    public class TextileToAsciiDocConverter
+    public class TextileToAsciiDocConverter : TextileConverterBase
     {
         /// <summary>
         /// Converts a Textile string (as used by Redmine) into an AsciiDoc string.
         /// </summary>
-        /// <param name="textile">The Textile formatted string.</param>
+        /// <param name="textile">The Textile formatted string with RoboClerk tags replaced by placeholders.</param>
         /// <returns>The converted AsciiDoc string.</returns>
-        public string ConvertTextile2AsciiDoc(string textile)
+        protected override string ConvertTextile(string textile)
         {
-            if (textile == null)
-                throw new ArgumentNullException(nameof(textile));
-
-            // Store RoboClerk tags with unique placeholders to protect them from conversion
-            Dictionary<string, string> roboClerkTagContents = new Dictionary<string, string>();
-            int roboClerkTagIndex = 0;
-
-            // Extract and replace RoboClerk tags with placeholders
-            // Match both inline tags (@@tag@@) and block tags (@@@block@@@)
-            // Block tags can span multiple lines, so we need to use non-greedy matching
-            textile = Regex.Replace(textile, @"@@@(.*?)@@@", m =>
-            {
-                string content = m.Groups[1].Value;
-                string placeholder = $"ROBOCLERKBLOCKPLACEHOLDER{roboClerkTagIndex}";
-                roboClerkTagContents[placeholder] = m.Value; // Store the complete tag including @@@
-                roboClerkTagIndex++;
-                return placeholder;
-            }, RegexOptions.Singleline);
-
-            textile = Regex.Replace(textile, @"@@([^@]+)@@", m =>
-            {
-                string content = m.Groups[1].Value;
-                string placeholder = $"ROBOCLERKINLINEPLACEHOLDER{roboClerkTagIndex}";
-                roboClerkTagContents[placeholder] = m.Value; // Store the complete tag including @@
-                roboClerkTagIndex++;
-                return placeholder;
-            }, RegexOptions.Singleline);
-
             // Store pre tag contents with unique placeholders to protect them from conversion
             Dictionary<string, string> preTagContents = new Dictionary<string, string>();
             int preTagIndex = 0;
@@ -86,8 +58,7 @@ namespace RoboClerk.Redmine
             // --- Convert Images ---
             // Textile: !http://example.com/image.png!
             // AsciiDoc: image::http://example.com/image.png[]
-            textile = Regex.Replace(textile, @"!(\S+)!",
-                m => $"image::{m.Groups[1].Value}[]");
+            textile = Regex.Replace(textile, @"!(\S+)!", m => $"image::{m.Groups[1].Value}[]");
 
             // --- Convert Unordered Lists ---
             // Instead of using spaces for nesting, output multiple '*' characters.
@@ -141,12 +112,6 @@ namespace RoboClerk.Redmine
             foreach (var placeholder in preTagContents.Keys)
             {
                 textile = textile.Replace(placeholder, $"\n....\n{preTagContents[placeholder]}\n....\n");
-            }
-
-            // Restore RoboClerk tags
-            foreach (var placeholder in roboClerkTagContents.Keys)
-            {
-                textile = textile.Replace(placeholder, roboClerkTagContents[placeholder]);
             }
 
             return textile;

@@ -26,6 +26,7 @@ namespace RoboClerk.Tests
         public void TestSetup()
         {
             config = Substitute.For<IConfiguration>();
+            config.OutputFormat.Returns("ASCIIDOC");
             dataSources = Substitute.For<IDataSources>();
             
             traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
@@ -68,8 +69,8 @@ namespace RoboClerk.Tests
             dataSources.GetItem("tcid1").Returns(unittestItems[0]);
             dataSources.GetItem("tcid2").Returns(unittestItems[1]);
 
-            dataSources.GetTemplateFile("./ItemTemplates/UnitTest.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/UnitTest.adoc"));
-            dataSources.GetTemplateFile("./ItemTemplates/UnitTest_brief.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/UnitTest_brief.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/UnitTest.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/UnitTest.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/UnitTest_brief.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/UnitTest_brief.adoc"));
         }
 
         [UnitTestAttribute(
@@ -187,7 +188,7 @@ namespace RoboClerk.Tests
             var tag = new RoboClerkTag(0, 34, "@@SLMS:UnitTest(CheckResults=true)@@", true);
             results.Add(new TestResult("tcid2", TestResultType.UNIT, TestResultStatus.PASS, "the second unit test", "all good", DateTime.Now));
             string content = sst.GetContent(tag, documentConfig);
-            string expectedContent = "All unit tests from the test plan were successfully executed and passed.";
+            string expectedContent = "All unit tests from the test plan were successfully executed and passed.\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
         }

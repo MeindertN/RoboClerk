@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@@Document:Title()@@</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+
+        ol {
+            padding-left: 20px;
+        }
+
+            ol li {
+                margin-bottom: 10px;
+            }
+
+        ul {
+            padding-left: 20px;
+        }
+
+            ul li {
+                margin-bottom: 5px;
+            }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>@@Document:Title()@@</h1>
+
+    <p>
+        for<br />
+        @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@
+    </p>
+
+    <p>
+        <strong>Authors:</strong><br />
+        ROBOCLERK
+    </p>
+
+    <p>@@Post:TOC()@@</p>
+
+    <h2>Introduction</h2>
+
+    <h3>Purpose</h3>
+    <p>
+        This @@Document:Title()@@ (@@Document:Abbreviation()@@) is being created in accordance with ISO 14971 and ISO 62304 standards to document the results of the risk assessment activities conducted for @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@, developed by @@Config:CompanyName()@@. The main objective of this RAR is to provide a comprehensive overview of the identified hazards and associated risks, the evaluation of these risks, and the risk mitigation measures implemented to minimize the potential harm to patients, users, or third parties. The RAR will serve as a reference document for the project team, regulatory authorities, and other stakeholders involved in the development, manufacture, and distribution of the software.
+    </p>
+
+    <h3>Document Conventions</h3>
+    <p>This document describes the risk assessment process outcome. To describe the analyses used, FMEA tables are used. The following columns are included in these tables:</p>
+    <ol>
+        <li><strong>Hazard:</strong> Identifies the potential source of harm associated with the software.</li>
+        <li><strong>Primary Hazard:</strong> Identifies the most critical hazard that may directly lead to harm.</li>
+        <li><strong>Severity:</strong> Assigns a score (scale 1 to 5, from less severe to more severe) to the potential harm associated with the identified hazard.</li>
+        <li><strong>Cause:</strong> Describes the underlying cause of the hazard.</li>
+        <li><strong>Occurrence:</strong> Assigns a score (scale 1 to 5, from less likely to occur to more likely to occur) to the likelihood of the hazard occurring.</li>
+        <li><strong>Detection Method:</strong> Identifies the method used to detect the hazard.</li>
+        <li><strong>Detection:</strong> Assigns a score (scale 1 to 5, from easy to detect to hard to detect) to the effectiveness of the detection method.</li>
+        <li><strong>RPN:</strong> Calculates the Risk Priority Number, which is the product of Severity, Occurrence, and Detection.</li>
+        <li><strong>Mitigation:</strong> Describes the measures taken to control the identified risk.</li>
+        <li><strong>Modified Occurrence after Mitigation:</strong> Assigns a score (scale 1 to 5) to the likelihood of the hazard occurring after implementation of the mitigation measures.</li>
+        <li><strong>Modified Detection after Mitigation:</strong> Assigns a score (scale 1 to 5) to the effectiveness of the detection method after implementation of the mitigation measures.</li>
+        <li><strong>Modified RPN:</strong> Calculates the Risk Priority Number after implementation of the mitigation measures.</li>
+        <li><strong>Traceability to Requirement:</strong> Identifies the specific requirement(s) that describe the risk control measures implemented.</li>
+    </ol>
+
+    <h3>Intended Audience</h3>
+    <p>
+        This document is a record of the risk assessment activities conducted for @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. It is intended for the software development team and management to ensure that the identified hazards and associated risks have been adequately addressed through appropriate risk control measures.
+    </p>
+    <p>
+        This document will also serve as a reference for regulatory agencies and auditors to evaluate the safety and efficacy of the software. It provides a detailed summary of the risk assessment activities, including the identified hazards and associated risks, risk control measures implemented, and traceability to requirements. As such, it is expected to demonstrate compliance with the relevant standards and regulations governing the development and use of medical software.
+    </p>
+
+    <h3>Definitions</h3>
+    <ul>
+        <li><strong>FMEA:</strong> Failure mode and effects analysis</li>
+        <li><strong>Hazard:</strong> The potential source of harm associated with the software.</li>
+        <li><strong>Primary Hazard:</strong> The direct way in which the hazard leads to harm.</li>
+        <li><strong>Risk:</strong> The combination of the likelihood of occurrence of harm and the severity of that harm.</li>
+        <li><strong>RCM:</strong> A Risk Control Measure taken to reduce the likelihood or severity of harm associated with a hazard.</li>
+        <li><strong>RPN:</strong> Risk Priority Number</li>
+    </ul>
+
+    <p>@@POST:PAGEBREAK()@@</p>
+
+    <h2>FMEA Analysis</h2>
+
+    <p>
+        The table below shows the FMEA outcome as well as the effect of the RCMs that were implemented. The trace column contains the trace to the requirement that controls the risk.
+    </p>
+
+@@@SLMS:Risk()
+@@@
+
+</body>
+</html>

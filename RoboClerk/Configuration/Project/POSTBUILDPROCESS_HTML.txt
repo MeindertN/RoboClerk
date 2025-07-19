@@ -1,0 +1,42 @@
+[Document.SystemRequirementsSpecification]
+	title = "System Requirements Specification"
+	abbreviation = "PRS"
+	identifier = "DOC001"
+	template = "SystemRequirementSpecification.html"
+
+[Document.SoftwareRequirementsSpecification]
+	title = "Software Requirements Specification"
+	abbreviation = "SRS"
+	identifier = "DOC002"
+	template = "SoftwareRequirementSpecification.html"
+	
+[Document.SoftwareDesignSpecification]
+	title = "Software Design Specification"
+	abbreviation = "SDS"
+	identifier = "DOC003"
+	template  = "SoftwareDesignSpecification.html"
+	
+[Document.RiskAssessmentRecord]
+	title = "Risk Assessment Record"
+	abbreviation = "RAR"
+	identifier = "DOC004"
+	template  = "RiskAssessmentRecord.html"
+	
+[Document.SoftwareSystemLevelTestPlan]
+	title = "System Level Test Plan"
+	abbreviation = "SLTP"
+	identifier = "DOC005"
+	template = "SystemLevelTestPlan.html"
+		
+[Document.OutstandingAnomaliesRecord]
+	title = "Outstanding Anomalies Record"
+	abbreviation = "OAR"
+	identifier = "DOC006"
+	template = "OutstandingAnomaliesRecord.html"
+	
+[Document.TraceAbilityAnalysisRecord]
+	title = "Traceability Analysis Record"
+	abbreviation = "TAR"
+	identifier = "DOC007"
+	template = "TraceabilityAnalysisRecord.html"
+	

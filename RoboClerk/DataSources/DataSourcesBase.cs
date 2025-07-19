@@ -11,10 +11,10 @@ namespace RoboClerk
     public abstract class DataSourcesBase : IDataSources
     {
         protected readonly IConfiguration configuration = null;
-        protected readonly IFileSystem fileSystem = null;
+        protected readonly IFileProviderPlugin fileSystem = null;
         protected static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public DataSourcesBase(IConfiguration configuration, IFileSystem fileSystem)
+        public DataSourcesBase(IConfiguration configuration, IFileProviderPlugin fileSystem)
         {
             this.configuration = configuration;
             this.fileSystem = fileSystem;
@@ -274,12 +274,12 @@ namespace RoboClerk
 
         public string GetTemplateFile(string fileName)
         {
-            return fileSystem.File.ReadAllText(fileSystem.Path.Join(configuration.TemplateDir, fileName));
+            return fileSystem.ReadAllText(fileSystem.Combine(new string[] { configuration.TemplateDir, fileName }));
         }
 
         public Stream GetFileStreamFromTemplateDir(string fileName)
         {
-            var stream = fileSystem.FileStream.New(fileSystem.Path.Join(configuration.TemplateDir, fileName), FileMode.Open);
+            var stream = fileSystem.OpenRead(fileSystem.Combine(new string[] { configuration.TemplateDir, fileName }));
             return stream;
         }
 

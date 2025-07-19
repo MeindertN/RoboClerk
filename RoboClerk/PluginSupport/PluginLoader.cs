@@ -1,3 +1,4 @@
+#nullable enable
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -18,9 +19,9 @@ namespace RoboClerk
             _resolver = new AssemblyDependencyResolver(pluginPath);
         }
 
-        protected override Assembly Load(AssemblyName assemblyName)
+        protected override Assembly? Load(AssemblyName assemblyName)
         {
-            string assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
+            string? assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)
             {
                 return LoadFromAssemblyPath(assemblyPath);
@@ -31,7 +32,7 @@ namespace RoboClerk
 
         protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
         {
-            string libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
+            string? libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
             if (libraryPath != null)
             {
                 return LoadUnmanagedDllFromPath(libraryPath);
@@ -44,12 +45,14 @@ namespace RoboClerk
     public class PluginLoader : IPluginLoader
     {
         private readonly IFileSystem _fileSystem;
+        private readonly IFileProviderPlugin _pluginFileProvider;
         private readonly PluginAssemblyLoader _assemblyLoader;
 
-        public PluginLoader(IFileSystem fileSystem)
+        public PluginLoader(IFileSystem fileSystem, IFileProviderPlugin pluginFileProvider)
         {
             _fileSystem = fileSystem;
-            _assemblyLoader = new PluginAssemblyLoader(fileSystem);
+            _pluginFileProvider = pluginFileProvider;
+            _assemblyLoader = new PluginAssemblyLoader(_fileSystem);
         }
 
         // -------------------------
@@ -100,7 +103,7 @@ namespace RoboClerk
             var implTypes = new List<Type>();
 
             // 1) globals
-            services.AddSingleton<IFileSystem>(_fileSystem);
+            services.AddSingleton<IFileProviderPlugin>(_pluginFileProvider);
             configureGlobals?.Invoke(services);
 
             // 2) per‐assembly scan
@@ -110,19 +113,36 @@ namespace RoboClerk
                     .GetTypes()
                     .Where(t => typeof(TPluginInterface).IsAssignableFrom(t)
                              && !t.IsAbstract
-                             && t.GetConstructor(new[] { typeof(IFileSystem) }) != null);
+                             && t.GetConstructor(new[] { typeof(IFileProviderPlugin) }) != null);
 
                 foreach (var type in pluginTypes)
                 {
-                    implTypes.Add(type);
+                    ConstructorInfo? ctor = null;
+                    object?[] args;
 
                     // 3) find the single‐arg ctor
-                    var ctor = type.GetConstructor(new[] { typeof(IFileSystem) })!;
+                    ctor = type.GetConstructor(new[] { typeof(IFileProviderPlugin) });
+
+                    if (ctor != null)
+                    {
+                        args = new object[] { _pluginFileProvider };
+                    }
+                    else
+                    {
+                        // Fallback to parameterless constructor
+                        ctor = type.GetConstructor(Type.EmptyTypes);
+                        if (ctor == null)
+                            throw new InvalidOperationException($"Type {type.FullName} has no supported constructor.");
+
+                        args = Array.Empty<object>();
+                    }
+
+                    implTypes.Add(type);
+
                     // 4) invoke it to get the PluginBase/IPluginRegistrar
-                    var metadataInstance = (TPluginInterface)ctor.Invoke(new object[] { _fileSystem });
+                    var metadataInstance = (TPluginInterface)ctor.Invoke(args);
 
                     // 5) let the plugin register everything it needs,
-                    //    including services.AddTransient<IPlugin, ThisType>()
                     metadataInstance.ConfigureServices(services);
                 }
             }

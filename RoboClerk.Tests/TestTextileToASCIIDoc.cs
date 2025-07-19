@@ -25,7 +25,7 @@ namespace RoboClerk.Tests
         public void TestNullInput()
         {
             // Arrange & Act & Assert
-            Assert.Throws<ArgumentNullException>(() => converter.ConvertTextile2AsciiDoc(null));
+            Assert.Throws<ArgumentNullException>(() => converter.Convert(null));
         }
 
         [UnitTestAttribute(
@@ -39,7 +39,7 @@ namespace RoboClerk.Tests
             string textile = string.Empty;
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             ClassicAssert.AreEqual("\n", result);
@@ -56,7 +56,7 @@ namespace RoboClerk.Tests
             string textile = "h1. Main Heading\nh2. Sub Heading\nh3. Sub-Sub Heading";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             string expected = "== Main Heading\n=== Sub Heading\n==== Sub-Sub Heading\n";
@@ -74,7 +74,7 @@ namespace RoboClerk.Tests
             string textile = "\"Link text\":http://example.com";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             string expected = "link:http://example.com[Link text]\n";
@@ -92,7 +92,7 @@ namespace RoboClerk.Tests
             string textile = "!http://example.com/image.png!";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             string expected = "image::http://example.com/image.png[]\n";
@@ -110,7 +110,7 @@ namespace RoboClerk.Tests
             string textile = "* Item 1\n* Item 2\n** Nested Item\n* Item 3";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             string expected = "* Item 1\n\n* Item 2\n\n** Nested Item\n\n* Item 3\n";
@@ -128,7 +128,7 @@ namespace RoboClerk.Tests
             string textile = "# Item 1\n# Item 2\n## Nested Item\n# Item 3";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             string expected = ". Item 1\n\n. Item 2\n\n.. Nested Item\n\n. Item 3\n";
@@ -146,7 +146,7 @@ namespace RoboClerk.Tests
             string textile = "bq. This is a blockquote";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             string expected = "____\nThis is a blockquote\n____\n";
@@ -164,7 +164,7 @@ namespace RoboClerk.Tests
             string textile = "> This is another blockquote";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             string expected = "____\nThis is another blockquote\n____\n";
@@ -182,7 +182,7 @@ namespace RoboClerk.Tests
             string textile = "Use @System.out.println(\"Hello\");@ for output.";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             string expected = "Use `System.out.println(\"Hello\");` for output.\n";
@@ -200,7 +200,7 @@ namespace RoboClerk.Tests
             string textile = "This is -deleted- text.";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             string expected = "This is [strike]#deleted# text.\n";
@@ -218,7 +218,7 @@ namespace RoboClerk.Tests
             string textile = "|_. Header 1|_. Header 2|\n|Cell 1|Cell 2|";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             // Testing tables is complex due to the ProcessTables method
@@ -239,7 +239,7 @@ namespace RoboClerk.Tests
             string textile = "Here is some preformatted text:\n<pre>  This is preformatted\n  with    spaces   preserved\n  and line breaks intact</pre>\nAnd regular text after.";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             string expected = "Here is some preformatted text:\n\n....\n  This is preformatted\n  with    spaces   preserved\n  and line breaks intact\n....\n\nAnd regular text after.\n";
@@ -257,7 +257,7 @@ namespace RoboClerk.Tests
             string textile = "Empty pre tags: <pre></pre>";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             string expected = "Empty pre tags: \n....\n\n....\n\n";
@@ -275,7 +275,7 @@ namespace RoboClerk.Tests
             string textile = "First pre: <pre>Code 1</pre>\nSome text.\nSecond pre: <pre>Code 2</pre>";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             string expected = "First pre: \n....\nCode 1\n....\n\nSome text.\nSecond pre: \n....\nCode 2\n....\n\n";
@@ -293,7 +293,7 @@ namespace RoboClerk.Tests
             string textile = "<pre>* List item\n# Numbered item\nh1. Heading\n**Bold**</pre>";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             string expected = "\n....\n* List item\n# Numbered item\nh1. Heading\n**Bold**\n....\n\n";
@@ -311,7 +311,7 @@ namespace RoboClerk.Tests
             string textile = "h1. Main Heading\n\nSome paragraph with \"a link\":http://example.com and an @inline code@.\n\n* List item 1\n* List item 2\n\n<pre>function test() {\n  console.log(\"Hello\");\n}</pre>\n\n|_. Header 1|_. Header 2|\n|Cell 1|Cell 2|";
 
             // Act
-            string result = converter.ConvertTextile2AsciiDoc(textile);
+            string result = converter.Convert(textile);
 
             // Assert
             // Just check for key converted elements
@@ -321,6 +321,118 @@ namespace RoboClerk.Tests
             ClassicAssert.IsTrue(result.Contains("* List item"));
             ClassicAssert.IsTrue(result.Contains("....\nfunction test() {"));
             ClassicAssert.IsTrue(result.Contains("|==="));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "A1B2C3D4-E5F6-7890-ABCD-EF1234567891",
+            Purpose = "Verify that the converter correctly preserves inline RoboClerk tags",
+            PostCondition = "Inline RoboClerk tags are preserved unchanged")]
+        [Test]
+        public void TestInlineRoboClerkTags()
+        {
+            // Arrange
+            string textile = "This is some text with @@inline tag@@ and more text.";
+
+            // Act
+            string result = converter.Convert(textile);
+
+            // Assert
+            ClassicAssert.AreEqual("This is some text with @@inline tag@@ and more text.\n", result);
+        }
+
+        [UnitTestAttribute(
+            Identifier = "B2C3D4E5-F6A7-8901-2345-6789ABCDEF02",
+            Purpose = "Verify that the converter correctly preserves block RoboClerk tags",
+            PostCondition = "Block RoboClerk tags are preserved unchanged")]
+        [Test]
+        public void TestBlockRoboClerkTags()
+        {
+            // Arrange
+            string textile = "This is some text.\n@@@\nBlock tag content\nwith multiple lines\n@@@\nAnd more text.";
+
+            // Act
+            string result = converter.Convert(textile);
+
+            // Assert
+            ClassicAssert.AreEqual("This is some text.\n@@@\nBlock tag content\nwith multiple lines\n@@@\nAnd more text.\n", result);
+        }
+
+        [UnitTestAttribute(
+            Identifier = "C3D4E5F6-A7B8-9012-3456-789ABCDEF013",
+            Purpose = "Verify that the converter correctly preserves multiple RoboClerk tags",
+            PostCondition = "Multiple RoboClerk tags are all preserved unchanged")]
+        [Test]
+        public void TestMultipleRoboClerkTags()
+        {
+            // Arrange
+            string textile = "Text with @@tag1@@ and @@tag2@@ and @@@\nblock tag\n@@@ content.";
+
+            // Act
+            string result = converter.Convert(textile);
+
+            // Assert
+            ClassicAssert.AreEqual("Text with @@tag1@@ and @@tag2@@ and @@@\nblock tag\n@@@ content.\n", result);
+        }
+
+        [UnitTestAttribute(
+            Identifier = "D4E5F6A7-B8C9-0123-4567-89ABCDEF014",
+            Purpose = "Verify that the converter correctly handles RoboClerk tags with textile formatting",
+            PostCondition = "RoboClerk tags are preserved while textile formatting is converted")]
+        [Test]
+        public void TestRoboClerkTagsWithTextileFormatting()
+        {
+            // Arrange
+            string textile = "h1. Heading\n\nSome **bold** text with @@inline tag@@ and *italic* text.\n\n@@@\nBlock tag with **bold** and *italic*\n@@@";
+
+            // Act
+            string result = converter.Convert(textile);
+
+            // Assert
+            // Check that headings and formatting are converted
+            ClassicAssert.IsTrue(result.Contains("== Heading"));
+            // Check that RoboClerk tags are preserved
+            ClassicAssert.IsTrue(result.Contains("@@inline tag@@"));
+            ClassicAssert.IsTrue(result.Contains("@@@\nBlock tag with **bold** and *italic*\n@@@"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "E5F6A7B8-C9D0-1234-5678-9ABCDEF015",
+            Purpose = "Verify that the converter correctly handles empty RoboClerk tags",
+            PostCondition = "Empty RoboClerk tags are preserved unchanged")]
+        [Test]
+        public void TestEmptyRoboClerkTags()
+        {
+            // Arrange
+            string textile = "Text with @@@@ and @@@@@@@ content.";
+
+            // Act
+            string result = converter.Convert(textile);
+
+            // Assert
+            ClassicAssert.AreEqual("Text with @@@@ and @@@@@@@ content.\n", result);
+        }
+
+        [UnitTestAttribute(
+            Identifier = "F6A7B8C9-D0E1-2345-6789-ABCDEF016",
+            Purpose = "Verify that the converter correctly handles RoboClerk tags in complex scenarios",
+            PostCondition = "RoboClerk tags are preserved in complex conversion scenarios")]
+        [Test]
+        public void TestRoboClerkTagsInComplexScenarios()
+        {
+            // Arrange
+            string textile = "h1. Main Heading\n\n* List item with @@tag@@\n* Another item\n\n<pre>Code with @@tag@@</pre>\n\n|_. Header|_. Content|\n|@@tag@@|Normal content|";
+
+            // Act
+            string result = converter.Convert(textile);
+
+            // Assert
+            // Check that conversion happened
+            ClassicAssert.IsTrue(result.Contains("== Main Heading"));
+            ClassicAssert.IsTrue(result.Contains("* List item"));
+            ClassicAssert.IsTrue(result.Contains("....\nCode with @@tag@@"));
+            ClassicAssert.IsTrue(result.Contains("|==="));
+            // Check that RoboClerk tags are preserved
+            ClassicAssert.IsTrue(result.Contains("@@tag@@"));
         }
     }
 }

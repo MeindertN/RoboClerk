@@ -10,7 +10,7 @@
 	  <Company>RoboClerk Project</Company>
 	  <Product>Redmine plugin</Product>
 	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-	  <Configurations>Debug;Release;ReleasePublish</Configurations>
+	  <Configurations>Debug;Release;ReleasePublish;DebugHTML</Configurations>
 	  <BaseOutputPath>bin</BaseOutputPath>
   </PropertyGroup>
 
@@ -20,6 +20,9 @@
 	
   <ItemGroup>
     <PackageReference Include="RestSharp" Version="112.0.0" />
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="Textile.NET-StrongName" Version="1.3.1" />
   </ItemGroup>
 
   <ItemGroup>

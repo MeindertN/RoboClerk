@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@@Document:Title()@@</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 1em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>@@Document:Title()@@</h1>
+
+    <p>
+        for<br />
+        @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@
+    </p>
+
+    <p>
+        <strong>Authors:</strong><br />
+        ROBOCLERK
+    </p>
+
+    <p>@@Post:TOC()@@</p>
+
+    <h2>Introduction</h2>
+
+    <h3>Purpose</h3>
+    <p>
+        The purpose of this document is to specify the software requirements for the development of @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@, a medical device software product developed by @@Config:CompanyName()@@ in accordance with the requirements of ISO 62304. This document defines the functional and non-functional requirements of the software, including its intended use, performance criteria, safety requirements, and any other relevant specifications necessary for the design, implementation, and testing of the software product.
+    </p>
+
+    <h3>Document Conventions</h3>
+
+    <h4>System Requirements Format</h4>
+    <p>Each system requirement in this document shall be formatted as follows:</p>
+    <ul>
+        <li><strong>System Requirement ID:</strong> A unique identifier assigned to the requirement, with a hyperlink back to the Software Lifecycle Management System for traceability purposes.</li>
+        <li><strong>System Requirement Revision:</strong> The revision number of the requirement, along with the date and time of the latest revision.</li>
+        <li><strong>System Requirement Category:</strong> The category to which the requirement belongs. Requirements are organized by category for ease of use and management.</li>
+        <li><strong>Parent Item ID:</strong> The ID of the parent item, if applicable.</li>
+        <li><strong>Requirement Title:</strong> A short, descriptive title that summarizes the requirement.</li>
+        <li><strong>Requirement Description:</strong> A detailed description of the requirement, including any specific performance criteria, safety requirements, or other relevant information necessary for the design, implementation, and testing of the software product.</li>
+    </ul>
+
+    <h4>System Requirements Categories</h4>
+    <p>The following categories shall be used to organize the system requirements in this document:</p>
+    <ul>
+        <li><strong>Functional Requirements:</strong> Requirements that specify the intended behavior or functionality of the software product.</li>
+        <li><strong>Non-Functional Requirements:</strong> Requirements that specify constraints or criteria related to the performance, reliability, or maintainability of the software product.</li>
+        <li><strong>Risk Control Requirements:</strong> Requirements that specify measures or features intended to control risks associated with the use of the software product.</li>
+        <li><strong>User Interface Requirements:</strong> Requirements that specify the appearance, layout, or behavior of the software product's user interface.</li>
+        <li><strong>Performance Requirements:</strong> Requirements that specify the performance criteria or benchmarks that the software product must meet.</li>
+        <li><strong>Security Requirements:</strong> Requirements that specify measures or features intended to ensure the security of the software product and protect against unauthorized access or use.</li>
+        <li><strong>Data Management Requirements:</strong> Requirements that specify the data elements, structures, or formats used by the software product.</li>
+        <li><strong>Compatibility Requirements:</strong> Requirements that specify the compatibility of the software product with other systems, platforms, or devices.</li>
+        <li><strong>Usability Requirements:</strong> Requirements related to the ease of use and user experience of the software product.</li>
+        <li><strong>Transfer To Production Requirements:</strong> Requirements that specify measures or features of the transfer to production process.</li>
+    </ul>
+
+    <h3>Intended Audience</h3>
+    <p>This document is intended for:</p>
+    <ul>
+        <li>Software developers responsible for the design, development, and testing of the software product.</li>
+        <li>Management responsible for overseeing the software development process, including project managers, product owners, and quality assurance personnel.</li>
+        <li>Regulatory agencies responsible for overseeing the development and approval of medical device software products.</li>
+    </ul>
+
+    <p>@@POST:PAGEBREAK()@@</p>
+
+    <h2>System Requirements</h2>
+
+    <h3>User Interface System Requirements</h3>
+    @@@SLMS:SystemRequirement(ItemCategory=User Interface)@@@
+
+    <h3>Data Management System Requirements</h3>
+    @@@SLMS:SystemRequirement(ItemCategory=Data Management)@@@
+
+    <h3>Documentation System Requirements</h3>
+    <p>All system requirements shown here are implemented in the labeling of the device, not in the software.</p>
+    @@@SLMS:DocumentationRequirement()@@@
+
+    <h3>Risk Control System Requirements</h3>
+    @@@SLMS:SystemRequirement(ItemCategory=Risk Control Measure)@@@
+
+    @@@SLMS:DocumentationRequirement(ItemCategory = Risk Control Measure)@@@
+
+</body>
+</html>

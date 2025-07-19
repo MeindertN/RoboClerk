@@ -10,13 +10,18 @@
 	  <Company>RoboClerk Project</Company>
 	  <Product>Dependencies File Plugin</Product>
 	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-	  <Configurations>Debug;Release;ReleasePublish</Configurations>
+	  <Configurations>Debug;Release;ReleasePublish;DebugHTML</Configurations>
 	  <BaseOutputPath>bin</BaseOutputPath>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
 		<Optimize>True</Optimize>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="SkiaSharp" Version="2.88.9" />
+	  <PackageReference Include="System.Text.Json" Version="8.0.5" />
+	</ItemGroup>
 	
   <ItemGroup>
 	  <ProjectReference Include="..\RoboClerk\RoboClerk.csproj">

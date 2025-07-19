@@ -30,6 +30,18 @@ namespace RoboClerk.ContentCreators
                 throw;
             }
 
+            if (configuration.OutputFormat.ToUpper() == "HTML")
+            {
+                return GenerateHTMLTable(ws, excelRange);
+            }
+            else
+            {
+                return GenerateASCIIDocTable(ws, excelRange);
+            }
+        }
+
+        private string GenerateASCIIDocTable(IXLWorksheet ws, string excelRange)
+        {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("|===");
             foreach (var row in ws.Range(excelRange).Rows())
@@ -37,42 +49,84 @@ namespace RoboClerk.ContentCreators
                 foreach (var cell in row.Cells())
                 {
                     sb.Append("| ");
-                    if (cell.HasHyperlink)
-                    {
-
-                        sb.Append($"{cell.GetHyperlink().ExternalAddress}[{cell.GetRichText().Text}] ");
-                    }
-                    else
-                    {
-                        string text = cell.GetRichText().Text;
-                        if (text != string.Empty)
-                        {
-                            if (cell.Style.Font.Bold)
-                            {
-                                sb.Append('*');
-                            }
-                            if (cell.Style.Font.Italic)
-                            {
-                                sb.Append('_');
-                            }
-                            sb.Append(text);
-                            if (cell.Style.Font.Italic)
-                            {
-                                sb.Append('_');
-                            }
-                            if (cell.Style.Font.Bold)
-                            {
-                                sb.Append('*');
-                            }
-                        }
-                        sb.Append(' ');
-                    }
+                    sb.Append(FormatCellContentForASCIIDoc(cell));
+                    sb.Append(' ');
                 }
                 sb.AppendLine();
                 sb.AppendLine();
             }
             sb.AppendLine("|===");
             return sb.ToString();
+        }
+
+        private string GenerateHTMLTable(IXLWorksheet ws, string excelRange)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("<div>");
+            sb.AppendLine("    <table border=\"1\" cellspacing=\"0\" cellpadding=\"4\">");
+            foreach (var row in ws.Range(excelRange).Rows())
+            {
+                sb.AppendLine("        <tr>");
+                foreach (var cell in row.Cells())
+                {
+                    sb.Append("            <td>");
+                    sb.Append(FormatCellContentForHTML(cell));
+                    sb.Append("</td>");
+                }
+                sb.AppendLine();
+                sb.AppendLine("        </tr>");
+            }
+            sb.AppendLine("    </table>");
+            sb.AppendLine("</div>");
+            return sb.ToString();
+        }
+
+        private string FormatCellContentForASCIIDoc(IXLCell cell)
+        {
+            if (cell.HasHyperlink)
+            {
+                return $"{cell.GetHyperlink().ExternalAddress}[{cell.GetRichText().Text}]";
+            }
+            else
+            {
+                string text = cell.GetRichText().Text;
+                if (text != string.Empty)
+                {
+                    if (cell.Style.Font.Bold)
+                    {
+                        text = $"*{text}*";
+                    }
+                    if (cell.Style.Font.Italic)
+                    {
+                        text = $"_{text}_";
+                    }
+                }
+                return text;
+            }
+        }
+
+        private string FormatCellContentForHTML(IXLCell cell)
+        {
+            if (cell.HasHyperlink)
+            {
+                return $"<a href=\"{cell.GetHyperlink().ExternalAddress}\">{cell.GetRichText().Text}</a>";
+            }
+            else
+            {
+                string text = cell.GetRichText().Text;
+                if (text != string.Empty)
+                {
+                    if (cell.Style.Font.Bold)
+                    {
+                        text = $"<strong>{text}</strong>";
+                    }
+                    if (cell.Style.Font.Italic)
+                    {
+                        text = $"<em>{text}</em>";
+                    }
+                }
+                return text;
+            }
         }
     }
 }

@@ -14,9 +14,9 @@ namespace RoboClerk.ContentCreators
         {
         }
 
-        protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
+        protected override string GenerateContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
-            var dataShare = new ScriptingBridge<EliminatedLinkedItem>(data, analysis, sourceTE);
+            var dataShare = new ScriptingBridge<EliminatedLinkedItem>(data, analysis, sourceTE, configuration);
 
             // Get all eliminated items based on the type requested
             List<EliminatedLinkedItem> eliminatedItems = new List<EliminatedLinkedItem>();
@@ -65,7 +65,7 @@ namespace RoboClerk.ContentCreators
                 return "No eliminated items found.";
 
             dataShare.Items = eliminatedItems;
-            var file = data.GetTemplateFile(@"./ItemTemplates/Eliminated.adoc");
+            var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/Eliminated.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
             var renderer = new ItemTemplateRenderer(file);
             var result = renderer.RenderItemTemplate(dataShare);
             return result;

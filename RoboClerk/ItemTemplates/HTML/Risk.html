@@ -1,0 +1,61 @@
+﻿[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+using RoboClerk;
+using System.Linq;
+
+TraceEntity te = SourceTraceEntity;
+
+string CreateRows()
+{
+	System.Text.StringBuilder sb = new System.Text.StringBuilder();
+	foreach(var item in Items)
+	{
+		RiskItem risk = (RiskItem)item;
+		AddTrace(risk.ItemID); //add trace for primary item
+		sb.Append("<tr><td>" + risk.RiskFailureMode + "</td><td>" + risk.RiskPrimaryHazard + "</td><td>" + risk.RiskSeverityScore + "</td>");
+	sb.Append("<td>" + risk.RiskCauseOfFailure + "</td><td>" + risk.RiskOccurenceScore + "</td><td>" + risk.RiskMethodOfDetection + "</td>");
+	sb.Append("<td>" + risk.RiskDetectabilityScore + "</td>");
+	sb.Append("<td>" + (risk.RiskSeverityScore * risk.RiskOccurenceScore * risk.RiskDetectabilityScore) + "</td>");
+	var linkedItem = GetLinkedItems(item,ItemLinkType.RiskControl).FirstOrDefault();
+	if(risk.RiskControlMeasure == string.Empty)
+	{
+	sb.Append("<td>NONE</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>");
+		}
+		else
+		{
+			if( linkedItem != null) { AddTrace(linkedItem.ItemID); }  //add trace for linked risk control
+			sb.Append("<td>" + risk.RiskControlMeasure + "</td>");
+			sb.Append("<td>" + risk.RiskModifiedOccScore + "</td><td>" + risk.RiskModifiedDetScore + "</td>");
+			sb.Append("<td>" + (risk.RiskSeverityScore * risk.RiskModifiedOccScore * risk.RiskModifiedDetScore) + "</td>");
+			string linkField = "N/A";
+			if( linkedItem != null) { linkField = GetLinkedField(item, ItemLinkType.RiskControl, false); }
+			sb.Append("<td>" + (linkedItem == null ? "N/A" : linkField) + "</td></tr>");
+		}
+	}
+	return sb.ToString();
+}
+]
+
+<table border="1" cellspacing="0" cellpadding="4" style="margin-bottom: 20px;">
+	<thead>
+		<tr>
+			<th><strong>Hazard</strong></th>
+			<th><strong>Primary Hazard</strong></th>
+			<th><strong>Sev.</strong></th>
+			<th><strong>Cause</strong></th>
+			<th><strong>Occ.</strong></th>
+			<th><strong>Det. Method</strong></th>
+			<th><strong>Det.</strong></th>
+			<th><strong>RPN</strong></th>
+			<th><strong>Mitigation</strong></th>
+			<th><strong>mOcc.</strong></th>
+			<th><strong>mDet.</strong></th>
+			<th><strong>mRPN</strong></th>
+			<th><strong>RCM Trace</strong></th>
+		</tr>
+	</thead>
+	<tbody>
+		[csx:CreateRows()]
+	</tbody>
+</table>

@@ -19,6 +19,7 @@ namespace RoboClerk.Tests
     internal class TestAnnotatedUnitTestPlugin
     {
         private IFileSystem fileSystem = null;
+        private LocalFileSystemPlugin fileProviderPlugin = null;
         private IConfiguration configuration = null;
 
         [SetUp]
@@ -81,6 +82,7 @@ output media directory exists including subdirs""
                 { TestingHelpers.ConvertFileName(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(configFile.ToString()) },
                 { TestingHelpers.ConvertFileName(@"c:\temp\TestDummy.cs"), new MockFileData(testFile) },
             });
+            fileProviderPlugin = new LocalFileSystemPlugin(fileSystem);
             configuration = Substitute.For<IConfiguration>();
             configuration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:/test/"));
             configuration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:/temp/"));
@@ -94,7 +96,7 @@ output media directory exists including subdirs""
         [Test]
         public void TestUnitTestPlugin1()
         {
-            var temp = new AnnotatedUnitTestPlugin(fileSystem);
+            var temp = new AnnotatedUnitTestPlugin(fileProviderPlugin);
             temp.InitializePlugin(configuration);
         }
 
@@ -104,8 +106,10 @@ output media directory exists including subdirs""
         [Test]
         public void TestUnitTestPlugin2()
         {
-            var temp = new AnnotatedUnitTestPlugin(fileSystem);
+            var temp = new AnnotatedUnitTestPlugin(fileProviderPlugin);
+          
             temp.InitializePlugin(configuration);
+
             temp.RefreshItems();
 
             var tests = temp.GetUnitTests().ToArray();

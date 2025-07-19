@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@@Document:Title()@@</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+
+        ul, ol {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 1em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>@@Document:Title()@@</h1>
+
+    <p>
+        for<br />
+        @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@
+    </p>
+
+    <p>
+        <strong>Authors:</strong><br />
+        ROBOCLERK
+    </p>
+
+    <p>@@Post:TOC()@@</p>
+
+    <h2>Introduction</h2>
+
+    <h3>Purpose</h3>
+    <p>
+        The purpose of this @@Document:Title()@@ (@@Document:Abbreviation()@@) document is to define and outline the testing activities, objectives, scope, and methods that will be employed to evaluate the performance, safety, and reliability of @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@, a medical device software developed by @@Config:CompanyName()@@. This SLTP has been prepared in compliance with the ISO 62304 standard for the development of medical device software, and it aims to ensure that @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ meets all the necessary requirements for safe and effective use in its intended healthcare environment.
+    </p>
+
+    <h3>Document Conventions</h3>
+
+    <h4>Manual Test Cases</h4>
+    <p>Manual Test Cases are designed to be executed by human testers. Each Manual Test Case includes the following information:</p>
+    <ul>
+        <li><strong>Test Case ID:</strong> A unique identifier with a link back to the Software Lifecycle Management System.</li>
+        <li><strong>Test Case Revision:</strong> The revision number, date, and time of the test case.</li>
+        <li><strong>Parent ID:</strong> One or more links to parent software requirement items, along with a brief description for each linked software requirement.</li>
+        <li><strong>Test Case Title:</strong> A brief, descriptive title of the test case.</li>
+        <li>
+            <strong>Test Case Steps:</strong> A series of steps to execute the test case, including:
+            <ul>
+                <li><strong>Step Number:</strong> The sequential number of the test step.</li>
+                <li><strong>Action:</strong> The action to be performed by the tester.</li>
+                <li><strong>Expected Result:</strong> The expected outcome of the action.</li>
+                <li><strong>Actual Result:</strong> The actual outcome of the action, recorded by the tester.</li>
+                <li><strong>Test Step Status:</strong> The status of the test step, indicated as either "pass" or "fail".</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h4>Automated Test Cases</h4>
+    <p>Automated Test Cases are designed to run automatically as part of the build process. Each Automated Test Case includes the following information:</p>
+    <ul>
+        <li><strong>Test Case ID:</strong> A unique identifier with a link back to the Software Lifecycle Management System.</li>
+        <li><strong>Test Case Revision:</strong> The revision number, date, and time of the test case.</li>
+        <li><strong>Parent ID:</strong> One or more links to parent software requirement items, along with a brief description for each linked software requirement.</li>
+        <li><strong>Test Case Title:</strong> A brief, descriptive title of the test case.</li>
+        <li>
+            <strong>Test Case Steps:</strong> A series of steps to execute the test case, including:
+            <ul>
+                <li><strong>Step Number:</strong> The sequential number of the test step.</li>
+                <li><strong>Action:</strong> The action to be performed by the automated test.</li>
+                <li><strong>Expected Result:</strong> The expected outcome of the action.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>Intended Audience</h3>
+    <p>This @@Document:Abbreviation()@@ document is designed for various stakeholders involved in the development, testing, management, and regulatory oversight of RoboClerk 0.1 medical device software. The primary intended audience includes:</p>
+    <ol>
+        <li><strong>Software Developers:</strong> This document provides guidance on testing objectives, scope, and methodologies, offering insights into software behavior, performance requirements, and safety criteria for a robust solution.</li>
+        <li><strong>Testers and Quality Assurance (QA) Personnel:</strong> This SLTP outlines test levels, methods, and evaluation criteria, enabling efficient testing and ensuring software quality.</li>
+        <li><strong>Project Managers and Management:</strong> This document helps management monitor progress, allocate resources, and make informed decisions based on test results.</li>
+        <li><strong>Regulatory Agencies:</strong> The document demonstrates compliance with ISO 62304 and supports regulatory submission, ensuring the software meets safety and efficacy standards.</li>
+    </ol>
+
+    <p>@@POST:PAGEBREAK()@@</p>
+
+    <h3>Manual Tests</h3>
+    <p>The following tests are to be executed manually. This could be done by printing them and filling them out or it could be done electronically.</p>
+
+    @@@SLMS:TC(testCaseAutomated=False)@@@
+
+    <p>This document contains @@Document:CountEntities(entity=TC)@@ manual test cases.@@Document:CountEntities(entity=TC,restart=true)@@</p>
+
+    <p>@@POST:PAGEBREAK()@@</p>
+
+    <h3>Automated Tests</h3>
+    <p>The following tests are automated, they are typically part of the continuous integration / continuous deployment build.</p>
+
+    @@@SLMS:TC(testCaseAutomated=True)@@@
+
+    <p>This document contains @@Document:CountEntities(entity=TC)@@ automated test cases.</p>
+
+    <p>@@POST:PAGEBREAK()@@</p>
+
+    <h3>Unit Tests Brief</h3>
+    <p>
+        This is a table containing an overview of all unit tests of RoboClerk. The different formats of the identifier is because two different approaches were used to document the unit tests. In the first approach we used the unit test function name to document it and in the second approach unit tests are annotated. The annotated approach is the superior approach.
+    </p>
+
+    @@@FILE:UnitTest(brief=true)
+    A brief summary table of unit tests
+    @@@
+
+    <p>@@POST:PAGEBREAK()@@</p>
+
+    <h3>Unit Tests Long</h3>
+    <p>It is also possible to create separate tables for unit tests. Here is the table for unit test 439DA613-EF71-4589-9F3B-8314CB8A11E5.</p>
+
+    @@@FILE:UnitTest(brief=false,ItemID=439DA613-EF71-4589-9F3B-8314CB8A11E5)
+    Individual unit test tables
+    @@@
+
+    <h3>Automated Test Result Checking</h3>
+    <p>
+        Using the Test Results File Plugin it is possible for RoboClerk to ingest test results and provide feedback about failures or mismatches.
+    </p>
+    <p>
+        Note that the following example uses example. For example, here is information about the system level tests:
+    </p>
+
+    @@SLMS:TC(CheckResults=true)@@
+
+    <p>And here is information about the unit tests:</p>
+
+    @@FILE:UnitTest(CheckResults=true)@@
+
+</body>
+</html>

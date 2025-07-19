@@ -24,6 +24,7 @@ namespace RoboClerk.Tests
         public void TestSetup()
         {
             config = Substitute.For<IConfiguration>();
+            config.OutputFormat.Returns("ASCIIDOC");
             dataSources = Substitute.For<IDataSources>();
             traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
             var te = new TraceEntity("SOUP", "soup", "spabrrv", TraceEntityType.Truth);
@@ -73,8 +74,8 @@ namespace RoboClerk.Tests
             soupItems2.Add(soupItem);
             dataSources.GetItems(te).Returns(soupItems);
             dataSources.GetAllSOUP().Returns(soupItems2);
-            dataSources.GetTemplateFile("./ItemTemplates/SOUP.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/SOUP.adoc"));
-            dataSources.GetTemplateFile("./ItemTemplates/SOUP_brief.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/SOUP_brief.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/SOUP.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/SOUP.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/SOUP_brief.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/SOUP_brief.adoc"));
         }
 
         [UnitTestAttribute(

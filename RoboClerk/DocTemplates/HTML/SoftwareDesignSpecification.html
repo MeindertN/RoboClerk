@@ -1,0 +1,169 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@@Document:Title()@@</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+
+        ol, ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        .image-caption {
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        img {
+            margin-top: 10px;
+            max-width: 100%;
+        }
+
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            font-family: Consolas, monospace;
+            font-size: 90%;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>@@Document:Title()@@</h1>
+
+    <p>
+        for<br />
+        @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@
+    </p>
+
+    <p>
+        <strong>Authors:</strong><br />
+        ROBOCLERK
+    </p>
+
+    <p>@@Post:TOC()@@</p>
+
+    <h2>Introduction</h2>
+
+    <h3>Purpose</h3>
+    <p>
+        The purpose of this @@Document:Title()@@ (@@Document:Abbreviation()@@) document is to detail the architecture and system design for the @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ developed by @@Config:CompanyName()@@. This document provides essential guidance to the development team, ensuring a cohesive and well-structured system. Portions related to the user interface (UI) may be shared with clients/users and other stakeholders for their input and approval. Traceability to this document can be established by linking software requirement IDs with their corresponding design implementations.
+    </p>
+
+    <h3>Document Conventions</h3>
+    <p>This @@Document:Abbreviation()@@ document follows specific conventions to ensure consistency and clarity for all stakeholders involved in the software development process. Key conventions include:</p>
+    <ul>
+        <li><strong>Sections:</strong> The document is organized into distinct sections, each addressing a particular aspect of the software design, such as architecture, components, interfaces, and data flow.</li>
+        <li><strong>Terminology:</strong> Consistent terminology is used throughout the document, with a Definitions Section provided for any domain-specific terms, acronyms, or abbreviations.</li>
+        <li><strong>Diagrams:</strong> Visual representations, such as flowcharts, UML diagrams, or state-transition diagrams, are used to illustrate key concepts and relationships between components.</li>
+        <li><strong>Traceability:</strong> Software requirement IDs are linked to their corresponding design implementations in the text, ensuring traceability and alignment with the ISO 62304 standard.</li>
+    </ul>
+
+    <h3>Intended Audience</h3>
+    <p>This @@Document:Abbreviation()@@ document is intended for various stakeholders involved in the development, management, and regulatory oversight of the @@Config:SoftwareName()@@ @@Config:SoftwareVersion()@@ medical device software development. The primary intended audience includes:</p>
+    <ol>
+        <li><strong>Software Developers:</strong> This document provides guidance on the architecture and system design, offering insights into the software's structure, components, and relationships for a well-designed solution.</li>
+        <li><strong>Management:</strong> This document helps management monitor progress, allocate resources, and make informed decisions based on the software design and its alignment with requirements.</li>
+        <li><strong>Regulatory Agencies:</strong> The SDS demonstrates compliance with ISO 62304 and supports regulatory submission, ensuring the software meets safety and efficacy standards.</li>
+    </ol>
+
+    <h3>Definitions</h3>
+    <ul>
+        <li><strong>SOFTWARE ITEM</strong> – Any identifiable part of a computer program. All levels of composition, including the top and bottom levels, can be called software items. (See IEC62304.)</li>
+        <li><strong>SOFTWARE UNIT</strong> – The lowest level of software item. This level is not further decomposed.</li>
+    </ul>
+
+    <p>@@POST:PAGEBREAK()@@</p>
+
+    <h2>Image Section</h2>
+
+    <p>Roboclerk expects images to be stored in the media directory (or a subdirectory of the media directory). Here is an example image:</p>
+
+    <figure>
+        <figcaption class="image-caption">A nice image</figcaption>
+        <img src="media/griffin-wooldridge-unsplash.jpg" width="365" alt="image">
+    </figure>
+
+    <h2>Testing Section</h2>
+
+    <p>
+        This document is not meant to model a real design document. Instead it is a testing document for a variety of RoboClerk tags. Here we will test a variety of in document trace tags referring to software requirements. Please refer also to the template source to fully understand what is going on in this section.
+    </p>
+
+    <p>@@Trace:SWR(id=10)@@ The text that has the trace link</p>
+    <p>@@Trace:SWR(Id=1234321)@@ the parameter names are case insensitive</p>
+    <p>@@Trace:SWR(id=12)@@ And the second trace link</p>
+    <p>Just a line of text.</p>
+    <p>@@Trace:SWR(id=3)@@ @@Trace:SR(id=4)@@ Two more trace links</p>
+    <p>@@Trace:SYS(id=2)@@ And a random product requirement trace link, is not supposed to show up in the document</p>
+    <p>@@Trace:SWR(id=89)@@ non existent software trace</p>
+
+    @@@SLMS:SYS(itemID=11)@@@
+
+    <p>The above just tests to see if we can include a single system requirement</p>
+
+    @@@Comment:general()
+    Things that are in comment tags will be removed when the document is processed. These comment blocks, when placed
+    in templates, can help authors with using the template in the right way. Alternatively, you can use asciidoc
+    comment tags too.
+    @@@
+
+    <p>Here is a reference to a document @@Ref:RandomTestDocument()@@</p>
+
+    <p>Check out the @@Ref:SoftwareSystemLevelTestPlan(title=true,abbr=true)@@</p>
+
+    <p>
+        We can import excel spreadsheets (e.g. testspreadsheet.xlsx) into our document. See the template to see how this was done for this example:<br />
+        @@FILE:ExcelTable(fileName=testspreadsheet.xlsx,range=A3:C6,workSheet=Sheet1)@@
+    </p>
+
+    <p>Here is some SOUP that is included in the documents.</p>
+
+    @@@SLMS:SOUP()
+    This tag retrieves all SOUP from the SLMS and shows it here.
+    @@@
+
+    <p>A summary table version of all the SOUP that are installed by the user</p>
+
+    @@@SLMS:SOUP(brief=true,SOUPInstalledByUser=true)
+    This shows a summary table for all the SOUP that are installed by the user
+    @@@
+
+    <p>Next are some docContent statements. These are required statements that must show up in documentation (usually the user manual)</p>
+
+    @@@SLMS:DCT()
+    This will be replaced by the available documentation content items.
+    @@@
+
+    <h2>PlantUML diagram with Kroki</h2>
+
+    <p>The RoboClerk docker container has Kroki support built in. It allows you to add a variety of different text to image tool outputs including PlantUML to your documents:</p>
+
+@@@WEB:krokidiagram(type=plantuml, format=png, caption=Example workflow diagram with PlantUML)
+skinparam defaultTextAlignment center
+!pragma useVerticalIf on
+
+while(RoboClerk is Awesome?) is (yes)
+    :Keep using RoboClerk;
+    while(Medical Device Software needs to comply with ISO62304) is (yes)
+        :Keep using RoboClerk;
+    endwhile (no)
+endwhile(no)
+:Finish;
+@@@
+
+</body>
+</html>

@@ -9,7 +9,7 @@
 	  <Company>RoboClerk Project</Company>
 	  <Product>Test Results File Plugin</Product>
 	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-	  <Configurations>Debug;Release;ReleasePublish</Configurations>
+	  <Configurations>Debug;Release;ReleasePublish;DebugHTML</Configurations>
 	  <BaseOutputPath>bin</BaseOutputPath>
   </PropertyGroup>
 
@@ -36,6 +36,11 @@
 	  <Content Include="ExampleResultFiles\ExampleUnitLevelTestResults.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="SkiaSharp" Version="2.88.9" />
+	  <PackageReference Include="System.Text.Json" Version="8.0.5" />
 	</ItemGroup>
 
 	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">

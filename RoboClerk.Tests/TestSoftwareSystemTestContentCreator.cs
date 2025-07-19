@@ -26,6 +26,7 @@ namespace RoboClerk.Tests
         public void TestSetup()
         {
             config = Substitute.For<IConfiguration>();
+            config.OutputFormat.Returns("ASCIIDOC");
             dataSources = Substitute.For<IDataSources>();
             traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
             var te = new TraceEntity("TestCase", "Test Case", "TC", TraceEntityType.Truth);
@@ -77,8 +78,8 @@ namespace RoboClerk.Tests
 
             dataSources.GetAllTestResults().Returns(results);
             dataSources.GetItems(te).Returns(testcaseItems);
-            dataSources.GetTemplateFile("./ItemTemplates/SoftwareSystemTest_automated.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/SoftwareSystemTest_automated.adoc"));
-            dataSources.GetTemplateFile("./ItemTemplates/SoftwareSystemTest_manual.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/SoftwareSystemTest_manual.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/SoftwareSystemTest_automated.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/SoftwareSystemTest_automated.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/SoftwareSystemTest_manual.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/SoftwareSystemTest_manual.adoc"));
             dataSources.GetItem("target1").Returns(testcaseItem);
             dataSources.GetItem("target2").Returns(testcaseItem);
         }
@@ -172,7 +173,7 @@ namespace RoboClerk.Tests
             testcaseItems.Add(testcaseItem);
 
             string content = sst.GetContent(tag, documentConfig);
-            string expectedContent = "All automated tests from the test plan were successfully executed and passed.";
+            string expectedContent = "All automated tests from the test plan were successfully executed and passed.\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
         }

@@ -10,7 +10,7 @@ namespace RoboClerk.Configuration
 {
     public class Configuration : IConfiguration
     {
-        private readonly IFileSystem fileSystem = null;
+        private readonly IFileProviderPlugin fileSystem = null;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         //The information contained in the general configuration file
@@ -21,6 +21,7 @@ namespace RoboClerk.Configuration
         private string logLevel = string.Empty;
         private string pluginConfigDir = string.Empty;
         private bool clearOutput = false;
+        private string outputFormat = string.Empty;
 
         //The information contained in the project configuration file
         private List<TraceEntity> truthEntities = new List<TraceEntity>();
@@ -37,7 +38,7 @@ namespace RoboClerk.Configuration
         //The information supplied on the commandline
         private Dictionary<string, string> commandLineOptions = new Dictionary<string, string>();
 
-        public Configuration(IFileSystem fileSystem, string configFileName, string projectConfigFileName, Dictionary<string, string> commandLineOptions)
+        public Configuration(IFileProviderPlugin fileSystem, string configFileName, string projectConfigFileName, Dictionary<string, string> commandLineOptions)
         {
             this.commandLineOptions = commandLineOptions;
             this.fileSystem = fileSystem;
@@ -50,6 +51,7 @@ namespace RoboClerk.Configuration
         public List<string> PluginDirs => pluginDirs;
         public string OutputDir => outputDir;
         public string LogLevel => logLevel;
+        public string OutputFormat => outputFormat;
         public List<TraceEntity> TruthEntities => truthEntities;
         public List<TraceEntity> AICheckTraceEntities => checkTraceEntitiesAI;
         public bool AICheckTemplateContents => checkTemplateContentsAI;
@@ -70,7 +72,7 @@ namespace RoboClerk.Configuration
             string projectConfig;
             try
             {
-                config = fileSystem.File.ReadAllText(configFile);
+                config = fileSystem.ReadAllText(configFile);
             }
             catch (IOException)
             {
@@ -78,7 +80,7 @@ namespace RoboClerk.Configuration
             }
             try
             {
-                projectConfig = fileSystem.File.ReadAllText(projectConfigFile);
+                projectConfig = fileSystem.ReadAllText(projectConfigFile);
             }
             catch (IOException)
             {
@@ -109,6 +111,7 @@ namespace RoboClerk.Configuration
             outputDir = CommandLineOptionOrDefault("OutputDirectory", (string)toml["OutputDirectory"]);
             clearOutput = CommandLineOptionOrDefault("ClearOutputDir", (string)toml["ClearOutputDir"]).ToUpper() == "TRUE";
             logLevel = CommandLineOptionOrDefault("LogLevel", (string)toml["LogLevel"]);
+            outputFormat = CommandLineOptionOrDefault("OutputFormat", (string)toml["OutputFormat"]);
         }
 
         private void ReadProjectConfigFile(string projectConfig)

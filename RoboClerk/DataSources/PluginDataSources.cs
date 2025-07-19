@@ -12,7 +12,7 @@ namespace RoboClerk
 
         private readonly IPluginLoader pluginLoader = null;
 
-        public PluginDataSources(IConfiguration configuration, IPluginLoader pluginLoader, IFileSystem fileSystem)
+        public PluginDataSources(IConfiguration configuration, IPluginLoader pluginLoader, IFileProviderPlugin fileSystem)
             : base(configuration, fileSystem)
         {
             this.pluginLoader = pluginLoader;

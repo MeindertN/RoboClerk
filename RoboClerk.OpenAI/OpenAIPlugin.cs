@@ -1,11 +1,13 @@
-﻿using Azure;
-using Azure.AI.OpenAI;
+﻿#nullable enable
+using Azure;
+using OpenAI;
 using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using RoboClerk.AISystem;
 using Microsoft.Extensions.DependencyInjection;
+using OpenAI.Chat;
 
 namespace RoboClerk.OpenAI
 {
@@ -14,7 +16,7 @@ namespace RoboClerk.OpenAI
         private OpenAIClient? openAIClient = null;
         private Dictionary<string,OpenAIPromptTemplate> prompts = new Dictionary<string, OpenAIPromptTemplate>();
 
-        public OpenAIPlugin(IFileSystem fileSystem)
+        public OpenAIPlugin(IFileProviderPlugin fileSystem)
             :base(fileSystem)
         {
             SetBaseParam();
@@ -55,15 +57,15 @@ namespace RoboClerk.OpenAI
             throw new NotImplementedException($"AI Feedback about {et.Name} not implemented yet.");
         }
 
-        private ChatRole ConvertStringToChatRole(string role)
+        private ChatMessageRole ConvertStringToChatRole(string role)
         {
             switch(role.ToUpper())
             {
-                case "USER": return ChatRole.User;
-                case "TOOL": return ChatRole.Tool;
-                case "SYSTEM": return ChatRole.System;
-                case "ASSISTANT": return ChatRole.Assistant;
-                case "FUNCTION": return ChatRole.Function;
+                case "USER": return ChatMessageRole.User;
+                case "TOOL": return ChatMessageRole.Tool;
+                case "SYSTEM": return ChatMessageRole.System;
+                case "ASSISTANT": return ChatMessageRole.Assistant;
+                case "FUNCTION": return ChatMessageRole.Function;
                 default: throw new Exception($"Unknown role \"{role}\" found in prompt file.");
             }
         }
@@ -82,7 +84,10 @@ namespace RoboClerk.OpenAI
                 chatCompletionOptions.MaxTokens = prompt.max_tokens;
                 chatCompletionOptions.PresencePenalty = prompt.presence_penalty;
                 chatCompletionOptions.FrequencyPenalty = prompt.frequency_penalty;
-                Response<ChatCompletions> completionResponse = openAIClient.GetChatCompletions(prompt.model, chatCompletionOptions);
+                Response<ChatCompletions> completionResponse = openAIClient.GetChatCompletions(
+                    deploymentOrModelName: prompt.model,
+                    chatCompletionsOptions: chatCompletionOptions
+                );
                 return completionResponse.Value.Choices[0].Message.Content;
             }
             throw new Exception("OpenAI Client is null, cannot continue.");
