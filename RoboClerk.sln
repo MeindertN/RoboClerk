@@ -24,7 +24,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk.OpenAI", "RoboCle
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk.TestResultsFilePlugin", "RoboClerk.TestResultsFilePlugin\RoboClerk.TestResultsFilePlugin.csproj", "{1F6AD501-4983-46ED-81DC-E466C553A1E6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoboClerk.SharePointFileProvider", "SharePointFileProviderPlugin\RoboClerk.SharePointFileProvider.csproj", "{D2FCD097-4867-4DA0-9188-5BDB68CC55A6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoboClerk.SharePointFileProvider", "RoboClerk.SharePointFileProviderPlugin\RoboClerk.SharePointFileProvider.csproj", "{D2FCD097-4867-4DA0-9188-5BDB68CC55A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

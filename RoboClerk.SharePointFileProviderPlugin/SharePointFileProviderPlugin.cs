@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Abstractions;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using RoboClerk.Configuration;
 using Tomlyn;
 using Tomlyn.Model;
@@ -34,7 +28,7 @@ namespace RoboClerk.SharePointFileProvider
             description = "Provides access to SharePoint Online document libraries using Microsoft Graph SDK.";
         }
 
-        public override async void InitializePlugin(IConfiguration configuration)
+        public override void InitializePlugin(IConfiguration configuration)
         {
             try
             {
