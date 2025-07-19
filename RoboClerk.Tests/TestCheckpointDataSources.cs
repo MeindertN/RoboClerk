@@ -100,7 +100,7 @@ namespace RoboClerk.Tests
             mockPluginLoader = Substitute.For<IPluginLoader>();
             mockConfiguration = Substitute.For<IConfiguration>();
 
-            mockConfiguration.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin1", "testPlugin2", "testDepPlugin", "testSrcPlugin" });
+            mockConfiguration.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin2", "testDepPlugin" });
             mockConfiguration.PluginDirs.ReturnsForAnyArgs(new List<string> { TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist"), TestingHelpers.ConvertFileName("c:\\temp\\") });
             mockConfiguration.TemplateDir.Returns(TestingHelpers.ConvertFileName("c:\\temp"));
             mockConfiguration.CheckpointConfig.Returns(new CheckpointConfig());

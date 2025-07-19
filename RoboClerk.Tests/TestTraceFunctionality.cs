@@ -104,7 +104,7 @@ namespace RoboClerk.Tests
 
             mockConfig.TraceConfig.Returns(config2);
 
-            mockConfig.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin1", "testPlugin2" });
+            mockConfig.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin2" });
             mockConfig.PluginDirs.ReturnsForAnyArgs(new List<string> { "c:\\temp\\does_not_exist", "c:\\temp\\" });
             mockFileSystem = Substitute.For<IFileSystem>();
         }

@@ -6,6 +6,8 @@ using RoboClerk.Configuration;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using NUnit.Framework.Legacy;
+using RoboClerk.AISystem;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace RoboClerk.Tests
 {
@@ -409,5 +411,121 @@ AddTrace(item.ItemID);
             Assert.That(content == "UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS (unknown) IS KNOWN TO ROBOCLERK.\n");
         }
 
+        [UnitTestAttribute(
+            Identifier = "G7H8I9J0-K1L2-3456-GHIJ-789012345678",
+            Purpose = "AI plugin loading validation when AI plugin is found",
+            PostCondition = "No exception is thrown when AI plugin is successfully loaded")]
+        [Test]
+        public void AIPluginLoading_PluginFound_VERIFIES_NoExceptionThrown()
+        {
+            // Setup
+            var mockAIPlugin = Substitute.For<IAISystemPlugin>();
+            mockAIPlugin.Name.Returns("TestAIPlugin");
+            config.AIPlugin.Returns("TestAIPlugin");
+            pluginLoader.LoadByName<IAISystemPlugin>(Arg.Any<string>(), Arg.Is("TestAIPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockAIPlugin);
+            
+            // Act & Assert: Should not throw
+            Assert.DoesNotThrow(() => new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "H8I9J0K1-L2M3-4567-HIJK-890123456789",
+            Purpose = "AI plugin loading validation when AI plugin is not found",
+            PostCondition = "Exception is thrown when required AI plugin cannot be found")]
+        [Test]
+        public void AIPluginLoading_PluginNotFound_VERIFIES_ExceptionThrown()
+        {
+            // Setup: Configure mock to return null for AI plugin
+            config.AIPlugin.Returns("NonExistentAIPlugin");
+            pluginLoader.LoadByName<IAISystemPlugin>(Arg.Any<string>(), Arg.Is("NonExistentAIPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns((IAISystemPlugin)null);
+            
+            // Act & Assert: Should throw exception for missing AI plugin
+            var ex = Assert.Throws<Exception>(() => new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader));
+            Assert.That(ex.Message.Contains("Required AI plugin 'NonExistentAIPlugin' could not be found"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "I9J0K1L2-M3N4-5678-IJKL-901234567890",
+            Purpose = "AI plugin loading validation with empty AI plugin configuration",
+            PostCondition = "No exception is thrown when AI plugin is not configured")]
+        [Test]
+        public void AIPluginLoading_EmptyAIPlugin_VERIFIES_NoExceptionThrown()
+        {
+            // Setup: Empty AI plugin should not cause issues
+            config.AIPlugin.Returns("");
+            
+            // Act & Assert: Should not throw
+            Assert.DoesNotThrow(() => new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "J0K1L2M3-N4O5-6789-JKLM-012345678901",
+            Purpose = "AI plugin loading validation with null AI plugin configuration",
+            PostCondition = "No exception is thrown when AI plugin is null")]
+        [Test]
+        public void AIPluginLoading_NullAIPlugin_VERIFIES_NoExceptionThrown()
+        {
+            // Setup: Null AI plugin should not cause issues
+            config.AIPlugin.Returns((string)null);
+            
+            // Act & Assert: Should not throw
+            Assert.DoesNotThrow(() => new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "K1L2M3N4-O5P6-7890-KLMN-123456789012",
+            Purpose = "AI plugin loading validation when plugin loader throws exception",
+            PostCondition = "Exception is thrown when plugin loader fails")]
+        [Test]
+        public void AIPluginLoading_PluginLoaderException_VERIFIES_ExceptionThrown()
+        {
+            // Setup: Configure plugin loader to throw exception
+            config.AIPlugin.Returns("TestAIPlugin");
+            pluginLoader.When(x => x.LoadByName<IAISystemPlugin>(Arg.Any<string>(), Arg.Is("TestAIPlugin"), Arg.Any<Action<IServiceCollection>>())).Do(x => { throw new Exception("Plugin loader error"); });
+            
+            // Act & Assert: Should throw exception
+            var ex = Assert.Throws<Exception>(() => new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader));
+            Assert.That(ex.Message.Contains("Plugin loader error"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "L2M3N4O5-P6Q7-8901-LMNO-234567890123",
+            Purpose = "AI plugin loading validation with multiple plugin directories",
+            PostCondition = "AI plugin is found in second directory when not found in first")]
+        [Test]
+        public void AIPluginLoading_MultipleDirectories_VERIFIES_PluginFoundInSecondDirectory()
+        {
+            // Setup: Configure multiple plugin directories
+            var mockAIPlugin = Substitute.For<IAISystemPlugin>();
+            mockAIPlugin.Name.Returns("TestAIPlugin");
+            config.AIPlugin.Returns("TestAIPlugin");
+            config.PluginDirs.Returns(new List<string> { "dir1", "dir2" });
+            
+            // First directory returns null, second directory returns plugin
+            pluginLoader.LoadByName<IAISystemPlugin>(Arg.Is("dir1"), Arg.Is("TestAIPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns((IAISystemPlugin)null);
+            pluginLoader.LoadByName<IAISystemPlugin>(Arg.Is("dir2"), Arg.Is("TestAIPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockAIPlugin);
+            
+            // Act & Assert: Should not throw and plugin should be found in second directory
+            Assert.DoesNotThrow(() => new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "M3N4O5P6-Q7R8-9012-MNOP-345678901234",
+            Purpose = "AI plugin loading validation when plugin initialization fails",
+            PostCondition = "Exception is thrown when AI plugin initialization fails")]
+        [Test]
+        public void AIPluginLoading_PluginInitializationFails_VERIFIES_ExceptionThrown()
+        {
+            // Setup: Configure AI plugin that throws during initialization
+            var mockAIPlugin = Substitute.For<IAISystemPlugin>();
+            mockAIPlugin.Name.Returns("TestAIPlugin");
+            mockAIPlugin.When(x => x.InitializePlugin(Arg.Any<IConfiguration>())).Do(x => { throw new Exception("Plugin initialization failed"); });
+            config.AIPlugin.Returns("TestAIPlugin");
+            pluginLoader.LoadByName<IAISystemPlugin>(Arg.Any<string>(), Arg.Is("TestAIPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockAIPlugin);
+            
+            // Act & Assert: Should throw exception during plugin initialization
+            var ex = Assert.Throws<Exception>(() => new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader));
+            Assert.That(ex.Message.Contains("Plugin initialization failed"));
+        }
     }
 }

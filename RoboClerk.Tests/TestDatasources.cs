@@ -65,8 +65,8 @@ namespace RoboClerk.Tests
             mockPluginLoader = Substitute.For<IPluginLoader>();
             mockConfiguration = Substitute.For<IConfiguration>();
 
-            mockConfiguration.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin1", "testPlugin2", "testDepPlugin", "testSrcPlugin" });
-            mockConfiguration.PluginDirs.ReturnsForAnyArgs(new List<string> { TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist"), TestingHelpers.ConvertFileName("c:\\temp\\") });
+            mockConfiguration.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin2", "testDepPlugin", "testSrcPlugin" });
+            mockConfiguration.PluginDirs.ReturnsForAnyArgs(new List<string> { TestingHelpers.ConvertFileName("c:\\temp\\"), TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist") });
             mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Action<IServiceCollection>>() ).Returns<IDataSourcePlugin>(l => null);
             mockPluginLoader.Configure().LoadByName<IDataSourcePlugin>(Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")), Arg.Is("testPlugin2"), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)mockSLMSPlugin);
             mockPluginLoader.Configure().LoadByName<IDataSourcePlugin>(Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")), Arg.Is("testDepPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)mockDepMgmtPlugin);
@@ -83,14 +83,6 @@ namespace RoboClerk.Tests
         public void Plugin_Search_Functionality_Works_Correctly_VERIFIES_DataSources_Traverses_All_Plugins_And_All_Directories()
         {
             var ds = new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem);
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadByName<IDataSourcePlugin>( 
-                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),
-                Arg.Is<string>("testPlugin1"),
-                Arg.Any<Action<IServiceCollection>>()));
-            Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadByName<IDataSourcePlugin>( 
-                Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\")),
-                Arg.Is<string>("testPlugin1"),
-                Arg.Any<Action<IServiceCollection>>()));
             Assert.DoesNotThrow(() => mockPluginLoader.Received().LoadByName<IDataSourcePlugin>( 
                 Arg.Is<string>(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")),
                 Arg.Is<string>("testPlugin2"),
@@ -758,6 +750,89 @@ namespace RoboClerk.Tests
             Assert.That(returnedItems.Exists(i => i.ItemID == firstSysReqId), Is.True);
             Assert.That(returnedItems.Exists(i => i.ItemID == firstSoftReqId), Is.True);
             Assert.That(returnedItems.Exists(i => i.ItemID == firstRiskId), Is.True);
+        }
+
+        [UnitTestAttribute(
+            Identifier = "A1B2C3D4-E5F6-7890-ABCD-EF1234567890",
+            Purpose = "Plugin loading validation when all requested plugins are found",
+            PostCondition = "No exception is thrown when all plugins are successfully loaded")]
+        [Test]
+        public void PluginLoading_AllPluginsFound_VERIFIES_NoExceptionThrown()
+        {
+            // Setup: Configure mock to return all requested plugins
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testPlugin1"), Arg.Any<Action<IServiceCollection>>()).Returns(mockSLMSPlugin);
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testPlugin2"), Arg.Any<Action<IServiceCollection>>()).Returns(mockDepMgmtPlugin);
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testDepPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockDepMgmtPlugin);
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testSrcPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockSrcCodePlugin);
+            
+            // Act & Assert: Should not throw
+            Assert.DoesNotThrow(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "B2C3D4E5-F6G7-8901-BCDE-F23456789012",
+            Purpose = "Plugin loading validation when a required plugin is missing",
+            PostCondition = "Exception is thrown when a required plugin cannot be found")]
+        [Test]
+        public void PluginLoading_MissingRequiredPlugin_VERIFIES_ExceptionThrown()
+        {
+            // Setup: Configure mock to return null for one plugin
+            mockConfiguration.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin2", "testDepPlugin", "testPlugin1", "testSrcPlugin" });
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testPlugin1"), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)null);
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testPlugin2"), Arg.Any<Action<IServiceCollection>>()).Returns(mockSLMSPlugin);
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testDepPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockDepMgmtPlugin);
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testSrcPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockSrcCodePlugin);
+            
+            // Act & Assert: Should throw exception for missing plugin
+            var ex = Assert.Throws<Exception>(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem));
+            Assert.That(ex.Message.Contains("Unable to find plugin testPlugin1"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "C3D4E5F6-G7H8-9012-CDEF-345678901234",
+            Purpose = "Plugin loading validation when multiple required plugins are missing",
+            PostCondition = "Exception is thrown when multiple required plugins cannot be found")]
+        [Test]
+        public void PluginLoading_MultipleMissingPlugins_VERIFIES_ExceptionThrownForFirstMissingPlugin()
+        {
+            // Setup: Configure mock to return null for multiple plugins
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testPlugin1"), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)null);
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testPlugin2"), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)null);
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testDepPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockDepMgmtPlugin);
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testSrcPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockSrcCodePlugin);
+            
+            // Act & Assert: Should throw exception for first missing plugin
+            var ex = Assert.Throws<Exception>(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem));
+            Assert.That(ex.Message.Contains("Unable to find plugin testPlugin2"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "D4E5F6G7-H8I9-0123-DEFG-456789012345",
+            Purpose = "Plugin loading validation when all plugins are missing",
+            PostCondition = "Exception is thrown when all required plugins cannot be found")]
+        [Test]
+        public void PluginLoading_AllPluginsMissing_VERIFIES_ExceptionThrownForFirstMissingPlugin()
+        {
+            // Setup: Configure mock to return null for all plugins
+            mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)null);
+            
+            // Act & Assert: Should throw exception for first missing plugin
+            var ex = Assert.Throws<Exception>(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem));
+            Assert.That(ex.Message.Contains("Unable to find plugin testPlugin2"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "E5F6G7H8-I9J0-1234-EFGH-567890123456",
+            Purpose = "Plugin loading validation with empty plugin list",
+            PostCondition = "No exception is thrown when no plugins are configured")]
+        [Test]
+        public void PluginLoading_EmptyPluginList_VERIFIES_NoExceptionThrown()
+        {
+            // Setup: Configure empty plugin list
+            mockConfiguration.DataSourcePlugins.Returns(new List<string>());
+            
+            // Act & Assert: Should not throw when no plugins are configured
+            Assert.DoesNotThrow(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem));
         }
     }
 }

@@ -23,6 +23,7 @@ namespace RoboClerk
         {
             foreach (var val in configuration.DataSourcePlugins)
             {
+                bool found = false;
                 foreach (var dir in configuration.PluginDirs)
                 {
                     var plugin = pluginLoader.LoadByName<IDataSourcePlugin>(
@@ -38,12 +39,19 @@ namespace RoboClerk
                         plugin.InitializePlugin(configuration);
                         if (plugin as IDataSourcePlugin != null)
                         {
+                            found = true;
                             var temp = plugin as IDataSourcePlugin;
                             temp.RefreshItems();
                             plugins.Add(temp);
-                            continue;
+                            break;
                         }
                     }
+                }
+                if(!found)
+                {
+                    //if we don't find a specified datasource plugin, that is reason to quit.
+                    //otherwise data could be missing from the project and the user would not know.
+                    throw new Exception($"Unable to find plugin {val}, please ensure the name of the plugin and plugin directories in the RoboClerk config file are correct.");
                 }
             }
         }
