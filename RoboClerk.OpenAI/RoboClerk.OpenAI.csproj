@@ -19,7 +19,7 @@
 	</PropertyGroup>
 	
   <ItemGroup>
-    <PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+    <PackageReference Include="OpenAI" Version="2.2.0" />
     <PackageReference Include="Samboy063.Tomlet" Version="5.4.0" />
     <PackageReference Include="SkiaSharp" Version="2.88.9" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />

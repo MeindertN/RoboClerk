@@ -1,13 +1,11 @@
 ﻿#nullable enable
-using Azure;
-using OpenAI;
 using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
-using System.IO.Abstractions;
 using RoboClerk.AISystem;
-using Microsoft.Extensions.DependencyInjection;
+using OpenAI;
 using OpenAI.Chat;
+using System.Threading.Tasks;
 
 namespace RoboClerk.OpenAI
 {
@@ -32,18 +30,8 @@ namespace RoboClerk.OpenAI
         {
             base.InitializePlugin(configuration);
             var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-            bool useAzureOpenAI = configuration.CommandLineOptionOrDefault("UseAzureOpenAI", GetObjectForKey<string>(config, "UseAzureOpenAI", true)).ToUpper() == "TRUE";
-            if (useAzureOpenAI)
-            {
-                string azureOpenAIUri = configuration.CommandLineOptionOrDefault("AzureOpenAIUri", GetObjectForKey<string>(config, "AzureOpenAIUri", true));
-                string azureOpenAIResourceKey = configuration.CommandLineOptionOrDefault("AzureOpenAIResourceKey", GetObjectForKey<string>(config, "AzureOpenAIResourceKey", true));
-                openAIClient = new OpenAIClient(new Uri(azureOpenAIUri),new Azure.AzureKeyCredential(azureOpenAIResourceKey));
-            }
-            else
-            {
-                string openAIKey = configuration.CommandLineOptionOrDefault("OpenAIKey", GetObjectForKey<string>(config, "OpenAIKey", true));
-                openAIClient = new OpenAIClient(openAIKey);
-            }
+            string openAIKey = configuration.CommandLineOptionOrDefault("OpenAIKey", GetObjectForKey<string>(config, "OpenAIKey", true));
+            openAIClient = new OpenAIClient(openAIKey);
         }
 
         // Using base.ConfigureServices implementation which registers this as IAISystemPlugin
@@ -57,40 +45,50 @@ namespace RoboClerk.OpenAI
             throw new NotImplementedException($"AI Feedback about {et.Name} not implemented yet.");
         }
 
-        private ChatMessageRole ConvertStringToChatRole(string role)
+        private string ConvertStringToChatRole(string role)
         {
             switch(role.ToUpper())
             {
-                case "USER": return ChatMessageRole.User;
-                case "TOOL": return ChatMessageRole.Tool;
-                case "SYSTEM": return ChatMessageRole.System;
-                case "ASSISTANT": return ChatMessageRole.Assistant;
-                case "FUNCTION": return ChatMessageRole.Function;
+                case "USER": return "user";
+                case "TOOL": return "tool";
+                case "SYSTEM": return "system";
+                case "ASSISTANT": return "assistant";
+                case "FUNCTION": return "function";
                 default: throw new Exception($"Unknown role \"{role}\" found in prompt file.");
             }
         }
 
-        private string GetRequirementFeedback(RequirementItem item, OpenAIPromptTemplate template) 
+        private async Task<string> GetRequirementFeedbackAsync(RequirementItem item, OpenAIPromptTemplate template) 
         {
             if (openAIClient != null)
             {
-                var chatCompletionOptions = new ChatCompletionsOptions();
-                var prompt = template.GetOpenAIPrompt(new Dictionary<string, string>(),item);
-                foreach( var message in prompt.messages )
+                var prompt = template.GetOpenAIPrompt(new Dictionary<string, string>(), item);
+                
+                var messages = new List<ChatMessage>();
+                foreach (var message in prompt.messages)
                 {
-                    chatCompletionOptions.Messages.Add(new ChatMessage(ConvertStringToChatRole(message.role), message.content));
+                    messages.Add(new ChatMessage(ConvertStringToChatRole(message.role), message.content));
                 }
-                chatCompletionOptions.Temperature = prompt.temperature;
-                chatCompletionOptions.MaxTokens = prompt.max_tokens;
-                chatCompletionOptions.PresencePenalty = prompt.presence_penalty;
-                chatCompletionOptions.FrequencyPenalty = prompt.frequency_penalty;
-                Response<ChatCompletions> completionResponse = openAIClient.GetChatCompletions(
-                    deploymentOrModelName: prompt.model,
-                    chatCompletionsOptions: chatCompletionOptions
-                );
-                return completionResponse.Value.Choices[0].Message.Content;
+
+                var chatCompletionOptions = new ChatCompletionCreateOptions
+                {
+                    Model = prompt.model,
+                    Messages = messages,
+                    Temperature = prompt.temperature,
+                    MaxTokens = prompt.max_tokens,
+                    PresencePenalty = prompt.presence_penalty,
+                    FrequencyPenalty = prompt.frequency_penalty
+                };
+
+                var completionResponse = await openAIClient.GetChatClient().CompleteAsync(chatCompletionOptions);
+                return completionResponse.Choices[0].Message.Content;
             }
             throw new Exception("OpenAI Client is null, cannot continue.");
+        }
+
+        private string GetRequirementFeedback(RequirementItem item, OpenAIPromptTemplate template)
+        {
+            return GetRequirementFeedbackAsync(item, template).GetAwaiter().GetResult();
         }
 
         public override void SetPrompts(List<Document> pts)
