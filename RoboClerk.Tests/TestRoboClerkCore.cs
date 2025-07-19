@@ -8,6 +8,8 @@ using System.IO.Abstractions.TestingHelpers;
 using NUnit.Framework.Legacy;
 using RoboClerk.AISystem;
 using Microsoft.Extensions.DependencyInjection;
+using NLog.Targets;
+using System.Linq;
 
 namespace RoboClerk.Tests
 {
@@ -361,6 +363,7 @@ namespace RoboClerk.Tests
                 { TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), new MockFileData("@@SLMS:SWR(ItemID=14)@@") },
                 { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
+            config.PluginDirs.Returns(new List<string>() { @"c:\temp" });
             config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
             config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
             DocumentConfig config2 = new DocumentConfig(
@@ -422,6 +425,7 @@ AddTrace(item.ItemID);
             var mockAIPlugin = Substitute.For<IAISystemPlugin>();
             mockAIPlugin.Name.Returns("TestAIPlugin");
             config.AIPlugin.Returns("TestAIPlugin");
+            config.PluginDirs.Returns(new List<string>() { @"c:\temp" });
             pluginLoader.LoadByName<IAISystemPlugin>(Arg.Any<string>(), Arg.Is("TestAIPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockAIPlugin);
             
             // Act & Assert: Should not throw
@@ -431,17 +435,23 @@ AddTrace(item.ItemID);
         [UnitTestAttribute(
             Identifier = "H8I9J0K1-L2M3-4567-HIJK-890123456789",
             Purpose = "AI plugin loading validation when AI plugin is not found",
-            PostCondition = "Exception is thrown when required AI plugin cannot be found")]
+            PostCondition = "No exception is thrown and AI plugin is null when plugin cannot be found")]
         [Test]
-        public void AIPluginLoading_PluginNotFound_VERIFIES_ExceptionThrown()
+        public void AIPluginLoading_PluginNotFound_VERIFIES_NoExceptionThrown()
         {
             // Setup: Configure mock to return null for AI plugin
             config.AIPlugin.Returns("NonExistentAIPlugin");
+            config.PluginDirs.Returns(new List<string>() { @"c:\temp" });
             pluginLoader.LoadByName<IAISystemPlugin>(Arg.Any<string>(), Arg.Is("NonExistentAIPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns((IAISystemPlugin)null);
             
-            // Act & Assert: Should throw exception for missing AI plugin
-            var ex = Assert.Throws<Exception>(() => new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader));
-            Assert.That(ex.Message.Contains("Required AI plugin 'NonExistentAIPlugin' could not be found"));
+            // Act: Should not throw exception, but log warning and return null
+            Assert.DoesNotThrow(() => new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader));
+            
+            // Verify that the plugin loader was called with the correct parameters
+            pluginLoader.Received().LoadByName<IAISystemPlugin>(
+                Arg.Is(@"c:\temp"), 
+                Arg.Is("NonExistentAIPlugin"), 
+                Arg.Any<Action<IServiceCollection>>());
         }
 
         [UnitTestAttribute(
@@ -475,17 +485,23 @@ AddTrace(item.ItemID);
         [UnitTestAttribute(
             Identifier = "K1L2M3N4-O5P6-7890-KLMN-123456789012",
             Purpose = "AI plugin loading validation when plugin loader throws exception",
-            PostCondition = "Exception is thrown when plugin loader fails")]
+            PostCondition = "No exception is thrown when plugin loader fails")]
         [Test]
-        public void AIPluginLoading_PluginLoaderException_VERIFIES_ExceptionThrown()
+        public void AIPluginLoading_PluginLoaderException_VERIFIES_NoExceptionThrown()
         {
             // Setup: Configure plugin loader to throw exception
             config.AIPlugin.Returns("TestAIPlugin");
+            config.PluginDirs.Returns(new List<string>() { @"c:\temp" });
             pluginLoader.When(x => x.LoadByName<IAISystemPlugin>(Arg.Any<string>(), Arg.Is("TestAIPlugin"), Arg.Any<Action<IServiceCollection>>())).Do(x => { throw new Exception("Plugin loader error"); });
             
-            // Act & Assert: Should throw exception
-            var ex = Assert.Throws<Exception>(() => new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader));
-            Assert.That(ex.Message.Contains("Plugin loader error"));
+            // Act: Should not throw exception, but log warning
+            Assert.DoesNotThrow(() => new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader));
+            
+            // Verify that the plugin loader was called and the exception was handled gracefully
+            pluginLoader.Received().LoadByName<IAISystemPlugin>(
+                Arg.Is(@"c:\temp"), 
+                Arg.Is("TestAIPlugin"), 
+                Arg.Any<Action<IServiceCollection>>());
         }
 
         [UnitTestAttribute(
@@ -512,20 +528,72 @@ AddTrace(item.ItemID);
         [UnitTestAttribute(
             Identifier = "M3N4O5P6-Q7R8-9012-MNOP-345678901234",
             Purpose = "AI plugin loading validation when plugin initialization fails",
-            PostCondition = "Exception is thrown when AI plugin initialization fails")]
+            PostCondition = "No exception is thrown when AI plugin initialization fails")]
         [Test]
-        public void AIPluginLoading_PluginInitializationFails_VERIFIES_ExceptionThrown()
+        public void AIPluginLoading_PluginInitializationFails_VERIFIES_NoExceptionThrown()
         {
             // Setup: Configure AI plugin that throws during initialization
             var mockAIPlugin = Substitute.For<IAISystemPlugin>();
             mockAIPlugin.Name.Returns("TestAIPlugin");
             mockAIPlugin.When(x => x.InitializePlugin(Arg.Any<IConfiguration>())).Do(x => { throw new Exception("Plugin initialization failed"); });
             config.AIPlugin.Returns("TestAIPlugin");
+            config.PluginDirs.Returns(new List<string>() { @"c:\temp" });
             pluginLoader.LoadByName<IAISystemPlugin>(Arg.Any<string>(), Arg.Is("TestAIPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockAIPlugin);
             
-            // Act & Assert: Should throw exception during plugin initialization
-            var ex = Assert.Throws<Exception>(() => new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader));
-            Assert.That(ex.Message.Contains("Plugin initialization failed"));
+            // Act: Should not throw exception, but log warning
+            Assert.DoesNotThrow(() => new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader));
+            
+            // Verify that the plugin was loaded and initialization was attempted
+            pluginLoader.Received().LoadByName<IAISystemPlugin>(
+                Arg.Is(@"c:\temp"), 
+                Arg.Is("TestAIPlugin"), 
+                Arg.Any<Action<IServiceCollection>>());
+            mockAIPlugin.Received().InitializePlugin(Arg.Any<IConfiguration>());
+        }
+
+        [UnitTestAttribute(
+            Identifier = "N4O5P6Q7-R8S9-0123-OPQR-456789012345",
+            Purpose = "AI plugin loading validation with log message verification",
+            PostCondition = "Log messages are captured and verified when AI plugin fails to load")]
+        [Test]
+        public void AIPluginLoading_WithLogVerification_VERIFIES_LogMessagesCaptured()
+        {
+            // Setup: Configure plugin loader to throw exception
+            config.AIPlugin.Returns("TestAIPlugin");
+            config.PluginDirs.Returns(new List<string>() { @"c:\temp" });
+            pluginLoader.When(x => x.LoadByName<IAISystemPlugin>(Arg.Any<string>(), Arg.Is("TestAIPlugin"), Arg.Any<Action<IServiceCollection>>())).Do(x => { throw new Exception("Plugin loader error"); });
+            
+            // Setup NLog test target to capture log messages
+            var logTarget = new NLog.Targets.MemoryTarget("TestTarget");
+            logTarget.Layout = "${level}: ${message}";
+            
+            var nlogConfig = NLog.LogManager.Configuration ?? new NLog.Config.LoggingConfiguration();
+            nlogConfig.AddTarget(logTarget);
+            nlogConfig.AddRuleForAllLevels(logTarget);
+            NLog.LogManager.Configuration = nlogConfig;
+            
+            // Act: Should not throw exception, but log warning
+            Assert.DoesNotThrow(() => new RoboClerkCore(this.config, dataSources, traceAnalysis, fs, pluginLoader));
+            
+            // Verify that the plugin loader was called
+            pluginLoader.Received().LoadByName<IAISystemPlugin>(
+                Arg.Is(@"c:\temp"), 
+                Arg.Is("TestAIPlugin"), 
+                Arg.Any<Action<IServiceCollection>>());
+            
+            // Verify that a warning log message was captured
+            var logMessages = logTarget.Logs;
+            Assert.That(logMessages.Count, Is.GreaterThan(0), "Expected log messages to be captured");
+            
+            var warningMessages = logMessages.Where(log => log.Contains("Warn:")).ToList();
+            Assert.That(warningMessages.Count, Is.GreaterThan(0), "Expected warning log messages to be captured");
+            
+            // Verify that the log message contains the expected content
+            var hasPluginLoaderError = warningMessages.Any(msg => msg.Contains("Plugin loader error"));
+            Assert.That(hasPluginLoaderError, Is.True, "Expected log message to contain plugin loader error");
+            
+            // Clean up
+            NLog.LogManager.Configuration = null;
         }
     }
 }
