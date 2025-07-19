@@ -45,18 +45,19 @@ namespace RoboClerk.OpenAI
             throw new NotImplementedException($"AI Feedback about {et.Name} not implemented yet.");
         }
 
-        private string ConvertStringToChatRole(string role)
+        private ChatMessage CreateChatMessage(string role, string content)
         {
-            switch(role.ToUpper())
+            return role.ToUpper() switch
             {
-                case "USER": return "user";
-                case "TOOL": return "tool";
-                case "SYSTEM": return "system";
-                case "ASSISTANT": return "assistant";
-                case "FUNCTION": return "function";
-                default: throw new Exception($"Unknown role \"{role}\" found in prompt file.");
-            }
+                "USER" => ChatMessage.CreateUserMessage(content),
+                "SYSTEM" => ChatMessage.CreateSystemMessage(content),
+                "ASSISTANT" => ChatMessage.CreateAssistantMessage(content),
+                "TOOL" => ChatMessage.CreateToolMessage("tool", content),
+                "FUNCTION" => ChatMessage.CreateToolMessage("function", content),
+                _ => throw new Exception($"Unknown role \"{role}\" found in prompt file."),
+            };
         }
+
 
         private async Task<string> GetRequirementFeedbackAsync(RequirementItem item, OpenAIPromptTemplate template) 
         {
@@ -67,21 +68,21 @@ namespace RoboClerk.OpenAI
                 var messages = new List<ChatMessage>();
                 foreach (var message in prompt.messages)
                 {
-                    messages.Add(new ChatMessage(ConvertStringToChatRole(message.role), message.content));
+                    messages.Add(CreateChatMessage(message.role, message.content));
                 }
 
-                var chatCompletionOptions = new ChatCompletionCreateOptions
+                var chatCompletionOptions = new ChatCompletionOptions
                 {
-                    Model = prompt.model,
-                    Messages = messages,
                     Temperature = prompt.temperature,
-                    MaxTokens = prompt.max_tokens,
+                    MaxOutputTokenCount = prompt.max_tokens,
                     PresencePenalty = prompt.presence_penalty,
                     FrequencyPenalty = prompt.frequency_penalty
                 };
 
-                var completionResponse = await openAIClient.GetChatClient().CompleteAsync(chatCompletionOptions);
-                return completionResponse.Choices[0].Message.Content;
+                var chatClient = openAIClient.GetChatClient(prompt.model);
+                var completionResponse = await chatClient.CompleteChatAsync(messages, chatCompletionOptions);
+                var completion = completionResponse.Value;
+                return completion.Content[0].Text;
             }
             throw new Exception("OpenAI Client is null, cannot continue.");
         }

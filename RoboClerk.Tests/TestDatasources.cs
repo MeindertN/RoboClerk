@@ -770,7 +770,7 @@ namespace RoboClerk.Tests
             mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testSrcPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockSrcCodePlugin);
             
             // Act & Assert: Should not throw
-            Assert.DoesNotThrow(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem));
+            Assert.DoesNotThrow(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileProvider));
         }
 
         [UnitTestAttribute(
@@ -788,7 +788,7 @@ namespace RoboClerk.Tests
             mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testSrcPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockSrcCodePlugin);
             
             // Act & Assert: Should throw exception for missing plugin
-            var ex = Assert.Throws<Exception>(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem));
+            var ex = Assert.Throws<Exception>(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileProvider));
             Assert.That(ex.Message.Contains("Unable to find plugin testPlugin1"));
         }
 
@@ -806,7 +806,7 @@ namespace RoboClerk.Tests
             mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Is("testSrcPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns(mockSrcCodePlugin);
             
             // Act & Assert: Should throw exception for first missing plugin
-            var ex = Assert.Throws<Exception>(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem));
+            var ex = Assert.Throws<Exception>(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileProvider));
             Assert.That(ex.Message.Contains("Unable to find plugin testPlugin2"));
         }
 
@@ -821,7 +821,7 @@ namespace RoboClerk.Tests
             mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)null);
             
             // Act & Assert: Should throw exception for first missing plugin
-            var ex = Assert.Throws<Exception>(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem));
+            var ex = Assert.Throws<Exception>(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileProvider));
             Assert.That(ex.Message.Contains("Unable to find plugin testPlugin2"));
         }
 
@@ -836,7 +836,7 @@ namespace RoboClerk.Tests
             mockConfiguration.DataSourcePlugins.Returns(new List<string>());
             
             // Act & Assert: Should not throw when no plugins are configured
-            Assert.DoesNotThrow(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileSystem));
+            Assert.DoesNotThrow(() => new PluginDataSources(mockConfiguration, mockPluginLoader, mockFileProvider));
         }
     }
 }

@@ -11,9 +11,11 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Tomlyn;
 
 [assembly: AssemblyVersion("2.0.*")]
+[assembly: InternalsVisibleTo("RoboClerk.Tests")]
 
 namespace RoboClerk
 {
@@ -115,7 +117,7 @@ namespace RoboClerk
             }
         }
 
-        private static void RegisterAIPlugin(IServiceCollection services, IConfiguration config, IPluginLoader pluginLoader)
+        internal static void RegisterAIPlugin(IServiceCollection services, IConfiguration config, IPluginLoader pluginLoader)
         {
             // Load and register AI plugin if configured
             if (!string.IsNullOrEmpty(config.AIPlugin))
@@ -128,22 +130,29 @@ namespace RoboClerk
             }
         }
 
-        private static IAISystemPlugin LoadAIPlugin(IConfiguration config, IPluginLoader pluginLoader)
+        internal static IAISystemPlugin LoadAIPlugin(IConfiguration config, IPluginLoader pluginLoader)
         {
             // Try loading plugins from each directory
             var logger = NLog.LogManager.GetCurrentClassLogger();
             foreach (var dir in config.PluginDirs)
             {
-                try 
+                IAISystemPlugin plugin = null;
+                try
                 {
-                    var plugin = pluginLoader.LoadByName<IAISystemPlugin>(
+                    plugin = pluginLoader.LoadByName<IAISystemPlugin>(
                         pluginDir: dir,
                         typeName: config.AIPlugin,
                         configureGlobals: sc =>
                         {
                             sc.AddSingleton(config);
                         });
-
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn($"Error loading AI plugin from directory {dir}: {ex.Message}. Will try other directories.");
+                }
+                try
+                { 
                     if (plugin is not null)
                     {
                         logger.Info($"Found AI plugin: {plugin.Name}");
@@ -153,7 +162,8 @@ namespace RoboClerk
                 }
                 catch (Exception ex)
                 {
-                    logger.Warn($"Error loading AI plugin from directory {dir}: {ex.Message}");
+                    logger.Warn($"Error initializing AI plugin from directory {dir}: {ex.Message}");
+                    return null;
                 }
             }
             logger.Warn($"Could not find AI plugin '{config.AIPlugin}' in any of the plugin directories.");
