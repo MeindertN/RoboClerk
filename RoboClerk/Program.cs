@@ -21,7 +21,7 @@ namespace RoboClerk
 {
     class Program
     {
-        private static void ConfigureLogging(string configFile)
+        internal static void ConfigureLogging(string configFile)
         {
             var toml = Toml.Parse(File.ReadAllText(configFile)).ToModel();
             var logLevel = (string)toml["LogLevel"];
@@ -52,7 +52,7 @@ namespace RoboClerk
             LogManager.Configuration = config;
         }
 
-        private static Dictionary<string, string> GetConfigOptions(IEnumerable<string> commandlineOptions, ILogger logger)
+        internal static Dictionary<string, string> GetConfigOptions(IEnumerable<string> commandlineOptions, ILogger logger)
         {
             Dictionary<string, string> options = new Dictionary<string, string>();
             foreach (var commandlineOption in commandlineOptions)
@@ -72,7 +72,7 @@ namespace RoboClerk
             return options;
         }
 
-        private static void CleanOutputDirectory(string outputDir, ILogger logger)
+        internal static void CleanOutputDirectory(string outputDir, ILogger logger)
         {
             logger.Info("Cleaning output directory.");
             string[] files = Directory.GetFiles(outputDir);
@@ -86,8 +86,9 @@ namespace RoboClerk
             }
         }
 
-        private static void RegisterContentCreators(IServiceCollection services)
+        internal static void RegisterContentCreators(IServiceCollection services)
         {
+            ArgumentNullException.ThrowIfNull(services);
             // Get the assembly containing the content creators
             var assembly = typeof(Program).Assembly;
             
