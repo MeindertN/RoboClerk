@@ -2,7 +2,7 @@
 
 # Provide the names of the DataSource plugin(s) in a comma seperated list
 # For example: DataSourcePlugin = [ "AzureDevOpsSLMSPlugin", "RedmineCSVSLMSPlugin" ]
-DataSourcePlugin = [ "RedmineSLMSPlugin", "DependenciesFilePlugin", "UnitTestFNPlugin", "AnnotatedUnitTestPlugin", "TestResultsFilePlugin" ]
+DataSourcePlugin = [ "RedmineSLMSPlugin", "DependenciesFilePlugin", "UnitTestFNPlugin", "AnnotatedUnitTestsPlugin", "TestResultsFilePlugin" ]
 
 # Indicate what AI system plugin you'd like to use (if any). Provide "" for no AI plugin.
 # If you have an OpenAI key, you can use "OpenAIPlugin"

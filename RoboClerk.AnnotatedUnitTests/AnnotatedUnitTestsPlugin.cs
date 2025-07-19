@@ -30,7 +30,7 @@ namespace RoboClerk.AnnotatedUnitTests
 
         private void SetBaseParam()
         {
-            name = "AnnotatedUnitTestPlugin";
+            name = "AnnotatedUnitTestsPlugin";
             description = "A plugin that analyzes a project's source code to extract unit test information for RoboClerk.";
         }
 
