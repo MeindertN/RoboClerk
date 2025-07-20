@@ -2,11 +2,23 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+	  <ApplicationIcon />
+	  <OutputType>Library</OutputType>
+	  <StartupObject />
+	  <EnableDynamicLoading>true</EnableDynamicLoading>
+	  <Authors>Meindert Niemeijer</Authors>
+	  <Company>RoboClerk Project</Company>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Configurations>Debug;Release;DebugHTML</Configurations>
+	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+	  <Configurations>Debug;Release;ReleasePublish;DebugHTML</Configurations>
+	  <BaseOutputPath>bin</BaseOutputPath>
   </PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+	
   <ItemGroup>
     <PackageReference Include="Microsoft.Graph" Version="5.44.0" />
     <PackageReference Include="Azure.Identity" Version="1.14.2" />
@@ -14,8 +26,33 @@
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\RoboClerk\RoboClerk.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\RoboClerk\RoboClerk.csproj">
+			<Private>false</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+	</ItemGroup>
+
+	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
+		<ItemGroup>
+			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+		</ItemGroup>
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.SharePointFileProvider.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.SharePointFileProvider.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+	</Target>
+	<Target Name="CopyPlugin" AfterTargets="Build">
+		<ItemGroup>
+			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+		</ItemGroup>
+		<Copy SourceFiles="$(ProjectDir)Configuration/SharePointFileProviderPlugin.toml" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig" />
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)plugins" />
+	</Target>
+	<Target Name="AdaptConfigFiles" AfterTargets="Build" Condition=" '$(Configuration)' != 'ReleasePublish' ">
+		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/SharePointFileProvider.toml" MatchExpression="{PROJECTROOT}" ReplacementText="$(ProjectDir)../" />
+	</Target>
+	<Target Name="AdaptConfigFilesRP" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
+		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/SharePointFileProvider.toml" MatchExpression="{PROJECTROOT}" ReplacementText="/mnt/" />
+	</Target>
 
 </Project>

@@ -28,7 +28,7 @@ namespace RoboClerk
 
         protected override Assembly? Load(AssemblyName assemblyName)
         {
-            if (_sharedAssemblies.Contains(assemblyName.Name))
+            if (assemblyName.Name != null && _sharedAssemblies.Contains(assemblyName.Name))
             {
                 // Use the already loaded version from the default context
                 return null;

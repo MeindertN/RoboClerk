@@ -23,7 +23,7 @@ namespace RoboClerk
     {
         internal static void ConfigureLogging(string configFile)
         {
-            var toml = Toml.Parse(File.ReadAllText(configFile)).ToModel();
+            var toml = Toml.Parse(configFile).ToModel();
             var logLevel = (string)toml["LogLevel"];
             var outputDir = (string)toml["OutputDirectory"];
 
@@ -135,40 +135,52 @@ namespace RoboClerk
         {
             // Try loading plugins from each directory
             var logger = NLog.LogManager.GetCurrentClassLogger();
-            foreach (var dir in config.PluginDirs)
+
+            IAISystemPlugin plugin = null;
+            try
             {
-                IAISystemPlugin plugin = null;
-                try
-                {
-                    plugin = pluginLoader.LoadByName<IAISystemPlugin>(
-                        pluginDir: dir,
-                        typeName: config.AIPlugin,
-                        configureGlobals: sc =>
-                        {
-                            sc.AddSingleton(config);
-                        });
-                }
-                catch (Exception ex)
-                {
-                    logger.Warn($"Error loading AI plugin from directory {dir}: {ex.Message}. Will try other directories.");
-                }
-                try
-                { 
-                    if (plugin is not null)
+                plugin = pluginLoader.LoadByName<IAISystemPlugin>(
+                    pluginDir: config.PluginDir,
+                    typeName: config.AIPlugin,
+                    configureGlobals: sc =>
                     {
-                        logger.Info($"Found AI plugin: {plugin.Name}");
-                        plugin.InitializePlugin(config);
-                        return plugin;
-                    }
-                }
-                catch (Exception ex)
+                        sc.AddSingleton(config);
+                    });
+            }
+            catch (Exception ex)
+            {
+                logger.Warn($"Error loading AI plugin from directory {config.PluginDir}: {ex.Message}. Will try other directories.");
+            }
+            try
+            { 
+                if (plugin is not null)
                 {
-                    logger.Warn($"Error initializing AI plugin from directory {dir}: {ex.Message}");
-                    return null;
+                    logger.Info($"Found AI plugin: {plugin.Name}");
+                    plugin.InitializePlugin(config);
+                    return plugin;
                 }
+            }
+            catch (Exception ex)
+            {
+                logger.Warn($"Error initializing AI plugin from directory {config.PluginDir}: {ex.Message}");
+                return null;
             }
             logger.Warn($"Could not find AI plugin '{config.AIPlugin}' in any of the plugin directories.");
             return null;
+        }
+
+        internal static string LoadConfigFile(string configFile)
+        {
+            string config;
+            try
+            {
+                config = File.ReadAllText(configFile);
+            }
+            catch (IOException)
+            {
+                throw new FileNotFoundException($"Unable to read config file: {configFile}");
+            }
+            return config;
         }
 
         static int Main(string[] args)
@@ -180,20 +192,21 @@ namespace RoboClerk
                    {
                        //set up logging first
                        var assembly = Assembly.GetExecutingAssembly();
-                       var projectConfigFile = $"{Path.GetDirectoryName(assembly.Location)}/RoboClerk_input/RoboClerkConfig/projectConfig.toml";
-                       var roboClerkConfigFile = $"{Path.GetDirectoryName(assembly.Location)}/RoboClerk_input/RoboClerkConfig/RoboClerk.toml";
+                       var projectConfigFileName = $"{Path.GetDirectoryName(assembly.Location)}/RoboClerk_input/RoboClerkConfig/projectConfig.toml";
+                       var roboClerkConfigFileName = $"{Path.GetDirectoryName(assembly.Location)}/RoboClerk_input/RoboClerkConfig/RoboClerk.toml";
                        if (options.ConfigurationFile != null)
                        {
-                           roboClerkConfigFile = options.ConfigurationFile;
+                           roboClerkConfigFileName = options.ConfigurationFile;
                        }
                        if (options.ProjectConfigurationFile != null)
                        {
-                           projectConfigFile = options.ProjectConfigurationFile;
+                           projectConfigFileName = options.ProjectConfigurationFile;
                        }
-
+                       var mainConfigFile = LoadConfigFile(roboClerkConfigFileName);
+                       
                        try
                        {
-                           ConfigureLogging(roboClerkConfigFile);
+                           ConfigureLogging(mainConfigFile);
                        }
                        catch (Exception e)
                        {
@@ -206,9 +219,32 @@ namespace RoboClerk
                        try
                        {
                            var serviceCollection = new ServiceCollection();
-                           serviceCollection.AddTransient<IFileProviderPlugin>(x=> new LocalFileSystemPlugin(new FileSystem()));
+                           var localConfig = new Configuration.Configuration(mainConfigFile, commandlineOptions);
+                           //need to see if we are reading and writing files to a different filesystem          
+                           var projectConfig = string.Empty;
+                           if(localConfig.FileProviderPlugin.ToUpper() == "SHAREPOINTFILEPROVIDERPLUGIN")
+                           {
+                               logger.Info("Connecting to sharepoint for files.");
+                               //have to load the appropriate plugin
+                               PluginLoader tempLoader = new PluginLoader(new FileSystem(), new LocalFileSystemPlugin(new FileSystem()));
+                               var plugin = tempLoader.LoadByName<IFileProviderPlugin>(localConfig.PluginDir, "SharePointFileProviderPlugin");
+                               if(plugin == null)
+                               {
+                                   throw new Exception("Unable to load sharepoint plugin.");
+                               }
+                               plugin.InitializePlugin(localConfig);
+                               projectConfig = plugin.ReadAllText(projectConfigFileName);
+                               serviceCollection.AddSingleton<IFileProviderPlugin>(x => plugin);
+                           }
+                           else
+                           {
+                               logger.Info("Using the local filesystem.");
+                               serviceCollection.AddTransient<IFileProviderPlugin>(x => new LocalFileSystemPlugin(new FileSystem()));
+                               projectConfig = LoadConfigFile(projectConfigFileName);
+                           }
+                           localConfig.AddProjectConfig(projectConfig);
                            serviceCollection.AddTransient<IFileSystem, FileSystem>();
-                           serviceCollection.AddSingleton<IConfiguration>(x => new RoboClerk.Configuration.Configuration(x.GetRequiredService<IFileProviderPlugin>(), roboClerkConfigFile, projectConfigFile, commandlineOptions));
+                           serviceCollection.AddSingleton<IConfiguration>(x => localConfig);
                            serviceCollection.AddSingleton<IPluginLoader, PluginLoader>();
                            serviceCollection.AddSingleton<ITraceabilityAnalysis, TraceabilityAnalysis>();
                            serviceCollection.AddSingleton<IRoboClerkCore, RoboClerkCore>();

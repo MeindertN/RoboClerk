@@ -24,29 +24,27 @@ namespace RoboClerk
             foreach (var val in configuration.DataSourcePlugins)
             {
                 bool found = false;
-                foreach (var dir in configuration.PluginDirs)
-                {
-                    var plugin = pluginLoader.LoadByName<IDataSourcePlugin>(
-                        pluginDir: dir,
-                        typeName: val,
-                        configureGlobals: sc =>
-                        {
-                            sc.AddSingleton(fileSystem);
-                            sc.AddSingleton(configuration);
-                        });
-                    if (plugin != null)
+
+                var plugin = pluginLoader.LoadByName<IDataSourcePlugin>(
+                    pluginDir: configuration.PluginDir,
+                    typeName: val,
+                    configureGlobals: sc =>
                     {
-                        plugin.InitializePlugin(configuration);
-                        if (plugin as IDataSourcePlugin != null)
-                        {
-                            found = true;
-                            var temp = plugin as IDataSourcePlugin;
-                            temp.RefreshItems();
-                            plugins.Add(temp);
-                            break;
-                        }
+                        sc.AddSingleton(fileSystem);
+                        sc.AddSingleton(configuration);
+                    });
+                if (plugin != null)
+                {
+                    plugin.InitializePlugin(configuration);
+                    if (plugin as IDataSourcePlugin != null)
+                    {
+                        found = true;
+                        var temp = plugin as IDataSourcePlugin;
+                        temp.RefreshItems();
+                        plugins.Add(temp);
                     }
                 }
+                
                 if(!found)
                 {
                     //if we don't find a specified datasource plugin, that is reason to quit.
