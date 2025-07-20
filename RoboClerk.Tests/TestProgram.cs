@@ -545,14 +545,14 @@ OutputDirectory = ""C:\\temp\\output""
         public void CleanOutputDirectory_WithMixedFiles_CorrectFilesDeleted()
         {
             // Setup
-            var outputDir = @"C:\temp\output";
+            var outputDir = TestingHelpers.ConvertFilePath("C:\\temp\\output");
             var files = new[]
             {
-                @"C:\temp\output\document1.html",
-                @"C:\temp\output\document2.adoc",
-                @"C:\temp\output\RoboClerkLog.txt",
-                @"C:\temp\output\.gitignore",
-                @"C:\temp\output\temp.tmp"
+                TestingHelpers.ConvertFilePath("C:\\temp\\output\\document1.html"),
+                TestingHelpers.ConvertFilePath("C:\\temp\\output\\document2.adoc"),
+                TestingHelpers.ConvertFilePath("C:\\temp\\output\\RoboClerkLog.txt"),
+                TestingHelpers.ConvertFilePath("C:\\temp\\output\\.gitignore"),
+                TestingHelpers.ConvertFilePath("C:\\temp\\output\\temp.tmp")
             };
 
             // Create a real temporary directory for this test

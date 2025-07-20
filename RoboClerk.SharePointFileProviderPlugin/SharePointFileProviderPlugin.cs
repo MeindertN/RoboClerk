@@ -21,9 +21,11 @@ namespace RoboClerk.SharePointFileProvider
         private string tenantId = string.Empty;
         private string driveId = string.Empty;
         private GraphServiceClient graphClient = null;
+        private IFileProviderPlugin localFileSystem = null;
 
-        public SharePointFileProviderPlugin()
+        public SharePointFileProviderPlugin(IFileProviderPlugin localFileSystem)
         {
+            this.localFileSystem = localFileSystem;
             name = "SharePointFileProviderPlugin";
             description = "Provides access to SharePoint Online document libraries using Microsoft Graph SDK.";
         }

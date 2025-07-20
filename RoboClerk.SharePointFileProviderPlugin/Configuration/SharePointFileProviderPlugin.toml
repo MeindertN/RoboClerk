@@ -22,19 +22,3 @@ TenantId = "your-azure-ad-tenant-id"
 # You can find the Drive ID by calling the Microsoft Graph API: /sites/{site-id}/drives
 DriveId = "your-sharepoint-drive-id"
 
-# Optional: Additional configuration options
-# These can be extended based on your specific needs
-
-# Example for a specific site with subsite:
-# SiteUrl = "contoso.sharepoint.com/sites/engineering"
-# ClientId = "12345678-1234-1234-1234-123456789012"
-# ClientSecret = "your-client-secret-here"
-# TenantId = "87654321-4321-4321-4321-210987654321"
-# DriveId = "b!1234567890abcdef"
-
-# Example for root site:
-# SiteUrl = "contoso.sharepoint.com"
-# ClientId = "12345678-1234-1234-1234-123456789012"
-# ClientSecret = "your-client-secret-here"
-# TenantId = "87654321-4321-4321-4321-210987654321"
-# DriveId = "b!1234567890abcdef" 
