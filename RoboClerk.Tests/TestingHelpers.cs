@@ -8,7 +8,7 @@ namespace RoboClerk.Tests
 {
     public static class TestingHelpers
     {
-        public static string ConvertFileName(string input)
+        public static string ConvertFilePath(string input)
         {
             StringBuilder sb = new StringBuilder(input);
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

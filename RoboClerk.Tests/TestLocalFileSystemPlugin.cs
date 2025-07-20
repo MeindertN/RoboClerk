@@ -40,7 +40,7 @@ namespace RoboClerk.Tests
         public void FileExists_WhenFileExists_ReturnsTrue()
         {
             // Arrange
-            var filePath = @"C:\test\file.txt";
+            var filePath = TestingHelpers.ConvertFilePath("C:\\test\\file.txt");
             _mockFileSystem.AddFile(filePath, "test content");
 
             // Act
@@ -58,7 +58,7 @@ namespace RoboClerk.Tests
         public void FileExists_WhenFileDoesNotExist_ReturnsFalse()
         {
             // Arrange
-            var filePath = @"C:\test\nonexistent.txt";
+            var filePath = TestingHelpers.ConvertFilePath("C:\\test\\nonexistent.txt");
 
             // Act
             var result = _plugin.FileExists(filePath);
@@ -75,7 +75,7 @@ namespace RoboClerk.Tests
         public void DirectoryExists_WhenDirectoryExists_ReturnsTrue()
         {
             // Arrange
-            var directoryPath = @"C:\test\subdir";
+            var directoryPath = TestingHelpers.ConvertFilePath("C:\\test\\subdir");
             _mockFileSystem.AddDirectory(directoryPath);
 
             // Act
@@ -93,7 +93,7 @@ namespace RoboClerk.Tests
         public void DirectoryExists_WhenDirectoryDoesNotExist_ReturnsFalse()
         {
             // Arrange
-            var directoryPath = @"C:\test\nonexistent";
+            var directoryPath = TestingHelpers.ConvertFilePath("C:\\test\\nonexistent");
 
             // Act
             var result = _plugin.DirectoryExists(directoryPath);
@@ -110,7 +110,7 @@ namespace RoboClerk.Tests
         public void ReadAllText_WhenFileExists_ReturnsContent()
         {
             // Arrange
-            var filePath = @"C:\test\file.txt";
+            var filePath = TestingHelpers.ConvertFilePath("C:\\test\\file.txt");
             var expectedContent = "test content";
             _mockFileSystem.AddFile(filePath, expectedContent);
 
@@ -129,7 +129,7 @@ namespace RoboClerk.Tests
         public void ReadAllText_WhenFileDoesNotExist_ThrowsFileNotFoundException()
         {
             // Arrange
-            var filePath = @"C:\test\nonexistent.txt";
+            var filePath = TestingHelpers.ConvertFilePath("C:\\test\\nonexistent.txt");
 
             // Act & Assert
             Assert.Throws<FileNotFoundException>(() => _plugin.ReadAllText(filePath));
@@ -143,7 +143,7 @@ namespace RoboClerk.Tests
         public void WriteAllText_CreatesFileWithContent()
         {
             // Arrange
-            var filePath = @"C:\test\newfile.txt";
+            var filePath = TestingHelpers.ConvertFilePath("C:\\test\\newfile.txt");
             var content = "new content";
 
             // Act
@@ -162,15 +162,15 @@ namespace RoboClerk.Tests
         public void WriteAllText_CreatesDirectoryIfNotExists()
         {
             // Arrange
-            var filePath = @"C:\newdir\subdir\file.txt";
+            var filePath = TestingHelpers.ConvertFilePath("C:\\newdir\\subdir\\file.txt");
             var content = "test content";
 
             // Act
             _plugin.WriteAllText(filePath, content);
 
             // Assert
-            Assert.That(_mockFileSystem.Directory.Exists(@"C:\newdir"), Is.True);
-            Assert.That(_mockFileSystem.Directory.Exists(@"C:\newdir\subdir"), Is.True);
+            Assert.That(_mockFileSystem.Directory.Exists(TestingHelpers.ConvertFilePath("C:\\newdir")), Is.True);
+            Assert.That(_mockFileSystem.Directory.Exists(TestingHelpers.ConvertFilePath("C:\\newdir\\subdir")), Is.True);
             Assert.That(_mockFileSystem.FileExists(filePath), Is.True);
         }
 
@@ -182,7 +182,7 @@ namespace RoboClerk.Tests
         public void CreateDirectory_CreatesDirectory()
         {
             // Arrange
-            var directoryPath = @"C:\test\newdir";
+            var directoryPath = TestingHelpers.ConvertFilePath("C:\\test\\newdir");
 
             // Act
             _plugin.CreateDirectory(directoryPath);
@@ -199,7 +199,7 @@ namespace RoboClerk.Tests
         public void DeleteFile_WhenFileExists_DeletesFile()
         {
             // Arrange
-            var filePath = @"C:\test\file.txt";
+            var filePath = TestingHelpers.ConvertFilePath("C:\\test\\file.txt");
             _mockFileSystem.AddFile(filePath, "test content");
 
             // Act
@@ -217,7 +217,7 @@ namespace RoboClerk.Tests
         public void DeleteFile_WhenFileDoesNotExist_ThrowsFileNotFoundException()
         {
             // Arrange
-            var filePath = @"C:\test\nonexistent.txt";
+            var filePath = TestingHelpers.ConvertFilePath("C:\\test\\nonexistent.txt");
 
             // Act & Assert
             Assert.Throws<FileNotFoundException>(() => _plugin.DeleteFile(filePath));
@@ -231,18 +231,18 @@ namespace RoboClerk.Tests
         public void GetFiles_ReturnsMatchingFiles()
         {
             // Arrange
-            var directory = @"C:\test";
-            _mockFileSystem.AddFile(@"C:\test\file1.txt", "content1");
-            _mockFileSystem.AddFile(@"C:\test\file2.txt", "content2");
-            _mockFileSystem.AddFile(@"C:\test\file3.doc", "content3");
+            var directory = TestingHelpers.ConvertFilePath("C:\\test");
+            _mockFileSystem.AddFile(TestingHelpers.ConvertFilePath("C:\\test\\file1.txt"), "content1");
+            _mockFileSystem.AddFile(TestingHelpers.ConvertFilePath("C:\\test\\file2.txt"), "content2");
+            _mockFileSystem.AddFile(TestingHelpers.ConvertFilePath("C:\\test\\file3.doc"), "content3");
 
             // Act
             var result = _plugin.GetFiles(directory, "*.txt");
 
             // Assert
             Assert.That(result.Length, Is.EqualTo(2));
-            Assert.That(result, Contains.Item(@"C:\test\file1.txt"));
-            Assert.That(result, Contains.Item(@"C:\test\file2.txt"));
+            Assert.That(result, Contains.Item(TestingHelpers.ConvertFilePath("C:\\test\\file1.txt")));
+            Assert.That(result, Contains.Item(TestingHelpers.ConvertFilePath("C:\\test\\file2.txt")));
         }
 
         [UnitTestAttribute(
@@ -253,7 +253,7 @@ namespace RoboClerk.Tests
         public void GetFileSize_ReturnsCorrectSize()
         {
             // Arrange
-            var filePath = @"C:\test\file.txt";
+            var filePath = TestingHelpers.ConvertFilePath("C:\\test\\file.txt");
             var content = "test content";
             _mockFileSystem.AddFile(filePath, content);
 
@@ -272,7 +272,7 @@ namespace RoboClerk.Tests
         public void Combine_CombinesPathsCorrectly()
         {
             // Arrange
-            var path1 = @"C:\test";
+            var path1 = TestingHelpers.ConvertFilePath("C:\\test");
             var path2 = "subdir";
             var path3 = "file.txt";
 
@@ -280,7 +280,7 @@ namespace RoboClerk.Tests
             var result = _plugin.Combine(path1, path2, path3);
 
             // Assert
-            Assert.That(result, Is.EqualTo(@"C:\test\subdir\file.txt"));
+            Assert.That(result, Is.EqualTo(TestingHelpers.ConvertFilePath("C:\\test\\subdir\\file.txt")));
         }
 
         [UnitTestAttribute(
@@ -291,7 +291,7 @@ namespace RoboClerk.Tests
         public void GetFileName_ReturnsFileName()
         {
             // Arrange
-            var filePath = @"C:\test\subdir\file.txt";
+            var filePath = TestingHelpers.ConvertFilePath("C:\\test\\subdir\\file.txt");
 
             // Act
             var result = _plugin.GetFileName(filePath);
@@ -308,13 +308,13 @@ namespace RoboClerk.Tests
         public void GetDirectoryName_ReturnsDirectoryName()
         {
             // Arrange
-            var filePath = @"C:\test\subdir\file.txt";
+            var filePath = TestingHelpers.ConvertFilePath("C:\\test\\subdir\\file.txt");
 
             // Act
             var result = _plugin.GetDirectoryName(filePath);
 
             // Assert
-            Assert.That(result, Is.EqualTo(@"C:\test\subdir"));
+            Assert.That(result, Is.EqualTo(TestingHelpers.ConvertFilePath("C:\\test\\subdir")));
         }
 
         [UnitTestAttribute(

@@ -79,13 +79,13 @@ output media directory exists including subdirs""
         }";
             fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(configFile.ToString()) },
-                { TestingHelpers.ConvertFileName(@"c:\temp\TestDummy.cs"), new MockFileData(testFile) },
+                { TestingHelpers.ConvertFilePath(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(configFile.ToString()) },
+                { TestingHelpers.ConvertFilePath(@"c:\temp\TestDummy.cs"), new MockFileData(testFile) },
             });
             fileProviderPlugin = new LocalFileSystemPlugin(fileSystem);
             configuration = Substitute.For<IConfiguration>();
-            configuration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:/test/"));
-            configuration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:/temp/"));
+            configuration.PluginConfigDir.Returns(TestingHelpers.ConvertFilePath(@"c:/test/"));
+            configuration.ProjectRoot.Returns(TestingHelpers.ConvertFilePath(@"c:/temp/"));
             configuration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
         }

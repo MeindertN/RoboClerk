@@ -73,8 +73,8 @@ CompanyName = ""Acme Inc.""
 ";
             fs = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"C:\temp\roboConf.toml"), new MockFileData(roboConf) },
-                { TestingHelpers.ConvertFileName(@"C:\temp\roboProjectConf.toml"), new MockFileData(roboProjectConf) }
+                { TestingHelpers.ConvertFilePath(@"C:\temp\roboConf.toml"), new MockFileData(roboConf) },
+                { TestingHelpers.ConvertFilePath(@"C:\temp\roboProjectConf.toml"), new MockFileData(roboProjectConf) }
             });
             fileProviderPlugin = new LocalFileSystemPlugin(fs);
         }
@@ -86,7 +86,7 @@ CompanyName = ""Acme Inc.""
         [Test]
         public void CreateConfiguration()
         {
-            var conf = new RoboClerk.Configuration.Configuration(fileProviderPlugin, TestingHelpers.ConvertFileName(@"C:\temp\roboConf.toml"), TestingHelpers.ConvertFileName(@"C:\temp\roboProjectConf.toml"), cmdOptions);
+            var conf = new RoboClerk.Configuration.Configuration(fileProviderPlugin, TestingHelpers.ConvertFilePath(@"C:\temp\roboConf.toml"), TestingHelpers.ConvertFilePath(@"C:\temp\roboProjectConf.toml"), cmdOptions);
         }
 
         [UnitTestAttribute(
@@ -96,7 +96,7 @@ CompanyName = ""Acme Inc.""
         [Test]
         public void TestConfiguration1()
         {
-            var conf = new RoboClerk.Configuration.Configuration(fileProviderPlugin, TestingHelpers.ConvertFileName(@"C:\temp\roboConf.toml"), TestingHelpers.ConvertFileName(@"C:\temp\roboProjectConf.toml"), cmdOptions);
+            var conf = new RoboClerk.Configuration.Configuration(fileProviderPlugin, TestingHelpers.ConvertFilePath(@"C:\temp\roboConf.toml"), TestingHelpers.ConvertFilePath(@"C:\temp\roboProjectConf.toml"), cmdOptions);
 
             Assert.That(conf.DataSourcePlugins.Count,Is.EqualTo(2));
             Assert.That(conf.DataSourcePlugins[1], Is.EqualTo("DependenciesFilePlugin"));
@@ -213,11 +213,11 @@ MediaDirectory = ""I:/temp/Roboclerk_input/media""
 [ConfigValues]
 CompanyName = ""Acme Inc.""
 ";
-            fs.Directory.CreateDirectory(TestingHelpers.ConvertFileName(@"C:\temp"));
-            fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\temp\confMissing.toml"), roboProjectConf);
+            fs.Directory.CreateDirectory(TestingHelpers.ConvertFilePath(@"C:\temp"));
+            fs.File.WriteAllText(TestingHelpers.ConvertFilePath(@"C:\temp\confMissing.toml"), roboProjectConf);
             Assert.DoesNotThrow(() => new RoboClerk.Configuration.Configuration(fileProviderPlugin, 
-                TestingHelpers.ConvertFileName(@"C:\temp\roboConf.toml"), 
-                TestingHelpers.ConvertFileName(@"C:\temp\confMissing.toml"), cmdOptions));
+                TestingHelpers.ConvertFilePath(@"C:\temp\roboConf.toml"), 
+                TestingHelpers.ConvertFilePath(@"C:\temp\confMissing.toml"), cmdOptions));
         }
 
         [UnitTestAttribute(
@@ -228,8 +228,8 @@ CompanyName = ""Acme Inc.""
         public void TestConfiguration2()
         {
             Assert.Throws<FileNotFoundException>(()=> new RoboClerk.Configuration.Configuration(fileProviderPlugin, 
-                TestingHelpers.ConvertFileName(@"C:\temp\roboConf_invalid.toml"), 
-                TestingHelpers.ConvertFileName(@"C:\temp\roboProjectConf.toml"), cmdOptions));
+                TestingHelpers.ConvertFilePath(@"C:\temp\roboConf_invalid.toml"), 
+                TestingHelpers.ConvertFilePath(@"C:\temp\roboProjectConf.toml"), cmdOptions));
         }
 
         [UnitTestAttribute(
@@ -240,8 +240,8 @@ CompanyName = ""Acme Inc.""
         public void TestConfiguration3()
         {
             Assert.Throws<FileNotFoundException>(() => new RoboClerk.Configuration.Configuration(fileProviderPlugin, 
-                TestingHelpers.ConvertFileName(@"C:\temp\roboConf.toml"),
-                TestingHelpers.ConvertFileName(@"C:\temp\roboProjectConf_invalid.toml"), cmdOptions));
+                TestingHelpers.ConvertFilePath(@"C:\temp\roboConf.toml"),
+                TestingHelpers.ConvertFilePath(@"C:\temp\roboProjectConf_invalid.toml"), cmdOptions));
         }
 
         [UnitTestAttribute(
@@ -252,8 +252,8 @@ CompanyName = ""Acme Inc.""
         public void TestConfiguration4()
         {
             cmdOptions.Add("CheckpointFile", "testvalue");
-            var conf = new RoboClerk.Configuration.Configuration(fileProviderPlugin, TestingHelpers.ConvertFileName(@"C:\temp\roboConf.toml"),
-                TestingHelpers.ConvertFileName(@"C:\temp\roboProjectConf.toml"), cmdOptions);
+            var conf = new RoboClerk.Configuration.Configuration(fileProviderPlugin, TestingHelpers.ConvertFilePath(@"C:\temp\roboConf.toml"),
+                TestingHelpers.ConvertFilePath(@"C:\temp\roboProjectConf.toml"), cmdOptions);
             Assert.That(conf.CommandLineOptionOrDefault("CheckpointFile", "error"), Is.EqualTo("testvalue"));
         }
     }

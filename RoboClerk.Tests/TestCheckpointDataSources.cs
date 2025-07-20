@@ -77,8 +77,8 @@ namespace RoboClerk.Tests
 }";
             mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\temp\fake.json"), new MockFileData(filecontent2) },
-                { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\temp\fake.json"), new MockFileData(filecontent2) },
+                { TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
             mockFileProviderPlugin = new LocalFileSystemPlugin(mockFileSystem);
 
@@ -103,12 +103,12 @@ namespace RoboClerk.Tests
             mockConfiguration = Substitute.For<IConfiguration>();
 
             mockConfiguration.DataSourcePlugins.ReturnsForAnyArgs(new List<string> { "testPlugin2", "testDepPlugin" });
-            mockConfiguration.PluginDirs.ReturnsForAnyArgs(new List<string> { TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist"), TestingHelpers.ConvertFileName("c:\\temp\\") });
-            mockConfiguration.TemplateDir.Returns(TestingHelpers.ConvertFileName("c:\\temp"));
+            mockConfiguration.PluginDirs.ReturnsForAnyArgs(new List<string> { TestingHelpers.ConvertFilePath("c:\\temp\\does_not_exist"), TestingHelpers.ConvertFilePath("c:\\temp\\") });
+            mockConfiguration.TemplateDir.Returns(TestingHelpers.ConvertFilePath("c:\\temp"));
             mockConfiguration.CheckpointConfig.Returns(new CheckpointConfig());
             mockPluginLoader.LoadByName<IDataSourcePlugin>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)null);
-            mockPluginLoader.Configure().LoadByName<IDataSourcePlugin>(Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")), Arg.Is("testPlugin2"), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)mockPlugin);
-            mockPluginLoader.Configure().LoadByName<IDataSourcePlugin>(Arg.Is(TestingHelpers.ConvertFileName("c:\\temp\\does_not_exist")), Arg.Is("testDepPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)mockDepMgmtPlugin);
+            mockPluginLoader.Configure().LoadByName<IDataSourcePlugin>(Arg.Is(TestingHelpers.ConvertFilePath("c:\\temp\\does_not_exist")), Arg.Is("testPlugin2"), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)mockPlugin);
+            mockPluginLoader.Configure().LoadByName<IDataSourcePlugin>(Arg.Is(TestingHelpers.ConvertFilePath("c:\\temp\\does_not_exist")), Arg.Is("testDepPlugin"), Arg.Any<Action<IServiceCollection>>()).Returns((IDataSourcePlugin)mockDepMgmtPlugin);
         }
 
         [UnitTestAttribute(

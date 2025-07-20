@@ -105,24 +105,24 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\temp\media\illustration.jpeg"), new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
-                { TestingHelpers.ConvertFileName(@"c:\temp\media\subdir\image.gif"), new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
-                { TestingHelpers.ConvertFileName(@"c:\temp\media\.gitignore"), new MockFileData("This is a gitignore file") },
-                { TestingHelpers.ConvertFileName(@"c:\out\media\junk.jpeg"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\temp\media\illustration.jpeg"), new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\temp\media\subdir\image.gif"), new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\temp\media\.gitignore"), new MockFileData("This is a gitignore file") },
+                { TestingHelpers.ConvertFilePath(@"c:\out\media\junk.jpeg"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
-            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
+            config.MediaDir.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\media"));
+            config.OutputDir.Returns(TestingHelpers.ConvertFilePath(@"c:\out\"));
             config.Documents.Returns(new List<DocumentConfig>());
             
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
             core.GenerateDocs();
-            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\junk.jpeg")));
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\illustration.jpeg")));
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\subdir\image.gif")));
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\.gitignore")));
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\illustration.jpeg")));
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\subdir\image.gif")));
-            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\.gitignore")));
+            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\media\junk.jpeg")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\temp\media\illustration.jpeg")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\temp\media\subdir\image.gif")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\temp\media\.gitignore")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\media\illustration.jpeg")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\media\subdir\image.gif")));
+            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\media\.gitignore")));
         }
 
         [UnitTestAttribute(
@@ -134,24 +134,24 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\temp\media\illustration.jpeg"), new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
-                { TestingHelpers.ConvertFileName(@"c:\temp\media\image.gif"), new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
-                { TestingHelpers.ConvertFileName(@"c:\temp\media\.gitignore"), new MockFileData("This is a gitignore file") },
-                { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\temp\media\illustration.jpeg"), new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\temp\media\image.gif"), new MockFileData(new byte[] { 0x12, 0x34, 0x56, 0xd2 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\temp\media\.gitignore"), new MockFileData("This is a gitignore file") },
+                { TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
-            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
+            config.MediaDir.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\media"));
+            config.OutputDir.Returns(TestingHelpers.ConvertFilePath(@"c:\out\"));
             config.Documents.Returns(new List<DocumentConfig>());
 
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, null);
             core.GenerateDocs();
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\illustration.jpeg")));
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\image.gif")));
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\temp\media\.gitignore")));
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\illustration.jpeg")));
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\image.gif")));
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin")));
-            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media\.gitignore")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\temp\media\illustration.jpeg")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\temp\media\image.gif")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\temp\media\.gitignore")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\media\illustration.jpeg")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\media\image.gif")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin")));
+            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\media\.gitignore")));
         }
 
         [UnitTestAttribute(
@@ -163,16 +163,16 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
-            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
+            config.MediaDir.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\media"));
+            config.OutputDir.Returns(TestingHelpers.ConvertFilePath(@"c:\out\"));
             config.Documents.Returns(new List<DocumentConfig>());
 
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader, null);
             core.GenerateDocs();
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin")));
-            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\media")));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin")));
+            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\media")));
         }
 
         [UnitTestAttribute(
@@ -184,11 +184,11 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), new MockFileData("@@Config:SoftwareName()@@") },
-                { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), new MockFileData("@@Config:SoftwareName()@@") },
+                { TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
-            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
+            config.MediaDir.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\media"));
+            config.OutputDir.Returns(TestingHelpers.ConvertFilePath(@"c:\out\"));
             DocumentConfig config2 = new DocumentConfig(
                 "roboclerkID", "documentID", "documentTitle", "ABR", string.Empty);
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
@@ -196,7 +196,7 @@ namespace RoboClerk.Tests
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fs, pluginLoader, null);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
+            ClassicAssert.IsFalse(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
         }
 
         [UnitTestAttribute(
@@ -208,21 +208,21 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), new MockFileData("@@Config:SoftwareName()@@") },
-                { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), new MockFileData("@@Config:SoftwareName()@@") },
+                { TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
-            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
+            config.MediaDir.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\media"));
+            config.OutputDir.Returns(TestingHelpers.ConvertFilePath(@"c:\out\"));
             DocumentConfig config2 = new DocumentConfig(
-                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFileName(@"c:\in\template.adoc"));
+                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"));
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
             dataSources.GetConfigValue("SoftwareName").Returns("testvalue");
 
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
-            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
+            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
             Assert.That(content == "testvalue");
         }
 
@@ -235,13 +235,13 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), new MockFileData("@@Trace:SWR(id=89)@@ @@traCe:SWR(iD=19)@@") },
-                { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), new MockFileData("@@Trace:SWR(id=89)@@ @@traCe:SWR(iD=19)@@") },
+                { TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
-            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
+            config.MediaDir.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\media"));
+            config.OutputDir.Returns(TestingHelpers.ConvertFilePath(@"c:\out\"));
             DocumentConfig config2 = new DocumentConfig(
-                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFileName(@"c:\in\template.adoc"));
+                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"));
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
             var item = new RequirementItem(RequirementType.SoftwareRequirement);
             item.Link = new Uri("http://localhost/");
@@ -250,11 +250,11 @@ namespace RoboClerk.Tests
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
-            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
+            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
             Assert.That(content == "(89) (http://localhost/[19])");
 
-            fileSystem.File.WriteAllText(TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), "@@Trace:SWR()@@");
+            fileSystem.File.WriteAllText(TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), "@@Trace:SWR()@@");
             core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             Assert.Throws<TagInvalidException>(() => core.GenerateDocs());
         }
@@ -268,20 +268,20 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), new MockFileData("remainder\n@@@Comment:general()\nthis is the comment\n@@@") },
-                { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), new MockFileData("remainder\n@@@Comment:general()\nthis is the comment\n@@@") },
+                { TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
-            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
+            config.MediaDir.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\media"));
+            config.OutputDir.Returns(TestingHelpers.ConvertFilePath(@"c:\out\"));
             DocumentConfig config2 = new DocumentConfig(
-                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFileName(@"c:\in\template.adoc"));
+                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"));
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
 
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
-            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
+            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
             Assert.That(content == "remainder\n");
         }
 
@@ -294,20 +294,20 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), new MockFileData("@@PosT:PageBreak()@@ @@POSt:RemoveParagraph()@@ @@post:Toc()@@ @@post:unknown()@@") },
-                { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), new MockFileData("@@PosT:PageBreak()@@ @@POSt:RemoveParagraph()@@ @@post:Toc()@@ @@post:unknown()@@") },
+                { TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
-            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
+            config.MediaDir.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\media"));
+            config.OutputDir.Returns(TestingHelpers.ConvertFilePath(@"c:\out\"));
             DocumentConfig config2 = new DocumentConfig(
-                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFileName(@"c:\in\template.adoc"));
+                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"));
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
 
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
-            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
+            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
             Assert.That(content == "~PAGEBREAK ~REMOVEPARAGRAPH ~TOC UNKNOWN POST PROCESSING TAG: unknown");
         }
 
@@ -320,24 +320,24 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), new MockFileData("@@Ref:roboclerkID()@@ @@Ref:roboclerkID(id=true,title=true,abbr=true,template=true)@@") } , 
-                { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), new MockFileData("@@Ref:roboclerkID()@@ @@Ref:roboclerkID(id=true,title=true,abbr=true,template=true)@@") } , 
+                { TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
-            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
+            config.MediaDir.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\media"));
+            config.OutputDir.Returns(TestingHelpers.ConvertFilePath(@"c:\out\"));
             DocumentConfig config2 = new DocumentConfig(
-                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFileName(@"c:\in\template.adoc"));
+                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"));
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
             traceAnalysis.GetTraceEntityForID("roboclerkID").Returns(new TraceEntity("roboclerkID","documentTitle","ABR",TraceEntityType.Document));
 
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
-            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
+            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
             Assert.That(content == $"{config2.DocumentTitle} {config2.DocumentID} {config2.DocumentTitle} ({config2.DocumentAbbreviation}) {config2.DocumentTemplate}");
 
-            fileSystem.File.WriteAllText(TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), "@@Ref:nonexistentID()@@ @@Ref:nonexistentID(abbr=true)@@");
+            fileSystem.File.WriteAllText(TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), "@@Ref:nonexistentID()@@ @@Ref:nonexistentID(abbr=true)@@");
             core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             Assert.Throws<TagInvalidException>(() => core.GenerateDocs());
         }
@@ -351,24 +351,24 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), new MockFileData("@@Ref:roboclerkID(title=true)@@ @@Ref:roboclerkID(id=true)@@ @@Ref:roboclerkID(title=true)@@ (@@Ref:roboclerkID(abbr=true)@@) @@Ref:roboclerkID(template=true)@@") } ,
-                { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), new MockFileData("@@Ref:roboclerkID(title=true)@@ @@Ref:roboclerkID(id=true)@@ @@Ref:roboclerkID(title=true)@@ (@@Ref:roboclerkID(abbr=true)@@) @@Ref:roboclerkID(template=true)@@") } ,
+                { TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
-            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
+            config.MediaDir.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\media"));
+            config.OutputDir.Returns(TestingHelpers.ConvertFilePath(@"c:\out\"));
             DocumentConfig config2 = new DocumentConfig(
-                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFileName(@"c:\in\template.adoc"));
+                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"));
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
             traceAnalysis.GetTraceEntityForID("roboclerkID").Returns(new TraceEntity("roboclerkID", "documentTitle", "ABR", TraceEntityType.Document));
 
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
-            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
+            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
             Assert.That(content == $"{config2.DocumentTitle} {config2.DocumentID} {config2.DocumentTitle} ({config2.DocumentAbbreviation}) {config2.DocumentTemplate}");
 
-            fileSystem.File.WriteAllText(TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), "@@Ref:roboclerkID()@@ @@Ref:roboclerkID(doesnotexist=true)@@");
+            fileSystem.File.WriteAllText(TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), "@@Ref:roboclerkID()@@ @@Ref:roboclerkID(doesnotexist=true)@@");
             core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             Assert.Throws<TagInvalidException>(() => core.GenerateDocs());
         }
@@ -382,23 +382,23 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), new MockFileData("@@Document:Title()@@ @@DocuMent:abbreviAtion()@@ @@Document:identifier()@@ @@Document:template()@@ @@docUment:RoboClerkID()@@") } , 
-                { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), new MockFileData("@@Document:Title()@@ @@DocuMent:abbreviAtion()@@ @@Document:identifier()@@ @@Document:template()@@ @@docUment:RoboClerkID()@@") } , 
+                { TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
-            config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
-            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
+            config.MediaDir.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\media"));
+            config.OutputDir.Returns(TestingHelpers.ConvertFilePath(@"c:\out\"));
             DocumentConfig config2 = new DocumentConfig(
-                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFileName(@"c:\in\template.adoc"));
+                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"));
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
 
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
-            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
-            Assert.That(content == @"documentTitle ABR documentID "+ TestingHelpers.ConvertFileName(@"c:\in\template.adoc") +" roboclerkID");
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
+            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
+            Assert.That(content == @"documentTitle ABR documentID "+ TestingHelpers.ConvertFilePath(@"c:\in\template.adoc") +" roboclerkID");
 
-            fileSystem.File.WriteAllText(TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), "@@document:nonexistentID()@@");
+            fileSystem.File.WriteAllText(TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), "@@document:nonexistentID()@@");
             core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             Assert.Throws<Exception>(() => core.GenerateDocs());
         }
@@ -412,14 +412,14 @@ namespace RoboClerk.Tests
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), new MockFileData("@@SLMS:SWR(ItemID=14)@@") },
-                { TestingHelpers.ConvertFileName(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
+                { TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), new MockFileData("@@SLMS:SWR(ItemID=14)@@") },
+                { TestingHelpers.ConvertFilePath(@"c:\out\placeholder.bin"), new MockFileData(new byte[] { 0x11, 0x33, 0x55, 0xd1 }) },
             });
             config.PluginDirs.Returns(new List<string>() { @"c:\temp" });
-            config.MediaDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp\media"));
-            config.OutputDir.Returns(TestingHelpers.ConvertFileName(@"c:\out\"));
+            config.MediaDir.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\media"));
+            config.OutputDir.Returns(TestingHelpers.ConvertFilePath(@"c:\out\"));
             DocumentConfig config2 = new DocumentConfig(
-                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFileName(@"c:\in\template.adoc"));
+                "roboclerkID", "documentID", "documentTitle", "ABR", TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"));
             config.Documents.Returns(new List<DocumentConfig>() { config2 });
 
             var testRequirement = new RequirementItem(RequirementType.SoftwareRequirement);
@@ -454,15 +454,15 @@ AddTrace(item.ItemID);
             var core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFileName(@"c:\out\template.adoc")));
-            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
+            ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
+            string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
             Assert.That(content == "\n|====\n| typename ID: | 14\n| typename Revision: | rev1\n| typename Category: | \n| Parent ID: | N/A\n| Title: | title\n| Description: a| description\n|====\n");
 
-            fileSystem.File.WriteAllText(TestingHelpers.ConvertFileName(@"c:\in\template.adoc"), "@@SLMS:unknown(ItemID=33)@@");
+            fileSystem.File.WriteAllText(TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), "@@SLMS:unknown(ItemID=33)@@");
             core = new RoboClerkCore(config, dataSources, traceAnalysis, fileSystem, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
-            content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\out\template.adoc"));
+            content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
             Assert.That(content == "UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS 'SLMS:unknown' IS KNOWN TO ROBOCLERK.\n");
         }
     }

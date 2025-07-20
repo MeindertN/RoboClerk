@@ -222,7 +222,7 @@ Ignore = [ ""Rejected"", ""Dejected"" ]
 
             fileSystem.File.ReadAllText(Arg.Any<string>()).Returns(testpluginconfig);
             fileSystem.File.Exists(Arg.Any<string>()).Returns(true);
-            config.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:\temp"));
+            config.PluginConfigDir.Returns(TestingHelpers.ConvertFilePath(@"c:\temp"));
             fileProviderPlugin.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns("C:\\temp\\testplugin.toml");
         }
 

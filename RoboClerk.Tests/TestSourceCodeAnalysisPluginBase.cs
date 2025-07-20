@@ -69,17 +69,17 @@ UseGit = false";
 
             fs = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), new MockFileData(tomlFile) },
-                { TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff1.cs"), new MockFileData("this is a mock file1") },
-                { TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff2.txt"), new MockFileData("this is a mock file2") },
-                { TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff3.cs"), new MockFileData("this is a mock file3") },
-                { TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\SubDir\TestStuff4.cs"), new MockFileData("this is a mock file4") },
-                { TestingHelpers.ConvertFileName(@"C:\RoboClerkTest2\TestStuff5.cs"), new MockFileData("this is a mock file5") },
+                { TestingHelpers.ConvertFilePath(@"C:\TestSourceCodeAnalysisPlugin.toml"), new MockFileData(tomlFile) },
+                { TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest\TestStuff1.cs"), new MockFileData("this is a mock file1") },
+                { TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest\TestStuff2.txt"), new MockFileData("this is a mock file2") },
+                { TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest\TestStuff3.cs"), new MockFileData("this is a mock file3") },
+                { TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest\SubDir\TestStuff4.cs"), new MockFileData("this is a mock file4") },
+                { TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest2\TestStuff5.cs"), new MockFileData("this is a mock file5") },
             });
             fileProvider = new LocalFileSystemPlugin(fs);
             config = Substitute.For<IConfiguration>();
-            config.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"C:\"));
-            config.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest"));
+            config.PluginConfigDir.Returns(TestingHelpers.ConvertFilePath(@"C:\"));
+            config.ProjectRoot.Returns(TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest"));
         }
 
         [UnitTestAttribute(
@@ -116,8 +116,8 @@ UseGit = false";
             Assert.That(testPlugin.FileMasks.Count, Is.EqualTo(1));
             Assert.That(testPlugin.FileMasks[0], Is.EqualTo("Test*.cs"));
             Assert.That(testPlugin.Directories.Count, Is.EqualTo(2));
-            Assert.That(testPlugin.Directories[0], Is.EqualTo(TestingHelpers.ConvertFileName("C:\\RoboClerkTest")));
-            Assert.That(testPlugin.Directories[1], Is.EqualTo(TestingHelpers.ConvertFileName("C:\\RoboClerkTest2")));
+            Assert.That(testPlugin.Directories[0], Is.EqualTo(TestingHelpers.ConvertFilePath("C:\\RoboClerkTest")));
+            Assert.That(testPlugin.Directories[1], Is.EqualTo(TestingHelpers.ConvertFilePath("C:\\RoboClerkTest2")));
             Assert.That(testPlugin.SubDir);
         }
 
@@ -146,16 +146,16 @@ FileMasks = [""Test*.cs""]
 UseGit = false";
             }
 
-            fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
+            fs.File.WriteAllText(TestingHelpers.ConvertFilePath(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
             testPlugin.InitializePlugin(config);
           
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(3));
-            Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff1.cs")));
-            Assert.That(testPlugin.SourceFiles[1], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff3.cs")));
-            Assert.That(testPlugin.SourceFiles[2], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest2\TestStuff5.cs")));
+            Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest\TestStuff1.cs")));
+            Assert.That(testPlugin.SourceFiles[1], Is.EqualTo(TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest\TestStuff3.cs")));
+            Assert.That(testPlugin.SourceFiles[2], Is.EqualTo(TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest2\TestStuff5.cs")));
         }
 
         [UnitTestAttribute(
@@ -190,10 +190,10 @@ UseGit = false";
 
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(4));
-            Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff1.cs")));
-            Assert.That(testPlugin.SourceFiles[1], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff3.cs")));
-            Assert.That(testPlugin.SourceFiles[2], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\SubDir\TestStuff4.cs")));
-            Assert.That(testPlugin.SourceFiles[3], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest2\TestStuff5.cs")));
+            Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest\TestStuff1.cs")));
+            Assert.That(testPlugin.SourceFiles[1], Is.EqualTo(TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest\TestStuff3.cs")));
+            Assert.That(testPlugin.SourceFiles[2], Is.EqualTo(TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest\SubDir\TestStuff4.cs")));
+            Assert.That(testPlugin.SourceFiles[3], Is.EqualTo(TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest2\TestStuff5.cs")));
         }
 
         [UnitTestAttribute(
@@ -221,17 +221,17 @@ FileMasks = [""Test*.cs"",""Test*.txt""]
 UseGit = false";
             }
 
-            fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
+            fs.File.WriteAllText(TestingHelpers.ConvertFilePath(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
             testPlugin.InitializePlugin(config);
 
             testPlugin.RefreshItems();
             Assert.That(testPlugin.SourceFiles.Count, Is.EqualTo(4));
-            Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff1.cs")));
-            Assert.That(testPlugin.SourceFiles[1], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff3.cs")));
-            Assert.That(testPlugin.SourceFiles[2], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest\TestStuff2.txt")));
-            Assert.That(testPlugin.SourceFiles[3], Is.EqualTo(TestingHelpers.ConvertFileName(@"C:\RoboClerkTest2\TestStuff5.cs")));
+            Assert.That(testPlugin.SourceFiles[0], Is.EqualTo(TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest\TestStuff1.cs")));
+            Assert.That(testPlugin.SourceFiles[1], Is.EqualTo(TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest\TestStuff3.cs")));
+            Assert.That(testPlugin.SourceFiles[2], Is.EqualTo(TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest\TestStuff2.txt")));
+            Assert.That(testPlugin.SourceFiles[3], Is.EqualTo(TestingHelpers.ConvertFilePath(@"C:\RoboClerkTest2\TestStuff5.cs")));
         }
 
         [UnitTestAttribute(
@@ -259,7 +259,7 @@ FileMasks = [""Test*.cs"",""Test*.txt""]
 UseGit = false";
             }
 
-            fs.File.WriteAllText(TestingHelpers.ConvertFileName(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
+            fs.File.WriteAllText(TestingHelpers.ConvertFilePath(@"C:\TestSourceCodeAnalysisPlugin.toml"), tomlFile);
 
             var testPlugin = new TestSourceCodeAnalysisPlugin(fileProvider);
             testPlugin.InitializePlugin(config);
