@@ -12,7 +12,14 @@ namespace RoboClerk
 {
     public class PluginLoadContext : AssemblyLoadContext
     {
-        private AssemblyDependencyResolver _resolver;
+        private static readonly HashSet<string> _sharedAssemblies = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "RoboClerk",
+            "Microsoft.Extensions.DependencyInjection.Abstractions",
+            "Microsoft.Extensions.DependencyInjection"
+        };
+
+        private readonly AssemblyDependencyResolver _resolver;
 
         public PluginLoadContext(string pluginPath)
         {
@@ -21,6 +28,12 @@ namespace RoboClerk
 
         protected override Assembly? Load(AssemblyName assemblyName)
         {
+            if (_sharedAssemblies.Contains(assemblyName.Name))
+            {
+                // Use the already loaded version from the default context
+                return null;
+            }
+
             string? assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)
             {

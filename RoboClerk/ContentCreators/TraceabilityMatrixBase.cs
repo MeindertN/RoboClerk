@@ -19,6 +19,24 @@ namespace RoboClerk.ContentCreators
             this.configuration = configuration;
         }
 
+        private string GetLinkString(Item item)
+        {
+            string format = configuration.OutputFormat.ToUpper();
+            string result = item.ItemID;
+            if (item.HasLink)
+            {
+                if (format == "HTML")
+                {
+                    result = $"<a href=\"{item.Link}\">{item.ItemID}</a>";
+                }
+                else if (format == "ASCIIDOC")
+                {
+                    result = $"{item.Link}[{item.ItemID}]";
+                }
+            }
+            return result;
+        }
+
         public virtual string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             if (truthSource == null)
@@ -75,7 +93,7 @@ namespace RoboClerk.ContentCreators
                                 }
                                 else
                                 {
-                                    combinedString.Append(item.HasLink ? $"{item.Link}[{item.ItemID}]" : item.ItemID);
+                                    combinedString.Append(GetLinkString(item));
                                 }                                
                             }
                             combinedString.Append(", ");
@@ -97,7 +115,7 @@ namespace RoboClerk.ContentCreators
             {
                 traceIssuesFound = true;
                 Item item = data.GetItem(issue.SourceID);
-                traceIssues.Add($"{truthSource.Name} {(item.HasLink ? $"{item.Link}[{item.ItemID}]" : item.ItemID)} is potentially missing a corresponding {issue.Target.Name}.");
+                traceIssues.Add($"{truthSource.Name} {GetLinkString(item)} is potentially missing a corresponding {issue.Target.Name}.");
             }
 
             foreach (var tet in traceMatrix)
@@ -122,7 +140,7 @@ namespace RoboClerk.ContentCreators
                     string targetID = issue.TargetID;
                     if (item != null)
                     {
-                        sourceID = (item.HasLink ? $"{item.Link}[{item.ItemID}]" : item.ItemID);
+                        sourceID = GetLinkString(item);
                     }
                     if (issue.IssueType == TraceIssueType.Extra)
                     {
@@ -145,7 +163,7 @@ namespace RoboClerk.ContentCreators
                         var targetItem = data.GetItem(targetID);
                         if (targetItem != null)
                         {
-                            targetID = (targetItem.HasLink ? $"{targetItem.Link}[{targetItem.ItemID}]" : targetItem.ItemID);
+                            targetID = GetLinkString(targetItem);
                             traceIssues.Add($"An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not found.");
                         }
                         else if (targetID != null)

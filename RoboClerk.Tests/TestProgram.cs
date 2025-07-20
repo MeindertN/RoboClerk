@@ -46,7 +46,7 @@ namespace RoboClerk.Tests
         #region AI Plugin Tests (existing)
 
         [UnitTestAttribute(
-            Identifier = "A1B2C3D4-E5F6-7890-ABCD-EF1234567890",
+            Identifier = "A1B2C3D4-E5F6-7890-ABCD-EF123B567890",
             Purpose = "RegisterAIPlugin validation when AI plugin is configured and found",
             PostCondition = "AI plugin is registered in service collection")]
         [Test]
@@ -75,7 +75,7 @@ namespace RoboClerk.Tests
         }
 
         [UnitTestAttribute(
-            Identifier = "B2C3D4E5-F6G7-8901-BCDE-F23456789012",
+            Identifier = "B2C3D4E5-F6G7-8901-BCDE-F2W856789012",
             Purpose = "RegisterAIPlugin validation when AI plugin is not configured",
             PostCondition = "No AI plugin is registered in service collection")]
         [Test]

@@ -307,7 +307,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "B2C3D4E5-F6A7-8901-BCDE-F23456789012",
+        Identifier = "L9C3D4E5-F6A7-8901-BCDE-F23456789012",
         Purpose = "CustomFieldList is deserialized correctly",
         PostCondition = "All custom fields are properly parsed from JSON")]
         [Test]
@@ -359,7 +359,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "C3D4E5F6-A789-0123-CDEF-34567890123A",
+        Identifier = "3D11F5AD-5799-4630-95C2-176E336179CB",
         Purpose = "Version object is deserialized correctly",
         PostCondition = "All version properties including dates are correctly parsed")]
         [Test]
@@ -399,7 +399,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "D4E5F6A7-B890-1234-DEF0-4567890123AB",
+        Identifier = "31B6DC78-5B50-4AB6-9AEF-A070C7D21C29",
         Purpose = "VersionList with multiple versions is deserialized correctly",
         PostCondition = "All versions in the list are properly parsed")]
         [Test]
@@ -446,7 +446,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "E5F6A7B8-C901-2345-EF01-567890123ABC",
+        Identifier = "047ABA42-1D5B-4A03-94F8-91855900F7F4",
         Purpose = "RedmineIssue with all fields is deserialized correctly",
         PostCondition = "All issue properties including nested objects are properly parsed")]
         [Test]
@@ -569,7 +569,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "F6A7B8C9-D012-3456-F012-67890123ABCD",
+        Identifier = "C12BB42F-2340-4B8B-A3E5-A1C6A1AE61DF",
         Purpose = "RedmineIssues list with multiple issues is deserialized correctly",
         PostCondition = "All issues and pagination information are properly parsed")]
         [Test]
@@ -624,7 +624,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "A7B8C9D0-E123-4567-A123-7890123ABCDE",
+        Identifier = "21D61511-45FF-4ABA-8D23-5D59E2F182D8",
         Purpose = "RedmineProject is deserialized correctly",
         PostCondition = "All project properties are properly parsed")]
         [Test]
@@ -664,7 +664,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "B8C9D0E1-F234-5678-B234-890123ABCDEF",
+        Identifier = "9CC3AD74-0056-4CF7-A20E-C150D80F9FAA",
         Purpose = "RedmineTracker is deserialized correctly",
         PostCondition = "All tracker properties including default status are properly parsed")]
         [Test]
@@ -692,7 +692,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "C9D0E1F2-A345-6789-C345-90123ABCDEF0",
+        Identifier = "7C0E3033-2A7A-4235-BB7D-1860ADAEA1D7",
         Purpose = "RedmineProjects list with multiple projects is deserialized correctly",
         PostCondition = "All projects and pagination information are properly parsed")]
         [Test]
@@ -763,7 +763,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "D0E1F2A3-B456-789A-D456-0123ABCDEF01",
+        Identifier = "6FE12BB3-58C2-41FE-BFFB-0105CC5299F6",
         Purpose = "RedmineTrackers list with multiple trackers is deserialized correctly",
         PostCondition = "All trackers are properly parsed")]
         [Test]
@@ -984,7 +984,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "E1F2A3B4-C567-89AB-E567-123ABCDEF012",
+        Identifier = "A6FD94C7-1850-4C88-95F0-F7A4B9EE7225",
         Purpose = "RedmineSLMSPlugin throws when required configuration is missing",
         PostCondition = "Exception is thrown for missing required configuration")]
         [Test]
@@ -1002,7 +1002,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "F2A3B4C5-D678-9ABC-F678-234ABCDEF013",
+        Identifier = "6F838C42-D8E4-4FA5-8147-30E87C7633CB",
         Purpose = "ConfigureServices registers IRedmineClient correctly",
         PostCondition = "IRedmineClient is registered in the service collection")]
         [Test]
@@ -1039,7 +1039,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "A3B4C5D6-E789-ABCD-0789-345ABCDEF014",
+        Identifier = "4D9550F5-A133-46C8-A886-62AC7994A451",
         Purpose = "RedmineSLMSPlugin works with mocked IRedmineClient",
         PostCondition = "Plugin is able to refresh items using the mocked client")]
         [Test]
@@ -1139,7 +1139,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "B4C5D6E7-F890-1234-B890-456789ABCDEF",
+        Identifier = "75C51783-86D7-46DD-8F8E-68CD05736816",
         Purpose = "CreateTestCase correctly creates a SoftwareSystemTestItem from Redmine issues",
         PostCondition = "SoftwareSystemTestItem is created with correct properties from Redmine issues")]
         [Test]
@@ -1246,7 +1246,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "C5D6E7F8-9012-3456-C901-567890ABCDEF",
+        Identifier = "D0C3D04C-1AD4-4447-9380-E5DD5D0C5DE5",
         Purpose = "CreateDocContent correctly creates a DocContentItem from Redmine issues",
         PostCondition = "DocContentItem is created with correct properties from Redmine issues")]
         [Test]
@@ -1313,7 +1313,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "D6E7F8G9-0123-4567-D012-678901ABCDEF",
+        Identifier = "D6E7F8G9-0123-4567-D012-678901AB23BV",
         Purpose = "CreateSOUP correctly creates a SOUPItem from Redmine issues",
         PostCondition = "SOUPItem is created with correct properties from Redmine issues")]
         [Test]
@@ -1455,7 +1455,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "E7F8G9H0-1234-5678-E123-456789ABCDEF",
+        Identifier = "E7F8GMND-1234-5678-E123-456789ABCDEF",
         Purpose = "CreateBug correctly creates an AnomalyItem from Redmine issues",
         PostCondition = "AnomalyItem is created with correct properties from Redmine issues")]
         [Test]
@@ -1536,7 +1536,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "F8G9H0I1-2345-6789-F234-567890ABCDEF",
+        Identifier = "F8G9H0I1-2345-6789-F234-56789023CDEF",
         Purpose = "CreateRisk correctly creates a RiskItem from Redmine issues",
         PostCondition = "RiskItem is created with correct properties from Redmine issues")]
         [Test]
@@ -1687,7 +1687,7 @@ namespace RoboClerk.Redmine.Tests
         }
 
         [UnitTestAttribute(
-        Identifier = "G9H0I1J2-3456-7890-G345-678901ABCDEF",
+        Identifier = "G9H0I1J2-3456-7890-G345-678901A8XDEF",
         Purpose = "CreateRisk throws exception when risk has multiple related issues",
         PostCondition = "Exception is thrown with appropriate message when risk has more than one related issue")]
         [Test]
