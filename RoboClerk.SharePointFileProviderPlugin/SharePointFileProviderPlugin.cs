@@ -21,11 +21,9 @@ namespace RoboClerk.SharePointFileProvider
         private string tenantId = string.Empty;
         private string driveId = string.Empty;
         private GraphServiceClient graphClient = null;
-        private IFileProviderPlugin localFileSystem = null;
 
-        public SharePointFileProviderPlugin(IFileProviderPlugin localFileSystem)
+        public SharePointFileProviderPlugin()
         {
-            this.localFileSystem = localFileSystem;
             name = "SharePointFileProviderPlugin";
             description = "Provides access to SharePoint Online document libraries using Microsoft Graph SDK.";
         }
@@ -67,8 +65,8 @@ namespace RoboClerk.SharePointFileProvider
                 throw new ArgumentException("Cannot get configuration table because the plugin configuration directory or the config filename are empty.");
             }
             
-            var configFileLocation = localFileSystem.Combine(pluginConfDir, confFileName);
-            return Toml.Parse(localFileSystem.ReadAllText(configFileLocation)).ToModel();
+            var configFileLocation = Path.Combine(pluginConfDir, confFileName);
+            return Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
         }
 
         /// <summary>

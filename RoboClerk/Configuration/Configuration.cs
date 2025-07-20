@@ -10,13 +10,13 @@ namespace RoboClerk.Configuration
 {
     public class Configuration : IConfiguration
     {
+        private readonly IFileProviderPlugin fileSystem = null;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         //The information contained in the general configuration file
         private List<string> dataSourcePlugins = new List<string>();
-        private string pluginDir = string.Empty;
+        private List<string> pluginDirs = new List<string>();
         private string aiPlugin = string.Empty;
-        private string fileProviderPlugin = string.Empty;
         private string outputDir = string.Empty;
         private string logLevel = string.Empty;
         private string pluginConfigDir = string.Empty;
@@ -38,14 +38,17 @@ namespace RoboClerk.Configuration
         //The information supplied on the commandline
         private Dictionary<string, string> commandLineOptions = new Dictionary<string, string>();
 
-        public Configuration(string mainConfig, Dictionary<string, string> commandLineOptions)
+        public Configuration(IFileProviderPlugin fileSystem, string configFileName, string projectConfigFileName, Dictionary<string, string> commandLineOptions)
         {
             this.commandLineOptions = commandLineOptions;
-            ReadGeneralConfigFile(mainConfig);
+            this.fileSystem = fileSystem;
+            logger.Debug($"Loading configuration files into RoboClerk: {configFileName} and {projectConfigFileName}");
+            (configFileName, projectConfigFileName) = LoadConfigFiles(configFileName, projectConfigFileName);
+            ProcessConfigs(configFileName, projectConfigFileName);
         }
 
         public List<string> DataSourcePlugins => dataSourcePlugins;
-        public string PluginDir => pluginDir;
+        public List<string> PluginDirs => pluginDirs;
         public string OutputDir => outputDir;
         public string LogLevel => logLevel;
         public string OutputFormat => outputFormat;
@@ -62,10 +65,33 @@ namespace RoboClerk.Configuration
         public string ProjectRoot => projectRoot;
         public bool ClearOutputDir => clearOutput;
         public string AIPlugin => aiPlugin;
-        public string FileProviderPlugin => fileProviderPlugin;
 
-        public void AddProjectConfig(string projectConfig)
+        private (string, string) LoadConfigFiles(string configFile, string projectConfigFile)
         {
+            string config;
+            string projectConfig;
+            try
+            {
+                config = fileSystem.ReadAllText(configFile);
+            }
+            catch (IOException)
+            {
+                throw new FileNotFoundException($"Unable to read config file: {configFile}");
+            }
+            try
+            {
+                projectConfig = fileSystem.ReadAllText(projectConfigFile);
+            }
+            catch (IOException)
+            {
+                throw new FileNotFoundException($"Unable to read project config file {projectConfigFile}");
+            }
+            return (config, projectConfig);
+        }
+
+        private void ProcessConfigs(string config, string projectConfig)
+        {
+            ReadGeneralConfigFile(config);
             ReadProjectConfigFile(projectConfig);
         }
 
@@ -76,8 +102,10 @@ namespace RoboClerk.Configuration
             {
                 dataSourcePlugins.Add((string)obj);
             }
-            pluginDir = CommandLineOptionOrDefault("PluginDir", (string)toml["PluginDir"]);
-            fileProviderPlugin = CommandLineOptionOrDefault("FileProviderPlugin", (string)toml["FileProviderPlugin"]);
+            foreach (var obj in (TomlArray)toml["PluginDirs"])
+            {
+                pluginDirs.Add((string)obj);
+            }
             aiPlugin = CommandLineOptionOrDefault("AISystemPlugin", (string)toml["AISystemPlugin"]);
             pluginConfigDir = CommandLineOptionOrDefault("PluginConfigurationDir", (string)toml["PluginConfigurationDir"]);
             outputDir = CommandLineOptionOrDefault("OutputDirectory", (string)toml["OutputDirectory"]);

@@ -3,7 +3,7 @@
 # Provide the name of the file provider plugin. The default is the LocalFileProviderPlugin 
 # that assumes files are being read off of the local filesystem. The other is the
 # SharePointFileProviderPlugin if the files are hosted in a sharepoint library.
-FileProviderPlugin = "SharePointFileProviderPlugin"
+FileProviderPlugin = "LocalFileSystemPlugin"
 
 # Provide the names of the DataSource plugin(s) in a comma seperated list
 # For example: DataSourcePlugin = [ "AzureDevOpsSLMSPlugin", "RedmineCSVSLMSPlugin" ]
@@ -13,11 +13,11 @@ DataSourcePlugin = [ "RedmineSLMSPlugin", "DependenciesFilePlugin", "UnitTestFNP
 # If you have an OpenAI key, you can use "OpenAIPlugin"
 AISystemPlugin = ""
 
-# RoboClerk will search for plugins in the subdirectories of the plugin dir.
-# For example: PluginDir = "c:/temp/plugins". Note that the plugins are included
+# RoboClerk will search for plugins in the subdirectories of the plugin dirs.
+# For example: PluginDirs = [ "c:/temp/plugins" ]. Note that the plugins are included
 # with the RoboClerk container, so when using the container, this should point to
 # /home/RoboClerk/plugins
-PluginDir = "{PLUGINROOT}/plugins"
+PluginDirs = [ "{PLUGINROOT}/plugins" ]
 
 # The configuration files for the plugins may be in a different location than the 
 # plugins themselves. E.g. when executing RoboClerk in a docker environment. If
