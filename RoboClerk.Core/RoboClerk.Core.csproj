@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+	  <Configurations>Debug;Release;ReleasePublish;DebugHTML</Configurations>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CliWrap" Version="3.9.0" />
+    <PackageReference Include="DocumentPartner.ClosedXML" Version="0.95.289" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Scripting" Version="4.11.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
+    <PackageReference Include="NLog" Version="5.3.4" />
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+    <PackageReference Include="System.IO.Abstractions" Version="21.0.29" />
+    <PackageReference Include="System.Text.Json" Version="8.0.6" />
+    <PackageReference Include="Tomlyn" Version="0.17.0" />
+  </ItemGroup>
+
+	<Target Name="CopyResources" BeforeTargets="Start" AfterTargets="Build">
+		<ItemGroup>
+			<ItemTemplateFiles Include="$(ProjectDir)/ItemTemplates/**\*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(ItemTemplateFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)/RoboClerk_input/ItemTemplates/%(RecursiveDir)" />
+	</Target>
+
+</Project>

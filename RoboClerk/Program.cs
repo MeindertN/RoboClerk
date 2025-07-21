@@ -89,9 +89,12 @@ namespace RoboClerk
         internal static void RegisterContentCreators(IServiceCollection services)
         {
             ArgumentNullException.ThrowIfNull(services);
-            // Get the assembly containing the content creators
-            var assembly = typeof(Program).Assembly;
-            
+
+            // Get the assembly containing the content creators            
+            var currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+            var otherAssemblyPath = Path.Combine(currentDir, "RoboClerk.Core.dll");
+            var assembly = Assembly.LoadFrom(otherAssemblyPath);
+
             // Find all types that implement IContentCreator
             var contentCreatorTypes = assembly.GetTypes()
                 .Where(t => typeof(IContentCreator).IsAssignableFrom(t) && 
@@ -211,7 +214,7 @@ namespace RoboClerk
                            serviceCollection.AddSingleton<IConfiguration>(x => new RoboClerk.Configuration.Configuration(x.GetRequiredService<IFileProviderPlugin>(), roboClerkConfigFile, projectConfigFile, commandlineOptions));
                            serviceCollection.AddSingleton<IPluginLoader, PluginLoader>();
                            serviceCollection.AddSingleton<ITraceabilityAnalysis, TraceabilityAnalysis>();
-                           serviceCollection.AddSingleton<IRoboClerkCore, RoboClerkCore>();
+                           serviceCollection.AddSingleton<IRoboClerkCore, RoboClerkTextCore>();
 
                            // Register all content creators
                            RegisterContentCreators(serviceCollection);

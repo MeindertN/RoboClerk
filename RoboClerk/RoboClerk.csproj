@@ -14,7 +14,7 @@
     <Optimize>True</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.6.6" />
+    <PackageReference Include="CliWrap" Version="3.9.0" />
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="DocumentPartner.ClosedXML" Version="0.95.289" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.11.0" />
@@ -22,11 +22,10 @@
     <PackageReference Include="NLog" Version="5.3.4" />
     <PackageReference Include="SkiaSharp" Version="2.88.9" />
     <PackageReference Include="System.IO.Abstractions" Version="21.0.29" />
-    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="System.Text.Json" Version="8.0.6" />
     <PackageReference Include="Tomlyn" Version="0.17.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DocTemplates\media\" />
     <Folder Include="Properties\" />
   </ItemGroup>
 	<Target Name="DeletePublishDirectory" BeforeTargets="Build" Condition="'$(Configuration)' == 'ReleasePublish'">
@@ -38,13 +37,11 @@
 	</Target>
 	<Target Name="CopyResources" BeforeTargets="Start" AfterTargets="Build">
 		<ItemGroup>
-			<ItemTemplateFiles Include="$(ProjectDir)/ItemTemplates/**\*" />
 			<DocxProcessingScripts Include="$(ProjectDir)../DocxProcessingScripts/*.*" />
 			<MediaFiles Include="$(ProjectDir)/DocTemplates/media/*.*" />
 		</ItemGroup>
 		<Copy SourceFiles="$(ProjectDir)Configuration/Project/projectConfig.toml" DestinationFolder="$(ProjectDir)$(OutDir)RoboClerk_input/RoboClerkConfig" />
 		<Copy SourceFiles="$(ProjectDir)Configuration/RoboClerk/RoboClerk.toml" DestinationFolder="$(ProjectDir)$(OutDir)RoboClerk_input/RoboClerkConfig" />
-		<Copy SourceFiles="@(ItemTemplateFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/ItemTemplates/%(RecursiveDir)" />
 		<Copy SourceFiles="@(DocxProcessingScripts)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/DocxProcessingScripts" />
 		<Copy SourceFiles="@(MediaFiles)" DestinationFolder="$(ProjectDir)$(OutDir)/RoboClerk_input/media" />
 	</Target>
@@ -105,5 +102,8 @@
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
 			<_Parameter1>RoboClerk.Tests</_Parameter1>
 		</AssemblyAttribute>
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\RoboClerk.Core\RoboClerk.Core.csproj" />
 	</ItemGroup>
 </Project>
