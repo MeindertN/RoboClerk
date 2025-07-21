@@ -48,9 +48,9 @@
             return id.GetHashCode();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            TraceEntity comp = obj as TraceEntity;
+            TraceEntity? comp = obj as TraceEntity;
             if (comp == null)
             {
                 return false;

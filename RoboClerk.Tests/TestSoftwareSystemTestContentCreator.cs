@@ -78,8 +78,8 @@ namespace RoboClerk.Tests
 
             dataSources.GetAllTestResults().Returns(results);
             dataSources.GetItems(te).Returns(testcaseItems);
-            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/SoftwareSystemTest_automated.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/SoftwareSystemTest_automated.adoc"));
-            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/SoftwareSystemTest_manual.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/SoftwareSystemTest_manual.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/SoftwareSystemTest_automated.adoc").Returns(File.ReadAllText("../../../../RoboClerk.Core/ItemTemplates/ASCIIDOC/SoftwareSystemTest_automated.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/SoftwareSystemTest_manual.adoc").Returns(File.ReadAllText("../../../../RoboClerk.Core/ItemTemplates/ASCIIDOC/SoftwareSystemTest_manual.adoc"));
             dataSources.GetItem("target1").Returns(testcaseItem);
             dataSources.GetItem("target2").Returns(testcaseItem);
         }

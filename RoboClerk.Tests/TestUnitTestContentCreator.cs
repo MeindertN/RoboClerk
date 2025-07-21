@@ -69,8 +69,8 @@ namespace RoboClerk.Tests
             dataSources.GetItem("tcid1").Returns(unittestItems[0]);
             dataSources.GetItem("tcid2").Returns(unittestItems[1]);
 
-            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/UnitTest.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/UnitTest.adoc"));
-            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/UnitTest_brief.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/UnitTest_brief.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/UnitTest.adoc").Returns(File.ReadAllText("../../../../RoboClerk.Core/ItemTemplates/ASCIIDOC/UnitTest.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/UnitTest_brief.adoc").Returns(File.ReadAllText("../../../../RoboClerk.Core/ItemTemplates/ASCIIDOC/UnitTest_brief.adoc"));
         }
 
         [UnitTestAttribute(

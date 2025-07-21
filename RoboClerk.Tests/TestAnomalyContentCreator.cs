@@ -66,7 +66,7 @@ namespace RoboClerk.Tests
             dataSources.GetItems(te).Returns(anomalyItems);
             dataSources.GetItem("tcid1").Returns(anomalyItems[0]);
             dataSources.GetItem("tcid2").Returns(anomalyItems[1]);
-            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/Anomaly.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/Anomaly.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/Anomaly.adoc").Returns(File.ReadAllText("../../../../RoboClerk.Core/ItemTemplates/ASCIIDOC/Anomaly.adoc"));
         }
 
         [UnitTestAttribute(Purpose = "(TEST) Anomaly content creator is created",

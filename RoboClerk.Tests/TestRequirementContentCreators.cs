@@ -92,7 +92,7 @@ namespace RoboClerk.Tests
             dataSources.GetAllSystemRequirements().Returns(sysReqItems2);
             dataSources.GetAllSoftwareRequirements().Returns(softReqItems2);
             dataSources.GetAllDocumentationRequirements().Returns(docReqItems2);
-            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/Requirement.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/Requirement.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/Requirement.adoc").Returns(File.ReadAllText("../../../../RoboClerk.Core/ItemTemplates/ASCIIDOC/Requirement.adoc"));
         }
 
         [UnitTestAttribute(

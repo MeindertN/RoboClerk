@@ -74,8 +74,8 @@ namespace RoboClerk.Tests
             soupItems2.Add(soupItem);
             dataSources.GetItems(te).Returns(soupItems);
             dataSources.GetAllSOUP().Returns(soupItems2);
-            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/SOUP.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/SOUP.adoc"));
-            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/SOUP_brief.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/ASCIIDOC/SOUP_brief.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/SOUP.adoc").Returns(File.ReadAllText("../../../../RoboClerk.Core/ItemTemplates/ASCIIDOC/SOUP.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/ASCIIDOC/SOUP_brief.adoc").Returns(File.ReadAllText("../../../../RoboClerk.Core/ItemTemplates/ASCIIDOC/SOUP_brief.adoc"));
         }
 
         [UnitTestAttribute(

@@ -53,7 +53,7 @@ namespace RoboClerk.ContentCreators
             }
         }
 
-        public IContentCreator CreateContentCreator(DataSource source, string contentCreatorId = null)
+        public IContentCreator CreateContentCreator(DataSource source, string? contentCreatorId = null)
         {
             // Handle special case for Comment source
             if (source == DataSource.Comment)

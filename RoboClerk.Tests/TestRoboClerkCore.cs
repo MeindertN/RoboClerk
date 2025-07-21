@@ -56,7 +56,7 @@ namespace RoboClerk.Tests
         private static void RegisterContentCreators(IServiceCollection services)
         {
             // Get the assembly containing the content creators
-            string pathToMainAssembly = Path.Combine(AppContext.BaseDirectory, "roboclerk.dll");
+            string pathToMainAssembly = Path.Combine(AppContext.BaseDirectory, "RoboClerk.Core.dll");
 
             var assembly = Assembly.LoadFrom(pathToMainAssembly);
 

@@ -16,6 +16,6 @@ namespace RoboClerk.ContentCreators
         /// <param name="contentCreatorId">The content creator ID (used for dynamic resolution)</param>
         /// <param name="aiPlugin">Optional AI plugin for AI content creators</param>
         /// <returns>The appropriate content creator instance</returns>
-        IContentCreator CreateContentCreator(DataSource source, string contentCreatorId = null);
+        IContentCreator CreateContentCreator(DataSource source, string? contentCreatorId = null);
     }
 } 

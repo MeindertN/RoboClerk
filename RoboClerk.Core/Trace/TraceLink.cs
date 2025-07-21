@@ -36,11 +36,11 @@ namespace RoboClerk
             get => valid;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            if (obj as TraceLink == null)
+            TraceLink? other = obj as TraceLink;
+            if (other == null)
                 return false;
-            TraceLink other = obj as TraceLink;
             return (other.SourceID == this.SourceID && other.TargetID == this.TargetID);
         }
 
