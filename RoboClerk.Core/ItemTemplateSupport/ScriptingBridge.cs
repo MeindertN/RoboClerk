@@ -9,9 +9,9 @@ namespace RoboClerk
 {
     public class ScriptingBridge<T> where T : Item
     {
-        private IDataSources data = null;
-        private ITraceabilityAnalysis analysis = null;
-        private IConfiguration configuration = null;
+        private IDataSources data = null!;
+        private ITraceabilityAnalysis analysis = null!;
+        private IConfiguration configuration = null!;
         private List<string> traces = new List<string>();
         private List<T> items = new List<T>();
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
@@ -27,7 +27,7 @@ namespace RoboClerk
         /// <summary>
         /// The item that needs to be rendered in the documentation. 
         /// </summary>
-        public T Item { get; set; }
+        public T Item { get; set; } = default!;
 
         /// <summary>
         /// The items that need to be rendered in the documentation (empty if there is only a single item). 
@@ -189,9 +189,9 @@ namespace RoboClerk
         /// </summary>
         /// <param name="input"></param>
         /// <returns>string representation</returns>
-        public string Insert(object input)
+        public string Insert(object? input)
         {
-            return input.ToString();
+            return input?.ToString() ?? string.Empty;
         }
 
         /// <summary>

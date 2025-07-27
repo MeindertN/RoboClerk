@@ -22,10 +22,10 @@ namespace RoboClerk
             TestCaseSteps = originalItem.TestCaseSteps.ToList();
         }
 
-        public string TestCaseState { get; private set; }
-        public string TestCaseDescription { get; private set; }
+        public string TestCaseState { get; private set; } = string.Empty;
+        public string TestCaseDescription { get; private set; } = string.Empty;
         public bool TestCaseAutomated { get; private set; }
         public bool TestCaseToUnitTest { get; private set; }
-        public List<TestStep> TestCaseSteps { get; private set; }
+        public List<TestStep> TestCaseSteps { get; private set; } = new();
     }
 }

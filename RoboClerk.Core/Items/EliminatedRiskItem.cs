@@ -28,18 +28,18 @@
             ModifiedDetScore = originalItem.RiskModifiedDetScore;
         }
 
-        public string PrimaryHazard { get; private set; }
-        public string FailureMode { get; private set; }
-        public string CauseOfFailure { get; private set; }
-        public string MethodOfDetection { get; private set; }
+        public string PrimaryHazard { get; private set; } = string.Empty;
+        public string FailureMode { get; private set; } = string.Empty;
+        public string CauseOfFailure { get; private set; } = string.Empty;
+        public string MethodOfDetection { get; private set; } = string.Empty;
 
         public int SeverityScore { get; private set; }
         public int OccurenceScore { get; private set; }
         public int DetectabilityScore { get; private set; }
 
-        public string RiskControlMeasure { get; private set; }
-        public string RiskControlMeasureType { get; private set; }
-        public string RiskControlImplementation { get; private set; }
+        public string RiskControlMeasure { get; private set; } = string.Empty;
+        public string RiskControlMeasureType { get; private set; } = string.Empty;
+        public string RiskControlImplementation { get; private set; } = string.Empty;
         public int ModifiedOccScore { get; private set; }
         public int ModifiedDetScore { get; private set; }
     }
