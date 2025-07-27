@@ -20,8 +20,8 @@ namespace RoboClerk.SharePointFileProvider
         private string clientSecret = string.Empty;
         private string tenantId = string.Empty;
         private string driveId = string.Empty;
-        private GraphServiceClient graphClient = null;
-        private IFileProviderPlugin localFileSystem = null;
+        private GraphServiceClient graphClient = null!;
+        private IFileProviderPlugin localFileSystem = null!;
 
         public SharePointFileProviderPlugin(IFileProviderPlugin localFileSystem)
         {
@@ -304,7 +304,7 @@ namespace RoboClerk.SharePointFileProvider
                         {
                             if (item.Name != null)
                             {
-                                var fullPath = Combine(path, item.Name);
+                                var fullPath = Combine(path, item.Name!);
                                 DeleteItemAsync(fullPath).Wait();
                             }
                         }
@@ -329,7 +329,7 @@ namespace RoboClerk.SharePointFileProvider
                 var itemsResponse = GetItemsInFolderAsync(path).Result;
                 var files = itemsResponse?.Value?
                     .Where(item => item.Folder == null && item.Name != null && MatchesPattern(item.Name, searchPattern))
-                    .Select(item => Combine(path, item.Name))
+                    .Select(item => Combine(path, item.Name!))
                     .ToArray() ?? Array.Empty<string>();
 
                 if (searchOption == SearchOption.AllDirectories)
@@ -356,7 +356,7 @@ namespace RoboClerk.SharePointFileProvider
                 var itemsResponse = GetItemsInFolderAsync(path).Result;
                 var directories = itemsResponse?.Value?
                     .Where(item => item.Folder != null && item.Name != null && MatchesPattern(item.Name, searchPattern))
-                    .Select(item => Combine(path, item.Name))
+                    .Select(item => Combine(path, item.Name!))
                     .ToArray() ?? Array.Empty<string>();
 
                 if (searchOption == SearchOption.AllDirectories)
@@ -535,6 +535,10 @@ namespace RoboClerk.SharePointFileProvider
         {
             var normalizedPath = path.TrimStart('/');
             var content = await graphClient.Drives[driveId].Root.ItemWithPath(normalizedPath).Content.GetAsync();
+            if (content == null)
+            {
+                return Array.Empty<byte>();
+            }
             using var memoryStream = new MemoryStream();
             await content.CopyToAsync(memoryStream);
             return memoryStream.ToArray();

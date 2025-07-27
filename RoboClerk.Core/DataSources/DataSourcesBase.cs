@@ -216,7 +216,7 @@ namespace RoboClerk
             return items.Find(f => (f.ItemID == id));
         }
 
-        public Item GetItem(string id) //this will not return eliminated items
+        public Item? GetItem(string id) //this will not return eliminated items
         {
             var sreq = GetAllSoftwareRequirements();
             int idx = -1;

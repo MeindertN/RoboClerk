@@ -192,7 +192,7 @@ namespace RoboClerk
                 {
                     if (property.PropertyType == typeof(string) && property.CanWrite)
                     {
-                        string currentValue = (string)property.GetValue(obj);
+                        string? currentValue = property.GetValue(obj) as string;
                         if (currentValue != null)
                         {
                             // Escape pipes in non-table parts of the content.

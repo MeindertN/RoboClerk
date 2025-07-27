@@ -6,8 +6,10 @@ namespace RoboClerk
 {
     public interface IPluginLoader
     {
-        public T LoadByName<T>(string pluginDir,
+        public T? LoadByName<T>(
+            string pluginDir,
             string typeName,
-            Action<IServiceCollection> configureGlobals) where T : class, IPlugin;
+            Action<IServiceCollection>? configureGlobals = null)
+            where T : class, IPlugin;
     }
 }

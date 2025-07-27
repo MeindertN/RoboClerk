@@ -27,7 +27,7 @@ namespace RoboClerk
         List<EliminatedDocContentItem> GetAllEliminatedDocContents();
         AnomalyItem GetAnomaly(string id);
         string GetConfigValue(string key);
-        Item GetItem(string id);
+        Item? GetItem(string id);
         RequirementItem GetSoftwareRequirement(string id);
         EliminatedRequirementItem GetEliminatedSoftwareRequirement(string id);
         SoftwareSystemTestItem GetSoftwareSystemTest(string id);

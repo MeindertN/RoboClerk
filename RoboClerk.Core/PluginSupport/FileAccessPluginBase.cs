@@ -14,7 +14,7 @@ namespace RoboClerk
     /// </summary>
     public abstract class FileAccessPluginBase : PluginBase
     {
-        protected IFileProviderPlugin fileProvider = null;
+        protected IFileProviderPlugin fileProvider = null!;
               
         public FileAccessPluginBase(IFileProviderPlugin fileProvider)
         {

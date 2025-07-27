@@ -23,8 +23,8 @@ namespace RoboClerk
         private string message;
         private DateTime executionTime;
 
-        public TestResult(string id, TestResultType type, TestResultStatus status, string name = default, 
-            string message = default, DateTime executionTime = default)
+        public TestResult(string id, TestResultType type, TestResultStatus status, string name = "",
+            string message = "", DateTime executionTime = default)
         {
             this.id = id;
             this.name = name;

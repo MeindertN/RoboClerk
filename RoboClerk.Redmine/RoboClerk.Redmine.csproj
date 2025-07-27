@@ -11,7 +11,8 @@
 	  <Product>Redmine plugin</Product>
 	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 	  <Configurations>Debug;Release;ReleasePublish;DebugHTML</Configurations>
-	  <BaseOutputPath>bin</BaseOutputPath>
+          <BaseOutputPath>bin</BaseOutputPath>
+          <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">

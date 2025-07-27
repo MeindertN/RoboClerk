@@ -7,7 +7,7 @@ namespace RoboClerk
 {
     public class ItemTemplateRenderer
     {
-        private ItemTemplateParser parser = null;
+        private ItemTemplateParser parser = null!;
         private string fileContent = string.Empty;
 
         public ItemTemplateRenderer(string templateContent)

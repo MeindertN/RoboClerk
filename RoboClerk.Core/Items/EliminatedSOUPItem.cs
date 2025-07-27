@@ -27,19 +27,19 @@
             SOUPManufacturer = originalItem.SOUPManufacturer;
         }
 
-        public string SOUPName { get; private set; }
-        public string SOUPVersion { get; private set; }
+        public string SOUPName { get; private set; } = string.Empty;
+        public string SOUPVersion { get; private set; } = string.Empty;
         public bool SOUPLinkedLib { get; private set; }
-        public string SOUPDetailedDescription { get; private set; }
-        public string SOUPAnomalyListDescription { get; private set; }
-        public string SOUPEnduserTraining { get; private set; }
-        public string SOUPLicense { get; private set; }
+        public string SOUPDetailedDescription { get; private set; } = string.Empty;
+        public string SOUPAnomalyListDescription { get; private set; } = string.Empty;
+        public string SOUPEnduserTraining { get; private set; } = string.Empty;
+        public string SOUPLicense { get; private set; } = string.Empty;
         public bool SOUPInstalledByUser { get; private set; }
-        public string SOUPInstalledByUserText { get; private set; }
+        public string SOUPInstalledByUserText { get; private set; } = string.Empty;
         public bool SOUPPerformanceCritical { get; private set; }
-        public string SOUPPerformanceCriticalText { get; private set; }
+        public string SOUPPerformanceCriticalText { get; private set; } = string.Empty;
         public bool SOUPCybersecurityCritical { get; private set; }
-        public string SOUPCybersecurityCriticalText { get; private set; }
-        public string SOUPManufacturer { get; private set; }
+        public string SOUPCybersecurityCriticalText { get; private set; } = string.Empty;
+        public string SOUPManufacturer { get; private set; } = string.Empty;
     }
 }

@@ -9,7 +9,7 @@
 		<Authors>Meindert Niemeijer</Authors>
 		<Company>RoboClerk Project</Company>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
+               <Nullable>enable</Nullable>
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 		<Configurations>Debug;Release;ReleasePublish;DebugHTML</Configurations>
 		<BaseOutputPath>bin</BaseOutputPath>
