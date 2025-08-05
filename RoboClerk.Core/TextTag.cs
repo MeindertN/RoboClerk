@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace RoboClerk
 {
-    internal class ProtoTag
+    internal class TextTag
     {
         private int startIndex = -1;
         private int endIndex = -1;
         private bool containerTag = false;
-        public ProtoTag(int startIndex, bool containerTag = false) 
+        public TextTag(int startIndex, bool containerTag = false) 
         {
             this.startIndex = startIndex;
             this.containerTag = containerTag;

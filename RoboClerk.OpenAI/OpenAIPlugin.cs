@@ -92,7 +92,7 @@ namespace RoboClerk.OpenAI
             return GetRequirementFeedbackAsync(item, template).GetAwaiter().GetResult();
         }
 
-        public override void SetPrompts(List<Document> pts)
+        public override void SetPrompts(List<TextDocument> pts)
         {
             foreach (var prompt in pts)
             {

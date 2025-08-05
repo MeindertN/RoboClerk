@@ -36,13 +36,13 @@ There is some text @@SLMS:inline()@@ in this line.
         [Test]
         public void Valid_Text_Can_Be_Parsed_VERIFIES_No_Exception_Thrown_When_Input_Valid()
         {
-            Assert.DoesNotThrow(() => { RoboClerkParser.ExtractRoboClerkTags(validText); });
+            Assert.DoesNotThrow(() => { RoboClerkTextParser.ExtractRoboClerkTags(validText); });
         }
 
         [Test]
         public void Test_Tag_Extraction_VERIFIES_The_Expected_Nr_Of_Tags_Is_Extracted()
         {
-            var tags = RoboClerkParser.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkTextParser.ExtractRoboClerkTags(validText);
             ClassicAssert.AreEqual(7, tags.Count);
         }
 
@@ -53,7 +53,7 @@ There is some text @@SLMS:inline()@@ in this line.
             sb[24] = ' ';
             sb[25] = ' ';
             sb[26] = ' ';
-            Assert.Throws<Exception>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<Exception>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -63,7 +63,7 @@ There is some text @@SLMS:inline()@@ in this line.
             sb[67] = ' ';
             sb[68] = ' ';
             sb[69] = ' ';
-            Assert.Throws<Exception>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<Exception>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -72,7 +72,7 @@ There is some text @@SLMS:inline()@@ in this line.
             StringBuilder sb = new StringBuilder(validText);
             sb[92] = ' ';
             sb[93] = ' ';
-            Assert.Throws<Exception>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<Exception>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -81,7 +81,7 @@ There is some text @@SLMS:inline()@@ in this line.
             StringBuilder sb = new StringBuilder(validText);
             sb[134] = ' ';
             sb[135] = ' ';
-            Assert.Throws<Exception>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<Exception>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -89,7 +89,7 @@ There is some text @@SLMS:inline()@@ in this line.
         {
             StringBuilder sb = new StringBuilder(validText);
             sb[92] = '\n';
-            Assert.Throws<Exception>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<Exception>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -97,13 +97,13 @@ There is some text @@SLMS:inline()@@ in this line.
         {
             StringBuilder sb = new StringBuilder(validText);
             sb[124] = '\n';
-            Assert.Throws<Exception>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<Exception>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
         public void Parameters_Are_Successfully_Extracted_VERIFIES_Parameter_Values_Match_Expected_Values()
         {
-            var tags = RoboClerkParser.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkTextParser.ExtractRoboClerkTags(validText);
             ClassicAssert.IsTrue(tags[6].Parameters.Count() == 2);
             ClassicAssert.AreEqual("1234", tags[6].GetParameterOrDefault("ID"));
             ClassicAssert.AreEqual("test name", tags[6].GetParameterOrDefault("NAME"));
@@ -114,7 +114,7 @@ There is some text @@SLMS:inline()@@ in this line.
         {
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("text@@Info:SWR(huff)@@ test");
-            Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -122,7 +122,7 @@ There is some text @@SLMS:inline()@@ in this line.
         {
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("text@@Info:SWR(,huff=puff)@@ test");
-            Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -130,7 +130,7 @@ There is some text @@SLMS:inline()@@ in this line.
         {
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("text@@Info:SWR(foo,huff=puff)@@ test");
-            Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
@@ -138,13 +138,13 @@ There is some text @@SLMS:inline()@@ in this line.
         {
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("text@@SlMs:SWR(foo= barr,   huff=puff     )@@ test");
-            Assert.DoesNotThrow(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            Assert.DoesNotThrow(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]
         public void Content_Fields_Are_Parsed_Correctly_VERIFIES_The_Correct_Content_Fields_Are_Extracted()
         {
-            var tags = RoboClerkParser.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkTextParser.ExtractRoboClerkTags(validText);
             ClassicAssert.AreEqual("This is the content\n", tags[0].Contents);
             ClassicAssert.AreEqual("Source:testinfo()", tags[1].Contents);
             ClassicAssert.AreEqual("Config:testinfo2()", tags[2].Contents);
@@ -157,7 +157,7 @@ There is some text @@SLMS:inline()@@ in this line.
         [Test]
         public void Info_Fields_Are_Parsed_Correctly_VERIFIES_The_Correct_Info_Fields_Are_Extracted()
         {
-            var tags = RoboClerkParser.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkTextParser.ExtractRoboClerkTags(validText);
             ClassicAssert.AreEqual("TheFirstInfo", tags[0].ContentCreatorID);
             ClassicAssert.AreEqual("testinfo", tags[1].ContentCreatorID);
             ClassicAssert.AreEqual("testinfo2", tags[2].ContentCreatorID);
@@ -170,7 +170,7 @@ There is some text @@SLMS:inline()@@ in this line.
         [Test]
         public void Source_Fields_Are_Parsed_Correctly_VERIFIES_The_Correct_Source_Fields_Are_Extracted()
         {
-            var tags = RoboClerkParser.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkTextParser.ExtractRoboClerkTags(validText);
             ClassicAssert.AreEqual(DataSource.SLMS, tags[0].Source);
             ClassicAssert.AreEqual(DataSource.Source, tags[1].Source);
             ClassicAssert.AreEqual(DataSource.Config, tags[2].Source);
@@ -183,7 +183,7 @@ There is some text @@SLMS:inline()@@ in this line.
         [Test]
         public void Tag_Content_Replacement_Behavior_VERIFIES_Content_Is_Inserted_In_The_Correct_Place_Without_Tags()
         {
-            var tags = RoboClerkParser.ExtractRoboClerkTags(validText);
+            var tags = RoboClerkTextParser.ExtractRoboClerkTags(validText);
             tags[0].Contents = "item1";
             tags[1].Contents = "item2";
             tags[2].Contents = "";
@@ -201,7 +201,7 @@ There is some text item6 in this line.
 D";
             expectedResult = Regex.Replace(expectedResult, @"\r\n", "\n");
 
-            string finalResult = RoboClerkParser.ReInsertRoboClerkTags(validText, tags);
+            string finalResult = RoboClerkTextParser.ReInsertRoboClerkTags(validText, tags);
             ClassicAssert.AreEqual(expectedResult, finalResult);
         }
 
@@ -211,7 +211,7 @@ D";
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("\n@@SLMS:testfunc)(@@");
 
-            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
             Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMS:testfunc)("));
         }
 
@@ -221,7 +221,7 @@ D";
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("\n@@SLMS:testfunc(()@@");
 
-            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
             Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMS:testfunc(()"));
         }
 
@@ -231,7 +231,7 @@ D";
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("\n@@SLMS:testfunc())@@");
 
-            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
             Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMS:testfunc())"));
         }
 
@@ -241,7 +241,7 @@ D";
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("\n@@SLMS:testfunc@@");
 
-            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
             Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMS:testfunc"));
         }
 
@@ -251,7 +251,7 @@ D";
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("\n@@SLMStestfunc(:)@@");
 
-            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
             Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMStestfunc(:)"));
         }
 
@@ -261,7 +261,7 @@ D";
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("\n@@SLMStestfunc()@@");
 
-            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
             Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMStestfunc()"));
         }
 
@@ -271,7 +271,7 @@ D";
             StringBuilder sb = new StringBuilder(validText);
             sb.AppendLine("\n@@SLMS:testfunc(test=A:B)@@");
 
-            Assert.DoesNotThrow(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            Assert.DoesNotThrow(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
         }
 
         [Test]  //we will only test one instance of the block code because the tag validation is the same
@@ -282,7 +282,7 @@ D";
             sb.Append("\n");
             sb.Append("@@@\n");
 
-            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
             Assert.That(ex.Message, Is.EqualTo("RoboClerk tag is not formatted correctly at (16:1). Tag contents: SLMStestfunc()"));
         }
 
@@ -294,7 +294,7 @@ D";
             sb.Append("\n");
             sb.Append("@@@\n");
 
-            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
             Assert.That(ex.Message, Is.EqualTo("Preamble section in RoboClerk tag not formatted correctly at (16:1). Tag contents: :testfunc()"));
         }
 
@@ -306,7 +306,7 @@ D";
             sb.Append("\n");
             sb.Append("@@@\n");
 
-            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
             Assert.That(ex.Message, Is.EqualTo("Preamble section in RoboClerk tag not formatted correctly at (16:1). Tag contents: SLMS:()"));
         }
 
@@ -318,7 +318,7 @@ D";
             sb.Append("\n");
             sb.Append("@@@\n");
 
-            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
             Assert.That(ex.Message, Is.EqualTo("Parameter section in RoboClerk tag not formatted correctly at (16:1). Tag contents: SLMS:testfunc(test==4)"));
         }
 
@@ -330,7 +330,7 @@ D";
             sb.Append("\n");
             sb.Append("@@@\n");
 
-            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
             Assert.That(ex.Message, Is.EqualTo("Malformed element in parameter section of RoboClerk tag at (16:1). Tag contents: SLMS:testfunc(test==4,testing)"));
         }
 
@@ -342,7 +342,7 @@ D";
             sb.Append("\n");
             sb.Append("@@@\n");
 
-            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkParser.ExtractRoboClerkTags(sb.ToString()));
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
             Assert.That(ex.Message, Is.EqualTo("Malformed element in parameter section of RoboClerk tag at (16:1). Tag contents: SLMS:testfunc(test=4,testing=)"));
         }
 
@@ -354,7 +354,7 @@ D";
             sb.Append("\n");
             sb.Append("@@@\n");
 
-            var tags = RoboClerkParser.ExtractRoboClerkTags(sb.ToString());
+            var tags = RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString());
 
             foreach(var tag in tags)
             {

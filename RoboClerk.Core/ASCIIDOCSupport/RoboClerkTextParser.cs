@@ -4,12 +4,12 @@ using System.Linq;
 
 namespace RoboClerk
 {
-    public static class RoboClerkParser
+    public static class RoboClerkTextParser
     {
         public static List<RoboClerkTag> ExtractRoboClerkTags(string docText)
         {
             int index = 0;
-            List<ProtoTag> indices = new List<ProtoTag>();
+            List<TextTag> indices = new List<TextTag>();
             while ((index = docText.IndexOf("@@", index)) >= 0)
             {
                 if (index + 1 == docText.Length - 1)
@@ -33,7 +33,7 @@ namespace RoboClerk
 
             List<RoboClerkTag> tags = new List<RoboClerkTag>();
 
-            foreach (ProtoTag tag in indices)
+            foreach (TextTag tag in indices)
             {
                 if (tag.ContainerTag)
                 {
@@ -56,19 +56,19 @@ namespace RoboClerk
             return tags;
         }
 
-        private static void AddIndex(List<ProtoTag> tags, int index, bool containerIndex)
+        private static void AddIndex(List<TextTag> tags, int index, bool containerIndex)
         {
             if (tags.Count > 0 && !tags.Last().hasEndIndex())
             {
                 tags.Last().EndIndex=index;
                 return;
             }
-            tags.Add(new ProtoTag(index, containerIndex));
+            tags.Add(new TextTag(index, containerIndex));
         }
 
-        private static void CheckForUnbalancedTags(List<ProtoTag> tags)
+        private static void CheckForUnbalancedTags(List<TextTag> tags)
         {
-            foreach (ProtoTag tag in tags)
+            foreach (TextTag tag in tags)
             {
                 if (!tag.hasEndIndex() && tag.ContainerTag)
                 {

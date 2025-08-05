@@ -9,9 +9,9 @@ namespace RoboClerk.ContentCreators
     public abstract class ContentCreatorBase : IContentCreator
     {
         protected static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        protected ITraceabilityAnalysis analysis = null;
-        protected IDataSources data = null;
-        protected IConfiguration configuration = null;
+        protected ITraceabilityAnalysis? analysis = null;
+        protected IDataSources? data = null;
+        protected IConfiguration? configuration = null;
 
         public ContentCreatorBase(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration configuration)
         {

@@ -18,7 +18,7 @@ namespace RoboClerk
         private readonly IAISystemPlugin aiPlugin = null;
         private readonly IContentCreatorFactory contentCreatorFactory = null;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        private List<Document> documents = new List<Document>();
+        private List<TextDocument> documents = new List<TextDocument>();
         private IFileSystem fileSystem = null;
         private IPluginLoader pluginLoader = null;
 
@@ -50,7 +50,7 @@ namespace RoboClerk
             }
             if(aiPlugin != null) 
             {
-                List<Document> docs = ProcessTemplates(aiPlugin.GetAIPromptTemplates());
+                List<TextDocument> docs = ProcessTemplates(aiPlugin.GetAIPromptTemplates());
                 aiPlugin.SetPrompts(docs);
             }
             var configDocuments = configuration.Documents;
@@ -58,15 +58,15 @@ namespace RoboClerk
             logger.Info("Finished creating documents.");
         }
 
-        private List<Document> ProcessTemplates(IEnumerable<DocumentConfig> configDocuments)
+        private List<TextDocument> ProcessTemplates(IEnumerable<DocumentConfig> configDocuments)
         {
-            List<Document> docs = new List<Document>();
+            List<TextDocument> docs = new List<TextDocument>();
             foreach (var doc in configDocuments)
             {
                 if (doc.DocumentTemplate == string.Empty)
                     continue;  //skip documents without template
                 logger.Info($"Reading document template: {doc.RoboClerkID}");
-                Document document = new Document(doc.DocumentTitle, doc.DocumentTemplate);
+                TextDocument document = new TextDocument(doc.DocumentTitle, doc.DocumentTemplate);
                 document.FromStream(fileSystem.FileStream.New(fileSystem.Path.Join(configuration.TemplateDir, doc.DocumentTemplate), FileMode.Open));
                 logger.Info($"Generating document: {doc.RoboClerkID}");
                 int nrOfLevels = 0;

@@ -8,8 +8,8 @@ namespace RoboClerk.ContentCreators
 {
     internal class Comment
     {
-        public string CommentContent { get; set; }
-        public string ID { get; set; } 
+        public string CommentContent { get; set; } = string.Empty;
+        public string ID { get; set; } = string.Empty;
     }
 
     public class AIContentCreator : IContentCreator

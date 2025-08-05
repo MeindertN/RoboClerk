@@ -7,10 +7,10 @@ namespace RoboClerk
      AllowMultiple = false)]
     public class UnitTestAttribute : Attribute
     {
-        private string purpose;
-        private string postcondition;
-        private string identifier;
-        private string traceid;
+        private string purpose = string.Empty;
+        private string postcondition = string.Empty;
+        private string identifier = string.Empty;
+        private string traceid = string.Empty;
 
         public UnitTestAttribute()
         {

@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace RoboClerk
 {
-    public class Document
+    public class TextDocument
     {
         protected string title = string.Empty;
         protected string rawText = string.Empty;
@@ -13,7 +13,7 @@ namespace RoboClerk
 
         protected List<RoboClerkTag> roboclerkTags = new List<RoboClerkTag>();
 
-        public Document(string title, string templateFile)
+        public TextDocument(string title, string templateFile)
         {
             this.title = title;
             this.templateFile = templateFile;
@@ -27,7 +27,7 @@ namespace RoboClerk
             try
             {
                 roboclerkTags.Clear();
-                roboclerkTags = RoboClerkParser.ExtractRoboClerkTags(rawText);
+                roboclerkTags = RoboClerkTextParser.ExtractRoboClerkTags(rawText);
             }
             catch (TagInvalidException e)
             {
@@ -48,7 +48,7 @@ namespace RoboClerk
             //this function can be called at any time, remove the tags and relace them with 
             //the tag contents that could have been updated since the document was parsed. 
             //The document can be updated by replacing the individual tag contents.
-            return RoboClerkParser.ReInsertRoboClerkTags(rawText, roboclerkTags);
+            return RoboClerkTextParser.ReInsertRoboClerkTags(rawText, roboclerkTags);
         }
 
         public IEnumerable<RoboClerkTag> RoboClerkTags

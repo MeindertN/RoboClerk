@@ -31,7 +31,7 @@
         }
 
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             var comp = obj as TraceIssue;
             return (comp.Source == source) &&

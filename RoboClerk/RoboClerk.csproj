@@ -26,6 +26,7 @@
     <PackageReference Include="Tomlyn" Version="0.17.0" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="DocTemplates\DOCX\" />
     <Folder Include="Properties\" />
   </ItemGroup>
 	<Target Name="DeletePublishDirectory" BeforeTargets="Build" Condition="'$(Configuration)' == 'ReleasePublish'">

@@ -14,6 +14,6 @@
             DocContent = originalItem.DocContent;
         }
 
-        public string DocContent { get; private set; }
+        public string DocContent { get; private set; } = string.Empty;
     }
 }

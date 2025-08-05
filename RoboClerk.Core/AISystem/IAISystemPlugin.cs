@@ -9,6 +9,6 @@ namespace RoboClerk.AISystem
 
         IEnumerable<DocumentConfig> GetAIPromptTemplates();
 
-        void SetPrompts(List<Document> prompts);
+        void SetPrompts(List<TextDocument> prompts);
     }
 }

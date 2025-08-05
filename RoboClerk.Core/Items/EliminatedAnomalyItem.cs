@@ -18,10 +18,10 @@
             AnomalyDetailedDescription = originalItem.AnomalyDetailedDescription;
         }
 
-        public string AnomalyState { get; private set; }
-        public string AnomalyAssignee { get; private set; }
-        public string AnomalySeverity { get; private set; }
-        public string AnomalyJustification { get; private set; }
-        public string AnomalyDetailedDescription { get; private set; }
+        public string AnomalyState { get; private set; } = string.Empty;
+        public string AnomalyAssignee { get; private set; } = string.Empty;
+        public string AnomalySeverity { get; private set; } = string.Empty;
+        public string AnomalyJustification { get; private set; } = string.Empty;
+        public string AnomalyDetailedDescription { get; private set; } = string.Empty;
     }
 }

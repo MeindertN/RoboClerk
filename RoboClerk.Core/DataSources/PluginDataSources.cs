@@ -10,7 +10,7 @@ namespace RoboClerk
     {
         private List<IDataSourcePlugin> plugins = new List<IDataSourcePlugin>();
 
-        private readonly IPluginLoader pluginLoader = null;
+        private readonly IPluginLoader? pluginLoader = null;
 
         public PluginDataSources(IConfiguration configuration, IPluginLoader pluginLoader, IFileProviderPlugin fileSystem)
             : base(configuration, fileSystem)

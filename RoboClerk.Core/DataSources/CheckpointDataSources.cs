@@ -9,7 +9,7 @@ namespace RoboClerk
     public class CheckpointDataSources : DataSourcesBase
     {
         private CheckpointDataStorage dataStorage = new CheckpointDataStorage();
-        private IDataSources pluginDatasource = null;
+        private IDataSources? pluginDatasource = null;
 
         public CheckpointDataSources(IConfiguration configuration, IPluginLoader pluginLoader, IFileProviderPlugin fileSystem, string checkpointFile)
             : base(configuration, fileSystem)

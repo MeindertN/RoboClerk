@@ -35,6 +35,6 @@ namespace RoboClerk.AISystem
 
         public abstract string GetFeedback(TraceEntity et, Item item);
 
-        public abstract void SetPrompts(List<Document> pts);
+        public abstract void SetPrompts(List<TextDocument> pts);
     }
 }
