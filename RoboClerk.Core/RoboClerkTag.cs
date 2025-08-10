@@ -315,7 +315,7 @@ namespace RoboClerk
             return DataSource.Unknown;
         }
 
-        public string GetParameterOrDefault(string key, string? defaultVal = default)
+        public string GetParameterOrDefault(string key, string defaultVal = "" )
         {
             if (parameters.ContainsKey(key.ToUpper()))
             {

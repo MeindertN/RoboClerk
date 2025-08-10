@@ -4,9 +4,9 @@ namespace RoboClerk.ContentCreators
 {
     public class Trace : IContentCreator
     {
-        private ITraceabilityAnalysis analysis = null;
-        private IDataSources data = null;
-        private IConfiguration config = null;
+        private readonly ITraceabilityAnalysis analysis;
+        private readonly IDataSources data;
+        private readonly IConfiguration config;
 
         public Trace(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration config)
         {

@@ -14,7 +14,7 @@ namespace RoboClerk
         protected string targetVersion = string.Empty;
         protected string status = string.Empty;
         protected DateTime lastUpdated = DateTime.MinValue;
-        protected Uri link = null;
+        protected Uri? link;
 
         public string ItemID
         {

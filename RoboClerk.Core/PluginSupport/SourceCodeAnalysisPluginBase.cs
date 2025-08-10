@@ -13,7 +13,7 @@ namespace RoboClerk
         protected List<string> directories = new List<string>();
         protected List<string> fileMasks = new List<string>();
         protected List<string> sourceFiles = new List<string>();
-        protected GitRepository gitRepo = null;
+        protected GitRepository? gitRepo = null;
 
         public SourceCodeAnalysisPluginBase(IFileProviderPlugin fileSystem)
             : base(fileSystem)
@@ -26,12 +26,18 @@ namespace RoboClerk
             subDir = (bool)config["SubDirs"];
             foreach (var obj in (TomlArray)config["TestDirectories"])
             {
-                directories.Add((string)obj);
+                if (obj is string dir && dir != null)
+                {
+                    directories.Add(dir);
+                }
             }
 
             foreach (var obj in (TomlArray)config["FileMasks"])
             {
-                fileMasks.Add((string)obj);
+                if (obj is string mask && mask != null)
+                {
+                    fileMasks.Add(mask);
+                }
             }
 
             try

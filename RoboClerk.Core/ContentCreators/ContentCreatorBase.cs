@@ -9,9 +9,9 @@ namespace RoboClerk.ContentCreators
     public abstract class ContentCreatorBase : IContentCreator
     {
         protected static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        protected ITraceabilityAnalysis? analysis = null;
-        protected IDataSources? data = null;
-        protected IConfiguration? configuration = null;
+        protected readonly ITraceabilityAnalysis analysis;
+        protected readonly IDataSources data;
+        protected readonly IConfiguration configuration;
 
         public ContentCreatorBase(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration configuration)
         {
@@ -30,7 +30,8 @@ namespace RoboClerk.ContentCreators
                 {
                     if (prop.Name.ToUpper() == param)
                     {
-                        if (prop.GetValue(item).ToString().ToUpper() != tag.GetParameterOrDefault(param, string.Empty).ToUpper())
+                        var propValue = prop.GetValue(item);
+                        if ((propValue?.ToString()?.ToUpper() ?? string.Empty) != tag.GetParameterOrDefault(param, string.Empty).ToUpper())
                         {
                             return false;
                         }
@@ -69,6 +70,7 @@ namespace RoboClerk.ContentCreators
                 else
                 {
                     logger.Warn($"Cannot find item with ID \"{trace}\" as referenced in {docTE.Name}. Possible trace issue.");
+                    // TODO: remove the null passing by creating an empty source trace entity
                     analysis.AddTrace(null, trace, docTE, trace);
                 }
             }

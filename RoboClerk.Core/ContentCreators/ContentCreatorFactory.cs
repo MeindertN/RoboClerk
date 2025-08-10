@@ -43,6 +43,10 @@ namespace RoboClerk.ContentCreators
         {
             // Get all types that implement IContentCreator in the current assembly
             var assembly = Assembly.GetAssembly(typeof(IContentCreator));
+            if (assembly == null)
+            {
+                throw new InvalidOperationException("Could not get the assembly for IContentCreator.");
+            }
             var contentCreatorTypes = assembly.GetTypes()
                 .Where(t => typeof(IContentCreator).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract)
                 .Where(t => !_sourceTypeMap.Values.Contains(t)); // Exclude already mapped types

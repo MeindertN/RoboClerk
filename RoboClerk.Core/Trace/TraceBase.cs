@@ -2,8 +2,8 @@
 {
     public class TraceBase
     {
-        protected TraceEntity source = null;
-        protected TraceEntity target = null;
+        protected readonly TraceEntity source;
+        protected readonly TraceEntity target;
 
         public TraceBase(TraceEntity source, TraceEntity target)
         {

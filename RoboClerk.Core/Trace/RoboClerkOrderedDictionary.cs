@@ -15,7 +15,7 @@ namespace RoboClerk
         {
             get
             {
-                var item = items.Find(f => (f.Key.Equals(key)));
+                var item = items.Find(f => f.Key.Equals(key));
                 if (item.Equals(default(KeyValuePair<TKey, TValue>)))
                 {
                     return default(TValue);
@@ -42,7 +42,7 @@ namespace RoboClerk
 
         public bool ContainsKey(TKey key)
         {
-            var item = items.Find(f => (f.Key.Equals(key)));
+            var item = items.Find(f => f.Key.Equals(key));
             return !item.Equals(default(KeyValuePair<TKey, TValue>));
         }
 

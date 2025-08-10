@@ -25,7 +25,7 @@ namespace RoboClerk.ContentCreators
             bool foundContent = false;
             var items = data.GetItems(te);
             StringBuilder output = new StringBuilder();
-            PropertyInfo[] properties = null;
+            PropertyInfo[] properties = Array.Empty<PropertyInfo>();
             if (items.Count > 0)
             {
                 properties = items[0].GetType().GetProperties();

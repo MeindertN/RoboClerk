@@ -19,8 +19,8 @@
         }
 
         public RequirementType RequirementType { get; private set; }
-        public string RequirementState { get; private set; }
-        public string RequirementDescription { get; private set; }
-        public string RequirementAssignee { get; private set; }
+        public string RequirementState { get; private set; } = string.Empty;
+        public string RequirementDescription { get; private set; } = string.Empty;
+        public string RequirementAssignee { get; private set; } = string.Empty;
     }
 }

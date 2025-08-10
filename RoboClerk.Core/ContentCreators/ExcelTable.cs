@@ -17,8 +17,8 @@ namespace RoboClerk.ContentCreators
             string excelFilename = tag.GetParameterOrDefault("FILENAME", string.Empty);
             string excelWorkSheetName = tag.GetParameterOrDefault("WORKSHEET", "Sheet1");
             string excelRange = tag.GetParameterOrDefault("RANGE", string.Empty);
-            XLWorkbook wb = null;
-            IXLWorksheet ws = null;
+            XLWorkbook wb;
+            IXLWorksheet ws;
             try
             {
                 wb = new XLWorkbook(data.GetFileStreamFromTemplateDir(excelFilename));

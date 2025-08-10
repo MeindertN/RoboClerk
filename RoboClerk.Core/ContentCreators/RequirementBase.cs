@@ -8,7 +8,7 @@ namespace RoboClerk.ContentCreators
 {
     abstract public class RequirementBase : MultiItemContentCreator
     {
-        protected List<RequirementItem> requirements = null;
+        protected List<RequirementItem> requirements = new List<RequirementItem>();
         protected string requirementName = string.Empty;
         protected TraceEntity sourceType = null;
 
@@ -25,7 +25,7 @@ namespace RoboClerk.ContentCreators
             var renderer = new ItemTemplateRenderer(file);
             foreach (var item in items)
             {
-                RequirementItem reqItem = item as RequirementItem;
+                RequirementItem? reqItem = item as RequirementItem;
                 if (reqItem == null) 
                 {
                     throw new Exception("Item passed into requirement content creator is not a RequirementItem.");

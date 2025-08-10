@@ -7,10 +7,10 @@ namespace RoboClerk.ContentCreators
 {
     public abstract class TraceabilityMatrixBase : IContentCreator
     {
-        protected TraceEntity truthSource = null;
-        protected IDataSources data = null;
-        protected ITraceabilityAnalysis analysis = null;
-        protected IConfiguration configuration = null;
+        protected TraceEntity? truthSource = null;
+        protected readonly IDataSources data;
+        protected readonly ITraceabilityAnalysis analysis;
+        protected readonly IConfiguration configuration;
 
         public TraceabilityMatrixBase(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration configuration)
         {

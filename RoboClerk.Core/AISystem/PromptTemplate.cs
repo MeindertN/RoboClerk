@@ -53,14 +53,18 @@ namespace RoboClerk.AISystem
         public string GetPrompt<T>(Dictionary<string, string> parameters, T item)
         {
             Dictionary<string, string> parametersClone = new Dictionary<string, string>(parameters);
-            PropertyInfo[] properties = item.GetType().GetProperties();
-            foreach( var property in properties ) 
+            if (item != null)
             {
-                if (!parametersClone.ContainsKey(property.Name))
+                PropertyInfo[] properties = item.GetType().GetProperties();
+                foreach( var property in properties ) 
                 {
-                    if (property.GetValue(item) != null)
+                    if (!parametersClone.ContainsKey(property.Name))
                     {
-                        parametersClone[property.Name] = property.GetValue(item).ToString();
+                        var value = property.GetValue(item);
+                        if (value != null)
+                        {
+                            parametersClone[property.Name] = value.ToString()!;
+                        }
                     }
                 }
             }

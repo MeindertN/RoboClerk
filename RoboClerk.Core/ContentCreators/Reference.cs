@@ -16,7 +16,7 @@ namespace RoboClerk.ContentCreators
         public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
             StringBuilder result = new StringBuilder();
-            DocumentConfig reference = null;
+            DocumentConfig? reference = null;
             foreach(var docConfig in configuration.Documents)
             {
                 if (docConfig.RoboClerkID == tag.ContentCreatorID)
