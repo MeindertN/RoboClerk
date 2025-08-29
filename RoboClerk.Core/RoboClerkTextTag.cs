@@ -121,7 +121,7 @@ namespace RoboClerk.Core
         private void ProcessRoboClerkContainerTag(int startIndex, int endIndex, string rawDocument)
         {
             tagStart = startIndex;
-            tagEnd = endIndex + 3;
+            tagEnd = endIndex + 2;
             //parse the tagInfo, items are separated by :
             string tagContents = rawDocument.Substring(startIndex + 3, endIndex - startIndex).Split('\n')[0];
             try
