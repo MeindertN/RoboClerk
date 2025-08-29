@@ -118,11 +118,11 @@ namespace RoboClerk
                 }
                 
                 // For text documents, reparse after content updates
-                /*if (document.DocumentType == DocumentType.Text)
+                if (document.DocumentType == DocumentType.Text)
                 {
                     string documentContent = document.ToText();
                     document.FromString(documentContent);
-                }*/
+                }
                 
             } while (document.RoboClerkTags.Any() && nrOfLevels < 5);
         }
