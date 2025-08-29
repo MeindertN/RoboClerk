@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using RoboClerk.Configuration;
 using RoboClerk.ContentCreators;
+using RoboClerk.Core;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -83,7 +84,7 @@ namespace RoboClerk.Tests
         public void TestTraceMatrix1()
         {
             var trace = new TraceMatrix(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
+            var tag = new RoboClerkTextTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
             string result = trace.GetContent(tag, documentConfig);
             string expectedValue = "|====\n| Requirements | Specifications | SRS \n| SYS1 | SYS1_SWR1, SYS1_SWR2 | Trace Present \n| SYS2 | SYS2_SWR3 | Trace Present \n|====\n\n\nTrace issues:\n\n. No Requirement level trace problems detected!\n";
 
@@ -98,7 +99,7 @@ namespace RoboClerk.Tests
         public void TestTraceMatrix2()
         {
             var trace = new TraceMatrix(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 36, "@@SLMS:TraceMatrix(source=Unknown)@@", true);
+            var tag = new RoboClerkTextTag(0, 36, "@@SLMS:TraceMatrix(source=Unknown)@@", true);
             var ex = Assert.Throws<Exception>(()=>trace.GetContent(tag, documentConfig));
             Assert.That(ex.Message.Contains("Truth source is null"));
         }
@@ -111,7 +112,7 @@ namespace RoboClerk.Tests
         public void TestTraceMatrix3()
         {
             var trace = new TraceMatrix(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 22, "@@SLMS:TraceMatrix()@@", true);
+            var tag = new RoboClerkTextTag(0, 22, "@@SLMS:TraceMatrix()@@", true);
             var ex = Assert.Throws<Exception>(() => trace.GetContent(tag, documentConfig));
             Assert.That(ex.Message.Contains("Unable to find trace source"));
         }
@@ -124,7 +125,7 @@ namespace RoboClerk.Tests
         public void TestTraceMatrix4()
         {
             var trace = new TraceMatrix(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
+            var tag = new RoboClerkTextTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
             matrix.Clear();
             var ex = Assert.Throws<Exception>(() => trace.GetContent(tag, documentConfig));
             Assert.That(ex.Message.Contains("Requirement level trace matrix is empty"));
@@ -138,7 +139,7 @@ namespace RoboClerk.Tests
         public void TestTraceMatrix5()
         {
             var trace = new TraceMatrix(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
+            var tag = new RoboClerkTextTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
             var te = traceAnalysis.GetTraceEntityForID("SoftwareRequirement");
             matrix[te][1].Clear();
             string result = trace.GetContent(tag, documentConfig);
@@ -155,7 +156,7 @@ namespace RoboClerk.Tests
         public void TestTraceMatrix6()
         {
             var trace = new TraceMatrix(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
+            var tag = new RoboClerkTextTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
             var te = traceAnalysis.GetTraceEntityForID("SoftwareRequirement");
             matrix[te][0].Clear();
             matrix[te][0].Add(null);
@@ -173,7 +174,7 @@ namespace RoboClerk.Tests
         public void TestTraceMatrix7()
         {
             var trace = new TraceMatrix(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
+            var tag = new RoboClerkTextTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
             var te = traceAnalysis.GetTraceEntityForID("SystemRequirement");
             var teSWR = traceAnalysis.GetTraceEntityForID("SoftwareRequirement");
             TraceIssue trcissue = new TraceIssue(te, "SYS1", teSWR, "SWR5", TraceIssueType.Missing);
@@ -192,7 +193,7 @@ namespace RoboClerk.Tests
         public void TestTraceMatrix8()
         {
             var trace = new TraceMatrix(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
+            var tag = new RoboClerkTextTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
             var te = traceAnalysis.GetTraceEntityForID("SystemRequirement");
             var teSWR = traceAnalysis.GetTraceEntityForID("SoftwareRequirement");
             var teDOC = traceAnalysis.GetTraceEntityForID("SystemRequirementsSpec");

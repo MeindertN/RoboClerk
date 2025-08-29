@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using RoboClerk.Core;
 using System;
 using System.Linq;
 using System.Text;

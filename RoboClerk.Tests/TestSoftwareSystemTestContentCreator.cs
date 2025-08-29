@@ -1,12 +1,13 @@
-﻿using NUnit.Framework;
-using NSubstitute;
-using System.Collections.Generic;
+﻿using NSubstitute;
+using NUnit.Framework;
 using RoboClerk.Configuration;
-using System.IO.Abstractions;
 using RoboClerk.ContentCreators;
+using RoboClerk.Core;
 using System;
-using System.Text.RegularExpressions;
+using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
+using System.Text.RegularExpressions;
 
 namespace RoboClerk.Tests
 {
@@ -102,7 +103,7 @@ namespace RoboClerk.Tests
         public void SoftwareSystemRenderTest1()
         {
             var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 13, "@@SLMS:TC()@@", true);
+            var tag = new RoboClerkTextTag(0, 13, "@@SLMS:TC()@@", true);
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "\n|====\n| *Test Case ID:* | tcid1\n\n| *Test Case Revision:* | tcrev1\n\n| *Parent ID:* | http://localhost/[tcid2]: \"title2\"\n\n| *Title:* | title1\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n\n| *Step* | *Action* | *Expected Result* \n\n| 1 | input11 | expected result11 \n\n| 2 | input12 | expected result12 \n\n|====\n\n|====\n| *Test Case ID:* | http://localhost/[tcid2]\n\n| *Test Case Revision:* | tcrev2\n\n| *Parent ID:* | http://localhost/[tcid2]: \"title2\"\n\n| *Title:* | title2\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n| *Step* | *Action* | *Expected Result* | *Actual Result* | *Test Status*\n\n| 1 | input21 | expected result21  |  | Pass / Fail\n\n| 2 | input22 | expected result22  |  | Pass / Fail\n\n|====\n\n@@Post:REMOVEPARAGRAPH()@@\n\n|====\n| Initial: | Date: | Asset ID: \n|====";
 
@@ -119,7 +120,7 @@ namespace RoboClerk.Tests
         public void SoftwareSystemRenderTest2()
         {
             var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 25, "@@SLMS:TC(itemid=tcid2)@@", true);
+            var tag = new RoboClerkTextTag(0, 25, "@@SLMS:TC(itemid=tcid2)@@", true);
             ((SoftwareSystemTestItem)testcaseItems[1]).ClearTestCaseSteps();
             ((SoftwareSystemTestItem)testcaseItems[1]).AddTestCaseStep(new TestStep("1", "input21", "expected result21" ));
             ((SoftwareSystemTestItem)testcaseItems[1]).AddTestCaseStep(new TestStep("2", "input22", "" ));
@@ -138,7 +139,7 @@ namespace RoboClerk.Tests
         public void SoftwareSystemRenderTest4()
         {
             var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 25, "@@SLMS:TC(itemid=tcid5)@@", true);
+            var tag = new RoboClerkTextTag(0, 25, "@@SLMS:TC(itemid=tcid5)@@", true);
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "Unable to find specified Test Case(s). Check if Test Cases are provided or if a valid Test Case identifier is specified.";
 
@@ -153,7 +154,7 @@ namespace RoboClerk.Tests
         public void SoftwareSystemRenderTest5()
         {
             var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
+            var tag = new RoboClerkTextTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
 
             results.Add(new TestResult("tcid3", TestResultType.SYSTEM, TestResultStatus.PASS, "the second test", "all good", DateTime.Now));
             SoftwareSystemTestItem testcaseItem = new SoftwareSystemTestItem();
@@ -186,7 +187,7 @@ namespace RoboClerk.Tests
         public void SoftwareSystemRenderTest6()
         {
             var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
+            var tag = new RoboClerkTextTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
 
             results.Add(new TestResult("tcid3", TestResultType.SYSTEM, TestResultStatus.PASS, "the second test", "all good", DateTime.Now));
 
@@ -204,7 +205,7 @@ namespace RoboClerk.Tests
         public void SoftwareSystemRenderTest7()
         {
             var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
+            var tag = new RoboClerkTextTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
 
             SoftwareSystemTestItem testcaseItem = new SoftwareSystemTestItem();
             testcaseItem.ItemID = "tcid3";
@@ -236,7 +237,7 @@ namespace RoboClerk.Tests
         public void SoftwareSystemRenderTest8()
         {
             var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
+            var tag = new RoboClerkTextTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
 
             results[0].Status = TestResultStatus.FAIL;
             SoftwareSystemTestItem testcaseItem = new SoftwareSystemTestItem();

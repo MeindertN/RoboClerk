@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using RoboClerk.Core;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -37,7 +38,7 @@ namespace RoboClerk.ContentCreators
             return result;
         }
 
-        public virtual string GetContent(RoboClerkTag tag, DocumentConfig doc)
+        public virtual string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             if (truthSource == null)
             {

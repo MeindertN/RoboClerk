@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using RoboClerk.Core;
+using System.Collections.Generic;
 
 namespace RoboClerk
 {
     public interface ITraceabilityAnalysis
     {
         void AddTrace(TraceEntity source, string sourceID, TraceEntity target, string targetID);
-        void AddTraceTag(string docTitle, RoboClerkTag tag);
+        void AddTraceTag(string docTitle, IRoboClerkTag tag);
         string GetAbreviationForTraceEntity(string ID);
         string GetTitleForTraceEntity(string ID);
         TraceEntity GetTraceEntityForAnyProperty(string prop);

@@ -1,5 +1,5 @@
-using RoboClerk.Configuration;
 using RoboClerk.AISystem;
+using RoboClerk.Core;
 
 namespace RoboClerk.ContentCreators
 {

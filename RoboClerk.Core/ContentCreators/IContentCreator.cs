@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using RoboClerk.Core;
 
 namespace RoboClerk.ContentCreators
 {
@@ -6,6 +7,12 @@ namespace RoboClerk.ContentCreators
     // ensuring that the trace is kept up to date with any trace items they add to a document.
     public interface IContentCreator
     {
-        public string GetContent(RoboClerkTag tag, DocumentConfig doc);
+        /// <summary>
+        /// Gets content for the specified tag
+        /// </summary>
+        /// <param name="tag">The RoboClerk tag (unified interface)</param>
+        /// <param name="doc">Document configuration</param>
+        /// <returns>Content to replace the tag with</returns>
+        public string GetContent(IRoboClerkTag tag, DocumentConfig doc);
     }
 }

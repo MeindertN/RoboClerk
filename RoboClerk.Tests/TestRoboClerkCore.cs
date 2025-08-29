@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.TestPlatform.TestHost;
 using System.Linq;
 using System.Reflection;
 using System.IO;
+using RoboClerk.Core;
 
 namespace RoboClerk.Tests
 {

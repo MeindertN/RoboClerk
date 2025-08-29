@@ -3,6 +3,7 @@ using NSubstitute;
 using NUnit.Framework;
 using RoboClerk.Configuration;
 using RoboClerk.ContentCreators;
+using RoboClerk.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -73,7 +74,7 @@ namespace RoboClerk.Tests
         public void TestExcelTableCC1()
         {
             var et = new ExcelTable(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 75, "@@FILE:exceltable(fileName=test.xlsx,range=B2:C4,workSheet=testworksheet)@@", true);
+            var tag = new RoboClerkTextTag(0, 75, "@@FILE:exceltable(fileName=test.xlsx,range=B2:C4,workSheet=testworksheet)@@", true);
 
             string result = et.GetContent(tag, documentConfig);
             string expectedResult = "|===\n| *testvalueb2* | _testvaluec3_ \n\n|  |  \n\n| testvalueb4 | http://localhost/[testvaluec4] \n\n|===\n";
@@ -89,7 +90,7 @@ namespace RoboClerk.Tests
         public void TestExcelTableCC2()
         {
             var et = new ExcelTable(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 78, "@@FILE:exceltable(fileName=unknown.xlsx,range=B2:C4,workSheet=testworksheet)@@", true);
+            var tag = new RoboClerkTextTag(0, 78, "@@FILE:exceltable(fileName=unknown.xlsx,range=B2:C4,workSheet=testworksheet)@@", true);
             dataSources.GetFileStreamFromTemplateDir(@"unknown.xlsx").Returns(x => throw new Exception("Can't find file"));
 
             Assert.Throws<Exception>(()=>et.GetContent(tag, documentConfig));

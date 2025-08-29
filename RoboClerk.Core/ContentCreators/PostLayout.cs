@@ -1,10 +1,11 @@
 ﻿using RoboClerk.Configuration;
+using RoboClerk.Core;
 
 namespace RoboClerk.ContentCreators
 {
     internal class PostLayout : IContentCreator
     {
-        public string GetContent(RoboClerkTag tag, DocumentConfig doc)
+        public string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             if (tag.ContentCreatorID.ToUpper() == "TOC")
             {

@@ -1,15 +1,16 @@
-﻿using NUnit.Framework;
+﻿using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using RoboClerk.Configuration;
-using System.Collections.Generic;
-using Tomlyn.Model;
-using System;
-using System.Linq;
 using NSubstitute.Extensions;
-using RoboClerk;
-using System.IO.Abstractions;
+using NUnit.Framework;
 using NUnit.Framework.Legacy;
-using Microsoft.Extensions.DependencyInjection;
+using RoboClerk;
+using RoboClerk.Configuration;
+using RoboClerk.Core;
+using System;
+using System.Collections.Generic;
+using System.IO.Abstractions;
+using System.Linq;
+using Tomlyn.Model;
 
 namespace RoboClerk.Tests
 {
@@ -168,7 +169,7 @@ namespace RoboClerk.Tests
         [Test]
         public void Extracting_Trace_information_From_Trace_Tag_VERIFIES_Correct_Trace_Is_Recorded_From_Tag_And_Title()
         {
-            RoboClerkTag tag = new RoboClerkTag(0, 20, "@@Trace:SWR(id=1234)@@", true);
+            var tag = new RoboClerkTextTag(0, 20, "@@Trace:SWR(id=1234)@@", true);
             ITraceabilityAnalysis traceabilityAnalysis = new TraceabilityAnalysis(mockConfig);
             traceabilityAnalysis.AddTraceTag("RAR Title", tag);
             IEnumerable<TraceLink> tls = traceabilityAnalysis.GetTraceLinksForDocument(traceabilityAnalysis.GetTraceEntityForTitle("RAR Title"));
@@ -183,7 +184,7 @@ namespace RoboClerk.Tests
             ClassicAssert.AreEqual("1234", links[0].SourceID);
             ClassicAssert.AreEqual("RiskAssessmentRecord", links[0].Target.ID);
             ClassicAssert.AreEqual("1234", links[0].TargetID);
-            RoboClerkTag tagNoID = new RoboClerkTag(0, 13, "@@Trace:SWR()@@", true);
+            var tagNoID = new RoboClerkTextTag(0, 13, "@@Trace:SWR()@@", true);
             var result = Assert.Throws<TagInvalidException>(() => { traceabilityAnalysis.AddTraceTag("RAR Title", tagNoID); });
             ClassicAssert.IsTrue(result.Message.Contains("RAR Title"));
             ClassicAssert.IsTrue(result.Message.Contains("Trace:SWR()"));

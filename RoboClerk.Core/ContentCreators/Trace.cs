@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using RoboClerk.Core;
 
 namespace RoboClerk.ContentCreators
 {
@@ -15,7 +16,7 @@ namespace RoboClerk.ContentCreators
             this.config = config;
         }
 
-        public string GetContent(RoboClerkTag tag, DocumentConfig doc)
+        public string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             if (tag.HasParameter("ID"))
             {

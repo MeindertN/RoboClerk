@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using RoboClerk.Core;
 
 namespace RoboClerk.ContentCreators
 {
@@ -10,7 +11,7 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
+        public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             string filename = tag.GetParameterOrDefault("FILENAME", string.Empty);
             if (filename == string.Empty)

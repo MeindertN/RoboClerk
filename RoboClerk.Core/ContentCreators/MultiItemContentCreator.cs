@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using RoboClerk.Core;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -13,9 +14,9 @@ namespace RoboClerk.ContentCreators
         {
         }
 
-        protected abstract string GenerateContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE);
+        protected abstract string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE);
 
-        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
+        public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             var te = analysis.GetTraceEntityForAnyProperty(tag.ContentCreatorID);
             if (te == null)

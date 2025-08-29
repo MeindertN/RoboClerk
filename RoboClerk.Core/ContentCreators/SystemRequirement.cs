@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using RoboClerk.Core;
 using System;
 
 namespace RoboClerk.ContentCreators
@@ -11,7 +12,7 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
+        public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             var te = analysis.GetTraceEntityForID("SystemRequirement");
             if (te == null)

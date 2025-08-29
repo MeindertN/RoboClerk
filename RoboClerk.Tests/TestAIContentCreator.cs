@@ -1,11 +1,12 @@
-﻿using NUnit.Framework;
-using RoboClerk.Configuration;
-using System.IO.Abstractions;
-using RoboClerk.ContentCreators;
+﻿using NSubstitute;
+using NUnit.Framework;
 using RoboClerk.AISystem;
-using NSubstitute;
-using System.Collections.Generic;
+using RoboClerk.Configuration;
+using RoboClerk.ContentCreators;
+using RoboClerk.Core;
 using System;
+using System.Collections.Generic;
+using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 
 namespace RoboClerk.Tests
@@ -61,7 +62,7 @@ namespace RoboClerk.Tests
         public void TestAIContentCreator3()
         {
             var obj = new AIContentCreator(dataSources, traceAnalysis, config, aiSystemPlugin, fs);
-            var tag = new RoboClerkTag(0, 22, "@@SLMS:TraceMatrix()@@", true);
+            var tag = new RoboClerkTextTag(0, 22, "@@SLMS:TraceMatrix()@@", true);
             var doc = new DocumentConfig("roboclerkID", "documentID", "documentTitle", "documentAbbreviation", "documentTemplate");
             var ex = Assert.Throws<Exception>(() => obj.GetContent(tag,doc));
             Assert.That(ex.Message.Contains("One or both of the required AI parameters are not present in the AI tag."));
@@ -77,7 +78,7 @@ namespace RoboClerk.Tests
             fs = new MockFileSystem();
             fs.Directory.CreateDirectory(TestingHelpers.ConvertFilePath(@"c:\out"));
             var obj = new AIContentCreator(dataSources, traceAnalysis, config, aiSystemPlugin, fs);
-            var tag = new RoboClerkTag(0, 57, "@@SLMS:TraceMatrix(entity=SystemRequirement,itemID=101)@@", true);
+            var tag = new RoboClerkTextTag(0, 57, "@@SLMS:TraceMatrix(entity=SystemRequirement,itemID=101)@@", true);
             var doc = new DocumentConfig("roboclerkID", "documentID", "documentTitle", "documentAbbreviation", "documentTemplate");
             RequirementItem item = new RequirementItem(RequirementType.SoftwareRequirement);
             dataSources.GetItem(Arg.Any<string>()).Returns(item);

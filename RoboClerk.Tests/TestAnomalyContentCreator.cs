@@ -3,6 +3,7 @@ using NSubstitute;
 using NUnit.Framework;
 using RoboClerk.Configuration;
 using RoboClerk.ContentCreators;
+using RoboClerk.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -86,7 +87,7 @@ namespace RoboClerk.Tests
         public void TestAnomaly1()
         {
             var anomaly = new Anomaly(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 18, "@@SLMS:Anomaly()@@", true);
+            var tag = new RoboClerkTextTag(0, 18, "@@SLMS:Anomaly()@@", true);
 
             string result = anomaly.GetContent(tag, documentConfig);
             string expectedResult = "\n|====\n| Anomaly ID: | tcid1\n\n| Anomaly Revision: | tcrev1\n\n| State: | deferred\n\n| Assigned To: | tester mc testee\n\n| Title: | title1\n\n| Severity: | critical\n\n| Description: | MISSING\n\n| Justification: | it's all good\n|====\n\n|====\n| Anomaly ID: | http://localhost/[tcid2]\n\n| Anomaly Revision: | tcrev2\n\n| State: | N/A\n\n| Assigned To: | NOT ASSIGNED\n\n| Title: | title2\n\n| Severity: | N/A\n\n| Description: | MISSING\n\n| Justification: | N/A\n|====\n";
@@ -104,7 +105,7 @@ namespace RoboClerk.Tests
         public void TestAnomaly2()
         {
             var anomaly = new Anomaly(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 18, "@@SLMS:Anomaly()@@", true);
+            var tag = new RoboClerkTextTag(0, 18, "@@SLMS:Anomaly()@@", true);
             ((AnomalyItem)anomalyItems[0]).AnomalyState = "Closed";
 
             string result = anomaly.GetContent(tag, documentConfig);
@@ -123,7 +124,7 @@ namespace RoboClerk.Tests
         public void TestAnomaly3()
         {
             var anomaly = new Anomaly(dataSources, traceAnalysis, config);
-            var tag = new RoboClerkTag(0, 18, "@@SLMS:Anomaly()@@", true);
+            var tag = new RoboClerkTextTag(0, 18, "@@SLMS:Anomaly()@@", true);
             ((AnomalyItem)anomalyItems[0]).AnomalyState = "Closed";
             anomalyItems.RemoveAt(1);
 

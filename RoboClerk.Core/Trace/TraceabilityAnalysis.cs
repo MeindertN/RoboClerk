@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using RoboClerk.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -281,7 +282,7 @@ namespace RoboClerk
             }
         }
 
-        public void AddTraceTag(string docTitle, RoboClerkTag tag)
+        public void AddTraceTag(string docTitle, IRoboClerkTag tag)
         {
             if (!tag.HasParameter("ID"))
             {

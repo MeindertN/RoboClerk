@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.Scripting;
+using RoboClerk.Core;
 using System.Collections.Generic;
 using System.Text;
 using IConfiguration = RoboClerk.Configuration.IConfiguration;
@@ -14,7 +15,7 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        protected override string GenerateContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
+        protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             StringBuilder output = new StringBuilder();
             var dataShare = new ScriptingBridge(data, analysis, sourceTE, configuration);

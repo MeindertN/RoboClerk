@@ -1,6 +1,8 @@
 ﻿using RoboClerk.AISystem;
 using RoboClerk.Configuration;
 using RoboClerk.ContentCreators;
+using RoboClerk.Core;
+using RoboClerk.Core.DocxSupport;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,7 +20,7 @@ namespace RoboClerk
         private readonly IAISystemPlugin aiPlugin = null;
         private readonly IContentCreatorFactory contentCreatorFactory = null;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        private List<TextDocument> documents = new List<TextDocument>();
+        private List<IDocument> documents = new List<IDocument>();
         private IFileSystem fileSystem = null;
         private IPluginLoader pluginLoader = null;
 
@@ -50,62 +52,130 @@ namespace RoboClerk
             }
             if(aiPlugin != null) 
             {
-                List<TextDocument> docs = ProcessTemplates(aiPlugin.GetAIPromptTemplates());
-                aiPlugin.SetPrompts(docs);
+                List<IDocument> docs = ProcessTemplates(aiPlugin.GetAIPromptTemplates());
+                // AI prompts are typically text-based, so convert them
+                List<TextDocument> textDocs = docs.OfType<TextDocument>().ToList();
+                aiPlugin.SetPrompts(textDocs);
             }
             var configDocuments = configuration.Documents;
             documents.AddRange(ProcessTemplates(configDocuments));
             logger.Info("Finished creating documents.");
         }
 
-        private List<TextDocument> ProcessTemplates(IEnumerable<DocumentConfig> configDocuments)
+        private List<IDocument> ProcessTemplates(IEnumerable<DocumentConfig> configDocuments)
         {
-            List<TextDocument> docs = new List<TextDocument>();
+            List<IDocument> docs = new List<IDocument>();
             foreach (var doc in configDocuments)
             {
                 if (doc.DocumentTemplate == string.Empty)
                     continue;  //skip documents without template
+
                 logger.Info($"Reading document template: {doc.RoboClerkID}");
-                TextDocument document = new TextDocument(doc.DocumentTitle, doc.DocumentTemplate);
+                
+                IDocument document = CreateDocument(doc);
                 document.FromStream(fileSystem.FileStream.New(fileSystem.Path.Join(configuration.TemplateDir, doc.DocumentTemplate), FileMode.Open));
+                
                 logger.Info($"Generating document: {doc.RoboClerkID}");
-                int nrOfLevels = 0;
-                //go over the tag list to determine what information should be collected from where
-                do
-                {
-                    nrOfLevels++;
-                    foreach (var tag in document.RoboClerkTags)
-                    {
-                        if (tag.Source == DataSource.Trace)
-                        {
-                            logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID", "ERROR")}");
-                            //grab trace tag and add to the trace analysis
-                            IContentCreator contentCreator = contentCreatorFactory.CreateContentCreator(DataSource.Trace, null);
-                            tag.Contents = contentCreator.GetContent(tag, doc);
-                            continue;
-                        }
-                        if (tag.Source != DataSource.Unknown)
-                        {
-                            try
-                            {
-                                IContentCreator contentCreator = contentCreatorFactory.CreateContentCreator(tag.Source, tag.ContentCreatorID);
-                                tag.Contents = contentCreator.GetContent(tag, doc);
-                            }
-                            catch (InvalidOperationException ex)
-                            {
-                                logger.Warn($"Content creator for source '{tag.Source}' not found: {ex.Message}");
-                                tag.Contents = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS '{tag.Source}:{tag.ContentCreatorID}' IS KNOWN TO ROBOCLERK.\n";
-                            }
-                        }
-                    }
-                    string documentContent = document.ToText();
-                    document.FromString(documentContent);
-                }
-                while (document.RoboClerkTags.Count() > 0 && nrOfLevels < 5);
+                ProcessDocumentTags(document, doc);
+                
                 docs.Add(document);
                 logger.Info($"Finished creating document {doc.RoboClerkID}");
             }
             return docs;
+        }
+
+        private IDocument CreateDocument(DocumentConfig doc)
+        {
+            string extension = fileSystem.Path.GetExtension(doc.DocumentTemplate).ToLowerInvariant();
+            
+            return extension switch
+            {
+                ".docx" => new DocxDocument(doc.DocumentTitle, doc.DocumentTemplate),
+                ".adoc" or ".asciidoc" or ".txt" or ".htm" or ".html" => new TextDocument(doc.DocumentTitle, doc.DocumentTemplate),
+                _ => throw new NotSupportedException($"Document template format '{extension}' is not supported.")
+            };
+        }
+
+        private void ProcessDocumentTags(IDocument document, DocumentConfig doc)
+        {
+            int nrOfLevels = 0;
+            
+            do
+            {
+                nrOfLevels++;
+                var tags = document.RoboClerkTags.ToList(); // Create a snapshot
+                
+                foreach (var tag in tags)
+                {
+                    ProcessTag(tag, doc);
+                    
+                    // Process nested tags if they exist
+                    var nestedTags = tag.ProcessNestedTags();
+                    foreach (var nestedTag in nestedTags)
+                    {
+                        ProcessTag(nestedTag, doc);
+                    }
+                }
+                
+                // For text documents, reparse after content updates
+                /*if (document.DocumentType == DocumentType.Text)
+                {
+                    string documentContent = document.ToText();
+                    document.FromString(documentContent);
+                }*/
+                
+            } while (document.RoboClerkTags.Any() && nrOfLevels < 5);
+        }
+
+        private void ProcessTag(IRoboClerkTag tag, DocumentConfig doc)
+        {
+            if (tag.Source == DataSource.Trace)
+            {
+                logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID", "ERROR")}");
+                IContentCreator contentCreator = contentCreatorFactory.CreateContentCreator(DataSource.Trace, null);
+                tag.Contents = contentCreator.GetContent(tag, doc);
+                return;
+            }
+            
+            if (tag.Source != DataSource.Unknown)
+            {
+                try
+                {
+                    IContentCreator contentCreator = contentCreatorFactory.CreateContentCreator(tag.Source, tag.ContentCreatorID);
+                    tag.Contents = contentCreator.GetContent(tag, doc);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    logger.Warn($"Content creator for source '{tag.Source}' not found: {ex.Message}");
+                    tag.Contents = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS '{tag.Source}:{tag.ContentCreatorID}' IS KNOWN TO ROBOCLERK.\n";
+                }
+            }
+        }
+
+        public void SaveDocumentsToDisk()
+        {
+            logger.Info($"Saving documents to directory: {configuration.OutputDir}");
+            foreach (var doc in documents)
+            {
+                logger.Debug($"Writing document to disk: {fileSystem.Path.GetFileName(doc.TemplateFile)}");
+                
+                string outputPath = fileSystem.Path.Combine(configuration.OutputDir, fileSystem.Path.GetFileName(doc.TemplateFile));
+                doc.SaveToFile(outputPath);
+                
+                //run the commands
+                logger.Info($"Running commands associated with {doc.Title}");
+                var configDoc = configuration.Documents.Find(x => x.DocumentTitle == doc.Title);
+                if (configDoc != null && configDoc.Commands != null)
+                {
+                    configDoc.Commands.RunCommands();
+                }
+                else
+                {
+                    logger.Warn($"No commands found for {doc.Title}. Ensure this is intended.");
+                }
+            }
+            
+            fileSystem.File.WriteAllText(fileSystem.Path.Combine(configuration.OutputDir, "DataSourceData.json"), dataSources.ToJSON());
         }
 
         private void CleanAndCopyMediaDirectory()
@@ -128,28 +198,6 @@ namespace RoboClerk
                     fileSystem.Directory.CreateDirectory(fileSystem.Path.GetDirectoryName(destPath));
                     fileSystem.File.Copy(file, destPath);
                 }
-            }
-        }
-
-        public void SaveDocumentsToDisk()
-        {
-            logger.Info($"Saving documents to directory: {configuration.OutputDir}");
-            foreach (var doc in documents)
-            {
-                logger.Debug($"Writing document to disk: {fileSystem.Path.GetFileName(doc.TemplateFile)}");
-                fileSystem.File.WriteAllText(fileSystem.Path.Combine(configuration.OutputDir, fileSystem.Path.GetFileName(doc.TemplateFile)), doc.ToText());
-                //run the commands
-                logger.Info($"Running commands associated with {doc.Title}");
-                var configDoc = configuration.Documents.Find(x => x.DocumentTitle == doc.Title);
-                if (configDoc != null && configDoc.Commands != null)
-                {
-                    configDoc.Commands.RunCommands();
-                }
-                else
-                {
-                    logger.Warn($"No commands found for {doc.Title}. Ensure this is intended.");
-                }
-                fileSystem.File.WriteAllText(fileSystem.Path.Combine(configuration.OutputDir, "DataSourceData.json"), dataSources.ToJSON());
             }
         }
     }

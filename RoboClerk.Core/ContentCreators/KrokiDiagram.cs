@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using RoboClerk.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -75,7 +76,7 @@ namespace RoboClerk.ContentCreators
                 .Replace('/', '_');
         }
 
-        public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
+        public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             //we are hardcoding the kroki URL for now
             string krokiURL = "https://kroki.io";

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using RoboClerk.AISystem;
 using RoboClerk.Configuration;
+using RoboClerk.Core;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
@@ -93,7 +94,7 @@ namespace RoboClerk.ContentCreators
     /// </summary>
     internal class CommentContentCreator : IContentCreator
     {
-        public string GetContent(RoboClerkTag tag, DocumentConfig doc)
+        public string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             return string.Empty;
         }

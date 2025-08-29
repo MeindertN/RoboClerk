@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using RoboClerk.Core;
 using System;
 using System.Reflection;
 using System.Text;
@@ -20,9 +21,9 @@ namespace RoboClerk.ContentCreators
             this.configuration = configuration;
         }
 
-        public abstract string GetContent(RoboClerkTag tag, DocumentConfig doc);
+        public abstract string GetContent(IRoboClerkTag tag, DocumentConfig doc);
 
-        protected static bool ShouldBeIncluded<T>(RoboClerkTag tag, T item, PropertyInfo[] properties)
+        protected static bool ShouldBeIncluded<T>(IRoboClerkTag tag, T item, PropertyInfo[] properties)
         {
             foreach (var param in tag.Parameters)
             {
@@ -41,7 +42,7 @@ namespace RoboClerk.ContentCreators
             return true;
         }
 
-        protected static bool CheckUpdateDateTime(RoboClerkTag tag, Item item)
+        protected static bool CheckUpdateDateTime(IRoboClerkTag tag, Item item)
         {
             foreach (var param in tag.Parameters)
             {

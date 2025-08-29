@@ -1,17 +1,16 @@
-using System.Collections.Generic;
-using System.IO;
+using RoboClerk.Core;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace RoboClerk
 {
-    public class TextDocument
+    public class TextDocument : IDocument
     {
         protected string title = string.Empty;
         protected string rawText = string.Empty;
         protected string templateFile = string.Empty;
 
-        protected List<RoboClerkTag> roboclerkTags = new List<RoboClerkTag>();
+        protected List<RoboClerkTextTag> roboclerkTags = new List<RoboClerkTextTag>();
 
         public TextDocument(string title, string templateFile)
         {
@@ -51,10 +50,15 @@ namespace RoboClerk
             return RoboClerkTextParser.ReInsertRoboClerkTags(rawText, roboclerkTags);
         }
 
-        public IEnumerable<RoboClerkTag> RoboClerkTags
+        public void SaveToFile(string filePath)
         {
-            get => roboclerkTags;
+            File.WriteAllText(filePath, ToText());
         }
+
+        public DocumentType DocumentType => DocumentType.Text;
+
+        // IDocument interface implementation
+        IEnumerable<IRoboClerkTag> IDocument.RoboClerkTags => roboclerkTags.Cast<IRoboClerkTag>();
 
         public string Title
         {

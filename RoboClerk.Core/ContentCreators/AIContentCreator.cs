@@ -1,5 +1,6 @@
 ﻿using RoboClerk.AISystem;
 using RoboClerk.Configuration;
+using RoboClerk.Core;
 using System;
 using System.IO.Abstractions;
 using System.Text.Json;
@@ -33,7 +34,7 @@ namespace RoboClerk.ContentCreators
             this.fileSystem = fileSystem;
         }
 
-        public string GetContent(RoboClerkTag tag, DocumentConfig doc)
+        public string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             //look up item
             TraceEntity te = null;

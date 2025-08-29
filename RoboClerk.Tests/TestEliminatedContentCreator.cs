@@ -4,9 +4,9 @@ using System.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using NSubstitute;
-using RoboClerk;
 using RoboClerk.Configuration;
 using RoboClerk.ContentCreators;
+using RoboClerk.Core;
 
 namespace RoboClerk.Tests
 {
@@ -19,7 +19,7 @@ namespace RoboClerk.Tests
         private ITraceabilityAnalysis traceAnalysis = null;
         private DocumentConfig documentConfig = null;
         private Eliminated eliminatedContentCreator = null;
-        private RoboClerkTag tag = null;
+        private IRoboClerkTag tag = null;
         private TraceEntity eliminatedTE = null;
 
         [SetUp]
@@ -40,7 +40,7 @@ namespace RoboClerk.Tests
 
             eliminatedContentCreator = new Eliminated(dataSources, traceAnalysis, config);
 
-            tag = new RoboClerkTag(0, 29, "@@SLMS:Eliminated(TYPE=ALL)@@", true);
+            tag = new RoboClerkTextTag(0, 29, "@@SLMS:Eliminated(TYPE=ALL)@@", true);
             dataSources.GetTemplateFile(@"./ItemTemplates/ASCIIDOC/Eliminated.adoc").Returns(
                 "[csx:\n" +
                 "using RoboClerk;\n" +
@@ -116,7 +116,7 @@ namespace RoboClerk.Tests
         {
             // Arrange
             SetupSystemRequirementEliminatedItemsMock();
-            tag = new RoboClerkTag(0, 32, "@@SLMS:Eliminated(TYPE=SYSTEM)@@", true);
+            tag = new RoboClerkTextTag(0, 32, "@@SLMS:Eliminated(TYPE=SYSTEM)@@", true);
 
             // Act
             string content = eliminatedContentCreator.GetContent(tag, documentConfig);
@@ -135,7 +135,7 @@ namespace RoboClerk.Tests
         {
             // Arrange
             SetupSoftwareRequirementEliminatedItemsMock();
-            tag = new RoboClerkTag(0, 34, "@@SLMS:Eliminated(TYPE=SOFTWARE)@@", true);
+            tag = new RoboClerkTextTag(0, 34, "@@SLMS:Eliminated(TYPE=SOFTWARE)@@", true);
 
             // Act
             string content = eliminatedContentCreator.GetContent(tag, documentConfig);
@@ -154,7 +154,7 @@ namespace RoboClerk.Tests
         {
             // Arrange
             SetupDocumentationRequirementEliminatedItemsMock();
-            tag = new RoboClerkTag(0, 39, "@@SLMS:Eliminated(TYPE=DOCUMENTATION)@@", true);
+            tag = new RoboClerkTextTag(0, 39, "@@SLMS:Eliminated(TYPE=DOCUMENTATION)@@", true);
 
             // Act
             string content = eliminatedContentCreator.GetContent(tag, documentConfig);
@@ -173,7 +173,7 @@ namespace RoboClerk.Tests
         {
             // Arrange
             SetupSoftwareSystemTestEliminatedItemsMock();
-            tag = new RoboClerkTag(0, 34, "@@SLMS:Eliminated(TYPE=TESTCASE)@@", true);
+            tag = new RoboClerkTextTag(0, 34, "@@SLMS:Eliminated(TYPE=TESTCASE)@@", true);
 
             // Act
             string content = eliminatedContentCreator.GetContent(tag, documentConfig);
@@ -192,7 +192,7 @@ namespace RoboClerk.Tests
         {
             // Arrange
             SetupRiskEliminatedItemsMock();
-            tag = new RoboClerkTag(0, 30, "@@SLMS:Eliminated(TYPE=RISK)@@", true);
+            tag = new RoboClerkTextTag(0, 30, "@@SLMS:Eliminated(TYPE=RISK)@@", true);
 
             // Act
             string content = eliminatedContentCreator.GetContent(tag, documentConfig);
@@ -211,7 +211,7 @@ namespace RoboClerk.Tests
         {
             // Arrange
             SetupDocContentEliminatedItemsMock();
-            tag = new RoboClerkTag(0, 36, "@@SLMS:Eliminated(TYPE=DOCCONTENT)@@", true);
+            tag = new RoboClerkTextTag(0, 36, "@@SLMS:Eliminated(TYPE=DOCCONTENT)@@", true);
 
             // Act
             string content = eliminatedContentCreator.GetContent(tag, documentConfig);
@@ -230,7 +230,7 @@ namespace RoboClerk.Tests
         {
             // Arrange
             SetupAnomalyEliminatedItemsMock();
-            tag = new RoboClerkTag(0, 33, "@@SLMS:Eliminated(TYPE=ANOMALY)@@", true);
+            tag = new RoboClerkTextTag(0, 33, "@@SLMS:Eliminated(TYPE=ANOMALY)@@", true);
 
             // Act
             string content = eliminatedContentCreator.GetContent(tag, documentConfig);
@@ -249,7 +249,7 @@ namespace RoboClerk.Tests
         {
             // Arrange
             SetupSoupEliminatedItemsMock();
-            tag = new RoboClerkTag(0, 30, "@@SLMS:Eliminated(TYPE=SOUP)@@", true);
+            tag = new RoboClerkTextTag(0, 30, "@@SLMS:Eliminated(TYPE=SOUP)@@", true);
 
             // Act
             string content = eliminatedContentCreator.GetContent(tag, documentConfig);
@@ -268,7 +268,7 @@ namespace RoboClerk.Tests
         {
             // Arrange
             SetupAllEliminatedItemsMock();
-            tag = new RoboClerkTag(0, 32, "@@SLMS:Eliminated(TYPE=UNKNOWN)@@", true);
+            tag = new RoboClerkTextTag(0, 32, "@@SLMS:Eliminated(TYPE=UNKNOWN)@@", true);
 
             // Act
             string content = eliminatedContentCreator.GetContent(tag, documentConfig);

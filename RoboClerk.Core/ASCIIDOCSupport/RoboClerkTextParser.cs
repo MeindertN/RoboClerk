@@ -1,3 +1,4 @@
+using RoboClerk.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ namespace RoboClerk
 {
     public static class RoboClerkTextParser
     {
-        public static List<RoboClerkTag> ExtractRoboClerkTags(string docText)
+        public static List<RoboClerkTextTag> ExtractRoboClerkTags(string docText)
         {
             int index = 0;
             List<TextTag> indices = new List<TextTag>();
@@ -31,13 +32,13 @@ namespace RoboClerk
 
             CheckForUnbalancedTags(indices);
 
-            List<RoboClerkTag> tags = new List<RoboClerkTag>();
+            List<RoboClerkTextTag> tags = new List<RoboClerkTextTag>();
 
             foreach (TextTag tag in indices)
             {
                 if (tag.ContainerTag)
                 {
-                    tags.Add(new RoboClerkTag(tag.StartIndex, tag.EndIndex, docText, false));
+                    tags.Add(new RoboClerkTextTag(tag.StartIndex, tag.EndIndex, docText, false));
                 }
                 else
                 {
@@ -49,7 +50,7 @@ namespace RoboClerk
                     }
                     //check if this inline tag is within a container tag, if so, do not add the tag. The outer container tag will be resolved first
                     if (tags.Count(t => (!t.Inline && t.ContentStart < tag.StartIndex && t.ContentEnd > tag.EndIndex)) == 0)
-                        tags.Add(new RoboClerkTag(tag.StartIndex, tag.EndIndex, docText, true));
+                        tags.Add(new RoboClerkTextTag(tag.StartIndex, tag.EndIndex, docText, true));
                 }
             }
 
@@ -81,7 +82,7 @@ namespace RoboClerk
             }
         }
 
-        public static string ReInsertRoboClerkTags(string asciiDoc, List<RoboClerkTag> tags)
+        public static string ReInsertRoboClerkTags(string asciiDoc, List<RoboClerkTextTag> tags)
         {
             if (tags.Count == 0)
             {
@@ -90,7 +91,7 @@ namespace RoboClerk
             //first we break apart the original asciiDoc using the original tag locations
             //determine the break points by sorting the tags by the start value and
             //iterating over them
-            List<RoboClerkTag> sortedTags = tags.OrderBy(o => o.ContentStart).ToList();
+            List<RoboClerkTextTag> sortedTags = tags.OrderBy(o => o.ContentStart).ToList();
 
             List<string> parts = new List<string>();
             int lastEnd = -1;

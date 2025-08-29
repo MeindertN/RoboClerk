@@ -7,6 +7,7 @@ using RoboClerk.ContentCreators;
 using System;
 using System.Text.RegularExpressions;
 using System.IO;
+using RoboClerk.Core;
 
 namespace RoboClerk.Tests
 {
@@ -51,32 +52,32 @@ namespace RoboClerk.Tests
         {
             var sst = new ContentCreators.Document(traceAnalysis);
             string tagString = "@@Document:title()@@";
-            RoboClerkTag tag = new RoboClerkTag(0, tagString.Length, tagString, true);
+            IRoboClerkTag tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             string result = sst.GetContent(tag,documentConfig);
             Assert.That(result, Is.EqualTo("docTitle"));
 
             tagString = "@@Document:aBbreviation()@@";
-            tag = new RoboClerkTag(0, tagString.Length, tagString, true);
+            tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             result = sst.GetContent(tag, documentConfig);
             Assert.That(result, Is.EqualTo("docAbbr"));
 
             tagString = "@@Document:IDENTIFIER()@@";
-            tag = new RoboClerkTag(0, tagString.Length, tagString, true);
+            tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             result = sst.GetContent(tag, documentConfig);
             Assert.That(result, Is.EqualTo("docID"));
 
             tagString = "@@Document:template()@@";
-            tag = new RoboClerkTag(0, tagString.Length, tagString, true);
+            tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             result = sst.GetContent(tag, documentConfig);
             Assert.That(result, Is.EqualTo(@"c:\in\template.adoc"));
 
             tagString = "@@Document:RoboClerkID()@@";
-            tag = new RoboClerkTag(0, tagString.Length, tagString, true);
+            tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             result = sst.GetContent(tag, documentConfig);
             Assert.That(result, Is.EqualTo("SystemLevelTestPlan"));
 
             tagString = "@@Document:GenDateTime()@@";
-            tag = new RoboClerkTag(0, tagString.Length, tagString, true);
+            tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             result = sst.GetContent(tag, documentConfig);
             DateTime now = DateTime.Now;
             DateTime dateTime = DateTime.Parse(result);
@@ -94,19 +95,19 @@ namespace RoboClerk.Tests
             documentConfig.AddEntityCount(te, 3);
             var sst = new ContentCreators.Document(traceAnalysis);
             string tagString = "@@Document:countentities(entity=TC)@@";
-            RoboClerkTag tag = new RoboClerkTag(0, tagString.Length, tagString, true);
+            RoboClerkTextTag tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             string result = sst.GetContent(tag, documentConfig);
             Assert.That(result, Is.EqualTo("3"));
 
             tagString = "@@Document:countentities(entity=TC, restart=true)@@";
-            tag = new RoboClerkTag(0, tagString.Length, tagString, true);
+            tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             result = sst.GetContent(tag, documentConfig);
             Assert.That(result, Is.EqualTo(""));
 
             documentConfig.AddEntityCount(te, 1);
             documentConfig.AddEntityCount(te, 1);
             tagString = "@@Document:countentities(entity=TC)@@";
-            tag = new RoboClerkTag(0, tagString.Length, tagString, true);
+            tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             result = sst.GetContent(tag, documentConfig);
             Assert.That(result, Is.EqualTo("2"));
         }
@@ -120,7 +121,7 @@ namespace RoboClerk.Tests
         {
             var sst = new ContentCreators.Document(traceAnalysis);
             string tagString = "@@Document:countentities(entity=TC)@@";
-            RoboClerkTag tag = new RoboClerkTag(0, tagString.Length, tagString, true);
+            RoboClerkTextTag tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             string result = sst.GetContent(tag, documentConfig);
             Assert.That(result, Is.EqualTo("0"));
         }
@@ -134,7 +135,7 @@ namespace RoboClerk.Tests
         {
             var sst = new ContentCreators.Document(traceAnalysis);
             string tagString = "@@Document:countentities(entity=TCC)@@";
-            RoboClerkTag tag = new RoboClerkTag(0, tagString.Length, tagString, true);
+            RoboClerkTextTag tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             Assert.Throws<Exception>(() => sst.GetContent(tag, documentConfig));
         }
 
@@ -147,7 +148,7 @@ namespace RoboClerk.Tests
         {
             var sst = new ContentCreators.Document(traceAnalysis);
             string tagString = "@@Document:nonsense(entity=TCC)@@";
-            RoboClerkTag tag = new RoboClerkTag(0, tagString.Length, tagString, true);
+            RoboClerkTextTag tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             Assert.Throws<Exception>(() => sst.GetContent(tag, documentConfig));
         }
     }

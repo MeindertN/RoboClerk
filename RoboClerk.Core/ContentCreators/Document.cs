@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using RoboClerk.Core;
 using System;
 
 namespace RoboClerk.ContentCreators
@@ -11,7 +12,7 @@ namespace RoboClerk.ContentCreators
             this.analysis = analysis;
         }
 
-        public string GetContent(RoboClerkTag tag, DocumentConfig doc)
+        public string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             if (tag.ContentCreatorID.ToUpper() == "TITLE")
             {
