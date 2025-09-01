@@ -55,6 +55,9 @@ namespace RoboClerk.Core
             var contentElement = GetContentElement();
             if (contentElement != null)
             {
+                // Capture original formatting before removing children
+                var originalFormatting = CaptureOriginalFormatting(contentElement);
+                
                 contentElement.RemoveAllChildren();
 
                 if (IsOpenXmlContent(contents))
@@ -67,10 +70,43 @@ namespace RoboClerk.Core
                 }
                 else
                 {
-                    // Plain text content - preserve line breaks when updating
-                    ConvertTextToOpenXml(contents, contentElement);
+                    // Plain text content - preserve line breaks and original formatting when updating
+                    ConvertTextToOpenXml(contents, contentElement, originalFormatting);
                 }
             }
+        }
+
+        /// <summary>
+        /// Captures the original formatting from the content control before modification
+        /// </summary>
+        private OriginalFormatting CaptureOriginalFormatting(OpenXmlElement contentElement)
+        {
+            var formatting = new OriginalFormatting();
+            
+            // Capture paragraph properties
+            var firstParagraph = contentElement.Descendants<Paragraph>().FirstOrDefault();
+            if (firstParagraph?.ParagraphProperties != null)
+            {
+                formatting.ParagraphProperties = (ParagraphProperties)firstParagraph.ParagraphProperties.CloneNode(true);
+            }
+            
+            // Capture run properties
+            var firstRun = contentElement.Descendants<Run>().FirstOrDefault();
+            if (firstRun?.RunProperties != null)
+            {
+                formatting.RunProperties = (RunProperties)firstRun.RunProperties.CloneNode(true);
+            }
+            
+            return formatting;
+        }
+
+        /// <summary>
+        /// Helper class to store original formatting information
+        /// </summary>
+        private class OriginalFormatting
+        {
+            public ParagraphProperties? ParagraphProperties { get; set; }
+            public RunProperties? RunProperties { get; set; }
         }
 
         private string GetContentControlId()
@@ -162,24 +198,20 @@ namespace RoboClerk.Core
             return null;
         }
 
-        /// <summary>
-        /// Converts plain text to OpenXml elements while preserving line breaks
-        /// </summary>
-        /// <param name="text">The text to convert</param>
-        /// <param name="contentElement">The content element to append to</param>
-        private void ConvertTextToOpenXml(string text, OpenXmlElement contentElement)
+        private void ConvertTextToOpenXml(string text, OpenXmlElement contentElement, OriginalFormatting originalFormatting)
         {
             if (string.IsNullOrEmpty(text))
             {
-                // For empty content, we still need to create a proper structure
+                // For empty content, we still need to create a proper structure while preserving original formatting
                 if (contentElement is SdtContentBlock)
                 {
-                    var emptyParagraph = new Paragraph(new Run(new Text("")));
+                    var emptyParagraph = CreateParagraphWithFormatting(originalFormatting);
+                    emptyParagraph.AppendChild(CreateRunWithFormatting(originalFormatting, ""));
                     contentElement.AppendChild(emptyParagraph);
                 }
                 else if (contentElement is SdtContentRun)
                 {
-                    var emptyRun = new Run(new Text(""));
+                    var emptyRun = CreateRunWithFormatting(originalFormatting, "");
                     contentElement.AppendChild(emptyRun);
                 }
                 return;
@@ -188,67 +220,56 @@ namespace RoboClerk.Core
             // Handle different content control types appropriately
             if (contentElement is SdtContentBlock)
             {
-                ConvertTextToBlockContent(text, contentElement);
+                ConvertTextToBlockContent(text, contentElement, originalFormatting);
             }
             else if (contentElement is SdtContentRun)
             {
-                ConvertTextToRunContent(text, contentElement);
+                ConvertTextToRunContent(text, contentElement, originalFormatting);
             }
             else if (contentElement is SdtContentCell)
             {
-                ConvertTextToBlockContent(text, contentElement); // Cells can contain paragraphs
+                ConvertTextToBlockContent(text, contentElement, originalFormatting); // Cells can contain paragraphs
             }
             else
             {
                 // Fallback: try to determine what type of content to create
-                ConvertTextToBlockContent(text, contentElement);
+                ConvertTextToBlockContent(text, contentElement, originalFormatting);
             }
         }
 
-        private void ConvertTextToBlockContent(string text, OpenXmlElement contentElement)
+        private void ConvertTextToBlockContent(string text, OpenXmlElement contentElement, OriginalFormatting originalFormatting)
         {
             var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
             
             if (lines.Length == 1 && !text.Contains('\n'))
             {
-                // Single line - create one paragraph
-                var paragraph = new Paragraph();
-                var run = new Run(new Text(text));
+                // Single line - create one paragraph with preserved formatting
+                var paragraph = CreateParagraphWithFormatting(originalFormatting);
+                var run = CreateRunWithFormatting(originalFormatting, text);
                 paragraph.AppendChild(run);
                 contentElement.AppendChild(paragraph);
             }
             else
             {
-                // Multiple lines - create paragraphs for each line
+                // Multiple lines - create paragraphs for each line with preserved formatting
                 for (int i = 0; i < lines.Length; i++)
                 {
-                    var paragraph = new Paragraph();
-                    var run = new Run();
-                    
-                    if (!string.IsNullOrEmpty(lines[i]))
-                    {
-                        run.AppendChild(new Text(lines[i]));
-                    }
-                    
+                    var paragraph = CreateParagraphWithFormatting(originalFormatting);
+                    var run = CreateRunWithFormatting(originalFormatting, lines[i]);
                     paragraph.AppendChild(run);
                     contentElement.AppendChild(paragraph);
                 }
             }
         }
 
-        private void ConvertTextToRunContent(string text, OpenXmlElement contentElement)
+        private void ConvertTextToRunContent(string text, OpenXmlElement contentElement, OriginalFormatting originalFormatting)
         {
-            // For run content, we need to handle line breaks differently
+            // For run content, we need to handle line breaks differently while preserving formatting
             var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
             
             for (int i = 0; i < lines.Length; i++)
             {
-                var run = new Run();
-                
-                if (!string.IsNullOrEmpty(lines[i]))
-                {
-                    run.AppendChild(new Text(lines[i]));
-                }
+                var run = CreateRunWithFormatting(originalFormatting, lines[i]);
                 
                 // Add line break for all but the last line
                 if (i < lines.Length - 1)
@@ -258,6 +279,44 @@ namespace RoboClerk.Core
                 
                 contentElement.AppendChild(run);
             }
+        }
+
+        private Paragraph CreateParagraphWithFormatting(OriginalFormatting originalFormatting)
+        {
+            var paragraph = new Paragraph();
+            
+            if (originalFormatting.ParagraphProperties != null)
+            {
+                // Clone the paragraph properties to preserve formatting
+                paragraph.ParagraphProperties = (ParagraphProperties)originalFormatting.ParagraphProperties.CloneNode(true);
+            }
+            
+            return paragraph;
+        }
+
+        private Run CreateRunWithFormatting(OriginalFormatting originalFormatting, string text)
+        {
+            var run = new Run();
+            
+            if (originalFormatting.RunProperties != null)
+            {
+                // Clone the run properties to preserve formatting
+                run.RunProperties = (RunProperties)originalFormatting.RunProperties.CloneNode(true);
+            }
+            
+            if (!string.IsNullOrEmpty(text))
+            {
+                run.AppendChild(new Text(text));
+            }
+            
+            return run;
+        }
+
+        // Keep the original overload for backward compatibility with existing calls
+        private void ConvertTextToOpenXml(string text, OpenXmlElement contentElement)
+        {
+            var emptyFormatting = new OriginalFormatting();
+            ConvertTextToOpenXml(text, contentElement, emptyFormatting);
         }
 
         private bool IsOpenXmlContent(string content)
@@ -270,9 +329,6 @@ namespace RoboClerk.Core
             return content.Contains("<") && content.Contains(">") && !IsOpenXmlContent(content);
         }
 
-        /// <summary>
-        /// Converts embedded OpenXML content to OpenXML elements
-        /// </summary>
         private void ConvertEmbeddedOpenXmlToOpenXml(string openXmlContent, OpenXmlElement contentElement)
         {
             try
@@ -336,9 +392,6 @@ namespace RoboClerk.Core
             }
         }
 
-        /// <summary>
-        /// Parses a single OpenXML element from XML string
-        /// </summary>
         private OpenXmlElement? ParseOpenXmlElement(string xmlString)
         {
             try
