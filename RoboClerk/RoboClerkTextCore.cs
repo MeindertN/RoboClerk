@@ -90,7 +90,7 @@ namespace RoboClerk
             
             return extension switch
             {
-                ".docx" => new DocxDocument(doc.DocumentTitle, doc.DocumentTemplate),
+                ".docx" => new DocxDocument(doc.DocumentTitle, doc.DocumentTemplate, configuration),
                 ".adoc" or ".asciidoc" or ".txt" or ".htm" or ".html" => new TextDocument(doc.DocumentTitle, doc.DocumentTemplate),
                 _ => throw new NotSupportedException($"Document template format '{extension}' is not supported.")
             };
@@ -186,7 +186,7 @@ namespace RoboClerk
                 }
                 else if (docType == DocumentType.Docx && tag is RoboClerkDocxTag docxTag)
                 {
-                    // For DOCX documents, handle both embedded documents and text content
+                    // For DOCX documents, handle nested tags within content controls
                     nestedTags.AddRange(ProcessDocxNestedContent(docxTag));
                 }
                 
@@ -212,7 +212,12 @@ namespace RoboClerk
                         currentContent = ReconstructTextContentWithProcessedTags(currentContent, nestedTags.Cast<RoboClerkTextTag>().ToList());
                         tag.Contents = currentContent;
                     }
-                    // For DOCX documents, the content is already updated through the tag.Contents setter
+                    else if (docType == DocumentType.Docx)
+                    {
+                        // For DOCX documents, the content is already updated through the tag.Contents setter
+                        // We need to get the updated content for the next iteration
+                        currentContent = tag.Contents;
+                    }
                 }
                 
                 // Exit if no changes or max nested levels reached
@@ -254,8 +259,16 @@ namespace RoboClerk
                 string documentContent = document.ToText();
                 document.FromString(documentContent);
             }
-            // For DOCX documents, content controls are updated in-place through the tag.Contents setter
-            // No additional refresh is needed as the content controls maintain their own state
+            else if (document.DocumentType == DocumentType.Docx)
+            {
+                // For DOCX documents, content controls are updated in-place through the tag.Contents setter
+                // Force a save to ensure all content control updates are applied properly
+                if (document is DocxDocument docxDoc)
+                {
+                    // The content controls maintain their own state and update the underlying document
+                    // No additional refresh is needed as the OpenXML document is updated directly
+                }
+            }
         }
 
         public void SaveDocumentsToDisk()

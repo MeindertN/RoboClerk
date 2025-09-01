@@ -1,9 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using RoboClerk.Configuration;
 
 namespace RoboClerk.Core.DocxSupport
 {
@@ -16,11 +13,13 @@ namespace RoboClerk.Core.DocxSupport
         private string templateFile = string.Empty;
         private WordprocessingDocument? wordDocument;
         private List<RoboClerkDocxTag> docxTags = new List<RoboClerkDocxTag>();
+        private readonly IConfiguration? configuration;
 
-        public DocxDocument(string title, string templateFile)
+        public DocxDocument(string title, string templateFile, IConfiguration? configuration = null)
         {
             this.title = title;
             this.templateFile = templateFile;
+            this.configuration = configuration;
         }
 
         public void FromStream(Stream stream)
@@ -39,10 +38,10 @@ namespace RoboClerk.Core.DocxSupport
             if (wordDocument == null)
                 throw new InvalidOperationException("Document not loaded. Call FromStream first.");
 
-            // Update all content control contents before saving
-            //UpdateAllContentControls();
+            // Ensure the document is properly saved
+            wordDocument.Save();
 
-            // Save by cloning to the specified file path
+            // Clone the document to the specified file path
             using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite))
             {
                 wordDocument.Clone(fileStream);
@@ -97,7 +96,7 @@ namespace RoboClerk.Core.DocxSupport
             {
                 try
                 {
-                    var docxTag = new RoboClerkDocxTag(contentControl);
+                    var docxTag = new RoboClerkDocxTag(contentControl, configuration);
                     
                     // Only add tags that have a valid source (not Unknown)
                     if (docxTag.Source != DataSource.Unknown)
@@ -111,15 +110,6 @@ namespace RoboClerk.Core.DocxSupport
                     var logger = NLog.LogManager.GetCurrentClassLogger();
                     logger.Warn($"Failed to parse content control as RoboClerk tag: {ex.Message}");
                 }
-            }
-        }
-
-        private void UpdateAllContentControls()
-        {
-            // Update content controls with current tag contents
-            foreach (var tag in docxTags)
-            {
-                tag.UpdateContent(tag.Contents);
             }
         }
 
