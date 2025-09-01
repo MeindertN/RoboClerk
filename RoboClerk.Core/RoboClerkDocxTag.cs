@@ -30,8 +30,8 @@ namespace RoboClerk.Core
             get => contents; 
             set 
             {
+                // Just store the content as text - don't update OpenXML immediately
                 contents = value;
-                UpdateContentControl(value);
             }
         }
 
@@ -43,6 +43,29 @@ namespace RoboClerk.Core
             // Parse nested text-based RoboClerk tags within the content control content
             var nestedRoboClerkTags = RoboClerkTextParser.ExtractRoboClerkTags(Contents);
             return nestedRoboClerkTags.Cast<IRoboClerkTag>();
+        }
+
+        /// <summary>
+        /// Converts the current text content to OpenXML and updates the content control.
+        /// This should be called just before saving the document.
+        /// </summary>
+        public void ConvertContentToOpenXml()
+        {
+            var contentElement = GetContentElement();
+            if (contentElement != null)
+            {
+                contentElement.RemoveAllChildren();
+
+                if (IsHtmlContent(contents))
+                {
+                    ConvertHtmlToOpenXml(contents, contentElement);
+                }
+                else
+                {
+                    // Plain text content - preserve line breaks when updating
+                    ConvertTextToOpenXml(contents, contentElement);
+                }
+            }
         }
 
         private string GetContentControlId()
@@ -132,25 +155,6 @@ namespace RoboClerk.Core
             if (cellContent != null) return cellContent;
 
             return null;
-        }
-
-        private void UpdateContentControl(string newContent)
-        {
-            var contentElement = GetContentElement();
-            if (contentElement != null)
-            {
-                contentElement.RemoveAllChildren();
-
-                if (IsHtmlContent(newContent))
-                {
-                    ConvertHtmlToOpenXml(newContent, contentElement);
-                }
-                else
-                {
-                    // Plain text content - preserve line breaks when updating
-                    ConvertTextToOpenXml(newContent, contentElement);
-                }
-            }
         }
 
         /// <summary>

@@ -38,6 +38,9 @@ namespace RoboClerk.Core.DocxSupport
             if (wordDocument == null)
                 throw new InvalidOperationException("Document not loaded. Call FromStream first.");
 
+            // Convert all text content to OpenXML before saving
+            ConvertAllTagsToOpenXml();
+
             // Ensure the document is properly saved
             wordDocument.Save();
 
@@ -82,6 +85,18 @@ namespace RoboClerk.Core.DocxSupport
         }
 
         public string TemplateFile => templateFile;
+
+        /// <summary>
+        /// Converts all DOCX tags from text content to OpenXML format.
+        /// This should be called before saving the document.
+        /// </summary>
+        private void ConvertAllTagsToOpenXml()
+        {
+            foreach (var tag in docxTags)
+            {
+                tag.ConvertContentToOpenXml();
+            }
+        }
 
         private void ParseContentControls()
         {

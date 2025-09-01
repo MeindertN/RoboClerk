@@ -206,18 +206,8 @@ namespace RoboClerk
                 // If content changed, update the parent tag's content and prepare for next iteration
                 if (contentChanged)
                 {
-                    if (docType == DocumentType.Text)
-                    {
-                        // For text documents, rebuild the content with processed nested tags
-                        currentContent = ReconstructTextContentWithProcessedTags(currentContent, nestedTags.Cast<RoboClerkTextTag>().ToList());
-                        tag.Contents = currentContent;
-                    }
-                    else if (docType == DocumentType.Docx)
-                    {
-                        // For DOCX documents, the content is already updated through the tag.Contents setter
-                        // We need to get the updated content for the next iteration
-                        currentContent = tag.Contents;
-                    }
+                    currentContent = ReconstructTextContentWithProcessedTags(currentContent, nestedTags.Cast<RoboClerkTextTag>().ToList());
+                    tag.Contents = currentContent;
                 }
                 
                 // Exit if no changes or max nested levels reached
@@ -258,16 +248,6 @@ namespace RoboClerk
                 // Refresh text document by reparsing
                 string documentContent = document.ToText();
                 document.FromString(documentContent);
-            }
-            else if (document.DocumentType == DocumentType.Docx)
-            {
-                // For DOCX documents, content controls are updated in-place through the tag.Contents setter
-                // Force a save to ensure all content control updates are applied properly
-                if (document is DocxDocument docxDoc)
-                {
-                    // The content controls maintain their own state and update the underlying document
-                    // No additional refresh is needed as the OpenXML document is updated directly
-                }
             }
         }
 
