@@ -102,7 +102,7 @@ namespace RoboClerk.ContentCreators
                 string filePath = $"{targetDir}/{fileName}";
                 fileSystem.WriteAllBytes(filePath, imagebytes);
 
-                if (configuration.OutputFormat.ToUpper() == "HTML")
+                if (configuration.OutputFormat.ToUpper() == "HTML" || configuration.OutputFormat.ToUpper() == "DOCX" )
                 {
                     string imagetag = $"<img src=\"{toplineDir}/{fileName}\" alt=\"{imageCaption}\" />";
                     if( imageCaption != string.Empty)
@@ -132,7 +132,7 @@ namespace RoboClerk.ContentCreators
                 // Return a fallback representation instead of throwing
                 string fallbackContent = $"[Diagram unavailable: {ex.Message}]";
                 
-                if (configuration.OutputFormat.ToUpper() == "HTML")
+                if (configuration.OutputFormat.ToUpper() == "HTML" || configuration.OutputFormat.ToUpper() == "DOCX")
                 {
                     return $"<div class=\"diagram-error\" style=\"border: 1px solid #ff0000; padding: 10px; background-color: #ffe6e6;\">" +
                            $"<strong>Diagram Error:</strong> {fallbackContent}" +

@@ -19,7 +19,8 @@ namespace RoboClerk.ContentCreators
         {
             StringBuilder output = new StringBuilder();
             var dataShare = new ScriptingBridge(data, analysis, sourceTE, configuration);
-            var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/DocContent.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
+            var extension = (configuration.OutputFormat == "ASCIIDOC" ? "adoc" : "html");
+            var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/DocContent.{extension}");
             var renderer = new ItemTemplateRenderer(file);
             foreach (var item in items)
             {

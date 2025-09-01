@@ -92,7 +92,7 @@ namespace RoboClerk.Redmine
                 if(convertTextile) 
                 {
                     outputFormat = configuration.OutputFormat.ToUpper();
-                    if (outputFormat == "HTML")
+                    if (outputFormat == "HTML" || outputFormat == "DOCX")
                     {
                         textileConverter = new TextileToHTMLConverter();
                     }

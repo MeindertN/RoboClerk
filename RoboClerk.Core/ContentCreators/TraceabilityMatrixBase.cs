@@ -185,7 +185,7 @@ namespace RoboClerk.ContentCreators
             }
 
             // Generate format-specific output
-            if (configuration.OutputFormat.ToUpper() == "HTML")
+            if (configuration.OutputFormat.ToUpper() == "HTML" || configuration.OutputFormat.ToUpper() == "DOCX")
             {
                 return GenerateHTMLTraceabilityMatrix(headers, matrixData, traceIssues);
             }

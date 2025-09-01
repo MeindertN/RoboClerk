@@ -31,13 +31,13 @@ namespace RoboClerk.ContentCreators
                 throw;
             }
 
-            if (configuration.OutputFormat.ToUpper() == "HTML")
+            if (configuration.OutputFormat.ToUpper() == "ASCIIDOC")
             {
-                return GenerateHTMLTable(ws, excelRange);
+                return GenerateASCIIDocTable(ws, excelRange);
             }
             else
             {
-                return GenerateASCIIDocTable(ws, excelRange);
+                return GenerateHTMLTable(ws, excelRange);
             }
         }
 

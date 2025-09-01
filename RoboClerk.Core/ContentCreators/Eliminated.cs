@@ -66,7 +66,8 @@ namespace RoboClerk.ContentCreators
                 return "No eliminated items found.";
 
             dataShare.Items = eliminatedItems;
-            var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/Eliminated.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
+            var extension = (configuration.OutputFormat == "ASCIIDOC" ? "adoc" : "html");
+            var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/Eliminated.{extension}");
             var renderer = new ItemTemplateRenderer(file);
             var result = renderer.RenderItemTemplate(dataShare);
             return result;

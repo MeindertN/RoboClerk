@@ -10,7 +10,7 @@
 	  <Company>RoboClerk Project</Company>
 	  <Product>Annotated Unit Test plugin</Product>
 	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-	  <Configurations>Debug;Release;ReleasePublish;DebugHTML</Configurations>
+	  <Configurations>Debug;Release;ReleasePublish;DebugHTML;DebugDOCX</Configurations>
 	  <BaseOutputPath>bin</BaseOutputPath>
   </PropertyGroup>
 

@@ -1,5 +1,6 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
-using DocumentFormat.OpenXml;
+﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace RoboClerk.Core
 {
@@ -68,27 +69,17 @@ namespace RoboClerk.Core
 
         private void ParseTagContents(string tagContents)
         {
-            // Parse the tag contents similar to RoboClerkTag
-            // Format: "Source,ContentCreatorID,param1=value1,param2=value2"
-            var parts = tagContents.Split(',').Select(p => p.Trim()).ToArray();
-            if (parts.Length > 0)
+            try
             {
-                source = GetSource(parts[0]);
-                if (parts.Length > 1)
-                    contentCreatorID = parts[1];
-                
-                // Parse parameters
-                for (int i = 2; i < parts.Length; i++)
-                {
-                    var paramParts = parts[i].Split('=');
-                    if (paramParts.Length == 2)
-                    {
-                        parameters[paramParts[0].Trim().ToUpper()] = paramParts[1].Trim();
-                    }
-                }
+                ParseCompleteTag(tagContents);
+            }
+            catch (TagInvalidException e)
+            {
+                // For DOCX tags, we don't have document position info, but we can still provide context
+                throw;
             }
         }
-
+        
         private OpenXmlElement? GetContentElement()
         {
             // Try to find different types of content elements in priority order
@@ -106,14 +97,70 @@ namespace RoboClerk.Core
 
         private void UpdateContentControl(string newContent)
         {
-            // Find the content element and update it
             var contentElement = GetContentElement();
             if (contentElement != null)
             {
                 contentElement.RemoveAllChildren();
-                var paragraph = new Paragraph(new Run(new Text(newContent)));
+
+                if (IsHtmlContent(newContent))
+                {
+                    ConvertHtmlToOpenXml(newContent, contentElement);
+                }
+                else
+                {
+                    // Plain text content
+                    var paragraph = new Paragraph(new Run(new Text(newContent)));
+                    contentElement.AppendChild(paragraph);
+                }
+            }
+        }
+
+        private bool IsHtmlContent(string content)
+        {
+            return content.Contains("<") && content.Contains(">");
+        }
+
+        private void ConvertHtmlToOpenXml(string htmlContent, OpenXmlElement contentElement)
+        {
+            try
+            {
+                // Get the main document part from the content control
+                var mainPart = GetMainDocumentPart();
+                if (mainPart != null)
+                {
+                    var converter = new HtmlToOpenXml.HtmlConverter(mainPart);
+                    var paragraphs = converter.Parse(htmlContent);
+
+                    foreach (var paragraph in paragraphs)
+                    {
+                        contentElement.AppendChild(paragraph);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Fallback to plain text if HTML conversion fails
+                var logger = NLog.LogManager.GetCurrentClassLogger();
+                logger.Warn($"HTML conversion failed, using plain text: {ex.Message}");
+
+                var paragraph = new Paragraph(new Run(new Text(htmlContent)));
                 contentElement.AppendChild(paragraph);
             }
+        }
+
+        private MainDocumentPart? GetMainDocumentPart()
+        {
+            // Navigate up to find the WordprocessingDocument
+            var current = contentControl.Parent;
+            while (current != null)
+            {
+                if (current is Document document)
+                {
+                    return document.MainDocumentPart;
+                }
+                current = current.Parent;
+            }
+            return null;
         }
     }
 }

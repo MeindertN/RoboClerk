@@ -11,7 +11,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
                <Nullable>enable</Nullable>
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-		<Configurations>Debug;Release;ReleasePublish;DebugHTML</Configurations>
+		<Configurations>Debug;Release;ReleasePublish;DebugHTML;DebugDOCX</Configurations>
 		<BaseOutputPath>bin</BaseOutputPath>
 	</PropertyGroup>
 

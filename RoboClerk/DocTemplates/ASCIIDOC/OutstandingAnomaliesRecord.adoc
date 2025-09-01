@@ -17,7 +17,7 @@ The purpose of this @@Document:Title()@@ (@@Document:Abbreviation()@@) is to doc
 
 === Document Conventions
 
-The @@Document:Abbreviation()@@ will proide the following information for each outstanding anomaly:
+The @@Document:Abbreviation()@@ will provide the following information for each outstanding anomaly:
 
 . Unique Identifier: A unique identifier will be assigned to each residual anomaly for easy tracking and identification.
 . Revision History: A revision history will be maintained for each residual anomaly, including the time and date of each revision.
@@ -30,7 +30,7 @@ The @@Document:Abbreviation()@@ will proide the following information for each o
 
 === Intended Audience
 
-The @@Document:Abbreviation()@@ is intended for use by the project team, including software developers, testers, and quality assurance personnel, to ensure that all outstanding anomalies have been appropriately addressed before release to market. The RAR will also be reviewed by regulatory agencies and auditors to evaluate the safety and efficacy of the device and demonstrate compliance with the relevant standards and regulations.
+The @@Document:Abbreviation()@@ is intended for use by the project team, including software developers, testers, and quality assurance personnel, to ensure that all outstanding anomalies have been appropriately addressed before release to market. The @@Document:Abbreviation()@@ will also be reviewed by regulatory agencies and auditors to evaluate the safety and efficacy of the device and demonstrate compliance with the relevant standards and regulations.
 
 @@POST:PAGEBREAK()@@
 

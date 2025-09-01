@@ -74,7 +74,7 @@ namespace RoboClerk.ContentCreators
             }
 
             // Generate format-specific output
-            if (configuration.OutputFormat.ToUpper() == "HTML")
+            if (configuration.OutputFormat.ToUpper() == "HTML" || configuration.OutputFormat.ToUpper() == "DOCX")
             {
                 return GenerateHTMLCheckResults(errorsFound, errorItems);
             }
@@ -142,9 +142,10 @@ namespace RoboClerk.ContentCreators
             }
             else
             {
-                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_automated.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
+                var extension = (configuration.OutputFormat == "ASCIIDOC" ? "adoc" : "html");
+                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_automated.{extension}");
                 var rendererAutomated = new ItemTemplateRenderer(file);
-                file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_manual.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
+                file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_manual.{extension}");
                 var rendererManual = new ItemTemplateRenderer(file);
                 foreach (var item in items)
                 {

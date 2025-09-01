@@ -1,0 +1,11 @@
+﻿[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+using RoboClerk;
+
+TraceEntity te = SourceTraceEntity;
+DocContentItem item = (DocContentItem)Item;
+AddTrace(item.ItemID);
+]
+
+[csx:item.DocContent]

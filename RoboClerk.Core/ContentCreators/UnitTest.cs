@@ -65,7 +65,7 @@ namespace RoboClerk.ContentCreators
             }
 
             // Generate format-specific output
-            if (configuration.OutputFormat.ToUpper() == "HTML")
+            if (configuration.OutputFormat.ToUpper() == "HTML" || configuration.OutputFormat.ToUpper() == "DOCX")
             {
                 return GenerateHTMLCheckResults(errorsFound, errorItems);
             }
@@ -125,6 +125,7 @@ namespace RoboClerk.ContentCreators
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             var dataShare = new ScriptingBridge(data, analysis, sourceTE, configuration);
+            var extension = (configuration.OutputFormat == "ASCIIDOC" ? "adoc" : "html");
             if (tag.HasParameter("CHECKRESULTS") && tag.GetParameterOrDefault("CHECKRESULTS").ToUpper() == "TRUE")
             {
                 //this will go over all unit test results (if available) and prints a summary statement or a list of found issues.
@@ -134,7 +135,7 @@ namespace RoboClerk.ContentCreators
             {
                 //this will print a brief list of all soups and versions that Roboclerk knows about
                 dataShare.Items = items;
-                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/UnitTest_brief.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
+                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/UnitTest_brief.{extension}");
                 var renderer = new ItemTemplateRenderer(file);
                 var result = renderer.RenderItemTemplate(dataShare);
                 ProcessTraces(docTE, dataShare);
@@ -142,7 +143,7 @@ namespace RoboClerk.ContentCreators
             }
             else
             {
-                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/UnitTest.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
+                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/UnitTest.{extension}");
                 var renderer = new ItemTemplateRenderer(file);
                 StringBuilder output = new StringBuilder();
                 foreach (var item in items)

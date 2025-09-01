@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-	  <Configurations>Debug;Release;ReleasePublish;DebugHTML</Configurations>
+	  <Configurations>Debug;Release;ReleasePublish;DebugHTML;DebugDOCX</Configurations>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
@@ -12,14 +12,21 @@
 
   <ItemGroup>
     <PackageReference Include="CliWrap" Version="3.9.0" />
-    <PackageReference Include="DocumentPartner.ClosedXML" Version="0.95.289" />
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
+    <PackageReference Include="HtmlToOpenXml.dll" Version="3.2.6" />
     <PackageReference Include="Microsoft.CodeAnalysis.Scripting" Version="4.11.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
     <PackageReference Include="NLog" Version="5.3.4" />
     <PackageReference Include="SkiaSharp" Version="2.88.9" />
     <PackageReference Include="System.IO.Abstractions" Version="21.0.29" />
+    <PackageReference Include="System.IO.Packaging" Version="8.0.1" />
     <PackageReference Include="System.Text.Json" Version="8.0.6" />
     <PackageReference Include="Tomlyn" Version="0.17.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ItemTemplates\DOCX\" />
   </ItemGroup>
 
 	<Target Name="CopyResources" BeforeTargets="Start" AfterTargets="Build">

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace RoboClerk.Core
 {
@@ -58,63 +57,12 @@ namespace RoboClerk.Core
             contents = rawDocument.Substring(contentStart, contentEnd - contentStart); 
             try
             {
-                ValidateTagContents(contents);
+                ParseCompleteTag(contents);
             }
             catch (TagInvalidException e)
             {
                 e.SetLocation(tagStart, rawDocument);
                 throw;
-            }
-            ExtractParameters(contents);
-            var items = contents.Split('(')[0].Split(':');
-            contentCreatorID = items[1].Trim();
-            source = GetSource(items[0].Trim().ToUpper());
-            if (source == DataSource.Unknown)
-            {
-                throw new TagInvalidException(contents, $"Unknown datasource {items[0].Trim()}");
-            }
-        }
-
-        private void ValidateTagContents(string tagContents)
-        {
-            //verify required elements are present and in the right order
-            if (tagContents.Count(f => (f == '(')) != 1 ||
-                tagContents.Count(f => (f == ')')) != 1 ||
-                tagContents.Substring(0, tagContents.IndexOf('(')).Count(f => (f == ':')) != 1 ||
-                tagContents.IndexOf(')') < tagContents.IndexOf('(') ||
-                tagContents.IndexOf(':') > tagContents.IndexOf('('))
-            {
-                throw new TagInvalidException(tagContents, "RoboClerk tag is not formatted correctly");
-            }
-            //verify the preamble
-            string temp = Regex.Replace(tagContents, @"\s+", ""); //remove whitespace
-            string[] preamble = temp.Split('(')[0].Split(':', StringSplitOptions.RemoveEmptyEntries);
-            if (preamble.Length != 2)
-            {
-                throw new TagInvalidException(tagContents, "Preamble section in RoboClerk tag not formatted correctly");
-            }
-            //verify the parameter string
-            if (temp.IndexOf(')') - temp.IndexOf('(') > 1)
-            {
-                if (temp.Count(f => (f == '=')) - temp.Count(f => (f == ',')) != 1)
-                {
-                    throw new TagInvalidException(tagContents, "Parameter section in RoboClerk tag not formatted correctly");
-                }
-                //isolate the parameter string and check each individual element
-                string contents = temp.Split('(')[1].Split(')')[0];
-                string[] elements = contents.Split(',');
-                foreach (var element in elements)
-                {
-                    if (element.Count(f => (f == '=')) != 1)
-                    {
-                        throw new TagInvalidException(tagContents, "Malformed element in parameter section of RoboClerk tag");
-                    }
-                    string[] variables = element.Split('=', StringSplitOptions.RemoveEmptyEntries);
-                    if (variables.Length != 2)
-                    {
-                        throw new TagInvalidException(tagContents, "Malformed element in parameter section of RoboClerk tag");
-                    }
-                }
             }
         }
 
@@ -126,21 +74,13 @@ namespace RoboClerk.Core
             string tagContents = rawDocument.Substring(startIndex + 3, endIndex - startIndex).Split('\n')[0];
             try
             {
-                ValidateTagContents(tagContents);
+                ParseCompleteTag(tagContents);
             }
             catch (TagInvalidException e)
             {
                 e.SetLocation(tagStart, rawDocument);
                 throw;
             }
-            var items = tagContents.Split(':');
-            source = GetSource(items[0].Trim().ToUpper());
-            if(source == DataSource.Unknown)
-            {
-                throw new TagInvalidException(tagContents, $"Unknown datasource {items[0].Trim()}");
-            }
-            contentCreatorID = items[1].Split('(')[0].Trim();
-            ExtractParameters(tagContents);
             var prelimTagContents = rawDocument.Substring(startIndex, endIndex - startIndex + 1);
             contentStart = startIndex + prelimTagContents.IndexOf('\n') + 1; //ensure to skip linebreak
             if (prelimTagContents.IndexOf('\n') == prelimTagContents.LastIndexOf('\n'))

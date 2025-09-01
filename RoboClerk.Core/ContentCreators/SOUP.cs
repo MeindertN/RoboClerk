@@ -89,7 +89,7 @@ namespace RoboClerk.ContentCreators
             }
 
             // Generate format-specific output
-            if (configuration.OutputFormat.ToUpper() == "HTML")
+            if (configuration.OutputFormat.ToUpper() == "HTML" || configuration.OutputFormat.ToUpper() == "DOCX")
             {
                 return GenerateHTMLSoupCheck(soupName, issues);
             }
@@ -129,11 +129,12 @@ namespace RoboClerk.ContentCreators
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             var dataShare = new ScriptingBridge(data, analysis, sourceTE, configuration);
+            var extension = (configuration.OutputFormat == "ASCIIDOC" ? "adoc" : "html");
             if (tag.HasParameter("BRIEF") && tag.GetParameterOrDefault("BRIEF").ToUpper() == "TRUE")
             {
                 //this will print a brief list of all soups and versions that Roboclerk knows about
                 dataShare.Items = items;
-                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SOUP_brief.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
+                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SOUP_brief.{extension}");
                 var renderer = new ItemTemplateRenderer(file);
                 var result = renderer.RenderItemTemplate(dataShare);
                 ProcessTraces(docTE, dataShare);
@@ -147,7 +148,7 @@ namespace RoboClerk.ContentCreators
             }
             else
             {
-                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SOUP.{(configuration.OutputFormat == "HTML" ? "html" : "adoc")}");
+                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SOUP.{extension}");
                 var renderer = new ItemTemplateRenderer(file);
                 StringBuilder output = new StringBuilder();
                 foreach (var item in items)

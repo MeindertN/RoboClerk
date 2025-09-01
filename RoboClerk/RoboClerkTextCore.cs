@@ -98,43 +98,41 @@ namespace RoboClerk
 
         private void ProcessDocumentTags(IDocument document, DocumentConfig doc)
         {
-            int nrOfLevels = 0;
+            // Get all tags in the document
+            var tags = document.RoboClerkTags.ToList(); // Create a snapshot
+            bool anyTagProcessed = false;
             
-            do
+            foreach (var tag in tags)
             {
-                nrOfLevels++;
-                var tags = document.RoboClerkTags.ToList(); // Create a snapshot
-                
-                foreach (var tag in tags)
+                if (ProcessSingleTag(tag, doc))
                 {
-                    ProcessTag(tag, doc);
+                    anyTagProcessed = true;
                     
-                    // Process nested tags if they exist
-                    var nestedTags = tag.ProcessNestedTags();
-                    foreach (var nestedTag in nestedTags)
-                    {
-                        ProcessTag(nestedTag, doc);
-                    }
+                    // Process nested tags recursively - this handles all nested levels internally
+                    ProcessNestedTagsRecursively(tag, document.DocumentType);
                 }
-                
-                // For text documents, reparse after content updates
-                if (document.DocumentType == DocumentType.Text)
-                {
-                    string documentContent = document.ToText();
-                    document.FromString(documentContent);
-                }
-                
-            } while (document.RoboClerkTags.Any() && nrOfLevels < 5);
+            }
+            
+            // Refresh document content if any tags were processed
+            if (anyTagProcessed)
+            {
+                RefreshDocumentContent(document);
+            }
         }
 
-        private void ProcessTag(IRoboClerkTag tag, DocumentConfig doc)
+        private bool ProcessSingleTag(IRoboClerkTag tag, DocumentConfig doc)
         {
             if (tag.Source == DataSource.Trace)
             {
                 logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID", "ERROR")}");
                 IContentCreator contentCreator = contentCreatorFactory.CreateContentCreator(DataSource.Trace, null);
-                tag.Contents = contentCreator.GetContent(tag, doc);
-                return;
+                string newContent = contentCreator.GetContent(tag, doc);
+                if (tag.Contents != newContent)
+                {
+                    tag.Contents = newContent;
+                    return true;
+                }
+                return false;
             }
             
             if (tag.Source != DataSource.Unknown)
@@ -142,14 +140,122 @@ namespace RoboClerk
                 try
                 {
                     IContentCreator contentCreator = contentCreatorFactory.CreateContentCreator(tag.Source, tag.ContentCreatorID);
-                    tag.Contents = contentCreator.GetContent(tag, doc);
+                    string newContent = contentCreator.GetContent(tag, doc);
+                    if (tag.Contents != newContent)
+                    {
+                        tag.Contents = newContent;
+                        return true;
+                    }
+                    return false;
                 }
                 catch (InvalidOperationException ex)
                 {
                     logger.Warn($"Content creator for source '{tag.Source}' not found: {ex.Message}");
-                    tag.Contents = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS '{tag.Source}:{tag.ContentCreatorID}' IS KNOWN TO ROBOCLERK.\n";
+                    string errorContent = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS '{tag.Source}:{tag.ContentCreatorID}' IS KNOWN TO ROBOCLERK.\n";
+                    if (tag.Contents != errorContent)
+                    {
+                        tag.Contents = errorContent;
+                        return true;
+                    }
+                    return false;
                 }
             }
+            return false;
+        }
+
+        private void ProcessNestedTagsRecursively(IRoboClerkTag tag, DocumentType docType)
+        {
+            if (string.IsNullOrEmpty(tag.Contents))
+                return;
+            
+            // Process nested tags recursively up to 5 levels to prevent infinite loops
+            int nestedLevel = 0;
+            string currentContent = tag.Contents;
+            
+            do
+            {
+                nestedLevel++;
+                var nestedTags = new List<IRoboClerkTag>();
+                bool contentChanged = false;
+                
+                if (docType == DocumentType.Text)
+                {
+                    // For text documents, extract text-based nested tags
+                    var textBasedTags = RoboClerkTextParser.ExtractRoboClerkTags(currentContent);
+                    nestedTags.AddRange(textBasedTags.Cast<IRoboClerkTag>());
+                }
+                else if (docType == DocumentType.Docx && tag is RoboClerkDocxTag docxTag)
+                {
+                    // For DOCX documents, handle both embedded documents and text content
+                    nestedTags.AddRange(ProcessDocxNestedContent(docxTag));
+                }
+                
+                // Process each nested tag found at this level using the existing ProcessSingleTag logic
+                foreach (var nestedTag in nestedTags)
+                {
+                    // Create a temporary DocumentConfig for nested processing
+                    // This ensures nested tags can be processed independently
+                    var tempDoc = new DocumentConfig("temp", "temp", "temp", "temp", "temp");
+                    
+                    if (ProcessSingleTag(nestedTag, tempDoc))
+                    {
+                        contentChanged = true;
+                    }
+                }
+                
+                // If content changed, update the parent tag's content and prepare for next iteration
+                if (contentChanged)
+                {
+                    if (docType == DocumentType.Text)
+                    {
+                        // For text documents, rebuild the content with processed nested tags
+                        currentContent = ReconstructTextContentWithProcessedTags(currentContent, nestedTags.Cast<RoboClerkTextTag>().ToList());
+                        tag.Contents = currentContent;
+                    }
+                    // For DOCX documents, the content is already updated through the tag.Contents setter
+                }
+                
+                // Exit if no changes or max nested levels reached
+                if (!contentChanged || nestedLevel >= 5)
+                    break;
+                    
+            } while (true);
+        }
+
+        private string ReconstructTextContentWithProcessedTags(string originalContent, List<RoboClerkTextTag> processedTags)
+        {
+            if (processedTags.Count == 0)
+                return originalContent;
+                
+            // Use the existing RoboClerkTextParser.ReInsertRoboClerkTags method to rebuild content
+            return RoboClerkTextParser.ReInsertRoboClerkTags(originalContent, processedTags);
+        }
+
+        private IEnumerable<IRoboClerkTag> ProcessDocxNestedContent(RoboClerkDocxTag docxTag)
+        {
+            var nestedTags = new List<IRoboClerkTag>();
+            
+            // Strategy 1: Check for text-based nested RoboClerk tags
+            var textBasedNested = RoboClerkTextParser.ExtractRoboClerkTags(docxTag.Contents);
+            nestedTags.AddRange(textBasedNested.Cast<IRoboClerkTag>());
+            
+            // Strategy 2: Check for embedded content controls (if content contains Word XML)
+            // Note: This would require more complex implementation to parse embedded Word documents
+            // For now, we focus on text-based nested tags within content controls
+            
+            return nestedTags;
+        }
+
+        private void RefreshDocumentContent(IDocument document)
+        {
+            if (document.DocumentType == DocumentType.Text)
+            {
+                // Refresh text document by reparsing
+                string documentContent = document.ToText();
+                document.FromString(documentContent);
+            }
+            // For DOCX documents, content controls are updated in-place through the tag.Contents setter
+            // No additional refresh is needed as the content controls maintain their own state
         }
 
         public void SaveDocumentsToDisk()

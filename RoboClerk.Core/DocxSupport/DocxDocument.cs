@@ -40,10 +40,10 @@ namespace RoboClerk.Core.DocxSupport
                 throw new InvalidOperationException("Document not loaded. Call FromStream first.");
 
             // Update all content control contents before saving
-            UpdateAllContentControls();
+            //UpdateAllContentControls();
 
             // Save by cloning to the specified file path
-            using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+            using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite))
             {
                 wordDocument.Clone(fileStream);
             }

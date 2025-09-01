@@ -6,6 +6,7 @@
     <RootNamespace>RoboClerk_Docx</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Configurations>Debug;Release;DebugHTML;DebugDOCX</Configurations>
   </PropertyGroup>
 
 </Project>

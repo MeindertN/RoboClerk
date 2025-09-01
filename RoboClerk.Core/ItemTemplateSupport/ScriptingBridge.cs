@@ -152,7 +152,7 @@ namespace RoboClerk
             string result = item.ItemID;
             if (item.HasLink)
             {
-                if (format == "HTML")
+                if (format == "HTML" || format == "DOCX")
                 {
                     result = $"<a href=\"{item.Link}\">{item.ItemID}</a>";
                 }

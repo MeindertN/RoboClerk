@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace RoboClerk.Core
 {
@@ -83,6 +84,76 @@ namespace RoboClerk.Core
                     }
                 }
             }
+        }
+
+        protected static void ValidateTagContents(string tagContents)
+        {
+            //verify required elements are present and in the right order
+            if (tagContents.Count(f => (f == '(')) != 1 ||
+                tagContents.Count(f => (f == ')')) != 1 ||
+                tagContents.Substring(0, tagContents.IndexOf('(')).Count(f => (f == ':')) != 1 ||
+                tagContents.IndexOf(')') < tagContents.IndexOf('(') ||
+                tagContents.IndexOf(':') > tagContents.IndexOf('('))
+            {
+                throw new TagInvalidException(tagContents, "RoboClerk tag is not formatted correctly");
+            }
+            //verify the preamble
+            string temp = Regex.Replace(tagContents, @"\s+", ""); //remove whitespace
+            string[] preamble = temp.Split('(')[0].Split(':', StringSplitOptions.RemoveEmptyEntries);
+            if (preamble.Length != 2)
+            {
+                throw new TagInvalidException(tagContents, "Preamble section in RoboClerk tag not formatted correctly");
+            }
+            //verify the parameter string
+            if (temp.IndexOf(')') - temp.IndexOf('(') > 1)
+            {
+                if (temp.Count(f => (f == '=')) - temp.Count(f => (f == ',')) != 1)
+                {
+                    throw new TagInvalidException(tagContents, "Parameter section in RoboClerk tag not formatted correctly");
+                }
+                //isolate the parameter string and check each individual element
+                string contents = temp.Split('(')[1].Split(')')[0];
+                string[] elements = contents.Split(',');
+                foreach (var element in elements)
+                {
+                    if (element.Count(f => (f == '=')) != 1)
+                    {
+                        throw new TagInvalidException(tagContents, "Malformed element in parameter section of RoboClerk tag");
+                    }
+                    string[] variables = element.Split('=', StringSplitOptions.RemoveEmptyEntries);
+                    if (variables.Length != 2)
+                    {
+                        throw new TagInvalidException(tagContents, "Malformed element in parameter section of RoboClerk tag");
+                    }
+                }
+            }
+        }
+
+        protected void ParseSourceAndContentCreator(string tagContents)
+        {
+            // Parse source and content creator ID from "Source:ContentCreatorID(params)" format
+            var items = tagContents.Split('(')[0].Split(':');
+            if (items.Length >= 2)
+            {
+                source = GetSource(items[0].Trim().ToUpper());
+                contentCreatorID = items[1].Trim();
+                
+                if (source == DataSource.Unknown)
+                {
+                    throw new TagInvalidException(tagContents, $"Unknown datasource {items[0].Trim()}");
+                }
+            }
+            else
+            {
+                throw new TagInvalidException(tagContents, "RoboClerk tag preamble is not formatted correctly - expected Source:ContentCreatorID format");
+            }
+        }
+
+        protected void ParseCompleteTag(string tagContents)
+        {
+            ValidateTagContents(tagContents);
+            ParseSourceAndContentCreator(tagContents);
+            ExtractParameters(tagContents);
         }
     }
 }

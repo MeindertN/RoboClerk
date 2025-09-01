@@ -34,7 +34,7 @@ ClearOutputDir = "True"
 # Logging level (DEBUG, INFO or WARN)
 LogLevel = "WARN"
 
-# Output format (ASCIIDOC or HTML)
+# Output format (ASCIIDOC, HTML or DOCX)
 OutputFormat = "{OUTPUTFORMAT}"
 
 
