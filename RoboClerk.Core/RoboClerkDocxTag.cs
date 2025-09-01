@@ -13,6 +13,7 @@ namespace RoboClerk.Core
         private readonly SdtElement contentControl;
         private readonly string contentControlId;
         private readonly IConfiguration? configuration;
+        private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public RoboClerkDocxTag(SdtElement contentControl, IConfiguration? configuration = null)
         {
@@ -56,7 +57,11 @@ namespace RoboClerk.Core
             {
                 contentElement.RemoveAllChildren();
 
-                if (IsHtmlContent(contents))
+                if (IsOpenXmlContent(contents))
+                {
+                    ConvertEmbeddedOpenXmlToOpenXml(contents, contentElement);
+                }
+                else if (IsHtmlContent(contents))
                 {
                     ConvertHtmlToOpenXml(contents, contentElement);
                 }
@@ -255,9 +260,141 @@ namespace RoboClerk.Core
             }
         }
 
+        private bool IsOpenXmlContent(string content)
+        {
+            return content.Contains("<!--OPENXML_CONTENT-->");
+        }
+
         private bool IsHtmlContent(string content)
         {
-            return content.Contains("<") && content.Contains(">");
+            return content.Contains("<") && content.Contains(">") && !IsOpenXmlContent(content);
+        }
+
+        /// <summary>
+        /// Converts embedded OpenXML content to OpenXML elements
+        /// </summary>
+        private void ConvertEmbeddedOpenXmlToOpenXml(string openXmlContent, OpenXmlElement contentElement)
+        {
+            try
+            {
+                // Remove the marker and clean content
+                var cleanedContent = openXmlContent.Replace("<!--OPENXML_CONTENT-->", "").Trim();
+                
+                if (string.IsNullOrEmpty(cleanedContent))
+                {
+                    // Empty content - create empty paragraph
+                    if (contentElement is SdtContentBlock)
+                    {
+                        contentElement.AppendChild(new Paragraph(new Run(new Text(""))));
+                    }
+                    else if (contentElement is SdtContentRun)
+                    {
+                        contentElement.AppendChild(new Run(new Text("")));
+                    }
+                    return;
+                }
+
+                // Parse the XML content directly using OpenXML
+                var lines = cleanedContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                
+                foreach (var line in lines)
+                {
+                    if (string.IsNullOrWhiteSpace(line))
+                        continue;
+                        
+                    try
+                    {
+                        // Parse each OpenXML element and add it to the content element
+                        var parsedElement = ParseOpenXmlElement(line.Trim());
+                        if (parsedElement != null)
+                        {
+                            contentElement.AppendChild(parsedElement);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Warn($"Failed to parse OpenXML line, treating as text: {ex.Message}");
+                        // Fallback: treat as text in a paragraph
+                        if (contentElement is SdtContentBlock)
+                        {
+                            var paragraph = new Paragraph(new Run(new Text(line)));
+                            contentElement.AppendChild(paragraph);
+                        }
+                        else if (contentElement is SdtContentRun)
+                        {
+                            var run = new Run(new Text(line));
+                            contentElement.AppendChild(run);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"Failed to convert embedded OpenXML content: {ex.Message}");
+                // Fallback to plain text
+                ConvertTextToOpenXml(openXmlContent, contentElement);
+            }
+        }
+
+        /// <summary>
+        /// Parses a single OpenXML element from XML string
+        /// </summary>
+        private OpenXmlElement? ParseOpenXmlElement(string xmlString)
+        {
+            try
+            {
+                // Create a temporary document to help parse the XML
+                var tempDoc = new Document();
+                tempDoc.InnerXml = $"<w:body xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">{xmlString}</w:body>";
+                
+                // Get the first child element from the temporary body
+                var firstElement = tempDoc.Body?.FirstChild;
+                if (firstElement != null)
+                {
+                    // Clone the element to avoid ownership issues
+                    return (OpenXmlElement)firstElement.CloneNode(true);
+                }
+                
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logger.Debug($"Failed to parse OpenXML element: {ex.Message}");
+                
+                // Alternative approach: try to create specific element types based on XML content
+                try
+                {
+                    if (xmlString.Contains("<w:p ") || xmlString.StartsWith("<w:p>"))
+                    {
+                        var paragraph = new Paragraph();
+                        paragraph.InnerXml = xmlString;
+                        return paragraph;
+                    }
+                    else if (xmlString.Contains("<w:tbl ") || xmlString.StartsWith("<w:tbl>"))
+                    {
+                        var table = new Table();
+                        table.InnerXml = xmlString;
+                        return table;
+                    }
+                    else if (xmlString.Contains("<w:r ") || xmlString.StartsWith("<w:r>"))
+                    {
+                        var run = new Run();
+                        run.InnerXml = xmlString;
+                        return run;
+                    }
+                    else
+                    {
+                        // Default to paragraph
+                        var paragraph = new Paragraph();
+                        paragraph.InnerXml = xmlString;
+                        return paragraph;
+                    }
+                }
+                catch
+                {
+                    return null;
+                }
+            }
         }
 
         private void ConvertHtmlToOpenXml(string htmlContent, OpenXmlElement contentElement)
