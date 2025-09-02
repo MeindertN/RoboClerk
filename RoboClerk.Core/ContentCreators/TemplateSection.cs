@@ -48,11 +48,6 @@ namespace RoboClerk.ContentCreators
             }
         }
 
-        /// <summary>
-        /// Extracts OpenXML content from a DOCX file for DOCX output format
-        /// </summary>
-        /// <param name="filename">The DOCX filename in the template directory</param>
-        /// <returns>OpenXML content with special marker</returns>
         private string ExtractOpenXmlContent(string filename)
         {
             try

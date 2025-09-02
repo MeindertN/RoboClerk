@@ -8,12 +8,13 @@ namespace RoboClerk.Core
     /// <summary>
     /// Docx-based implementation of IRoboClerkTag using Word content controls
     /// </summary>
-    public class RoboClerkDocxTag : RoboClerkBaseTag
+    public sealed class RoboClerkDocxTag : RoboClerkBaseTag
     {
         private readonly SdtElement contentControl;
         private readonly string contentControlId;
         private readonly IConfiguration? configuration;
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        private static readonly string[] NewlineSplit = { "\r\n", "\r", "\n" };
 
         public RoboClerkDocxTag(SdtElement contentControl, IConfiguration? configuration = null)
         {
@@ -29,11 +30,7 @@ namespace RoboClerk.Core
         public override string Contents 
         { 
             get => contents; 
-            set 
-            {
-                // Just store the content as text - don't update OpenXML immediately
-                contents = value;
-            }
+            set => contents = value;
         }
 
         public override IEnumerable<IRoboClerkTag> ProcessNestedTags()
@@ -53,60 +50,48 @@ namespace RoboClerk.Core
         public void ConvertContentToOpenXml()
         {
             var contentElement = GetContentElement();
-            if (contentElement != null)
-            {
-                // Capture original formatting before removing children
-                var originalFormatting = CaptureOriginalFormatting(contentElement);
-                
-                contentElement.RemoveAllChildren();
+            if (contentElement is null) return;
 
-                if (IsOpenXmlContent(contents))
-                {
-                    ConvertEmbeddedOpenXmlToOpenXml(contents, contentElement);
-                }
-                else if (IsHtmlContent(contents))
-                {
-                    ConvertHtmlToOpenXml(contents, contentElement);
-                }
-                else
-                {
-                    // Plain text content - preserve line breaks and original formatting when updating
-                    ConvertTextToOpenXml(contents, contentElement, originalFormatting);
-                }
-            }
+            var fmt = CaptureOriginalFormatting(contentElement);
+            contentElement.RemoveAllChildren();
+
+            if (IsOpenXmlContent(contents)) { ConvertEmbeddedOpenXmlToOpenXml(contents, contentElement); return; }
+            if (IsHtmlContent(contents)) { ConvertHtmlToOpenXml(contents, contentElement); return; }
+
+            ConvertTextToOpenXml(contents, contentElement, fmt);
         }
 
         /// <summary>
         /// Captures the original formatting from the content control before modification
         /// </summary>
-        private OriginalFormatting CaptureOriginalFormatting(OpenXmlElement contentElement)
+        private OriginalFormatting CaptureOriginalFormatting(OpenXmlElement root)
         {
-            var formatting = new OriginalFormatting();
-            
-            // Capture paragraph properties
-            var firstParagraph = contentElement.Descendants<Paragraph>().FirstOrDefault();
-            if (firstParagraph?.ParagraphProperties != null)
+            Paragraph? firstP = null; 
+            Run? firstR = null;
+
+            foreach (var e in root.Descendants())
             {
-                formatting.ParagraphProperties = (ParagraphProperties)firstParagraph.ParagraphProperties.CloneNode(true);
+                if (firstP is null && e is Paragraph p && p.ParagraphProperties is not null)
+                    firstP = p;
+                if (firstR is null && e is Run r && r.RunProperties is not null)
+                    firstR = r;
+                if (firstP is not null && firstR is not null) break;
             }
-            
-            // Capture run properties
-            var firstRun = contentElement.Descendants<Run>().FirstOrDefault();
-            if (firstRun?.RunProperties != null)
+
+            return new OriginalFormatting
             {
-                formatting.RunProperties = (RunProperties)firstRun.RunProperties.CloneNode(true);
-            }
-            
-            return formatting;
+                ParagraphProperties = (ParagraphProperties?)firstP?.ParagraphProperties?.CloneNode(true),
+                RunProperties = (RunProperties?)firstR?.RunProperties?.CloneNode(true)
+            };
         }
 
         /// <summary>
-        /// Helper class to store original formatting information
+        /// Helper record to store original formatting information
         /// </summary>
-        private class OriginalFormatting
+        private sealed record OriginalFormatting
         {
-            public ParagraphProperties? ParagraphProperties { get; set; }
-            public RunProperties? RunProperties { get; set; }
+            public ParagraphProperties? ParagraphProperties { get; init; }
+            public RunProperties? RunProperties { get; init; }
         }
 
         private string GetContentControlId()
@@ -139,195 +124,114 @@ namespace RoboClerk.Core
         /// </summary>
         /// <param name="element">The OpenXml element to extract text from</param>
         /// <returns>Formatted text with preserved line breaks</returns>
-        private string ExtractFormattedText(OpenXmlElement element)
+        private static string ExtractFormattedText(OpenXmlElement element)
         {
-            var textBuilder = new System.Text.StringBuilder();
-            
-            foreach (var descendant in element.Descendants())
+            var sb = new System.Text.StringBuilder();
+            bool lastWasNewline = false;
+
+            foreach (var d in element.Descendants())
             {
-                switch (descendant)
+                switch (d)
                 {
-                    case Text text:
-                        textBuilder.Append(text.Text);
+                    case Text t:
+                        sb.Append(t.Text);
+                        lastWasNewline = false;
                         break;
-                    case Break br:
-                        textBuilder.AppendLine();
+                    case Break or CarriageReturn:
+                        sb.AppendLine();
+                        lastWasNewline = true;
                         break;
-                    case CarriageReturn cr:
-                        textBuilder.AppendLine();
-                        break;
-                    case Paragraph p when textBuilder.Length > 0 && !textBuilder.ToString().EndsWith("\n"):
-                        // Add line break after paragraph if not already there
-                        textBuilder.AppendLine();
+                    case Paragraph when !lastWasNewline && sb.Length > 0:
+                        sb.AppendLine();
+                        lastWasNewline = true;
                         break;
                     case TabChar:
-                        textBuilder.Append('\t');
+                        sb.Append('\t');
+                        lastWasNewline = false;
                         break;
                 }
             }
-            
-            // Clean up trailing newlines but preserve internal formatting
-            return textBuilder.ToString().TrimEnd('\r', '\n');
+            return sb.ToString().TrimEnd('\r', '\n');
         }
 
-        private void ParseTagContents(string tagContents)
-        {
-            try
-            {
-                ParseCompleteTag(tagContents);
-            }
-            catch (TagInvalidException e)
-            {
-                // For DOCX tags, we don't have document position info, but we can still provide context
-                throw;
-            }
-        }
+        private void ParseTagContents(string tagContents) => ParseCompleteTag(tagContents);
         
         private OpenXmlElement? GetContentElement()
         {
-            // Try to find different types of content elements in priority order
-            var blockContent = contentControl.Descendants<SdtContentBlock>().FirstOrDefault();
+            var blockContent = contentControl.GetFirstChild<SdtContentBlock>();
             if (blockContent != null) return blockContent;
 
-            var runContent = contentControl.Descendants<SdtContentRun>().FirstOrDefault();
+            var runContent = contentControl.GetFirstChild<SdtContentRun>();
             if (runContent != null) return runContent;
 
-            var cellContent = contentControl.Descendants<SdtContentCell>().FirstOrDefault();
-            if (cellContent != null) return cellContent;
-
-            return null;
+            var cellContent = contentControl.GetFirstChild<SdtContentCell>();
+            return cellContent;
         }
 
-        private void ConvertTextToOpenXml(string text, OpenXmlElement contentElement, OriginalFormatting originalFormatting)
+        private void ConvertTextToOpenXml(string text, OpenXmlElement el, OriginalFormatting fmt)
         {
-            if (string.IsNullOrEmpty(text))
-            {
-                // For empty content, we still need to create a proper structure while preserving original formatting
-                if (contentElement is SdtContentBlock)
-                {
-                    var emptyParagraph = CreateParagraphWithFormatting(originalFormatting);
-                    emptyParagraph.AppendChild(CreateRunWithFormatting(originalFormatting, ""));
-                    contentElement.AppendChild(emptyParagraph);
-                }
-                else if (contentElement is SdtContentRun)
-                {
-                    var emptyRun = CreateRunWithFormatting(originalFormatting, "");
-                    contentElement.AppendChild(emptyRun);
-                }
-                return;
-            }
+            if (string.IsNullOrEmpty(text)) { AppendEmpty(el, fmt); return; }
 
-            // Handle different content control types appropriately
-            if (contentElement is SdtContentBlock)
+            switch (el)
             {
-                ConvertTextToBlockContent(text, contentElement, originalFormatting);
-            }
-            else if (contentElement is SdtContentRun)
-            {
-                ConvertTextToRunContent(text, contentElement, originalFormatting);
-            }
-            else if (contentElement is SdtContentCell)
-            {
-                ConvertTextToBlockContent(text, contentElement, originalFormatting); // Cells can contain paragraphs
-            }
-            else
-            {
-                // Fallback: try to determine what type of content to create
-                ConvertTextToBlockContent(text, contentElement, originalFormatting);
+                case SdtContentRun:                      ConvertTextToRunContent(text, el, fmt);   break;
+                case SdtContentCell or SdtContentBlock:  ConvertTextToBlockContent(text, el, fmt); break;
+                default:                                 ConvertTextToBlockContent(text, el, fmt); break;
             }
         }
 
-        private void ConvertTextToBlockContent(string text, OpenXmlElement contentElement, OriginalFormatting originalFormatting)
+        private void ConvertTextToBlockContent(string text, OpenXmlElement el, OriginalFormatting fmt)
         {
-            var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-            
-            if (lines.Length == 1 && !text.Contains('\n'))
-            {
-                // Single line - create one paragraph with preserved formatting
-                var paragraph = CreateParagraphWithFormatting(originalFormatting);
-                var run = CreateRunWithFormatting(originalFormatting, text);
-                paragraph.AppendChild(run);
-                contentElement.AppendChild(paragraph);
-            }
-            else
-            {
-                // Multiple lines - create paragraphs for each line with preserved formatting
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    var paragraph = CreateParagraphWithFormatting(originalFormatting);
-                    var run = CreateRunWithFormatting(originalFormatting, lines[i]);
-                    paragraph.AppendChild(run);
-                    contentElement.AppendChild(paragraph);
-                }
-            }
+            if (string.IsNullOrEmpty(text)) { AppendEmpty(el, fmt); return; }
+
+            var lines = text.Split(NewlineSplit, StringSplitOptions.None);
+            foreach (var line in lines)
+                el.AppendChild(MakeParagraph(fmt, line));
         }
 
-        private void ConvertTextToRunContent(string text, OpenXmlElement contentElement, OriginalFormatting originalFormatting)
+        private void ConvertTextToRunContent(string text, OpenXmlElement el, OriginalFormatting fmt)
         {
-            // For run content, we need to handle line breaks differently while preserving formatting
-            var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-            
+            var lines = text.Split(NewlineSplit, StringSplitOptions.None);
             for (int i = 0; i < lines.Length; i++)
             {
-                var run = CreateRunWithFormatting(originalFormatting, lines[i]);
-                
-                // Add line break for all but the last line
-                if (i < lines.Length - 1)
-                {
-                    run.AppendChild(new Break());
-                }
-                
-                contentElement.AppendChild(run);
+                var r = new Run { RunProperties = (RunProperties?)fmt.RunProperties?.CloneNode(true) };
+                if (!string.IsNullOrEmpty(lines[i])) r.AppendChild(new Text(lines[i]));
+                if (i < lines.Length - 1) r.AppendChild(new Break());
+                el.AppendChild(r);
             }
         }
 
-        private Paragraph CreateParagraphWithFormatting(OriginalFormatting originalFormatting)
+        private static Paragraph MakeParagraph(OriginalFormatting fmt, string text)
         {
-            var paragraph = new Paragraph();
-            
-            if (originalFormatting.ParagraphProperties != null)
-            {
-                // Clone the paragraph properties to preserve formatting
-                paragraph.ParagraphProperties = (ParagraphProperties)originalFormatting.ParagraphProperties.CloneNode(true);
-            }
-            
-            return paragraph;
+            var p = new Paragraph { ParagraphProperties = (ParagraphProperties?)fmt.ParagraphProperties?.CloneNode(true) };
+            var r = new Run { RunProperties = (RunProperties?)fmt.RunProperties?.CloneNode(true) };
+            if (!string.IsNullOrEmpty(text)) r.AppendChild(new Text(text));
+            p.AppendChild(r); 
+            return p;
         }
 
-        private Run CreateRunWithFormatting(OriginalFormatting originalFormatting, string text)
+        private static void AppendEmpty(OpenXmlElement contentElement, OriginalFormatting fmt)
         {
-            var run = new Run();
-            
-            if (originalFormatting.RunProperties != null)
+            switch (contentElement)
             {
-                // Clone the run properties to preserve formatting
-                run.RunProperties = (RunProperties)originalFormatting.RunProperties.CloneNode(true);
+                case SdtContentBlock or SdtContentCell:
+                    var p = new Paragraph { ParagraphProperties = (ParagraphProperties?)fmt.ParagraphProperties?.CloneNode(true) };
+                    p.AppendChild(new Run { RunProperties = (RunProperties?)fmt.RunProperties?.CloneNode(true) });
+                    contentElement.AppendChild(p);
+                    break;
+                case SdtContentRun:
+                    contentElement.AppendChild(new Run { RunProperties = (RunProperties?)fmt.RunProperties?.CloneNode(true) });
+                    break;
             }
-            
-            if (!string.IsNullOrEmpty(text))
-            {
-                run.AppendChild(new Text(text));
-            }
-            
-            return run;
         }
 
         // Keep the original overload for backward compatibility with existing calls
-        private void ConvertTextToOpenXml(string text, OpenXmlElement contentElement)
-        {
-            var emptyFormatting = new OriginalFormatting();
-            ConvertTextToOpenXml(text, contentElement, emptyFormatting);
-        }
+        private void ConvertTextToOpenXml(string text, OpenXmlElement el)
+            => ConvertTextToOpenXml(text, el, new OriginalFormatting());
 
-        private bool IsOpenXmlContent(string content)
-        {
-            return content.Contains("<!--OPENXML_CONTENT-->");
-        }
+        private static bool IsOpenXmlContent(string content) => content.Contains("<!--OPENXML_CONTENT-->");
 
-        private bool IsHtmlContent(string content)
-        {
-            return content.Contains("<") && content.Contains(">") && !IsOpenXmlContent(content);
-        }
+        private static bool IsHtmlContent(string content) => content.Contains("<") && content.Contains(">") && !IsOpenXmlContent(content);
 
         private void ConvertEmbeddedOpenXmlToOpenXml(string openXmlContent, OpenXmlElement contentElement)
         {
@@ -339,19 +243,12 @@ namespace RoboClerk.Core
                 if (string.IsNullOrEmpty(cleanedContent))
                 {
                     // Empty content - create empty paragraph
-                    if (contentElement is SdtContentBlock)
-                    {
-                        contentElement.AppendChild(new Paragraph(new Run(new Text(""))));
-                    }
-                    else if (contentElement is SdtContentRun)
-                    {
-                        contentElement.AppendChild(new Run(new Text("")));
-                    }
+                    AppendEmpty(contentElement, new OriginalFormatting());
                     return;
                 }
 
                 // Parse the XML content directly using OpenXML
-                var lines = cleanedContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                var lines = cleanedContent.Split(NewlineSplit, StringSplitOptions.RemoveEmptyEntries);
                 
                 foreach (var line in lines)
                 {
@@ -371,16 +268,7 @@ namespace RoboClerk.Core
                     {
                         logger.Warn($"Failed to parse OpenXML line, treating as text: {ex.Message}");
                         // Fallback: treat as text in a paragraph
-                        if (contentElement is SdtContentBlock)
-                        {
-                            var paragraph = new Paragraph(new Run(new Text(line)));
-                            contentElement.AppendChild(paragraph);
-                        }
-                        else if (contentElement is SdtContentRun)
-                        {
-                            var run = new Run(new Text(line));
-                            contentElement.AppendChild(run);
-                        }
+                        AppendEmpty(contentElement, new OriginalFormatting());
                     }
                 }
             }
@@ -392,7 +280,7 @@ namespace RoboClerk.Core
             }
         }
 
-        private OpenXmlElement? ParseOpenXmlElement(string xmlString)
+        private static OpenXmlElement? ParseOpenXmlElement(string xmlString)
         {
             try
             {
@@ -493,9 +381,7 @@ namespace RoboClerk.Core
             catch (Exception ex)
             {
                 // Fallback to plain text if HTML conversion fails
-                var logger = NLog.LogManager.GetCurrentClassLogger();
                 logger.Warn($"HTML conversion failed, using plain text: {ex.Message}");
-
                 ConvertTextToOpenXml(htmlContent, contentElement);
             }
         }
