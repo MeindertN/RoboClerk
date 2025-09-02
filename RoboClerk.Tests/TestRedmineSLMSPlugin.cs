@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using NSubstitute;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using System.IO.Abstractions;
 using Tomlyn.Model;
 using Microsoft.Extensions.DependencyInjection;

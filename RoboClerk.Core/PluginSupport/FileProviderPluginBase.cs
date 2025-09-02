@@ -4,7 +4,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using Tomlyn;
 using Tomlyn.Model;
 

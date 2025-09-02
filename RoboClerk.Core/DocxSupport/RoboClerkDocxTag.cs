@@ -1,9 +1,9 @@
 ﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 
-namespace RoboClerk.Core
+namespace RoboClerk.Core.DocxSupport
 {
     /// <summary>
     /// Docx-based implementation of IRoboClerkTag using Word content controls
@@ -20,7 +20,7 @@ namespace RoboClerk.Core
         {
             this.contentControl = contentControl ?? throw new ArgumentNullException(nameof(contentControl));
             this.configuration = configuration;
-            this.contentControlId = GetContentControlId();
+            contentControlId = GetContentControlId();
             ParseContentControlProperties();
         }
 
@@ -293,7 +293,7 @@ namespace RoboClerk.Core
                 if (firstElement != null)
                 {
                     // Clone the element to avoid ownership issues
-                    return (OpenXmlElement)firstElement.CloneNode(true);
+                    return firstElement.CloneNode(true);
                 }
                 
                 return null;

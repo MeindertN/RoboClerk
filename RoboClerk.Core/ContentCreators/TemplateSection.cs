@@ -1,4 +1,4 @@
-﻿using RoboClerk.Configuration;
+﻿using RoboClerk.Core.Configuration;
 using RoboClerk.Core;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;

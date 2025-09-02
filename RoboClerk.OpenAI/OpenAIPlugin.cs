@@ -1,5 +1,5 @@
 ﻿#nullable enable
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using System;
 using System.Collections.Generic;
 using RoboClerk.AISystem;

@@ -6,7 +6,7 @@ using NUnit.Framework;
 using NSubstitute;
 using RoboClerk;
 using NUnit.Framework.Legacy;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 
 namespace RoboClerk.Tests
 {

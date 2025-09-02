@@ -1,6 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 
 namespace RoboClerk.Core.DocxSupport
 {

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;

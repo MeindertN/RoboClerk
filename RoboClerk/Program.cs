@@ -3,7 +3,7 @@ using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using RoboClerk.AISystem;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using RoboClerk.ContentCreators;
 using System;
 using System.Collections.Generic;

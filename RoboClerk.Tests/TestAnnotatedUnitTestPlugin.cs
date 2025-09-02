@@ -1,7 +1,7 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
 using RoboClerk.AnnotatedUnitTests;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using RoboClerk.ContentCreators;
 using System;
 using System.Collections.Generic;

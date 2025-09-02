@@ -1,4 +1,4 @@
-﻿using RoboClerk.Configuration;
+﻿using RoboClerk.Core.Configuration;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using System;

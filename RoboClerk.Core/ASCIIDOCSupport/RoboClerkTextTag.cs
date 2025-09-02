@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RoboClerk.Core
+namespace RoboClerk.Core.ASCIIDOCSupport
 {
     /// <summary>
     /// Text-based implementation of IRoboClerkTag for text documents (AsciiDoc, Markdown, etc.)

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using RoboClerk.AISystem;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using RoboClerk.Core;
 using System;
 using System.Collections.Generic;

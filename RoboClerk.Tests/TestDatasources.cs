@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 using NSubstitute;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using System.Collections.Generic;
 using NSubstitute.Extensions;
 using Tomlyn.Model;

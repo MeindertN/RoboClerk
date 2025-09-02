@@ -1,9 +1,10 @@
 ﻿using DocumentFormat.OpenXml.Spreadsheet;
 using NSubstitute;
 using NUnit.Framework;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using RoboClerk.ContentCreators;
 using RoboClerk.Core;
+using RoboClerk.Core.ASCIIDOCSupport;
 using System;
 using System.Collections.Generic;
 using System.IO;

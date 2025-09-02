@@ -1,13 +1,14 @@
 ﻿using NUnit.Framework;
 using NSubstitute;
 using System.Collections.Generic;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using System.IO.Abstractions;
 using RoboClerk.ContentCreators;
 using System;
 using System.Text.RegularExpressions;
 using System.IO;
 using RoboClerk.Core;
+using RoboClerk.Core.ASCIIDOCSupport;
 
 namespace RoboClerk.Tests
 {

@@ -1,4 +1,5 @@
 using RoboClerk.Core;
+using RoboClerk.Core.ASCIIDOCSupport;
 using System.Text;
 using System.Text.RegularExpressions;
 

@@ -2,7 +2,7 @@
 using RoboClerk.Core;
 using System.Collections.Generic;
 using System.Text;
-using IConfiguration = RoboClerk.Configuration.IConfiguration;
+using IConfiguration = RoboClerk.Core.Configuration.IConfiguration;
 
 namespace RoboClerk.ContentCreators
 {

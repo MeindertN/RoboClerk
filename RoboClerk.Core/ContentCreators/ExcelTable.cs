@@ -1,5 +1,5 @@
 ﻿using ClosedXML.Excel;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using RoboClerk.Core;
 using System.Text;
 

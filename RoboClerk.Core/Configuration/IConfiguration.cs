@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace RoboClerk.Configuration
+namespace RoboClerk.Core.Configuration
 {
     public interface IConfiguration
     {

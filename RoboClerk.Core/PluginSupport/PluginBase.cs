@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using System;
 using System.IO.Abstractions;
 using System.Reflection;

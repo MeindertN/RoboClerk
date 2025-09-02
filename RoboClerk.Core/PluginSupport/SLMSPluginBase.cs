@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using Tomlyn.Model;
-using RoboClerk.Configuration;
-using IConfiguration = RoboClerk.Configuration.IConfiguration;
+using RoboClerk.Core.Configuration;
+using IConfiguration = RoboClerk.Core.Configuration.IConfiguration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
 

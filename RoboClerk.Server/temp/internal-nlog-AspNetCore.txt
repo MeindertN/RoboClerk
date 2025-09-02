@@ -1,0 +1,9 @@
+2025-09-02 10:58:26.2229 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2025-09-02 10:58:26.2394 Info Registered target NLog.Targets.FileTarget(Name=ownFile-web)
+2025-09-02 10:58:26.2394 Info Registered target NLog.Targets.ConsoleTarget(Name=lifetimeConsole)
+2025-09-02 10:58:26.2394 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.3.4.2778. Product version: 5.3.4+73d83d3161d31288ca5c554cc50d27b6bed5f28b. GlobalAssemblyCache: False
+2025-09-02 10:58:26.2788 Info Validating config: TargetNames=allfile, lifetimeConsole, ownFile-web, ConfigItems=54, FilePath=C:\code\RoboClerk\RoboClerk.Server\bin\Debug\net8.0\NLog.config
+2025-09-02 10:58:26.2899 Info Configuration initialized.
+2025-09-02 10:58:32.7779 Info Shutdown() called. Logger closing...
+2025-09-02 10:58:32.7779 Info Closing old configuration.
+2025-09-02 10:58:32.8015 Info Logger has been closed down.

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Tomlyn.Model;
 
-namespace RoboClerk.Configuration
+namespace RoboClerk.Core.Configuration
 {
     public class CheckpointConfig
     {

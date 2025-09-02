@@ -1,7 +1,6 @@
-﻿using DocumentFormat.OpenXml.Packaging;
-using System.Collections.Generic;
+﻿
 
-namespace RoboClerk.Configuration
+namespace RoboClerk.Core.Configuration
 {
     public class DocumentConfig
     {

@@ -1,5 +1,5 @@
 using System.Text;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using Tomlyn;
 using Tomlyn.Model;
 using Microsoft.Extensions.DependencyInjection;

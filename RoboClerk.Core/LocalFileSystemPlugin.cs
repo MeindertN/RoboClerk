@@ -3,7 +3,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

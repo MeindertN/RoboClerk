@@ -1,14 +1,15 @@
 ﻿using RoboClerk.AISystem;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using RoboClerk.ContentCreators;
 using RoboClerk.Core;
+using RoboClerk.Core.ASCIIDOCSupport;
 using RoboClerk.Core.DocxSupport;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
-using IConfiguration = RoboClerk.Configuration.IConfiguration;
+using IConfiguration = RoboClerk.Core.Configuration.IConfiguration;
 
 namespace RoboClerk
 {

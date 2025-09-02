@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RoboClerk_Docx
 {
-    internal class RoboClerkDocxCore
+    internal class RoboClerkServerCore
     {
     }
 }

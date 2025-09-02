@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using Tomlyn.Model;
+﻿using Tomlyn.Model;
 
-namespace RoboClerk.Configuration
+namespace RoboClerk.Core.Configuration
 {
     public class ConfigurationValues
     {

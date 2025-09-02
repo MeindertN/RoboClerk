@@ -4,9 +4,10 @@ using System.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using NSubstitute;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 using RoboClerk.ContentCreators;
 using RoboClerk.Core;
+using RoboClerk.Core.ASCIIDOCSupport;
 
 namespace RoboClerk.Tests
 {

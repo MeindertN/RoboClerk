@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 using CliWrap;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 
 namespace RoboClerk
 {

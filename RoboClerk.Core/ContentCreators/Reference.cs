@@ -1,4 +1,4 @@
-﻿using RoboClerk.Configuration;
+﻿using RoboClerk.Core.Configuration;
 using RoboClerk.Core;
 using System.Collections.Generic;
 using System.Linq;

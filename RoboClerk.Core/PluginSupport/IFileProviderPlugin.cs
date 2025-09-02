@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using RoboClerk.Configuration;
+using RoboClerk.Core.Configuration;
 
 namespace RoboClerk
 {
