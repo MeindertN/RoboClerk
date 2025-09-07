@@ -1,21 +1,32 @@
 # RoboClerk Server
 
-A web API server that exposes RoboClerk functionality for integration with Word add-ins and other applications.
+A web API server that exposes RoboClerk functionality for integration with Word add-ins working with SharePoint documents.
 
 ## Features
 
-- **Project Management**: Load and manage RoboClerk projects
-- **Document Processing**: Extract and process RoboClerk tags from DOCX documents
-- **Content Generation**: Generate content using existing RoboClerk content creators
-- **Configuration Access**: Retrieve project configuration settings
+- **SharePoint Project Management**: Load and manage RoboClerk projects from SharePoint
+- **Content Control Processing**: Extract and process RoboClerk content controls from DOCX documents
+- **OpenXML Content Generation**: Generate OpenXML content using RoboClerk content creators
+- **Word Add-in Integration**: Specialized endpoints for Word add-in scenarios
+- **Real-time Data Sources**: Refresh data sources for up-to-date content generation
 - **Cross-platform**: Runs on Windows, Linux, and macOS
+
+## Features
+
+- **SharePoint Integration**: Designed specifically for SharePoint-hosted RoboClerk projects
+- **Content Control Focus**: Works exclusively with Word content controls (RoboClerkDocxTag)
+- **OpenXML Generation**: Returns raw OpenXML for direct insertion into Word documents
+- **Session Management**: Supports multiple concurrent Word add-in sessions
+- **Real-time Updates**: Refresh SharePoint data sources on demand
 
 ## Getting Started
 
 ### Prerequisites
 
 - .NET 8.0 SDK
-- RoboClerk project with DOCX templates
+- RoboClerk project hosted on SharePoint with DOCX templates
+- SharePoint file provider plugin configured
+- Word add-in for document interaction
 
 ### Running the Server
 
@@ -41,46 +52,27 @@ When running in development mode, Swagger documentation is available at the root
 
 ## API Endpoints
 
-### Project Management
+### Word Add-in Endpoints
 
-- `GET /api/project/available` - Get list of available RoboClerk projects
-- `POST /api/project/load` - Load a specific project
-- `GET /api/project/{projectId}/documents` - Get documents in a loaded project
-- `GET /api/project/{projectId}/configuration` - Get project configuration
-- `POST /api/project/{projectId}/refresh` - Refresh project data sources
-- `DELETE /api/project/{projectId}` - Unload a project
-
-### Document Operations
-
-- `POST /api/project/{projectId}/documents/{documentId}/load` - Load a document and extract RoboClerk tags
-- `POST /api/project/{projectId}/content` - Generate content for a specific RoboClerk tag
+- `POST /api/word-addin/project/load` - Load a SharePoint project with automatic validation
+- `POST /api/word-addin/project/{projectId}/document/{documentId}/load` - Load document and discover content controls
+- `GET /api/word-addin/project/{projectId}/document/{documentId}/analyze` - Analyze content controls and capabilities
+- `POST /api/word-addin/project/{projectId}/content` - Generate OpenXML for specific content control
+- `POST /api/word-addin/project/{projectId}/refresh` - Refresh SharePoint data sources
+- `GET /api/word-addin/project/{projectId}/config` - Get project configuration (diagnostic)
+- `DELETE /api/word-addin/project/{projectId}` - End session and cleanup resources
+- `GET /api/word-addin/health` - Health check endpoint
 
 ## Usage Example
 
-### 1. Get Available Projects
+### 1. Load a SharePoint Project
 
 ```http
-GET /api/project/available
-```
-
-Response:
-```json
-[
-  {
-    "name": "MyProject",
-    "path": "C:\\Projects\\MyProject"
-  }
-]
-```
-
-### 2. Load a Project
-
-```http
-POST /api/project/load
+POST /api/word-addin/project/load
 Content-Type: application/json
 
 {
-  "projectPath": "C:\\Projects\\MyProject"
+  "projectPath": "https://mycompany.sharepoint.com/sites/projects/MyRoboClerkProject"
 }
 ```
 
@@ -89,7 +81,7 @@ Response:
 {
   "success": true,
   "projectId": "12345-67890",
-  "projectName": "MyProject",
+  "projectName": "MyRoboClerkProject",
   "documents": [
     {
       "documentId": "SRS",
@@ -100,10 +92,10 @@ Response:
 }
 ```
 
-### 3. Load a Document
+### 2. Load a Document
 
 ```http
-POST /api/project/12345-67890/documents/SRS/load
+POST /api/word-addin/project/12345-67890/document/SRS/load
 ```
 
 Response:
@@ -116,6 +108,7 @@ Response:
       "tagId": "tag-1",
       "source": "SLMS",
       "contentCreatorId": "Requirements",
+      "contentControlId": "ctrl-123",
       "parameters": {
         "ItemID": "REQ-001"
       },
@@ -125,19 +118,44 @@ Response:
 }
 ```
 
-### 4. Generate Tag Content
+### 3. Analyze Document Content Controls
 
 ```http
-POST /api/project/12345-67890/content
+GET /api/word-addin/project/12345-67890/document/SRS/analyze
+```
+
+Response:
+```json
+{
+  "success": true,
+  "documentId": "SRS",
+  "totalTagCount": 5,
+  "supportedTagCount": 4,
+  "availableTags": [
+    {
+      "tagId": "tag-1",
+      "source": "SLMS",
+      "contentCreatorId": "Requirements",
+      "contentControlId": "ctrl-123",
+      "parameters": {
+        "ItemID": "REQ-001"
+      },
+      "isSupported": true,
+      "contentPreview": "REQ-001: The system shall provide..."
+    }
+  ]
+}
+```
+
+### 4. Generate Content for Content Control
+
+```http
+POST /api/word-addin/project/12345-67890/content
 Content-Type: application/json
 
 {
   "documentId": "SRS",
-  "source": "SLMS",
-  "contentCreatorId": "Requirements",
-  "parameters": {
-    "ItemID": "REQ-001"
-  }
+  "contentControlId": "ctrl-123"
 }
 ```
 
@@ -145,7 +163,23 @@ Response:
 ```json
 {
   "success": true,
-  "content": "REQ-001: The system shall..."
+  "content": "<w:p xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:r><w:t>REQ-001: The system shall provide user authentication...</w:t></w:r></w:p>"
+}
+```
+
+### 5. Health Check
+
+```http
+GET /api/word-addin/health
+```
+
+Response:
+```json
+{
+  "status": "healthy",
+  "service": "RoboClerk Word Add-in API",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "version": "2.0.0"
 }
 ```
 
@@ -155,24 +189,48 @@ The server uses the same configuration system as RoboClerk:
 
 - `appsettings.json` - ASP.NET Core configuration
 - `nlog.config` - Logging configuration
-- Project-specific RoboClerk configuration files
+- SharePoint project configuration files (`RoboClerk.toml`, `projectConfig.toml`)
+
+### SharePoint Configuration
+
+Ensure your SharePoint project has:
+- `RoboClerkConfig/RoboClerk.toml` - Main RoboClerk configuration
+- `RoboClerkConfig/projectConfig.toml` - Project-specific configuration
+- `Templates/` - Directory containing DOCX templates with content controls
+- Proper SharePoint permissions for the service account
 
 ## Word Add-in Integration
 
-This server is designed to work with Word add-ins that need to:
+This server is specifically designed for Word add-ins that:
 
-1. **Select Projects**: Use `/api/project/available` to list projects
-2. **Load Projects**: Use `/api/project/load` to initialize a project
-3. **Process Documents**: Use document endpoints to extract and populate RoboClerk tags
-4. **Generate Content**: Use content endpoints to generate tag content
+1. **Load SharePoint Projects**: Projects must be hosted on SharePoint
+2. **Work with Content Controls**: Only processes RoboClerk content controls in DOCX files
+3. **Handle OpenXML**: Receives raw OpenXML for insertion into Word documents
+4. **Manage Sessions**: Each add-in session gets isolated project contexts
 
-The API includes CORS support for browser-based add-ins.
+### Typical Workflow
+
+1. Word add-in loads SharePoint project
+2. User opens a Word document with RoboClerk content controls
+3. Add-in analyzes document to discover available content controls
+4. User triggers content generation for specific controls
+5. Add-in receives OpenXML and inserts it into the document
+6. Session cleanup when user closes document/add-in
+
+## Multi-User Support
+
+The server supports:
+- ? **Multiple users with different projects** - Full isolation
+- ? **Multiple users with same project, different documents** - Shared project context
+- ?? **Multiple users with same document** - Potential race conditions on content controls
+
+For high-concurrency scenarios, consider implementing session-based project isolation.
 
 ## Deployment
 
 ### Development
 ```bash
-dotnet run
+dotnet run --environment Development
 ```
 
 ### Production
@@ -182,7 +240,7 @@ cd publish
 dotnet RoboClerk.Server.dll
 ```
 
-### Docker (if needed)
+### Docker
 ```dockerfile
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
@@ -199,20 +257,63 @@ Logs are written to:
 - `logs/nlog-AspNetCore-all-{date}.log` (all logs)
 - `logs/nlog-AspNetCore-own-{date}.log` (application logs only)
 
+Key log events:
+- SharePoint project loading/validation
+- Content control discovery and analysis
+- OpenXML content generation
+- Error conditions and troubleshooting info
+
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Project not found**: Ensure the project path contains `RoboClerkConfig/RoboClerk.toml` and `RoboClerkConfig/projectConfig.toml`
-2. **No DOCX documents**: Only DOCX templates are supported by the server
-3. **Content creator errors**: Ensure all required data source plugins are available and configured
-4. **Permission errors**: Check file system permissions for project directories
+1. **SharePoint Access Denied**: 
+   - Verify SharePoint permissions for service account
+   - Check SharePoint file provider plugin configuration
+   - Ensure project URL is accessible
+
+2. **Project Configuration Missing**: 
+   - Verify `RoboClerkConfig/RoboClerk.toml` exists in SharePoint
+   - Check `RoboClerkConfig/projectConfig.toml` is present
+   - Validate TOML file syntax
+
+3. **No Content Controls Found**: 
+   - Only RoboClerk content controls (RoboClerkDocxTag) are supported
+   - Verify Word document contains properly configured content controls
+   - Check content control tags match expected format
+
+4. **Content Creator Errors**: 
+   - Ensure required data source plugins are installed
+   - Verify data source configuration and connectivity
+   - Check plugin directories and permissions
+
+5. **OpenXML Generation Fails**:
+   - Review content creator output format
+   - Check for HTML/text content that needs conversion
+   - Verify RoboClerkDocxTag.GeneratedOpenXml property
 
 ### Debug Mode
 
-Run with debug logging:
+Enable detailed logging:
 ```bash
-dotnet run --environment Development
+dotnet run --environment Development --verbosity detailed
 ```
 
-This enables detailed logging and Swagger UI for API testing.
+This provides:
+- Detailed SharePoint interaction logs
+- Content control parsing information
+- OpenXML generation details
+- Performance timing information
+
+### Health Monitoring
+
+Use the health endpoint to monitor service status:
+```bash
+curl http://localhost:5000/api/word-addin/health
+```
+
+Monitor for:
+- SharePoint connectivity issues
+- Memory usage with multiple loaded projects
+- Document cache growth
+- Session cleanup effectiveness

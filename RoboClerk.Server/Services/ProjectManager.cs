@@ -1,12 +1,9 @@
-using Microsoft.Extensions.Logging;
 using RoboClerk.Core;
-using RoboClerk.Core.Configuration;
 using RoboClerk.Core.DocxSupport;
 using RoboClerk.ContentCreators;
 using RoboClerk.Server.Models;
 using System.Collections.Concurrent;
 using System.IO.Abstractions;
-using DocumentFormat.OpenXml.Wordprocessing;
 using DocumentFormat.OpenXml;
 using IConfiguration = RoboClerk.Core.Configuration.IConfiguration;
 
