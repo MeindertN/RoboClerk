@@ -5,167 +5,247 @@ using RoboClerk.Server.Services;
 namespace RoboClerk.Server.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public class ProjectController : ControllerBase
+    [Route("api/word-addin")]
+    public class WordAddInController : ControllerBase
     {
         private readonly IProjectManager projectManager;
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public ProjectController(IProjectManager projectManager)
+        public WordAddInController(IProjectManager projectManager)
         {
             this.projectManager = projectManager;
         }
 
-        [HttpGet("available")]
-        public async Task<ActionResult<List<ProjectInfo>>> GetAvailableProjects()
+        /// <summary>
+        /// Load a SharePoint project for the Word add-in session
+        /// </summary>
+        [HttpPost("project/load")]
+        public async Task<ActionResult<ProjectLoadResult>> LoadSharePointProject([FromBody] LoadProjectRequest request)
         {
             try
             {
-                var projects = await projectManager.GetAvailableProjectsAsync();
-                return Ok(projects);
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Error getting available projects");
-                return StatusCode(500, "Internal server error");
-            }
-        }
-
-        [HttpPost("load")]
-        public async Task<ActionResult<ProjectLoadResult>> LoadProject([FromBody] LoadProjectRequest request)
-        {
-            try
-            {
+                logger.Info($"Loading SharePoint project: {request.ProjectPath}");
+                
                 var result = await projectManager.LoadProjectAsync(request.ProjectPath);
                 if (!result.Success)
+                {
+                    logger.Warn($"Failed to load project: {result.Error}");
                     return BadRequest(result);
+                }
                 
+                // Automatically validate the project for Word add-in use
+                var isValid = await projectManager.ValidateProjectForWordAddInAsync(result.ProjectId!);
+                if (!isValid)
+                {
+                    await projectManager.UnloadProjectAsync(result.ProjectId!);
+                    return BadRequest(new ProjectLoadResult 
+                    { 
+                        Success = false, 
+                        Error = "Project is not properly configured for Word add-in use with SharePoint" 
+                    });
+                }
+
+                logger.Info($"Successfully loaded and validated SharePoint project: {result.ProjectId}");
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Error loading project");
-                return StatusCode(500, "Internal server error");
+                logger.Error(ex, "Error loading SharePoint project");
+                return StatusCode(500, "Failed to load SharePoint project");
             }
         }
 
-        [HttpGet("{projectId}/documents")]
-        public async Task<ActionResult<List<DocumentInfo>>> GetProjectDocuments(string projectId)
-        {
-            try
-            {
-                var documents = await projectManager.GetProjectDocumentsAsync(projectId);
-                return Ok(documents);
-            }
-            catch (ArgumentException)
-            {
-                return NotFound("Project not loaded");
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Error getting project documents");
-                return StatusCode(500, "Internal server error");
-            }
-        }
-
-        [HttpPost("{projectId}/documents/{documentId}/load")]
+        /// <summary>
+        /// Load a specific document from the SharePoint project and analyze its content controls
+        /// </summary>
+        [HttpPost("project/{projectId}/document/{documentId}/load")]
         public async Task<ActionResult<DocumentLoadResult>> LoadDocument(string projectId, string documentId)
         {
             try
             {
+                logger.Info($"Loading document {documentId} from project {projectId}");
+                
                 var result = await projectManager.LoadDocumentAsync(projectId, documentId);
                 if (!result.Success)
+                {
+                    logger.Warn($"Failed to load document: {result.Error}");
                     return BadRequest(result);
-                
+                }
+
+                logger.Info($"Successfully loaded document with {result.Tags?.Count ?? 0} content controls");
                 return Ok(result);
             }
             catch (ArgumentException)
             {
-                return NotFound("Project not loaded");
+                logger.Warn($"Project {projectId} not found or not loaded");
+                return NotFound("SharePoint project not loaded. Please load the project first.");
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Error loading document");
-                return StatusCode(500, "Internal server error");
+                logger.Error(ex, $"Error loading document {documentId}");
+                return StatusCode(500, "Failed to load document from SharePoint");
             }
         }
 
-        [HttpGet("{projectId}/configuration")]
+        /// <summary>
+        /// Analyze a document to discover all available RoboClerk content controls and their capabilities
+        /// </summary>
+        [HttpGet("project/{projectId}/document/{documentId}/analyze")]
+        public async Task<ActionResult<DocumentAnalysisResult>> AnalyzeDocument(string projectId, string documentId)
+        {
+            try
+            {
+                logger.Info($"Analyzing document {documentId} from project {projectId}");
+                
+                var result = await projectManager.AnalyzeDocumentForWordAddInAsync(projectId, documentId);
+                if (!result.Success)
+                {
+                    logger.Warn($"Failed to analyze document: {result.Error}");
+                    return BadRequest(result);
+                }
+
+                logger.Info($"Document analysis complete: {result.SupportedTagCount}/{result.TotalTagCount} content controls supported");
+                return Ok(result);
+            }
+            catch (ArgumentException)
+            {
+                logger.Warn($"Project {projectId} not found or not loaded");
+                return NotFound("SharePoint project not loaded. Please load the project first.");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error analyzing document {documentId}");
+                return StatusCode(500, "Failed to analyze document");
+            }
+        }
+
+        /// <summary>
+        /// Generate content for a specific content control in the Word document
+        /// </summary>
+        [HttpPost("project/{projectId}/content")]
+        public async Task<ActionResult<TagContentResult>> GenerateContentForContentControl(
+            string projectId, 
+            [FromBody] RoboClerkContentControlTagRequest request)
+        {
+            try
+            {
+                logger.Info($"Generating content for content control {request.ContentControlId} in document {request.DocumentId}");
+                
+                var result = await projectManager.GetTagContentWithContentControlAsync(projectId, request);
+                if (!result.Success)
+                {
+                    logger.Warn($"Failed to generate content: {result.Error}");
+                    return BadRequest(result);
+                }
+
+                var contentLength = result.Content?.Length ?? 0;
+                logger.Info($"Successfully generated {contentLength} characters of OpenXML content");
+                return Ok(result);
+            }
+            catch (ArgumentException)
+            {
+                logger.Warn($"Project {projectId} not found or not loaded");
+                return NotFound("SharePoint project not loaded. Please load the project first.");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error generating content for content control {request.ContentControlId}");
+                return StatusCode(500, "Failed to generate content");
+            }
+        }
+
+        /// <summary>
+        /// Refresh data sources (e.g., when SharePoint data has been updated)
+        /// </summary>
+        [HttpPost("project/{projectId}/refresh")]
+        public async Task<ActionResult<RefreshResult>> RefreshDataSources(string projectId)
+        {
+            try
+            {
+                logger.Info($"Refreshing data sources for project {projectId}");
+                
+                var result = await projectManager.RefreshProjectAsync(projectId);
+                if (!result.Success)
+                {
+                    logger.Warn($"Failed to refresh data sources: {result.Error}");
+                    return BadRequest(result);
+                }
+
+                logger.Info("Data sources refreshed successfully");
+                return Ok(result);
+            }
+            catch (ArgumentException)
+            {
+                logger.Warn($"Project {projectId} not found or not loaded");
+                return NotFound("SharePoint project not loaded. Please load the project first.");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error refreshing data sources for project {projectId}");
+                return StatusCode(500, "Failed to refresh data sources");
+            }
+        }
+
+        /// <summary>
+        /// Get project configuration information for diagnostic purposes
+        /// </summary>
+        [HttpGet("project/{projectId}/config")]
         public async Task<ActionResult<List<ConfigurationValue>>> GetProjectConfiguration(string projectId)
         {
             try
             {
+                logger.Debug($"Getting configuration for project {projectId}");
+                
                 var config = await projectManager.GetProjectConfigurationAsync(projectId);
                 return Ok(config);
             }
             catch (ArgumentException)
             {
-                return NotFound("Project not loaded");
+                logger.Warn($"Project {projectId} not found or not loaded");
+                return NotFound("SharePoint project not loaded. Please load the project first.");
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Error getting project configuration");
-                return StatusCode(500, "Internal server error");
+                logger.Error(ex, $"Error getting project configuration for {projectId}");
+                return StatusCode(500, "Failed to get project configuration");
             }
         }
 
-        [HttpPost("{projectId}/content")]
-        public async Task<ActionResult<TagContentResult>> GetTagContent(string projectId, [FromBody] RoboClerkTagRequest request)
+        /// <summary>
+        /// End Word add-in session and cleanup resources
+        /// </summary>
+        [HttpDelete("project/{projectId}")]
+        public async Task<ActionResult> EndSession(string projectId)
         {
             try
             {
-                var result = await projectManager.GetTagContentAsync(projectId, request);
-                if (!result.Success)
-                    return BadRequest(result);
+                logger.Info($"Ending Word add-in session for project {projectId}");
                 
-                return Ok(result);
-            }
-            catch (ArgumentException)
-            {
-                return NotFound("Project not loaded");
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Error getting tag content");
-                return StatusCode(500, "Internal server error");
-            }
-        }
-
-        [HttpPost("{projectId}/refresh")]
-        public async Task<ActionResult<RefreshResult>> RefreshProject(string projectId)
-        {
-            try
-            {
-                var result = await projectManager.RefreshProjectAsync(projectId);
-                if (!result.Success)
-                    return BadRequest(result);
-                
-                return Ok(result);
-            }
-            catch (ArgumentException)
-            {
-                return NotFound("Project not loaded");
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Error refreshing project");
-                return StatusCode(500, "Internal server error");
-            }
-        }
-
-        [HttpDelete("{projectId}")]
-        public async Task<ActionResult> UnloadProject(string projectId)
-        {
-            try
-            {
                 await projectManager.UnloadProjectAsync(projectId);
+                
+                logger.Info("Word add-in session ended successfully");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Error unloading project");
-                return StatusCode(500, "Internal server error");
+                logger.Error(ex, $"Error ending session for project {projectId}");
+                return StatusCode(500, "Failed to end session");
             }
+        }
+
+        /// <summary>
+        /// Health check endpoint for Word add-in connectivity
+        /// </summary>
+        [HttpGet("health")]
+        public ActionResult<object> HealthCheck()
+        {
+            return Ok(new 
+            { 
+                status = "healthy", 
+                service = "RoboClerk Word Add-in API",
+                timestamp = DateTime.UtcNow,
+                version = GetType().Assembly.GetName().Version?.ToString()
+            });
         }
     }
 }

@@ -27,6 +27,48 @@ namespace RoboClerk.Core.DocxSupport
         public override bool Inline => false; 
         public string ContentControlId => contentControlId;
 
+        /// <summary>
+        /// Gets the current content converted to raw OpenXML format.
+        /// This performs the conversion on-demand to ensure the latest content is returned.
+        /// </summary>
+        public string GeneratedOpenXml
+        {
+            get
+            {
+                try
+                {
+                    // Create a temporary content element to perform the conversion
+                    var tempContentElement = CreateTemporaryContentElement();
+                    if (tempContentElement == null)
+                        return string.Empty;
+
+                    var fmt = CaptureOriginalFormatting(GetContentElement() ?? tempContentElement);
+
+                    // Perform the same conversion logic as ConvertContentToOpenXml but on temp element
+                    if (IsOpenXmlContent(contents))
+                    {
+                        ConvertEmbeddedOpenXmlToOpenXml(contents, tempContentElement);
+                    }
+                    else if (IsHtmlContent(contents))
+                    {
+                        ConvertHtmlToOpenXml(contents, tempContentElement);
+                    }
+                    else
+                    {
+                        ConvertTextToOpenXml(contents, tempContentElement, fmt);
+                    }
+
+                    // Extract the raw OpenXML from the temporary element
+                    return ExtractRawOpenXml(tempContentElement);
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn($"Failed to generate OpenXML for content control {contentControlId}: {ex.Message}");
+                    return string.Empty;
+                }
+            }
+        }
+
         public override string Contents 
         { 
             get => contents; 
@@ -59,6 +101,42 @@ namespace RoboClerk.Core.DocxSupport
             if (IsHtmlContent(contents)) { ConvertHtmlToOpenXml(contents, contentElement); return; }
 
             ConvertTextToOpenXml(contents, contentElement, fmt);
+        }
+
+        /// <summary>
+        /// Creates a temporary content element for OpenXML generation without affecting the actual document
+        /// </summary>
+        private OpenXmlElement? CreateTemporaryContentElement()
+        {
+            var actualContentElement = GetContentElement();
+            if (actualContentElement == null)
+                return null;
+
+            // Create a temporary element of the same type as the actual content element
+            return actualContentElement switch
+            {
+                SdtContentBlock => new SdtContentBlock(),
+                SdtContentRun => new SdtContentRun(),
+                SdtContentCell => new SdtContentCell(),
+                _ => new SdtContentBlock() // Default fallback
+            };
+        }
+
+        /// <summary>
+        /// Extracts raw OpenXML from a content element
+        /// </summary>
+        private static string ExtractRawOpenXml(OpenXmlElement contentElement)
+        {
+            if (contentElement == null || !contentElement.HasChildren)
+                return string.Empty;
+
+            var xmlBuilder = new System.Text.StringBuilder();
+            foreach (var child in contentElement.ChildElements)
+            {
+                xmlBuilder.AppendLine(child.OuterXml);
+            }
+            
+            return xmlBuilder.ToString().Trim();
         }
 
         /// <summary>

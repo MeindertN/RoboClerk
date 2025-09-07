@@ -4,12 +4,9 @@ namespace RoboClerk.Server.Services
 {
     public interface IProjectManager
     {
-        Task<List<ProjectInfo>> GetAvailableProjectsAsync();
         Task<ProjectLoadResult> LoadProjectAsync(string projectPath);
-        Task<List<DocumentInfo>> GetProjectDocumentsAsync(string projectId);
         Task<DocumentLoadResult> LoadDocumentAsync(string projectId, string documentId);
         Task<List<ConfigurationValue>> GetProjectConfigurationAsync(string projectId);
-        Task<TagContentResult> GetTagContentAsync(string projectId, RoboClerkTagRequest tagRequest);
         Task<RefreshResult> RefreshProjectAsync(string projectId);
         Task UnloadProjectAsync(string projectId);
         
@@ -17,7 +14,7 @@ namespace RoboClerk.Server.Services
         Task<bool> ValidateProjectForWordAddInAsync(string projectId);
         Task<DocumentAnalysisResult> AnalyzeDocumentForWordAddInAsync(string projectId, string documentId);
         
-        // Enhanced method that leverages RoboClerkDocxTag for better OpenXML conversion
+        // Content control-based tag content generation
         Task<TagContentResult> GetTagContentWithContentControlAsync(string projectId, RoboClerkContentControlTagRequest tagRequest);
     }
 }

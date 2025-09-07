@@ -34,18 +34,9 @@ namespace RoboClerk.Server.Models
         public string TagId { get; init; } = string.Empty;
         public string Source { get; init; } = string.Empty;
         public string? ContentCreatorId { get; init; }
+        public string? ContentControlId { get; init; }
         public Dictionary<string, string> Parameters { get; init; } = new();
         public string CurrentContent { get; init; } = string.Empty;
-    }
-    
-    public record RoboClerkTagRequest
-    {
-        [Required]
-        public string DocumentId { get; init; } = string.Empty;
-        [Required]
-        public string Source { get; init; } = string.Empty;
-        public string? ContentCreatorId { get; init; }
-        public Dictionary<string, string> Parameters { get; init; } = new();
     }
     
     public record RoboClerkContentControlTagRequest
@@ -86,6 +77,7 @@ namespace RoboClerk.Server.Models
         public string TagId { get; init; } = string.Empty;
         public string Source { get; init; } = string.Empty;
         public string? ContentCreatorId { get; init; }
+        public string? ContentControlId { get; init; }
         public Dictionary<string, string> Parameters { get; init; } = new();
         public bool IsSupported { get; init; }
         public string? Error { get; init; }
