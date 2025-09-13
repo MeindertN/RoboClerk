@@ -225,5 +225,177 @@ namespace RoboClerk.Tests
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
         }
 
+        [UnitTestAttribute(
+        Identifier = "2A1C86FD-43CD-4EA1-8A25-8C961F6DB433",
+        Purpose = "Unit Test content creator handles sorting by UnitTestFileName in ascending order",
+        PostCondition = "Unit tests are sorted alphabetically by UnitTestFileName")]
+        [Test]
+        public void CreateUnitTestCC_SortByFilenameAscending()
+        {
+            // Arrange
+            unittestItems.Clear();
+            
+            var unittest1 = new UnitTestItem();
+            unittest1.ItemID = "test1";
+            unittest1.UnitTestFileName = "ZTest.cs";
+            unittest1.UnitTestFunctionName = "FirstTest";
+            unittest1.UnitTestPurpose = "First test purpose";
+            unittest1.UnitTestAcceptanceCriteria = "First criteria";
+            unittestItems.Add(unittest1);
+
+            var unittest2 = new UnitTestItem();
+            unittest2.ItemID = "test2";
+            unittest2.UnitTestFileName = "ATest.cs";
+            unittest2.UnitTestFunctionName = "SecondTest";
+            unittest2.UnitTestPurpose = "Second test purpose";
+            unittest2.UnitTestAcceptanceCriteria = "Second criteria";
+            unittestItems.Add(unittest2);
+
+            var unittest3 = new UnitTestItem();
+            unittest3.ItemID = "test3";
+            unittest3.UnitTestFileName = "MTest.cs";
+            unittest3.UnitTestFunctionName = "ThirdTest";
+            unittest3.UnitTestPurpose = "Third test purpose";
+            unittest3.UnitTestAcceptanceCriteria = "Third criteria";
+            unittestItems.Add(unittest3);
+
+            // Update the data source mock
+            var te = new TraceEntity("UnitTest", "unittest", "ut", TraceEntityType.Truth);
+            dataSources.GetItems(te).Returns(unittestItems);
+            dataSources.GetItem("test1").Returns(unittest1);
+            dataSources.GetItem("test2").Returns(unittest2);
+            dataSources.GetItem("test3").Returns(unittest3);
+
+            var sst = new UnitTest(dataSources, traceAnalysis, config);
+            // "@@SLMS:UnitTest(brief=true,sortby=UnitTestFileName)@@" = 53 chars, endIndex = 52
+            var tag = new RoboClerkTag(0, 52, "@@SLMS:UnitTest(brief=true,sortby=UnitTestFileName)@@", true);
+
+            // Act
+            string content = sst.GetContent(tag, documentConfig);
+
+            // Assert
+            // Should be sorted: ATest.cs, MTest.cs, ZTest.cs
+            string expectedContent = "|====\n| unittest ID | Function / File Name | unittest Purpose | Acceptance Criteria\n\n| test2 | SecondTest / ATest.cs | Second test purpose | Second criteria \n\n| test3 | ThirdTest / MTest.cs | Third test purpose | Third criteria \n\n| test1 | FirstTest / ZTest.cs | First test purpose | First criteria \n\n|====\n";
+            Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
+        }
+
+        [UnitTestAttribute(
+        Identifier = "38957F45-EE0C-4FEB-88C0-E796E694AA1B",
+        Purpose = "Unit Test content creator handles sorting by UnitTestFileName in descending order",
+        PostCondition = "Unit tests are sorted reverse alphabetically by UnitTestFileName")]
+        [Test]
+        public void CreateUnitTestCC_SortByFilenameDescending()
+        {
+            // Arrange
+            unittestItems.Clear();
+            
+            var unittest1 = new UnitTestItem();
+            unittest1.ItemID = "test1";
+            unittest1.UnitTestFileName = "ZTest.cs";
+            unittest1.UnitTestFunctionName = "FirstTest";
+            unittest1.UnitTestPurpose = "First test purpose";
+            unittest1.UnitTestAcceptanceCriteria = "First criteria";
+            unittestItems.Add(unittest1);
+
+            var unittest2 = new UnitTestItem();
+            unittest2.ItemID = "test2";
+            unittest2.UnitTestFileName = "ATest.cs";
+            unittest2.UnitTestFunctionName = "SecondTest";
+            unittest2.UnitTestPurpose = "Second test purpose";
+            unittest2.UnitTestAcceptanceCriteria = "Second criteria";
+            unittestItems.Add(unittest2);
+
+            var unittest3 = new UnitTestItem();
+            unittest3.ItemID = "test3";
+            unittest3.UnitTestFileName = "MTest.cs";
+            unittest3.UnitTestFunctionName = "ThirdTest";
+            unittest3.UnitTestPurpose = "Third test purpose";
+            unittest3.UnitTestAcceptanceCriteria = "Third criteria";
+            unittestItems.Add(unittest3);
+
+            // Update the data source mock
+            var te = new TraceEntity("UnitTest", "unittest", "ut", TraceEntityType.Truth);
+            dataSources.GetItems(te).Returns(unittestItems);
+            dataSources.GetItem("test1").Returns(unittest1);
+            dataSources.GetItem("test2").Returns(unittest2);
+            dataSources.GetItem("test3").Returns(unittest3);
+
+            var sst = new UnitTest(dataSources, traceAnalysis, config);
+            // "@@SLMS:UnitTest(brief=true,sortby=UnitTestFileName,sortorder=desc)@@" = 67 chars, endIndex = 66
+            var tag = new RoboClerkTag(0, 66, "@@SLMS:UnitTest(brief=true,sortby=UnitTestFileName,sortorder=desc)@@", true);
+
+            // Act
+            string content = sst.GetContent(tag, documentConfig);
+
+            // Assert
+            // Should be sorted: ZTest.cs, MTest.cs, ATest.cs
+            string expectedContent = "|====\n| unittest ID | Function / File Name | unittest Purpose | Acceptance Criteria\n\n| test1 | FirstTest / ZTest.cs | First test purpose | First criteria \n\n| test3 | ThirdTest / MTest.cs | Third test purpose | Third criteria \n\n| test2 | SecondTest / ATest.cs | Second test purpose | Second criteria \n\n|====\n";
+            Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
+        }
+
+        [UnitTestAttribute(
+        Identifier = "B810F3CF-EC2D-43F9-9AF3-DD446E033D3F",
+        Purpose = "Unit Test content creator handles sorting by UnitTestFunctionName property",
+        PostCondition = "Unit tests are sorted by function name")]
+        [Test]
+        public void CreateUnitTestCC_SortByFunctionName()
+        {
+            // Arrange
+            unittestItems.Clear();
+            
+            var unittest1 = new UnitTestItem();
+            unittest1.ItemID = "test1";
+            unittest1.UnitTestFileName = "TestFile.cs";
+            unittest1.UnitTestFunctionName = "ZFunction";
+            unittest1.UnitTestPurpose = "First test purpose";
+            unittest1.UnitTestAcceptanceCriteria = "First criteria";
+            unittestItems.Add(unittest1);
+
+            var unittest2 = new UnitTestItem();
+            unittest2.ItemID = "test2";
+            unittest2.UnitTestFileName = "TestFile.cs";
+            unittest2.UnitTestFunctionName = "AFunction";
+            unittest2.UnitTestPurpose = "Second test purpose";
+            unittest2.UnitTestAcceptanceCriteria = "Second criteria";
+            unittestItems.Add(unittest2);
+
+            // Update the data source mock
+            var te = new TraceEntity("UnitTest", "unittest", "ut", TraceEntityType.Truth);
+            dataSources.GetItems(te).Returns(unittestItems);
+            dataSources.GetItem("test1").Returns(unittest1);
+            dataSources.GetItem("test2").Returns(unittest2);
+
+            var sst = new UnitTest(dataSources, traceAnalysis, config);
+            var tag = new RoboClerkTag(0, 55, "@@SLMS:UnitTest(brief=true,sortby=UnitTestFunctionName)@@", true);
+
+            // Act
+            string content = sst.GetContent(tag, documentConfig);
+
+            // Assert
+            // Should be sorted: AFunction, ZFunction
+            string expectedContent = "|====\n| unittest ID | Function / File Name | unittest Purpose | Acceptance Criteria\n\n| test2 | AFunction / TestFile.cs | Second test purpose | Second criteria \n\n| test1 | ZFunction / TestFile.cs | First test purpose | First criteria \n\n|====\n";
+            Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
+        }
+
+        [UnitTestAttribute(
+        Identifier = "A2FF1996-D9A1-4169-B9B7-AF5E724B2876",
+        Purpose = "Unit Test content creator handles invalid sort property gracefully",
+        PostCondition = "No sorting is applied and original order is maintained")]
+        [Test]
+        public void CreateUnitTestCC_SortByInvalidProperty()
+        {
+            // Arrange
+            var sst = new UnitTest(dataSources, traceAnalysis, config);
+            // "@@SLMS:UnitTest(brief=true,sortby=InvalidProperty)@@" = 52 chars, endIndex = 51
+            var tag = new RoboClerkTag(0, 51, "@@SLMS:UnitTest(brief=true,sortby=InvalidProperty)@@", true);
+
+            // Act
+            string content = sst.GetContent(tag, documentConfig);
+
+            // Assert
+            // Should maintain original order when invalid property is specified
+            string expectedContent = "|====\n| unittest ID | Function / File Name | unittest Purpose | Acceptance Criteria\n\n| tcid1 | functionname / filename | purpose1 | accept1 \n\n| http://localhost/[tcid2] |  /  |  |  \n\n|====\n";
+            Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
+        }
     }
 }

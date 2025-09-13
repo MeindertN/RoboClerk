@@ -1,6 +1,7 @@
 ﻿using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -14,6 +15,87 @@ namespace RoboClerk.ContentCreators
         }
 
         protected abstract string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE);
+
+        /// <summary>
+        /// Sorts items based on tag parameters SORTBY and SORTORDER
+        /// </summary>
+        /// <param name="tag">The RoboClerk tag containing sorting parameters</param>
+        /// <param name="items">The items to sort</param>
+        /// <returns>Sorted list of items</returns>
+        protected List<LinkedItem> SortItems(RoboClerkTag tag, List<LinkedItem> items)
+        {
+            if (!tag.HasParameter("SORTBY"))
+            {
+                return items; // No sorting requested, return original list
+            }
+
+            string sortBy = tag.GetParameterOrDefault("SORTBY", "").Trim();
+            string sortOrder = tag.GetParameterOrDefault("SORTORDER", "ASC").ToUpper().Trim();
+            
+            if (string.IsNullOrEmpty(sortBy))
+            {
+                logger.Warn("SORTBY parameter is empty, no sorting will be applied");
+                return items;
+            }
+
+            bool ascending = sortOrder != "DESC";
+            
+            try
+            {
+                // Get the property to sort by
+                if (items.Count == 0)
+                {
+                    return items;
+                }
+
+                var itemType = items.First().GetType();
+                
+                // Try to find exact property match (case-insensitive)
+                var sortProperty = itemType.GetProperties()
+                    .FirstOrDefault(p => p.Name.Equals(sortBy, StringComparison.OrdinalIgnoreCase));
+
+                if (sortProperty == null)
+                {
+                    logger.Warn($"Property '{sortBy}' not found on type '{itemType.Name}', no sorting will be applied");
+                    return items;
+                }
+
+                // Perform sorting
+                var sortedItems = ascending 
+                    ? items.OrderBy(item => GetSortValue(item, sortProperty)).ToList()
+                    : items.OrderByDescending(item => GetSortValue(item, sortProperty)).ToList();
+
+                logger.Debug($"Sorted {items.Count} items by {sortProperty.Name} in {(ascending ? "ascending" : "descending")} order");
+                return sortedItems;
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"Error sorting items by '{sortBy}': {ex.Message}");
+                return items; // Return original list if sorting fails
+            }
+        }
+
+        /// <summary>
+        /// Gets the value to sort by, handling null values and different property types
+        /// </summary>
+        private object GetSortValue(LinkedItem item, PropertyInfo property)
+        {
+            var value = property.GetValue(item);
+            
+            // Handle null values by returning empty string for consistent sorting
+            if (value == null)
+            {
+                return string.Empty;
+            }
+
+            // For strings, ensure case-insensitive sorting
+            if (value is string stringValue)
+            {
+                return stringValue ?? string.Empty;
+            }
+
+            return value;
+        }
 
         public override string GetContent(RoboClerkTag tag, DocumentConfig doc)
         {
@@ -41,6 +123,10 @@ namespace RoboClerk.ContentCreators
                 }
                 index++;
             }
+
+            // Apply sorting if requested
+            includedItems = SortItems(tag, includedItems);
+
             doc.AddEntityCount(te,(uint)includedItems.Count); //keep track of how many entities we're adding to the document
             string content = string.Empty;
             try
