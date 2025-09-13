@@ -405,6 +405,7 @@ namespace RoboClerk.Redmine
             logger.Debug($"Creating test case item: {redmineItem.Id}");
             SoftwareSystemTestItem resultItem = new SoftwareSystemTestItem();
 
+            resultItem.ItemProject = redmineItem.Project.Name ?? string.Empty;
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
@@ -473,6 +474,7 @@ namespace RoboClerk.Redmine
             logger.Debug($"Creating DocContent item: {redmineItem.Id}");
             DocContentItem resultItem = new DocContentItem();
 
+            resultItem.ItemProject = redmineItem.Project.Name ?? string.Empty;
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
@@ -507,6 +509,7 @@ namespace RoboClerk.Redmine
             logger.Debug($"Creating SOUP item: {redmineItem.Id}");
             SOUPItem resultItem = new SOUPItem();
 
+            resultItem.ItemProject = redmineItem.Project.Name ?? string.Empty;
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
@@ -593,6 +596,7 @@ namespace RoboClerk.Redmine
                 resultItem.AnomalyAssignee = string.Empty;
             }
 
+            resultItem.ItemProject = redmineItem.Project.Name ?? string.Empty;
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.AnomalyJustification = string.Empty;
             resultItem.AnomalySeverity = string.Empty;
@@ -636,6 +640,8 @@ namespace RoboClerk.Redmine
         {
             logger.Debug($"Creating risk item: {redmineItem.Id}");
             RiskItem resultItem = new RiskItem();
+
+            resultItem.ItemProject = redmineItem.Project.Name ?? string.Empty;
             resultItem.ItemCategory = "Unknown";
             resultItem.ItemStatus = redmineItem.Status.Name ?? string.Empty;
             resultItem.ItemID = redmineItem.Id.ToString();
@@ -843,6 +849,8 @@ namespace RoboClerk.Redmine
         {
             logger.Debug($"Creating requirement item: {redmineItem.Id}");
             RequirementItem resultItem = new RequirementItem(requirementType);
+
+            resultItem.ItemProject = redmineItem.Project.Name ?? string.Empty;
             resultItem.ItemCategory = "Unknown";
             if (redmineItem.CustomFields.Count != 0)
             {

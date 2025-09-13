@@ -13,6 +13,7 @@ namespace RoboClerk
         protected string revision = string.Empty;
         protected string targetVersion = string.Empty;
         protected string status = string.Empty;
+        protected string project = string.Empty;
         protected DateTime lastUpdated = DateTime.MinValue;
         protected Uri link = null;
 
@@ -37,6 +38,12 @@ namespace RoboClerk
         public string ItemType
         {
             get => type;
+        }
+
+        public string ItemProject
+        {
+            get => project;
+            set => project = value;
         }
 
         public string ItemRevision
