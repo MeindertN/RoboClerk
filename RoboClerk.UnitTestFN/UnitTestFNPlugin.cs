@@ -209,7 +209,7 @@ namespace RoboClerk
                     case "<PURPOSE>": unitTest.UnitTestPurpose = SeparateSection(el.Item2); break;
                     case "<POSTCONDITION>": unitTest.UnitTestAcceptanceCriteria = SeparateSection(el.Item2); break;
                     case "<IDENTIFIER>": unitTest.ItemID = SeparateSection(el.Item2); identified = true; break;
-                    case "<TRACEID>": unitTest.AddLinkedItem(new ItemLink(el.Item2, ItemLinkType.Related)); break;
+                    case "<TRACEID>": unitTest.AddLinkedItem(new ItemLink(el.Item2, ItemLinkType.UnitTests)); break;
                     case "<IGNORE>": break;
                     default: throw new Exception($"Unknown element identifier in FunctionMask: {el.Item1.ToUpper()}");
                 }

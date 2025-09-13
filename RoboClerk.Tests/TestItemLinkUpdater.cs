@@ -285,5 +285,46 @@ namespace RoboClerk.Tests
             Assert.That(reqLinks.Count, Is.EqualTo(1), "Requirement should still have its UnitTest link");
             Assert.That(reqLinks[0].LinkType, Is.EqualTo(ItemLinkType.UnitTest), "Requirement should maintain UnitTest link type");
         }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "B220B225-B3AE-4763-B13B-1C4936B5B19E",
+            Purpose = "Test that test cases can link to unit tests using UnitTest link type",
+            PostCondition = "Test case has UnitTest link to unit test and unit test gets complementary UnitTests link back")]
+        public void UpdateAllItemLinks_TestCaseToUnitTestLinks()
+        {
+            // Arrange
+            var testCase = new SoftwareSystemTestItem { ItemID = "TC-001" };
+            var unitTest = new UnitTestItem { ItemID = "UNIT-001" };
+            
+            // Test case links to unit test (e.g., via KickToUnitTest method from Redmine plugin)
+            testCase.KickToUnitTest("UNIT-001"); // This adds UnitTest link type
+
+            plugin.GetSystemRequirements().Returns(new RequirementItem[0]);
+            plugin.GetSoftwareRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocumentationRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocContents().Returns(new DocContentItem[0]);
+            plugin.GetSoftwareSystemTests().Returns(new[] { testCase });
+            plugin.GetAnomalies().Returns(new AnomalyItem[0]);
+            plugin.GetRisks().Returns(new RiskItem[0]);
+            plugin.GetSOUP().Returns(new SOUPItem[0]);
+            plugin.GetUnitTests().Returns(new[] { unitTest });
+
+            var plugins = new List<IDataSourcePlugin> { plugin };
+
+            // Act
+            itemLinkUpdater.UpdateAllItemLinks(plugins);
+
+            // Assert
+            var testCaseLinks = testCase.LinkedItems.ToList();
+            Assert.That(testCaseLinks.Count, Is.EqualTo(1), "Test case should have one link to unit test");
+            Assert.That(testCaseLinks[0].TargetID, Is.EqualTo("UNIT-001"), "Test case should link to unit test");
+            Assert.That(testCaseLinks[0].LinkType, Is.EqualTo(ItemLinkType.UnitTest), "Test case should use UnitTest link type");
+
+            var unitTestLinks = unitTest.LinkedItems.ToList();
+            Assert.That(unitTestLinks.Count, Is.EqualTo(1), "Unit test should have exactly one link back to test case");
+            Assert.That(unitTestLinks[0].TargetID, Is.EqualTo("TC-001"), "Unit test should link back to test case");
+            Assert.That(unitTestLinks[0].LinkType, Is.EqualTo(ItemLinkType.UnitTests), "Unit test should have UnitTests link type");
+        }
     }
 }

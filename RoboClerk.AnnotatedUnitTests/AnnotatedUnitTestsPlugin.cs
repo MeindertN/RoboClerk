@@ -285,7 +285,7 @@ namespace RoboClerk.AnnotatedUnitTests
                         case "Purpose": unitTest.UnitTestPurpose = value; break;
                         case "PostCondition": unitTest.UnitTestAcceptanceCriteria = value; break;
                         case "Identifier": unitTest.ItemID = value; identified = true; break;
-                        case "TraceID": unitTest.AddLinkedItem(new ItemLink(value, ItemLinkType.Related)); break;
+                        case "TraceID": unitTest.AddLinkedItem(new ItemLink(value, ItemLinkType.UnitTests)); break;
                         default: throw new Exception($"Unknown annotation identifier: {info.Key}");
                     }
                 }
