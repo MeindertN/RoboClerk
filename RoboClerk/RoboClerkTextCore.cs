@@ -92,7 +92,7 @@ namespace RoboClerk
             return extension switch
             {
                 ".docx" => new DocxDocument(doc.DocumentTitle, doc.DocumentTemplate, configuration),
-                ".adoc" or ".asciidoc" or ".txt" or ".htm" or ".html" => new TextDocument(doc.DocumentTitle, doc.DocumentTemplate),
+                ".adoc" or ".asciidoc" or ".txt" or ".htm" or ".html" => new TextDocument(doc.DocumentTitle, doc.DocumentTemplate, fileSystem),
                 _ => throw new NotSupportedException($"Document template format '{extension}' is not supported.")
             };
         }
@@ -255,6 +255,13 @@ namespace RoboClerk
         public void SaveDocumentsToDisk()
         {
             logger.Info($"Saving documents to directory: {configuration.OutputDir}");
+            
+            // Ensure the output directory exists
+            if (!fileSystem.Directory.Exists(configuration.OutputDir))
+            {
+                fileSystem.Directory.CreateDirectory(configuration.OutputDir);
+            }
+            
             foreach (var doc in documents)
             {
                 logger.Debug($"Writing document to disk: {fileSystem.Path.GetFileName(doc.TemplateFile)}");

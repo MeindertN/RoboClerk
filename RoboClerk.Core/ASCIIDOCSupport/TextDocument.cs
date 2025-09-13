@@ -1,5 +1,6 @@
 using RoboClerk.Core;
 using RoboClerk.Core.ASCIIDOCSupport;
+using System.IO.Abstractions;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -10,13 +11,15 @@ namespace RoboClerk
         protected string title = string.Empty;
         protected string rawText = string.Empty;
         protected string templateFile = string.Empty;
+        protected IFileSystem fileSystem = null;
 
         protected List<RoboClerkTextTag> roboclerkTags = new List<RoboClerkTextTag>();
 
-        public TextDocument(string title, string templateFile)
+        public TextDocument(string title, string templateFile, IFileSystem fileSystem = null)
         {
             this.title = title;
             this.templateFile = templateFile;
+            this.fileSystem = fileSystem ?? new FileSystem(); // Default to real filesystem if not provided
         }
 
         public void FromString(string text)
@@ -53,7 +56,14 @@ namespace RoboClerk
 
         public void SaveToFile(string filePath)
         {
-            File.WriteAllText(filePath, ToText());
+            // Ensure the directory exists before writing the file
+            var directory = fileSystem.Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(directory) && !fileSystem.Directory.Exists(directory))
+            {
+                fileSystem.Directory.CreateDirectory(directory);
+            }
+            
+            fileSystem.File.WriteAllText(filePath, ToText());
         }
 
         public DocumentType DocumentType => DocumentType.Text;

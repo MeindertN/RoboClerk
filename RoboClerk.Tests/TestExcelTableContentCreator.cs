@@ -28,6 +28,7 @@ namespace RoboClerk.Tests
         public void TestSetup()
         {
             config = Substitute.For<IConfiguration>();
+            config.OutputFormat.Returns("ASCIIDOC");  // Add this line
             dataSources = Substitute.For<IDataSources>();
             traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
             var te = new TraceEntity("SOUP", "soup", "spabrrv", TraceEntityType.Truth);
