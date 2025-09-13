@@ -171,15 +171,15 @@ namespace RoboClerk.Tests
         [Test]
         [UnitTestAttribute(
             Identifier = "02BA04E4-F992-4588-ADAA-FE12E72D0656",
-            Purpose = "Test that unidirectional links (DOC, UnitTest) don't create back links",
-            PostCondition = "Only original unidirectional link exists")]
-        public void UpdateAllItemLinks_DoesNotCreateBackLinksForUnidirectionalTypes()
+            Purpose = "Test that DOC-DocumentedBy relationships are bidirectional after update",
+            PostCondition = "Item has DOC link to document and document has DocumentedBy link back")]
+        public void UpdateAllItemLinks_CreatesComplementaryDocumentationLinks()
         {
             // Arrange
             var requirement = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "REQ-001" };
             var docContent = new DocContentItem { ItemID = "DOC-001" };
             
-            // Requirement links to documentation, this should remain unidirectional
+            // Requirement links to documentation, document should get complementary link back
             requirement.AddLinkedItem(new ItemLink("DOC-001", ItemLinkType.DOC));
 
             plugin.GetSystemRequirements().Returns(new[] { requirement });
@@ -199,7 +199,9 @@ namespace RoboClerk.Tests
 
             // Assert
             var docLinks = docContent.LinkedItems.ToList();
-            Assert.That(docLinks.Count, Is.EqualTo(0), "Doc content should not have any back links for DOC link type");
+            Assert.That(docLinks.Count, Is.EqualTo(1), "Doc content should have exactly one link back to requirement");
+            Assert.That(docLinks[0].TargetID, Is.EqualTo("REQ-001"), "Doc content should link back to requirement");
+            Assert.That(docLinks[0].LinkType, Is.EqualTo(ItemLinkType.DocumentedBy), "Doc content should have DocumentedBy link type");
             
             var reqLinks = requirement.LinkedItems.ToList();
             Assert.That(reqLinks.Count, Is.EqualTo(1), "Requirement should still have its DOC link");
@@ -325,6 +327,46 @@ namespace RoboClerk.Tests
             Assert.That(unitTestLinks.Count, Is.EqualTo(1), "Unit test should have exactly one link back to test case");
             Assert.That(unitTestLinks[0].TargetID, Is.EqualTo("TC-001"), "Unit test should link back to test case");
             Assert.That(unitTestLinks[0].LinkType, Is.EqualTo(ItemLinkType.UnitTests), "Unit test should have UnitTests link type");
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "67D7E378-7202-4F43-944A-98443F2BA80F",
+            Purpose = "Test DocumentedBy links create complementary DOC links in reverse direction",
+            PostCondition = "Document has DocumentedBy link and item gets complementary DOC link")]
+        public void UpdateAllItemLinks_CreatesComplementaryDocLinksFromDocumentedBy()
+        {
+            // Arrange
+            var requirement = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "REQ-001" };
+            var docContent = new DocContentItem { ItemID = "DOC-001" };
+            
+            // Document links back to what it documents, requirement should get complementary DOC link
+            docContent.AddLinkedItem(new ItemLink("REQ-001", ItemLinkType.DocumentedBy));
+
+            plugin.GetSystemRequirements().Returns(new[] { requirement });
+            plugin.GetSoftwareRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocumentationRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocContents().Returns(new[] { docContent });
+            plugin.GetSoftwareSystemTests().Returns(new SoftwareSystemTestItem[0]);
+            plugin.GetAnomalies().Returns(new AnomalyItem[0]);
+            plugin.GetRisks().Returns(new RiskItem[0]);
+            plugin.GetSOUP().Returns(new SOUPItem[0]);
+            plugin.GetUnitTests().Returns(new UnitTestItem[0]);
+
+            var plugins = new List<IDataSourcePlugin> { plugin };
+
+            // Act
+            itemLinkUpdater.UpdateAllItemLinks(plugins);
+
+            // Assert
+            var reqLinks = requirement.LinkedItems.ToList();
+            Assert.That(reqLinks.Count, Is.EqualTo(1), "Requirement should have exactly one link to document");
+            Assert.That(reqLinks[0].TargetID, Is.EqualTo("DOC-001"), "Requirement should link to document");
+            Assert.That(reqLinks[0].LinkType, Is.EqualTo(ItemLinkType.DOC), "Requirement should have DOC link type");
+            
+            var docLinks = docContent.LinkedItems.ToList();
+            Assert.That(docLinks.Count, Is.EqualTo(1), "Document should still have its DocumentedBy link");
+            Assert.That(docLinks[0].LinkType, Is.EqualTo(ItemLinkType.DocumentedBy), "Document should maintain DocumentedBy link type");
         }
     }
 }

@@ -114,11 +114,12 @@ namespace RoboClerk
                 ItemLinkType.AffectedBy => ItemLinkType.Affects,
                 ItemLinkType.RiskControl => ItemLinkType.Risk,
                 ItemLinkType.Risk => ItemLinkType.RiskControl,
+                ItemLinkType.DOC => ItemLinkType.DocumentedBy,
+                ItemLinkType.DocumentedBy => ItemLinkType.DOC,
                 ItemLinkType.UnitTest => ItemLinkType.UnitTests,
                 ItemLinkType.UnitTests => ItemLinkType.UnitTest,
                 ItemLinkType.Related => ItemLinkType.Related, // Related is bidirectional
                 ItemLinkType.Duplicate => ItemLinkType.Duplicate, // Duplicate is bidirectional
-                ItemLinkType.DOC => ItemLinkType.None, // DOC links are unidirectional
                 ItemLinkType.None => ItemLinkType.None,
                 _ => ItemLinkType.None
             };
