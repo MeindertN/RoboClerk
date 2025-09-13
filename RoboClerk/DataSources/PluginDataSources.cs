@@ -54,6 +54,14 @@ namespace RoboClerk
                     throw new Exception($"Unable to find plugin {val}, please ensure the name of the plugin and plugin directories in the RoboClerk config file are correct.");
                 }
             }
+            //Since items from multiple plugins may reference each other, we need to update all links now.
+            UpdateAllItemLinks();
+        }
+
+        private void UpdateAllItemLinks()
+        {
+            var itemLinkUpdater = new ItemLinkUpdater(this);
+            itemLinkUpdater.UpdateAllItemLinks(plugins);
         }
 
         public override List<SOUPItem> GetAllSOUP()
