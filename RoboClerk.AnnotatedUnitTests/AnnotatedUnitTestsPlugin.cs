@@ -1,6 +1,4 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
-using Microsoft.Extensions.DependencyInjection;
-using RoboClerk.Configuration;
+﻿using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,17 +6,13 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 using Tomlyn.Model;
+using TreeSitter;
 
 namespace RoboClerk.AnnotatedUnitTests
 {
     public class AnnotatedUnitTestPlugin : SourceCodeAnalysisPluginBase
     {
         private string decorationMarker = string.Empty;
-        private string parameterStartDelimiter = string.Empty;
-        private string parameterEndDelimiter = string.Empty;
-        private string parameterSeparator = string.Empty;
-        private string functionNameStartSeq = string.Empty;
-        private string functionNameEndSeq = string.Empty;
 
         private Dictionary<string, UTInformation> information = new Dictionary<string, UTInformation>();
 
@@ -62,25 +56,11 @@ namespace RoboClerk.AnnotatedUnitTests
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
 
                 decorationMarker = configuration.CommandLineOptionOrDefault("DecorationMarker", GetObjectForKey<string>(config, "DecorationMarker", true));
-                parameterStartDelimiter = configuration.CommandLineOptionOrDefault("ParameterStartDelimiter", GetObjectForKey<string>(config, "ParameterStartDelimiter", true));
-                parameterEndDelimiter = configuration.CommandLineOptionOrDefault("ParameterEndDelimiter", GetObjectForKey<string>(config, "ParameterEndDelimiter", true));
-                parameterSeparator = configuration.CommandLineOptionOrDefault("ParameterSeparator", GetObjectForKey<string>(config, "ParameterSeparator", true));
 
                 PopulateUTInfo("Purpose", config);
                 PopulateUTInfo("PostCondition", config);
                 PopulateUTInfo("Identifier", config);
                 PopulateUTInfo("TraceID", config);
-
-                if(config.ContainsKey("FunctionName"))
-                {
-                    var tomlTable = (TomlTable)config["FunctionName"];
-                    functionNameStartSeq = tomlTable["StartString"].ToString();
-                    functionNameEndSeq = tomlTable["EndString"].ToString();
-                }
-                else
-                {
-                    throw new Exception($"Table \"FunctionName\" missing from configuration file: \"{name}.toml\".");
-                }
             }
             catch (Exception e)
             {
@@ -91,173 +71,45 @@ namespace RoboClerk.AnnotatedUnitTests
             ScanDirectoriesForSourceFiles();
         }
 
-        private int ParameterEnd(string input)
+        private void FindAndProcessAnnotations(string text, string filename)
         {
-            int openers = 0;
-            int closers = 0;
-            bool insideStringLiteral = false;
-            bool ignoreStringDelim = false;
-            bool insideStringBlock = false;
-            for (int i = 0; i < input.Length; i++)
-            {
-                var temp = input.Substring(i);
-                if (temp.StartsWith("\"\"\"") && !ignoreStringDelim)
-                {
-                    if (insideStringBlock && temp.Length >= 4 && temp[3] == '"')
-                        continue;
-                    insideStringBlock = !insideStringBlock;
-                    i += 2;
-                    continue;
-                }
-                if (temp.StartsWith("\"") && !ignoreStringDelim && !insideStringBlock)
-                {
-                    insideStringLiteral = !insideStringLiteral;
-                }
-                ignoreStringDelim = temp.StartsWith("\\\"");
-                if ( (!insideStringLiteral && !insideStringBlock) && temp.StartsWith(parameterStartDelimiter))
-                {
-                    openers++;
-                }
-                if ( (!insideStringLiteral && !insideStringBlock) && temp.StartsWith(parameterEndDelimiter))
-                {
-                    closers++;
-                }
-                if (openers > 0 && openers == closers)
-                {
-                    return i;
-                }
-            }
-            return -1;
-        }
+            // Use base class helper methods for TreeSitter operations
+            var language = CreateLanguage("CSharp");
+            using var tree = ParseSourceCode("CSharp", text);
 
-        private Dictionary<string, string> ParseParameterString(string pms, int startLine, string filename)
-        {
-            Dictionary<string, string> foundParameters = new Dictionary<string, string>();
-            //replace all = , inside the strings with non-printing replacement characters unlikely 
-            //to be used in practice
-            StringBuilder pmsSb = new StringBuilder(pms);
-            bool insideString = false;
-            bool insideTextBlock = false;
-            for (int i = 0; i < pms.Length; i++)
-            {
-                if (pms[i] == '"')
-                {
-                    if (i + 2 < pms.Length && pms[i + 1] == '"' && pms[i + 2] == '"')
-                    {
-                        int index = i + 2;
-                        while (index < pms.Length && pms[index] == '"')
-                        {
-                            index++;
-                        }
-                        insideTextBlock = !insideTextBlock;
-                        i = index;
-                        continue;
-                    }
-                    else if(!insideTextBlock)
-                    {
-                        insideString = !insideString;
-                    }
-                }
-                if (pms[i] == '=' && (insideString || insideTextBlock))
-                {
-                    pmsSb[i] = '\a';
-                }
-                if (pms[i] == ',' && (insideString || insideTextBlock))
-                {
-                    pmsSb[i] = '\f';
-                }
-            }
-            string[] parameters = pmsSb.ToString().Split(parameterSeparator);
-            foreach (var parameter in parameters)
-            {
-                string[] values = parameter.Split('=', StringSplitOptions.TrimEntries);
-                if (values.Length != 2)
-                {
-                    throw new Exception($"Error parsing annotation starting on line {startLine} of \"{filename}\".");
-                }
-                var info = information.First(x => x.Value.KeyWord.ToUpper() == values[0].ToUpper());
-                if (info.Key != string.Empty)
-                {
-                    StringBuilder sb = new StringBuilder(values[1]);
-                    sb.Replace('\a', '=');
-                    sb.Replace('\f', ',');
-                    foundParameters[info.Key] = sb.ToString();
-                }
-            }
-            return foundParameters;
-        }
+            var queryText = @"
+                (method_declaration
+                  (attribute_list
+                    (attribute
+                      [(identifier) (qualified_name)] @attr.name
+                      (#eq? @attr.name ""UnitTestAttribute"")
+                    )
+                  )
+                  name: (identifier) @method
+                ) @method_with_attr
+                ";
 
-        private void FindAndProcessAnnotations(string[] lines, string filename)
-        {
-            StringBuilder foundAnnotation = new StringBuilder();
-            for (int i = 0; i < lines.Length; i++)
+            // Use base class helper method to execute query
+            foreach (var match in ExecuteQuery(language, tree, queryText))
             {
-                int index = lines[i].IndexOf(decorationMarker, StringComparison.OrdinalIgnoreCase);
-                int paramStartIndex = -1;
-                int paramEndIndex = -1;
-                int startLine = -1;
-                if (index >= 0)
-                {
-                    startLine = i;
-                    foundAnnotation.Append(lines[i].Substring(index));
-                    //keep iterating until we find the beginning of the parameters of the annotation
-                    for (int j = i; j < lines.Length; j++)
-                    {
-                        paramStartIndex = foundAnnotation.ToString().IndexOf(parameterStartDelimiter);
-                        if (paramStartIndex < 0)
-                        {
-                            foundAnnotation.Append(lines[j]);
-                        }
-                        else
-                        {
-                            i = j + 1;
-                            break;
-                        }
-                    }
-                    for (int j = i; j < lines.Length; j++)
-                    {
-                        paramEndIndex = ParameterEnd(foundAnnotation.ToString());
-                        if (paramEndIndex >= 0)
-                        {
-                            i = j;
-                            break;
-                        }
-                        else
-                        {
-                            foundAnnotation.Append(lines[j]);
-                        }
-                    }
-                    string parameterString = foundAnnotation.ToString().Substring(paramStartIndex + 1, paramEndIndex - paramStartIndex - 1);
-                    foundAnnotation.Clear();
-                    Dictionary<string, string> foundParameters = ParseParameterString(parameterString, startLine, filename);
-                    //check if any required parameters are missing
-                    foreach (var info in information)
-                    {
-                        if (!info.Value.Optional && !foundParameters.ContainsKey(info.Key))
-                        {
-                            throw new Exception($"Required parameter {info.Key} missing from unit test anotation starting on {startLine} of \"{filename}\".");
-                        }
-                    }
-                    // extract the function name
-                    int startI = i;
-                    string functionName = string.Empty;
-                    for (int j = i ; j < lines.Length && j-startI<3 ; j++)
-                    {
-                        int startIndex = lines[j].IndexOf(functionNameStartSeq);
-                        if( startIndex>=0 )
-                        {
-                            int endIndex = lines[j].IndexOf(functionNameEndSeq);
-                            if( endIndex>=0 ) 
-                            {
-                                functionName = lines[j].Substring(startIndex+functionNameStartSeq.Length, endIndex-(startIndex+functionNameStartSeq.Length));
-                                functionName = functionName.Trim();
-                                i = j;
-                                break;
-                            }
-                        }
-                    }
-                    AddUnitTest(filename, startLine, foundParameters, functionName);
-                }
+                var methodNode = match.Captures.First(c => c.Name == "method").Node;
+                var attrNameNode = match.Captures.First(c => c.Name == "attr.name").Node;
+
+                // Get the entire attribute node to show its arguments too:
+                // Walk up from attr.name to its parent 'attribute' to slice full text.
+                var attributeNode = attrNameNode.Parent; // parent is 'attribute'
+                
+                // Use base class helper methods - provide text for compatibility
+                var attrText = GetNodeText(attributeNode, text);
+                var methodName = GetNodeText(methodNode, text);
+                var lineNumber = GetNodeLineNumber(methodNode, text);
+
+                Console.WriteLine($"Method: {methodName} (Line {lineNumber})");
+                Console.WriteLine($"  Attribute: {attrText}");
+                
+                // TODO: Extract parameters from attribute and call AddUnitTest
+                // var parameterValues = ExtractAttributeParameters(attributeNode, text);
+                // AddUnitTest(filename, lineNumber, parameterValues, methodName);
             }
         }
 
@@ -317,8 +169,8 @@ namespace RoboClerk.AnnotatedUnitTests
         {
             foreach (var sourceFile in sourceFiles)
             {
-                var lines = fileSystem.File.ReadAllLines(sourceFile);
-                FindAndProcessAnnotations(lines, sourceFile);
+                var text = fileSystem.File.ReadAllText(sourceFile);
+                FindAndProcessAnnotations(text, sourceFile);
             }
         }
     }
