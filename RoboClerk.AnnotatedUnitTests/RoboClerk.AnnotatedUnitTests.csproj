@@ -19,10 +19,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="TreeSitter.DotNet" Version="1.0.1" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<ProjectReference Include="..\RoboClerk\RoboClerk.csproj">
 			<Private>false</Private>
 			<ExcludeAssets>runtime</ExcludeAssets>

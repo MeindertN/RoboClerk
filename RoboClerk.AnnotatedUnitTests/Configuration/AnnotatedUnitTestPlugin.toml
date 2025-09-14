@@ -24,9 +24,9 @@ FileMasks = ["Test*.cs"]
 
 UseGit = true
 
-# String that marks the beginning of the annotation 
+# String that marks the beginning of the annotation (e.g. "[NameOfAttribute" for C#)
 
-DecorationMarker = "UnitTestAttribute"
+DecorationMarker = "[UnitTestAttribute"
 
 # String that marks the beginning of the parameter section of the annotation (e.g. "(" for C#)
 # Note that parameter here means one or more of: parameterName = "string value of the parameter" 
@@ -66,6 +66,18 @@ ParameterSeparator = ","
 	Keyword = "TraceID"
 	Optional = true
 
+# RoboClerk assumes that after the annotation, the test function name is specified.
+# In order for RoboClerk to be able to extract the function name, you need to specify
+# the starting and ending elements of the function name. RoboClerk will match the first
+# instance with the appropriate startstring and endstring within three lines after 
+# the annotation end.
+# It is assumed that whatever is between the StartString and EndString is the unit
+# test function name. Note that the StartString, the function name
+# and the EndString are all on a single line. Otherwise, no function name will be 
+# detected.
 
+[FunctionName]
+	StartString = "public void "
+	EndString = "("
 
 

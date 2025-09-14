@@ -23,11 +23,9 @@
     <PackageReference Include="NLog" Version="5.3.4" />
     <PackageReference Include="System.IO.Abstractions" Version="21.0.29" />
     <PackageReference Include="Tomlyn" Version="0.17.0" />
-    <PackageReference Include="TreeSitter.DotNet" Version="1.0.1" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DocTemplates\media\" />
-    <Folder Include="Infrastructure\" />
     <Folder Include="Properties\" />
   </ItemGroup>
 	<Target Name="DeletePublishDirectory" BeforeTargets="Build" Condition="'$(Configuration)' == 'ReleasePublish'">
