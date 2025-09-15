@@ -11,7 +11,14 @@ namespace RoboClerk
 {
     public class PluginLoadContext : AssemblyLoadContext
     {
-        private AssemblyDependencyResolver _resolver;
+        private static readonly HashSet<string> _sharedAssemblies = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "RoboClerk",
+            "Microsoft.Extensions.DependencyInjection.Abstractions",
+            "Microsoft.Extensions.DependencyInjection"
+        };
+
+        private readonly AssemblyDependencyResolver _resolver;
 
         public PluginLoadContext(string pluginPath)
         {
@@ -20,6 +27,12 @@ namespace RoboClerk
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
+            if (assemblyName.Name != null && _sharedAssemblies.Contains(assemblyName.Name))
+            {
+                // Use the already loaded version from the default context
+                return null;
+            }
+
             string assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)
             {
@@ -109,20 +122,36 @@ namespace RoboClerk
                 var pluginTypes = asm
                     .GetTypes()
                     .Where(t => typeof(TPluginInterface).IsAssignableFrom(t)
-                             && !t.IsAbstract
-                             && t.GetConstructor(new[] { typeof(IFileSystem) }) != null);
+                             && !t.IsAbstract);
 
                 foreach (var type in pluginTypes)
                 {
+                    ConstructorInfo ctor = null;
+                    object[] args;
+
+                    // 3) find the single‐arg ctor with IFileSystem
+                    ctor = type.GetConstructor(new[] { typeof(IFileSystem) });
+
+                    if (ctor != null)
+                    {
+                        args = new object[] { _fileSystem };
+                    }
+                    else
+                    {
+                        // Fallback to parameterless constructor
+                        ctor = type.GetConstructor(Type.EmptyTypes);
+                        if (ctor == null)
+                            throw new InvalidOperationException($"Type {type.FullName} has no supported constructor.");
+
+                        args = Array.Empty<object>();
+                    }
+
                     implTypes.Add(type);
 
-                    // 3) find the single‐arg ctor
-                    var ctor = type.GetConstructor(new[] { typeof(IFileSystem) })!;
                     // 4) invoke it to get the PluginBase/IPluginRegistrar
-                    var metadataInstance = (TPluginInterface)ctor.Invoke(new object[] { _fileSystem });
+                    var metadataInstance = (TPluginInterface)ctor.Invoke(args);
 
                     // 5) let the plugin register everything it needs,
-                    //    including services.AddTransient<IPlugin, ThisType>()
                     metadataInstance.ConfigureServices(services);
                 }
             }
