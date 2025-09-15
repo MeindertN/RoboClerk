@@ -1,6 +1,4 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
-using Microsoft.Extensions.DependencyInjection;
-using RoboClerk.Configuration;
+﻿using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,6 +6,7 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 using Tomlyn.Model;
+using TreeSitter;
 
 namespace RoboClerk.AnnotatedUnitTests
 {
@@ -187,78 +186,13 @@ namespace RoboClerk.AnnotatedUnitTests
             return foundParameters;
         }
 
-        private void FindAndProcessAnnotations(string[] lines, string filename)
+        private void FindAndProcessAnnotations(string lines, string filename)
         {
-            StringBuilder foundAnnotation = new StringBuilder();
-            for (int i = 0; i < lines.Length; i++)
-            {
-                int index = lines[i].IndexOf(decorationMarker, StringComparison.OrdinalIgnoreCase);
-                int paramStartIndex = -1;
-                int paramEndIndex = -1;
-                int startLine = -1;
-                if (index >= 0)
-                {
-                    startLine = i;
-                    foundAnnotation.Append(lines[i].Substring(index));
-                    //keep iterating until we find the beginning of the parameters of the annotation
-                    for (int j = i; j < lines.Length; j++)
-                    {
-                        paramStartIndex = foundAnnotation.ToString().IndexOf(parameterStartDelimiter);
-                        if (paramStartIndex < 0)
-                        {
-                            foundAnnotation.Append(lines[j]);
-                        }
-                        else
-                        {
-                            i = j + 1;
-                            break;
-                        }
-                    }
-                    for (int j = i; j < lines.Length; j++)
-                    {
-                        paramEndIndex = ParameterEnd(foundAnnotation.ToString());
-                        if (paramEndIndex >= 0)
-                        {
-                            i = j;
-                            break;
-                        }
-                        else
-                        {
-                            foundAnnotation.Append(lines[j]);
-                        }
-                    }
-                    string parameterString = foundAnnotation.ToString().Substring(paramStartIndex + 1, paramEndIndex - paramStartIndex - 1);
-                    foundAnnotation.Clear();
-                    Dictionary<string, string> foundParameters = ParseParameterString(parameterString, startLine, filename);
-                    //check if any required parameters are missing
-                    foreach (var info in information)
-                    {
-                        if (!info.Value.Optional && !foundParameters.ContainsKey(info.Key))
-                        {
-                            throw new Exception($"Required parameter {info.Key} missing from unit test anotation starting on {startLine} of \"{filename}\".");
-                        }
-                    }
-                    // extract the function name
-                    int startI = i;
-                    string functionName = string.Empty;
-                    for (int j = i ; j < lines.Length && j-startI<3 ; j++)
-                    {
-                        int startIndex = lines[j].IndexOf(functionNameStartSeq);
-                        if( startIndex>=0 )
-                        {
-                            int endIndex = lines[j].IndexOf(functionNameEndSeq);
-                            if( endIndex>=0 ) 
-                            {
-                                functionName = lines[j].Substring(startIndex+functionNameStartSeq.Length, endIndex-(startIndex+functionNameStartSeq.Length));
-                                functionName = functionName.Trim();
-                                i = j;
-                                break;
-                            }
-                        }
-                    }
-                    AddUnitTest(filename, startLine, foundParameters, functionName);
-                }
-            }
+            using var language = new Language("C_SHARP");
+            using var parser = new Parser(language);
+            using var tree = parser.Parse(lines);
+
+
         }
 
         private void AddUnitTest(string fileName, int lineNumber, Dictionary<string, string> parameterValues, string functionName)
@@ -317,7 +251,7 @@ namespace RoboClerk.AnnotatedUnitTests
         {
             foreach (var sourceFile in sourceFiles)
             {
-                var lines = fileSystem.File.ReadAllLines(sourceFile);
+                var lines = fileSystem.File.ReadAllText(sourceFile);
                 FindAndProcessAnnotations(lines, sourceFile);
             }
         }
