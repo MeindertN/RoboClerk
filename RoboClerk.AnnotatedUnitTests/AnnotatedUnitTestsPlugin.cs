@@ -119,6 +119,10 @@ namespace RoboClerk.AnnotatedUnitTests
                     if (annotationName != null)
                     {
                         var aNode = NearestAncestor(annotationName, n => n.Type == AttrNodeType(selectedLang));
+                        if (aNode == null)
+                        {
+                            aNode = annotationName;
+                        }
                         if (!perAttr.TryGetValue(aNode, out var ad))
                             perAttr[aNode] = ad = new AttrData { Line = (int)aNode.StartPosition.Row + 1 };
 

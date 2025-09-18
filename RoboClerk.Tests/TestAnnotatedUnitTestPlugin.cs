@@ -94,6 +94,8 @@ class TestClass {
             temp.InitializePlugin(configuration);
         }
 
+        #region C# Language Support Tests
+
         [UnitTestAttribute(
         Purpose = "AnnotatedUnitTestPlugin is created, refresh is called",
         Identifier = "1C2B7995-DFDF-466B-96D8-B8165VFC28C8",
@@ -545,5 +547,387 @@ public void MySpecificTestMethodName()
             Assert.That(tests[0].UnitTestFunctionName == "MySpecificTestMethodName");
             Assert.That(tests[0].UnitTestFileName == "TestSpecificFile.cs");
         }
+        #endregion C# Language Support Tests
+
+        #region Java Language Support Tests
+
+        private IFileSystem CreateJavaTestFileSystem()
+        {
+            StringBuilder javaConfigFile = new StringBuilder();
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                javaConfigFile.Append(@"TestDirectories = [""/c/temp""]");
+            }
+            else
+            {
+                javaConfigFile.Append(@"TestDirectories = [""c:/temp""]");
+            }
+            javaConfigFile.Append(@"
+SubDirs = true
+FileMasks = [""Test*.java""]
+UseGit = false
+AnnotationName = ""TestAnnotation""
+Language = ""java""
+[Purpose]
+	Keyword = ""purpose""
+	Optional = false
+[PostCondition]
+	Keyword = ""expected""
+	Optional = false
+[Identifier]
+	Keyword = ""id""
+	Optional = true
+[TraceID]
+	Keyword = ""traceId""
+	Optional = true
+");
+
+            return new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { TestingHelpers.ConvertFileName(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(javaConfigFile.ToString()) }
+            });
+        }
+
+        [UnitTestAttribute(
+            Identifier = "c67911a0-07d3-41af-bdca-0426059af4da",
+            Purpose = "AnnotatedUnitTestPlugin processes basic Java annotations with named parameters",
+            PostCondition = "Java unit test annotations are correctly parsed and extracted")]
+        [Test]
+        public void TestUnitTestPlugin_Java_BasicAnnotations()
+        {
+            string javaCode = @"
+public class TestClass {
+    @TestAnnotation(
+        id = ""JAVA-TEST-001"",
+        purpose = ""Test basic Java annotation parsing"",
+        expected = ""Java annotations should be parsed correctly""
+    )
+    @Test
+    public void testBasicJavaMethod() {
+        // Test implementation
+    }
+
+    @TestAnnotation(
+        id = ""JAVA-TEST-002"",
+        purpose = ""Test another Java method"",
+        expected = ""Second test should also work""
+    )
+    @Test
+    public void testAnotherJavaMethod() {
+        // Another test
+    }
+}";
+
+            var testFileSystem = CreateJavaTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\TestJavaBasic.java"), new MockFileData(javaCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 2);
+            Assert.That(tests[0].ItemID == "JAVA-TEST-001");
+            Assert.That(tests[1].ItemID == "JAVA-TEST-002");
+            Assert.That(tests[0].UnitTestPurpose == "Test basic Java annotation parsing");
+            Assert.That(tests[1].UnitTestPurpose == "Test another Java method");
+            Assert.That(tests[0].UnitTestAcceptanceCriteria == "Java annotations should be parsed correctly");
+            Assert.That(tests[1].UnitTestAcceptanceCriteria == "Second test should also work");
+        }
+
+        [UnitTestAttribute(
+            Identifier = "464b8b4f-cd7e-40b5-8220-c0c769ad9bf9",
+            Purpose = "AnnotatedUnitTestPlugin handles Java marker annotations without parameters",
+            PostCondition = "Marker annotations are processed but cause validation errors for missing required fields")]
+        [Test]
+        public void TestUnitTestPlugin_Java_MarkerAnnotations()
+        {
+            string javaCode = @"
+public class TestClass {
+    @TestAnnotation
+    @Test
+    public void testMarkerAnnotation() {
+        // Test with marker annotation
+    }
+
+    @TestAnnotation(
+        purpose = ""Test with partial annotation"",
+        expected = ""Should work with required fields""
+    )
+    @Test
+    public void testPartialAnnotation() {
+        // Test with some fields
+    }
+}";
+
+            var testFileSystem = CreateJavaTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\TestJavaMarker.java"), new MockFileData(javaCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+
+            // Should throw exception due to missing required fields in marker annotation
+            var ex = Assert.Throws<Exception>(() => temp.RefreshItems());
+            Assert.That(ex.Message.Contains("Required field(s) missing"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "a185e1a9-1c05-4fd3-b39f-d8cc74cb7a38",
+            Purpose = "AnnotatedUnitTestPlugin handles Java annotations with various string literal formats",
+            PostCondition = "Different Java string formats are correctly processed")]
+        [Test]
+        public void TestUnitTestPlugin_Java_StringLiterals()
+        {
+            string javaCode = @"
+public class TestClass {
+    @TestAnnotation(
+        id = ""STRING-LITERAL-TEST"",
+        purpose = ""Test with \""escaped quotes\"" and special chars\n\t"",
+        expected = ""Should handle various string formats""
+    )
+    @Test
+    public void testStringLiterals() {
+        // Test string literal handling
+    }
+
+    @TestAnnotation(
+        id = ""NO-SPACES-TEST"",
+        purpose = ""Test without spaces"",
+        expected = ""Should work without spaces""
+    )
+    @Test
+    public void testNoSpaces() {
+        // Test without spaces
+    }
+}";
+
+            var testFileSystem = CreateJavaTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\TestJavaStrings.java"), new MockFileData(javaCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 2);
+            Assert.That(tests[0].ItemID == "STRING-LITERAL-TEST");
+            Assert.That(tests[1].ItemID == "NO-SPACES-TEST");
+            Assert.That(tests[0].UnitTestPurpose.Contains("escaped quotes"));
+            Assert.That(tests[0].UnitTestPurpose.Contains("\n"));
+            Assert.That(tests[0].UnitTestPurpose.Contains("\t"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "cacbe83e-5e82-49d3-b23d-0bde93a3fbd7",
+            Purpose = "AnnotatedUnitTestPlugin handles Java annotations in different method contexts",
+            PostCondition = "Annotations on various Java method types are correctly processed")]
+        [Test]
+        public void TestUnitTestPlugin_Java_MethodContexts()
+        {
+            string javaCode = @"
+public class TestClass {
+    @TestAnnotation(
+        id = ""PUBLIC-METHOD-TEST"",
+        purpose = ""Test public method annotation"",
+        expected = ""Public method should be processed""
+    )
+    @Test
+    public void testPublicMethod() {
+        // Public test method
+    }
+
+    @TestAnnotation(
+        id = ""PRIVATE-METHOD-TEST"",
+        purpose = ""Test private method annotation"",
+        expected = ""Private method should be processed""
+    )
+    @Test
+    private void testPrivateMethod() {
+        // Private test method
+    }
+
+    @TestAnnotation(
+        id = ""STATIC-METHOD-TEST"",
+        purpose = ""Test static method annotation"",
+        expected = ""Static method should be processed""
+    )
+    @Test
+    public static void testStaticMethod() {
+        // Static test method
+    }
+
+    @TestAnnotation(
+        id = ""THROWS-METHOD-TEST"",
+        purpose = ""Test method with throws clause"",
+        expected = ""Method with throws should be processed""
+    )
+    @Test
+    public void testMethodWithThrows() throws Exception {
+        // Method with throws clause
+    }
+}";
+
+            var testFileSystem = CreateJavaTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\TestJavaContexts.java"), new MockFileData(javaCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 4);
+            
+            var testIds = tests.Select(t => t.ItemID).ToArray();
+            Assert.That(testIds.Contains("PUBLIC-METHOD-TEST"));
+            Assert.That(testIds.Contains("PRIVATE-METHOD-TEST"));
+            Assert.That(testIds.Contains("STATIC-METHOD-TEST"));
+            Assert.That(testIds.Contains("THROWS-METHOD-TEST"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "a9e5c20e-e8c1-4916-a132-ad846314d5ca",
+            Purpose = "AnnotatedUnitTestPlugin handles Java annotations with missing optional fields",
+            PostCondition = "Java tests with missing optional fields are processed correctly")]
+        [Test]
+        public void TestUnitTestPlugin_Java_MissingOptionalFields()
+        {
+            string javaCode = @"
+public class TestClass {
+    @TestAnnotation(
+        purpose = ""Test without ID field"",
+        expected = ""Should work without optional ID""
+    )
+    @Test
+    public void testWithoutId() {
+        // Test without ID
+    }
+
+    @TestAnnotation(
+        id = ""WITH-TRACE-TEST"",
+        purpose = ""Test with trace ID"",
+        expected = ""Should include trace information"",
+        traceId = ""TRACE-456""
+    )
+    @Test
+    public void testWithTraceId() {
+        // Test with trace ID
+    }
+}";
+
+            var testFileSystem = CreateJavaTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\TestJavaOptional.java"), new MockFileData(javaCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 2);
+            
+            // First test should have auto-generated ID
+            Assert.That(!string.IsNullOrEmpty(tests[0].ItemID));
+            Assert.That(tests[0].UnitTestPurpose == "Test without ID field");
+            
+            // Second test should have provided ID
+            Assert.That(tests[1].ItemID == "WITH-TRACE-TEST");
+            Assert.That(tests[1].UnitTestPurpose == "Test with trace ID");
+        }
+
+        [UnitTestAttribute(
+            Identifier = "4fa9d0f3-cd74-4983-9b94-ba64820b185b",
+            Purpose = "AnnotatedUnitTestPlugin handles complex Java annotation scenarios",
+            PostCondition = "Complex Java code structures with annotations are correctly processed")]
+        [Test]
+        public void TestUnitTestPlugin_Java_ComplexScenarios()
+        {
+            string javaCode = @"
+package com.example.test;
+
+import org.junit.Test;
+
+/**
+ * Complex test class with various scenarios
+ */
+public class ComplexTestClass extends BaseTestClass implements TestInterface {
+    
+    @TestAnnotation(
+        id = ""COMPLEX-GENERIC-TEST"",
+        purpose = ""Test generic method with complex signature"",
+        expected = ""Generic method should be parsed correctly""
+    )
+    @Test
+    public <T extends Comparable<T>> void testGenericMethod(List<T> items) {
+        // Generic method test
+    }
+
+    @TestAnnotation(
+        id = ""COMPLEX-NESTED-TEST"",
+        purpose = ""Test method in nested class context"",
+        expected = ""Nested class method should work""
+    )
+    @Test
+    public void testInNestedContext() {
+        // Method in complex context
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                // Anonymous inner class
+            }
+        };
+    }
+
+    @Override
+    @TestAnnotation(
+        id = ""COMPLEX-OVERRIDE-TEST"",
+        purpose = ""Test overridden method with annotation"",
+        expected = ""Override annotation should not interfere""
+    )
+    @Test
+    public void testOverriddenMethod() {
+        super.testOverriddenMethod();
+    }
+
+    @TestAnnotation(
+        id = ""COMPLEX-MULTILINE-TEST"",
+        purpose = ""Test with multiline string in annotation and concatenation"",
+        expected = ""Multiline strings should be handled""
+    )
+    @Test
+    public void testMultilineAnnotation() {
+        // Test multiline annotation
+    }
+}";
+
+            var testFileSystem = CreateJavaTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\TestJavaComplex.java"), new MockFileData(javaCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 4);
+            
+            var testIds = tests.Select(t => t.ItemID).ToArray();
+            Assert.That(testIds.Contains("COMPLEX-GENERIC-TEST"));
+            Assert.That(testIds.Contains("COMPLEX-NESTED-TEST"));
+            Assert.That(testIds.Contains("COMPLEX-OVERRIDE-TEST"));
+            Assert.That(testIds.Contains("COMPLEX-MULTILINE-TEST"));
+            
+            // Verify method names are correctly extracted
+            var methodNames = tests.Select(t => t.UnitTestFunctionName).ToArray();
+            Assert.That(methodNames.Contains("testGenericMethod"));
+            Assert.That(methodNames.Contains("testInNestedContext"));
+            Assert.That(methodNames.Contains("testOverriddenMethod"));
+            Assert.That(methodNames.Contains("testMultilineAnnotation"));
+        }
+
+        #endregion
     }
 }
