@@ -139,7 +139,9 @@ namespace RoboClerk.AnnotatedUnitTests
                             // If both sides are present (named arg), add the pair. Otherwise, empty string if only one side.
                             if (nameCap != null)
                             {
-                                ad.Args.Add((nameCap.Node.Text, valueCap!=null?valueCap.Node.Text:string.Empty));
+                                var cleanKey = Unquote(nameCap.Node.Text);
+                                var cleanValue = valueCap != null ? Unquote(valueCap.Node.Text) : string.Empty;
+                                ad.Args.Add((cleanKey, cleanValue));
                             }
                         }
                     }
@@ -157,8 +159,8 @@ namespace RoboClerk.AnnotatedUnitTests
                         var eq = text.IndexOf('=');
                         if (eq > 0)
                         {
-                            var key = text.Substring(0, eq).Trim();
-                            var val = text.Substring(eq + 1).Trim();
+                            var key = Unquote(text.Substring(0, eq).Trim());
+                            var val = Unquote(text.Substring(eq + 1).Trim());
                             ad.Args.Add((key, val));
                         }
                     }
@@ -174,9 +176,9 @@ namespace RoboClerk.AnnotatedUnitTests
                         // Find nearest arg_value that shares the same immediate parent frame (language-specific but pragmatic)
                         var val = match.Captures
                             .Where(c => c.Name == "arg_value" && SharesAttributeFrame(an.Node, c.Node, selectedLang))
-                            .Select(c => c.Node.Text)
+                            .Select(c => Unquote(c.Node.Text))
                             .FirstOrDefault();
-                        if (val != null) ad.Args.Add((an.Node.Text, val));
+                        if (val != null) ad.Args.Add((Unquote(an.Node.Text), val));
                     }
                 }
 
@@ -195,7 +197,7 @@ namespace RoboClerk.AnnotatedUnitTests
                         foreach (var (k, v) in ad.Args)
                         {
                             if (string.IsNullOrWhiteSpace(k)) continue;
-                            paramMap[k] = v;
+                            paramMap[k] = v; // Values are already cleaned by Unquote above
                         }
 
                         // Translate to RoboClerk fields using TOML mapping
@@ -204,8 +206,11 @@ namespace RoboClerk.AnnotatedUnitTests
                         {
                             // map.Value.KeyWord is the keyword expected in source code arguments
                             if (paramMap.TryGetValue(map.Value.KeyWord, out var valText))
-                                translated[map.Key] = valText;
+                                translated[map.Key] = valText; // Don't apply Unquote again
                         }
+
+                        // Validate that all required fields are present
+                        ValidateRequiredFields(translated, filename, ad.Line, methodName);
 
                         AddUnitTest(filename, ad.Line, translated, methodName);
                     }
@@ -417,6 +422,30 @@ namespace RoboClerk.AnnotatedUnitTests
         }
         #endregion
 
+        private void ValidateRequiredFields(Dictionary<string, string> translated, string filename, int lineNumber, string methodName)
+        {
+            var missingFields = new List<string>();
+            
+            foreach (var info in information)
+            {
+                // Check if this field is required (not optional)
+                if (!info.Value.Optional)
+                {
+                    // Check if the field is missing or empty
+                    if (!translated.TryGetValue(info.Key, out var value) || string.IsNullOrWhiteSpace(value))
+                    {
+                        missingFields.Add(info.Value.KeyWord);
+                    }
+                }
+            }
+
+            if (missingFields.Count > 0)
+            {
+                var fieldList = string.Join(", ", missingFields);
+                throw new Exception($"Required field(s) missing from {acceptedAnnotationName} attribute for method '{methodName}' in {Path.GetFileName(filename)} at line {lineNumber}: {fieldList}");
+            }
+        }
+
         private void AddUnitTest(string fileName, int lineNumber, Dictionary<string, string> parameterValues, string methodName)
         {
             var unitTest = new UnitTestItem
@@ -430,7 +459,7 @@ namespace RoboClerk.AnnotatedUnitTests
             {
                 if (!parameterValues.TryGetValue(info.Key, out var value)) continue;
 
-                value = Unquote(value);
+                // Value is already cleaned by Unquote in the parsing pipeline
                 switch (info.Key)
                 {
                     case "Purpose": unitTest.UnitTestPurpose = value; break;
@@ -466,6 +495,10 @@ namespace RoboClerk.AnnotatedUnitTests
             if (string.IsNullOrWhiteSpace(s)) return s;
             s = s.Trim();
 
+            // Handle string literal prefixes (C#, TypeScript, etc.)
+            // Remove prefixes like @, $, @$, $@, u, r, f, etc.
+            s = RemoveStringLiteralPrefixes(s);
+
             // Python triple-quoted strings: """...""" or '''...'''
             if (s.Length >= 6 &&
                 ((s.StartsWith("\"\"\"") && s.EndsWith("\"\"\"")) ||
@@ -480,6 +513,48 @@ namespace RoboClerk.AnnotatedUnitTests
             {
                 var inner = s.Substring(1, s.Length - 2);
                 return UnescapeCommon(inner);
+            }
+
+            return s;
+        }
+
+        private static string RemoveStringLiteralPrefixes(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+
+            // Handle various string literal prefixes across languages:
+            // C#: @"...", $"...", @$"...", $@"..."
+            // Python: r"...", u"...", f"...", b"...", fr"...", rf"...", etc.
+            // JavaScript/TypeScript: `...` (template literals)
+            
+            int prefixEnd = 0;
+            int length = s.Length;
+
+            // Find the end of any prefix characters before the quote
+            while (prefixEnd < length)
+            {
+                char c = s[prefixEnd];
+                if (c == '"' || c == '\'' || c == '`')
+                {
+                    // Found the start of the actual string
+                    break;
+                }
+                else if (char.IsLetter(c) || c == '@' || c == '$')
+                {
+                    // This is likely a string prefix character
+                    prefixEnd++;
+                }
+                else
+                {
+                    // Not a recognized prefix character, stop looking
+                    break;
+                }
+            }
+
+            // If we found any prefix characters, remove them
+            if (prefixEnd > 0 && prefixEnd < length)
+            {
+                return s.Substring(prefixEnd);
             }
 
             return s;
