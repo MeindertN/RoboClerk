@@ -37,10 +37,8 @@ namespace RoboClerk.Tests
 SubDirs = true
 FileMasks = [""Test*.cs""]
 UseGit = false
-DecorationMarker = ""[UnitTestAttribut""
-ParameterStartDelimiter = ""(""
-ParameterEndDelimiter = "")""
-ParameterSeparator = "",""
+AnnotationName = ""UnitTestAttribut""
+Language = ""csharp""
 [Purpose]
 	Keyword = ""Purpose""
 	Optional = false
@@ -53,9 +51,7 @@ ParameterSeparator = "",""
 [TraceID]
 	Keyword = ""TraceID""
 	Optional = true
-[FunctionName]
-	StartString = ""public void ""
-	EndString = ""(""");
+");
             string testFile = @"
  [UnitTestAttribut(
             Identifier = ""9A3258CF-F9EE-4A1A-95E6-B49EF25FB200"",
