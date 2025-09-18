@@ -10,250 +10,577 @@ using TreeSitter;
 
 namespace RoboClerk.AnnotatedUnitTests
 {
+    /// <summary>
+    /// Annotated Unit Test plugin with **Tree‑sitter only** multi-language support (C#, Java, Python, TypeScript/JavaScript).
+    /// One language per project (configured via TOML). Extracts method-level annotations/decorators and their named arguments
+    /// using AST captures only (no legacy string scanning or regex fallbacks).
+    /// </summary>
     public class AnnotatedUnitTestPlugin : SourceCodeAnalysisPluginBase
     {
-        private string decorationMarker = string.Empty;
-        private string parameterStartDelimiter = string.Empty;
-        private string parameterEndDelimiter = string.Empty;
-        private string parameterSeparator = string.Empty;
-        private string functionNameStartSeq = string.Empty;
-        private string functionNameEndSeq = string.Empty;
+        private enum Lang { CSharp, Java, Python, TypeScript, JavaScript }
 
-        private Dictionary<string, UTInformation> information = new Dictionary<string, UTInformation>();
+        private Lang selectedLang;
+        private string tsLanguageId = string.Empty; // Tree-sitter language id string for the parser
 
-        public AnnotatedUnitTestPlugin(IFileSystem fileSystem)
-            : base(fileSystem)
-        {
-            SetBaseParam();
-        }
+        // Names of annotations/decorators to treat as unit tests
+        private string acceptedAnnotationName = string.Empty;
 
-        private void SetBaseParam()
+        // Map TOML fields -> UTInformation
+        private readonly Dictionary<string, UTInformation> information = new();
+
+        public AnnotatedUnitTestPlugin(IFileSystem fileSystem) : base(fileSystem)
         {
             name = "AnnotatedUnitTestPlugin";
-            description = "A plugin that analyzes a project's source code to extract unit test information for RoboClerk.";
-        }
-
-        private void PopulateUTInfo(string tableName, TomlTable config)
-        {
-            if (!config.ContainsKey(tableName))
-            {
-                throw new Exception($"A required table \"{tableName}\" is missing from the {tableName}.toml configuration file. Cannot continue.");
-            }
-            var tomlTable = (TomlTable)config[tableName];
-            var info = new UTInformation();
-            try
-            {
-                info.FromToml(tomlTable);
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"{e.Message}\"{tableName}\"");
-            }
-            information[tableName] = info;
+            description = "Analyzes a project's source code to extract unit test information for RoboClerk (Tree‑sitter only).";
         }
 
         public override void InitializePlugin(IConfiguration configuration)
         {
-            logger.Info("Initializing the Annotated Unit Tests Plugin");
+            logger.Info("Initializing the Annotated Unit Tests Plugin (Tree‑sitter only)");
             try
             {
                 base.InitializePlugin(configuration);
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
 
-                decorationMarker = configuration.CommandLineOptionOrDefault("DecorationMarker", GetObjectForKey<string>(config, "DecorationMarker", true));
-                parameterStartDelimiter = configuration.CommandLineOptionOrDefault("ParameterStartDelimiter", GetObjectForKey<string>(config, "ParameterStartDelimiter", true));
-                parameterEndDelimiter = configuration.CommandLineOptionOrDefault("ParameterEndDelimiter", GetObjectForKey<string>(config, "ParameterEndDelimiter", true));
-                parameterSeparator = configuration.CommandLineOptionOrDefault("ParameterSeparator", GetObjectForKey<string>(config, "ParameterSeparator", true));
+                // ---- Language (one per project) ----
+                var langStr = GetObjectForKey<string>(config, "Language", true) ?? "csharp";
+                selectedLang = ParseLanguage(langStr);
+                tsLanguageId = GetTreeSitterLanguageId(selectedLang);
 
+                // ---- Annotation/decorator names to accept ----
+                acceptedAnnotationName = config["AnnotationName"].ToString();
+                
+                // ---- Required UT fields mapping ----
                 PopulateUTInfo("Purpose", config);
                 PopulateUTInfo("PostCondition", config);
                 PopulateUTInfo("Identifier", config);
                 PopulateUTInfo("TraceID", config);
-
-                if(config.ContainsKey("FunctionName"))
-                {
-                    var tomlTable = (TomlTable)config["FunctionName"];
-                    functionNameStartSeq = tomlTable["StartString"].ToString();
-                    functionNameEndSeq = tomlTable["EndString"].ToString();
-                }
-                else
-                {
-                    throw new Exception($"Table \"FunctionName\" missing from configuration file: \"{name}.toml\".");
-                }
             }
             catch (Exception e)
             {
-                logger.Error("Error reading configuration file for Annotated Unit Test plugin.");
+                logger.Error("Error reading configuration for Annotated Unit Test plugin.");
                 logger.Error(e);
                 throw new Exception("The Annotated Unit Test plugin could not read its configuration. Aborting...");
             }
+
             ScanDirectoriesForSourceFiles();
-        }
-
-        private int ParameterEnd(string input)
-        {
-            int openers = 0;
-            int closers = 0;
-            bool insideStringLiteral = false;
-            bool ignoreStringDelim = false;
-            bool insideStringBlock = false;
-            for (int i = 0; i < input.Length; i++)
-            {
-                var temp = input.Substring(i);
-                if (temp.StartsWith("\"\"\"") && !ignoreStringDelim)
-                {
-                    if (insideStringBlock && temp.Length >= 4 && temp[3] == '"')
-                        continue;
-                    insideStringBlock = !insideStringBlock;
-                    i += 2;
-                    continue;
-                }
-                if (temp.StartsWith("\"") && !ignoreStringDelim && !insideStringBlock)
-                {
-                    insideStringLiteral = !insideStringLiteral;
-                }
-                ignoreStringDelim = temp.StartsWith("\\\"");
-                if ( (!insideStringLiteral && !insideStringBlock) && temp.StartsWith(parameterStartDelimiter))
-                {
-                    openers++;
-                }
-                if ( (!insideStringLiteral && !insideStringBlock) && temp.StartsWith(parameterEndDelimiter))
-                {
-                    closers++;
-                }
-                if (openers > 0 && openers == closers)
-                {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        private Dictionary<string, string> ParseParameterString(string pms, int startLine, string filename)
-        {
-            Dictionary<string, string> foundParameters = new Dictionary<string, string>();
-            //replace all = , inside the strings with non-printing replacement characters unlikely 
-            //to be used in practice
-            StringBuilder pmsSb = new StringBuilder(pms);
-            bool insideString = false;
-            bool insideTextBlock = false;
-            for (int i = 0; i < pms.Length; i++)
-            {
-                if (pms[i] == '"')
-                {
-                    if (i + 2 < pms.Length && pms[i + 1] == '"' && pms[i + 2] == '"')
-                    {
-                        int index = i + 2;
-                        while (index < pms.Length && pms[index] == '"')
-                        {
-                            index++;
-                        }
-                        insideTextBlock = !insideTextBlock;
-                        i = index;
-                        continue;
-                    }
-                    else if(!insideTextBlock)
-                    {
-                        insideString = !insideString;
-                    }
-                }
-                if (pms[i] == '=' && (insideString || insideTextBlock))
-                {
-                    pmsSb[i] = '\a';
-                }
-                if (pms[i] == ',' && (insideString || insideTextBlock))
-                {
-                    pmsSb[i] = '\f';
-                }
-            }
-            string[] parameters = pmsSb.ToString().Split(parameterSeparator);
-            foreach (var parameter in parameters)
-            {
-                string[] values = parameter.Split('=', StringSplitOptions.TrimEntries);
-                if (values.Length != 2)
-                {
-                    throw new Exception($"Error parsing annotation starting on line {startLine} of \"{filename}\".");
-                }
-                var info = information.First(x => x.Value.KeyWord.ToUpper() == values[0].ToUpper());
-                if (info.Key != string.Empty)
-                {
-                    StringBuilder sb = new StringBuilder(values[1]);
-                    sb.Replace('\a', '=');
-                    sb.Replace('\f', ',');
-                    foundParameters[info.Key] = sb.ToString();
-                }
-            }
-            return foundParameters;
-        }
-
-        private void FindAndProcessAnnotations(string lines, string filename)
-        {
-            using var language = new Language("C_SHARP");
-            using var parser = new Parser(language);
-            using var tree = parser.Parse(lines);
-
-
-        }
-
-        private void AddUnitTest(string fileName, int lineNumber, Dictionary<string, string> parameterValues, string functionName)
-        {
-            var unitTest = new UnitTestItem();
-            unitTest.UnitTestFunctionName = functionName;
-            bool identified = false;
-            string shortFileName = Path.GetFileName(fileName);
-            unitTest.UnitTestFileName = shortFileName;
-
-            foreach (var info in information)
-            {
-                if (parameterValues.ContainsKey(info.Key))
-                {
-                    var value = parameterValues[info.Key];
-                    //all strings are assumed to start and end with a string delimiter for all supported languages,
-                    //note that for some languages the string delimiter can be """
-                    if (value.StartsWith("\"\"\""))
-                        value = value.Substring(3, value.Length - 6).Replace("\\\"", "\"");
-                    else
-                        value = value.Substring(1, value.Length - 2).Replace("\\\"", "\"");
-                    switch (info.Key)
-                    {
-                        case "Purpose": unitTest.UnitTestPurpose = value; break;
-                        case "PostCondition": unitTest.UnitTestAcceptanceCriteria = value; break;
-                        case "Identifier": unitTest.ItemID = value; identified = true; break;
-                        case "TraceID": unitTest.AddLinkedItem(new ItemLink(value, ItemLinkType.UnitTests)); break;
-                        default: throw new Exception($"Unknown annotation identifier: {info.Key}");
-                    }
-                }
-            }
-            if (!identified)
-            {
-                unitTest.ItemID = $"{shortFileName}:{lineNumber}";
-            }
-            if (gitRepo != null && !gitRepo.GetFileLocallyUpdated(fileName))
-            {
-                //if gitInfo is not null, this means some item data elements should be collected through git
-                unitTest.ItemLastUpdated = gitRepo.GetFileLastUpdated(fileName);
-                unitTest.ItemRevision = gitRepo.GetFileVersion(fileName);
-            }
-            else
-            {
-                //the last time the local file was updated is our best guess
-                unitTest.ItemLastUpdated = File.GetLastWriteTime(fileName);
-                unitTest.ItemRevision = File.GetLastWriteTime(fileName).ToString("yyyy/MM/dd HH:mm:ss");
-            }
-            if (unitTests.FindIndex(x => x.ItemID == unitTest.ItemID) != -1)
-            {
-                throw new Exception($"Duplicate unit test identifier detected in {shortFileName} in the annotation starting on line {lineNumber}. Check other unit tests to ensure all unit tests have a unique identifier.");
-            }
-            unitTests.Add(unitTest);
         }
 
         public override void RefreshItems()
         {
             foreach (var sourceFile in sourceFiles)
             {
-                var lines = fileSystem.File.ReadAllText(sourceFile);
-                FindAndProcessAnnotations(lines, sourceFile);
+                var text = fileSystem.File.ReadAllText(sourceFile);
+                FindAndProcessAnnotations(text, sourceFile);
             }
         }
+
+        private void FindAndProcessAnnotations(string sourceText, string filename)
+        {
+            using var language = new Language(tsLanguageId);
+            using var parser = new Parser(language);
+            using var tree = parser.Parse(sourceText);
+
+            var queryString = GetQueryForLanguage(selectedLang);
+            using var query = new Query(language, queryString);
+            var exec = query.Execute(tree.RootNode);
+
+            // Group by method
+            var methodGroups = exec.Matches
+                .GroupBy(m => m.Captures.FirstOrDefault(c => c.Name == "method_decl")?.Node)
+                .Where(g => g.Key != null);
+
+            foreach (var group in methodGroups)
+            {
+                string methodName = string.Empty;
+                int methodLine = 0;
+
+                // Collect attributes/decorators for this method, keyed by the captured @attr node
+                var perAttr = new Dictionary<Node, AttrData>(new NodeRefComparer());
+
+                foreach (var match in group)
+                {
+                    foreach (var cap in match.Captures)
+                    {
+                        switch (cap.Name)
+                        {
+                            case "method_name":
+                                methodName = cap.Node.Text;
+                                methodLine = (int)cap.Node.StartPosition.Row + 1;
+                                break;
+                            case "attr":
+                                if (!perAttr.ContainsKey(cap.Node))
+                                    perAttr[cap.Node] = new AttrData { Line = (int)cap.Node.StartPosition.Row + 1 };
+                                break;
+                        }
+                    }
+
+                    var annotationName = match.Captures.FirstOrDefault(c => c.Name == "attr_name")?.Node;
+                    if (annotationName != null)
+                    {
+                        var aNode = NearestAncestor(annotationName, n => n.Type == AttrNodeType(selectedLang));
+                        if (!perAttr.TryGetValue(aNode, out var ad))
+                            perAttr[aNode] = ad = new AttrData { Line = (int)aNode.StartPosition.Row + 1 };
+
+                        ad.Name = NormalizeAnnotationName(annotationName.Text, selectedLang);
+                    }
+                    // If this match is an "argument match" (pattern 2) it will have arg_name/arg_value.
+                    var nameCap = match.Captures.FirstOrDefault(c => c.Name == "arg_name");
+                    var valueCap = match.Captures.FirstOrDefault(c => c.Name == "arg_value");
+                    if (nameCap != null || valueCap != null)
+                    {
+                        // Use the CAPTURED @attr from THIS match as the key (avoid ancestor identity mismatches)
+                        var attrCap = match.Captures.FirstOrDefault(c => c.Name == "attr")?.Node;
+                        if (attrCap != null)
+                        {
+                            if (!perAttr.TryGetValue(attrCap, out var ad))
+                                perAttr[attrCap] = ad = new AttrData { Line = (int)attrCap.StartPosition.Row + 1 };
+
+                            // If both sides are present (named arg), add the pair. Otherwise, empty string if only one side.
+                            if (nameCap != null)
+                            {
+                                ad.Args.Add((nameCap.Node.Text, valueCap!=null?valueCap.Node.Text:string.Empty));
+                            }
+                        }
+                    }
+
+                    // Java path (your existing arg_pair fallback)
+                    foreach (var cap in match.Captures.Where(c => c.Name == "arg_pair"))
+                    {
+                        var attrCap = match.Captures.FirstOrDefault(c => c.Name == "attr")?.Node;
+                        if (attrCap == null) continue;
+
+                        if (!perAttr.TryGetValue(attrCap, out var ad))
+                            perAttr[attrCap] = ad = new AttrData { Line = (int)attrCap.StartPosition.Row + 1 };
+
+                        var text = cap.Node.Text;
+                        var eq = text.IndexOf('=');
+                        if (eq > 0)
+                        {
+                            var key = text.Substring(0, eq).Trim();
+                            var val = text.Substring(eq + 1).Trim();
+                            ad.Args.Add((key, val));
+                        }
+                    }
+
+
+                    // Also gather explicit arg_name/arg_value pairs from this match (kept separate for clarity)
+                    var names = match.Captures.Where(c => c.Name == "arg_name").ToList();
+                    foreach (var an in names)
+                    {
+                        var aNode = NearestAncestor(an.Node, n => n.Type == AttrNodeType(selectedLang));
+                        if (aNode == null || !perAttr.TryGetValue(aNode, out var ad)) continue;
+
+                        // Find nearest arg_value that shares the same immediate parent frame (language-specific but pragmatic)
+                        var val = match.Captures
+                            .Where(c => c.Name == "arg_value" && SharesAttributeFrame(an.Node, c.Node, selectedLang))
+                            .Select(c => c.Node.Text)
+                            .FirstOrDefault();
+                        if (val != null) ad.Args.Add((an.Node.Text, val));
+                    }
+                }
+
+                // Process attributes for this method
+                foreach (var kv in perAttr)
+                {
+                    var ad = kv.Value;
+                    if (string.IsNullOrEmpty(ad.Name)) continue;
+                    if (!acceptedAnnotationName.Equals(ad.Name,StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    try
+                    {
+                        // Build parameter map from captured named args
+                        var paramMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                        foreach (var (k, v) in ad.Args)
+                        {
+                            if (string.IsNullOrWhiteSpace(k)) continue;
+                            paramMap[k] = v;
+                        }
+
+                        // Translate to RoboClerk fields using TOML mapping
+                        var translated = new Dictionary<string, string>();
+                        foreach (var map in information)
+                        {
+                            // map.Value.KeyWord is the keyword expected in source code arguments
+                            if (paramMap.TryGetValue(map.Value.KeyWord, out var valText))
+                                translated[map.Key] = valText;
+                        }
+
+                        AddUnitTest(filename, ad.Line, translated, methodName);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.Error($"Error processing annotation on line {ad.Line} in file {filename}: {e.Message}");
+                        throw;
+                    }
+                }
+            }
+        }
+
+        #region Query + language helpers
+        private static Lang ParseLanguage(string s) => s.Trim().ToLowerInvariant() switch
+        {
+            "c#" or "csharp" or "cs" => Lang.CSharp,
+            "java" => Lang.Java,
+            "python" or "py" => Lang.Python,
+            "ts" or "typescript" => Lang.TypeScript,
+            "js" or "javascript" => Lang.JavaScript,
+            _ => Lang.CSharp
+        };
+
+        private static string GetTreeSitterLanguageId(Lang lang) => lang switch
+        {
+            Lang.CSharp => "C_SHARP",
+            Lang.Java => "JAVA",
+            Lang.Python => "PYTHON",
+            Lang.TypeScript => "TYPESCRIPT",
+            Lang.JavaScript => "TYPESCRIPT", // use TS grammar to parse JS with decorators
+            _ => "C_SHARP"
+        };
+
+        private static string AttrNodeType(Lang lang) => lang switch
+        {
+            Lang.CSharp => "attribute",
+            Lang.Java => "annotation", // marker_annotation also treated as annotation in ancestor search
+            Lang.Python => "decorator",
+            Lang.TypeScript => "decorator",
+            Lang.JavaScript => "decorator",
+            _ => "attribute"
+        };
+
+        private string GetQueryForLanguage(Lang lang)
+        {
+            return lang switch
+            {
+                // C# attributes with optional named args (name_equals) and any expression value
+                Lang.CSharp => @"
+; pattern 1: method + attribute (no per-arg captures)
+(
+  (method_declaration
+    (attribute_list
+      (attribute name: (_) @attr_name) @attr
+    )+
+    name: (identifier) @method_name
+  ) @method_decl
+)
+
+; pattern 2: per-argument captures under the same ancestor shape
+(
+  (method_declaration
+    (attribute_list
+      (attribute
+        name: (_)
+        (attribute_argument_list
+          (attribute_argument
+            (assignment_expression
+              left: (identifier) @arg_name
+              right: (_) @arg_value
+            )
+          )
+        )
+      ) @attr
+    )+
+  ) @method_decl
+)
+",
+
+                // Java annotations: normal annotations (with pairs) and marker annotations (no args)
+                Lang.Java => @"
+(
+  (method_declaration
+    (modifiers
+      (annotation
+        name: (identifier) @attr_name
+        (annotation_argument_list
+          (element_value_pair) @arg_pair
+        )?
+      ) @attr
+    )+
+    name: (identifier) @method_name
+  ) @method_decl
+)
+(
+  (method_declaration
+    (modifiers
+      (marker_annotation
+        name: (identifier) @attr_name
+      ) @attr
+    )+
+    name: (identifier) @method_name
+  ) @method_decl
+)
+",
+
+                // Python decorators: with args (keyword_argument) and bare
+                Lang.Python => @"
+; with args
+(
+  (decorated_definition
+    (decorator
+      (call
+        function: (_) @attr_name
+        (argument_list (keyword_argument name: (identifier) @arg_name value: (_) @arg_value)*)?
+      )
+    )+
+    (function_definition name: (identifier) @method_name) @method_decl
+  )
+)
+; bare decorators
+(
+  (decorated_definition
+    (decorator (_) @attr_name)+
+    (function_definition name: (identifier) @method_name) @method_decl
+  ) @attr
+)
+",
+
+                // TypeScript/JavaScript decorators on class methods. Named args via object literal pairs.
+                Lang.TypeScript or Lang.JavaScript => @"
+; call-form with object literal pairs
+(
+  (method_definition
+    (decorator
+      (call_expression
+        function: (_) @attr_name
+        arguments: (arguments
+          (object
+            (pair key: (property_identifier) @arg_name value: (_) @arg_value)*
+          )
+        )?
+      )
+    )+
+    name: (property_identifier) @method_name
+  ) @method_decl @attr
+)
+; bare decorator
+(
+  (method_definition
+    (decorator (_) @attr_name)+
+    name: (property_identifier) @method_name
+  ) @method_decl @attr
+)
+; Identifier alt for some TS grammars
+(
+  (method_definition
+    (decorator
+      (call_expression
+        function: (_) @attr_name
+        arguments: (arguments
+          (object (pair key: (property_identifier) @arg_name value: (_) @arg_value)*)
+        )?
+      )
+    )+
+    name: (identifier) @method_name
+  ) @method_decl @attr
+)
+(
+  (method_definition
+    (decorator (_) @attr_name)+
+    name: (identifier) @method_name
+  ) @method_decl @attr
+)
+",
+
+                _ => throw new NotSupportedException($"Unsupported language {lang}")
+            };
+        }
+
+        private static string NormalizeAnnotationName(string raw, Lang lang)
+        {
+            var s = raw.Trim();
+            if (lang is Lang.Java or Lang.TypeScript or Lang.JavaScript or Lang.Python)
+            {
+                if (s.StartsWith("@")) s = s[1..];
+            }
+            int lastDot = s.LastIndexOf('.');
+            if (lastDot >= 0 && lastDot < s.Length - 1) s = s[(lastDot + 1)..];
+            return s;
+        }
+
+        private static Node? NearestAncestor(Node node, Func<Node, bool> pred)
+        {
+            var cur = node;
+            while (cur.Parent != null)
+            {
+                cur = cur.Parent;
+                if (pred(cur)) return cur;
+            }
+            return null;
+        }
+
+        private static bool SharesAttributeFrame(Node a, Node b, Lang lang)
+        {
+            var A = NearestAncestor(a, n => n.Type == AttrNodeType(lang));
+            var B = NearestAncestor(b, n => n.Type == AttrNodeType(lang));
+            return A != null && B != null && ReferenceEquals(A, B);
+        }
+        #endregion
+
+        private void AddUnitTest(string fileName, int lineNumber, Dictionary<string, string> parameterValues, string methodName)
+        {
+            var unitTest = new UnitTestItem
+            {
+                UnitTestFunctionName = methodName,
+                UnitTestFileName = Path.GetFileName(fileName)
+            };
+            bool identified = false;
+
+            foreach (var info in information)
+            {
+                if (!parameterValues.TryGetValue(info.Key, out var value)) continue;
+
+                value = Unquote(value);
+                switch (info.Key)
+                {
+                    case "Purpose": unitTest.UnitTestPurpose = value; break;
+                    case "PostCondition": unitTest.UnitTestAcceptanceCriteria = value; break;
+                    case "Identifier": unitTest.ItemID = value; identified = true; break;
+                    case "TraceID": unitTest.AddLinkedItem(new ItemLink(value, ItemLinkType.UnitTests)); break;
+                    default: throw new Exception($"Unknown annotation identifier: {info.Key}");
+                }
+            }
+
+            if (!identified)
+                unitTest.ItemID = $"{unitTest.UnitTestFileName}:{lineNumber}";
+
+            if (gitRepo != null && !gitRepo.GetFileLocallyUpdated(fileName))
+            {
+                unitTest.ItemLastUpdated = gitRepo.GetFileLastUpdated(fileName);
+                unitTest.ItemRevision = gitRepo.GetFileVersion(fileName);
+            }
+            else
+            {
+                unitTest.ItemLastUpdated = File.GetLastWriteTime(fileName);
+                unitTest.ItemRevision = File.GetLastWriteTime(fileName).ToString("yyyy/MM/dd HH:mm:ss");
+            }
+
+            if (unitTests.Exists(x => x.ItemID == unitTest.ItemID))
+                throw new Exception($"Duplicate unit test identifier detected in {unitTest.UnitTestFileName} in the annotation starting on line {lineNumber}. Ensure all unit tests have a unique identifier.");
+
+            unitTests.Add(unitTest);
+        }
+
+        private static string Unquote(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return s;
+            s = s.Trim();
+
+            // Python triple-quoted strings: """...""" or '''...'''
+            if (s.Length >= 6 &&
+                ((s.StartsWith("\"\"\"") && s.EndsWith("\"\"\"")) ||
+                 (s.StartsWith("'''") && s.EndsWith("'''"))))
+            {
+                var inner = s.Substring(3, s.Length - 6);
+                return UnescapeCommon(inner);
+            }
+
+            // Regular single- or double-quoted strings
+            if (s.Length >= 2 && ((s[0] == '"' && s[^1] == '"') || (s[0] == '\'' && s[^1] == '\'')))
+            {
+                var inner = s.Substring(1, s.Length - 2);
+                return UnescapeCommon(inner);
+            }
+
+            return s;
+        }
+
+        private static string UnescapeCommon(string inner)
+        {
+            if (string.IsNullOrEmpty(inner)) return inner;
+            
+            var result = new StringBuilder(inner.Length);
+            
+            for (int i = 0; i < inner.Length; i++)
+            {
+                if (inner[i] == '\\' && i + 1 < inner.Length)
+                {
+                    char next = inner[i + 1];
+                    switch (next)
+                    {
+                        case '\\':
+                            result.Append('\\');
+                            i++; // Skip the next character
+                            break;
+                        case '"':
+                            result.Append('"');
+                            i++; // Skip the next character
+                            break;
+                        case '\'':
+                            result.Append('\'');
+                            i++; // Skip the next character
+                            break;
+                        case 'n':
+                            result.Append('\n');
+                            i++; // Skip the next character
+                            break;
+                        case 'r':
+                            result.Append('\r');
+                            i++; // Skip the next character
+                            break;
+                        case 't':
+                            result.Append('\t');
+                            i++; // Skip the next character
+                            break;
+                        default:
+                            // For unknown escape sequences, keep the backslash
+                            result.Append('\\');
+                            break;
+                    }
+                }
+                else
+                {
+                    result.Append(inner[i]);
+                }
+            }
+            
+            return result.ToString();
+        }
+
+        // Helper types
+        private sealed class AttrData
+        {
+            public string Name = string.Empty;
+            public int Line;
+            public List<(string Key, string Value)> Args = new();
+        }
+
+        private sealed class NodeRefComparer : IEqualityComparer<Node>
+        {
+            //public bool Equals(Node? x, Node? y) => ReferenceEquals(x, y);
+            public bool Equals(Node? x, Node? y) => x.Id == y.Id;
+            //public int GetHashCode(Node obj) => obj.GetHashCode();
+            public int GetHashCode(Node obj) => obj.Id.GetHashCode();
+        }
+
+        #region Config helpers
+        private void PopulateUTInfo(string tableName, TomlTable root)
+        {
+            if (!root.ContainsKey(tableName))
+                throw new Exception($"A required table \"{tableName}\" is missing from the {name}.toml configuration file. Cannot continue.");
+
+            var table = (TomlTable)root[tableName];
+            var info = new UTInformation();
+            try { info.FromToml(table); }
+            catch (Exception e) { throw new Exception($"{e.Message}\"{tableName}\""); }
+            information[tableName] = info;
+        }
+
+        private static HashSet<string> ReadNameList(TomlTable root, string key)
+        {
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (!root.ContainsKey(key)) return set;
+            if (root[key] is TomlArray arr)
+            {
+                foreach (var v in arr) if (v != null) set.Add(v.ToString());
+            }
+            else if (root[key] is string s)
+            {
+                foreach (var part in s.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
+                    set.Add(part.Trim());
+            }
+            return set;
+        }
+        #endregion
     }
 }
