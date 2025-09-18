@@ -323,24 +323,49 @@ namespace RoboClerk.AnnotatedUnitTests
 
                 // Python decorators: with args (keyword_argument) and bare
                 Lang.Python => @"
-; with args
+(
+  (decorated_definition
+    (decorator
+      (identifier) @attr_name              ; e.g., @test_decorator
+    ) @attr
+    (function_definition name: (identifier) @method_name) @method_decl
+  )
+)
+; dotted bare form: @pkg.decor
+(
+  (decorated_definition
+    (decorator
+      (attribute) @attr_name               ; dotted name node
+    ) @attr
+    (function_definition name: (identifier) @method_name) @method_decl
+  )
+)
 (
   (decorated_definition
     (decorator
       (call
         function: (_) @attr_name
-        (argument_list (keyword_argument name: (identifier) @arg_name value: (_) @arg_value)*)?
+        arguments: (argument_list)         ; may be empty: @name()
       )
-    )+
+    ) @attr
     (function_definition name: (identifier) @method_name) @method_decl
   )
 )
-; bare decorators
 (
   (decorated_definition
-    (decorator (_) @attr_name)+
-    (function_definition name: (identifier) @method_name) @method_decl
-  ) @attr
+    (decorator
+      (call
+        function: (_)
+        arguments: (argument_list
+          (keyword_argument
+            name: (identifier) @arg_name
+            value: (_) @arg_value
+          )
+        )
+      )
+    ) @attr
+    (function_definition name: (identifier)) @method_decl
+  )
 )
 ",
 
@@ -499,10 +524,11 @@ namespace RoboClerk.AnnotatedUnitTests
             if (string.IsNullOrWhiteSpace(s)) return s;
             s = s.Trim();
 
-            // Handle string literal prefixes (C#, TypeScript, etc.)
-            // Remove prefixes like @, $, @$, $@, u, r, f, etc.
+            // First, handle string literal prefixes for quoted strings
+            // This needs to happen before quote checking for cases like @"..." or $"..."
+            var originalString = s;
             s = RemoveStringLiteralPrefixes(s);
-
+            
             // Python triple-quoted strings: """...""" or '''...'''
             if (s.Length >= 6 &&
                 ((s.StartsWith("\"\"\"") && s.EndsWith("\"\"\"")) ||
@@ -519,6 +545,15 @@ namespace RoboClerk.AnnotatedUnitTests
                 return UnescapeCommon(inner);
             }
 
+            // If no quotes were found after prefix removal, but the original had prefixes,
+            // then this was likely not a string literal - return the original
+            if (!ReferenceEquals(originalString, s))
+            {
+                return originalString;
+            }
+
+            // If it's not a quoted string, return as-is
+            // This handles parameter names like "test_id" which should not be modified
             return s;
         }
 
@@ -528,11 +563,28 @@ namespace RoboClerk.AnnotatedUnitTests
 
             // Handle various string literal prefixes across languages:
             // C#: @"...", $"...", @$"...", $@"..."
-            // Python: r"...", u"...", f"...", b"...", fr"...", rf"...", etc.
-            // JavaScript/TypeScript: `...` (template literals)
+            // Python: r"...", u"...", f"...", b"...", fr"...", rf"..., etc.
+            // JavaScript/TypeScript: `...` (template literals don't have prefixes, but we handle them)
             
             int prefixEnd = 0;
             int length = s.Length;
+            bool foundQuote = false;
+
+            // First, scan to see if there's actually a quote character in the string
+            for (int i = 0; i < length; i++)
+            {
+                if (s[i] == '"' || s[i] == '\'' || s[i] == '`')
+                {
+                    foundQuote = true;
+                    break;
+                }
+            }
+
+            // If no quote found, this is not a string literal, return as-is
+            if (!foundQuote)
+            {
+                return s;
+            }
 
             // Find the end of any prefix characters before the quote
             while (prefixEnd < length)

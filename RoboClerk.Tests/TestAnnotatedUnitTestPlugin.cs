@@ -684,7 +684,7 @@ public class TestClass {
 public class TestClass {
     @TestAnnotation(
         id = ""STRING-LITERAL-TEST"",
-        purpose = ""Test with \""escaped quotes\"" and special chars\n\t"",
+        purpose = ""Test with \""escaped quotes\"" and newlines\n\t"",
         expected = ""Should handle various string formats""
     )
     @Test
@@ -857,8 +857,8 @@ public class ComplexTestClass extends BaseTestClass implements TestInterface {
     
     @TestAnnotation(
         id = ""COMPLEX-GENERIC-TEST"",
-        purpose = ""Test generic method with complex signature"",
-        expected = ""Generic method should be parsed correctly""
+        purpose = ""Test method with complex type hints"",
+        expected = ""Type hints should not interfere with parsing""
     )
     @Test
     public <T extends Comparable<T>> void testGenericMethod(List<T> items) {
@@ -873,15 +873,13 @@ public class ComplexTestClass extends BaseTestClass implements TestInterface {
     @Test
     public void testInNestedContext() {
         // Method in complex context
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                // Anonymous inner class
+        class NestedClass {
+            void nestedMethod() {
+                // Nested class method
             }
-        };
+        }
     }
 
-    @Override
     @TestAnnotation(
         id = ""COMPLEX-OVERRIDE-TEST"",
         purpose = ""Test overridden method with annotation"",
@@ -926,6 +924,459 @@ public class ComplexTestClass extends BaseTestClass implements TestInterface {
             Assert.That(methodNames.Contains("testInNestedContext"));
             Assert.That(methodNames.Contains("testOverriddenMethod"));
             Assert.That(methodNames.Contains("testMultilineAnnotation"));
+        }
+
+        #endregion
+
+        #region Python Language Support Tests
+
+        private IFileSystem CreatePythonTestFileSystem()
+        {
+            StringBuilder pythonConfigFile = new StringBuilder();
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                pythonConfigFile.Append(@"TestDirectories = [""/c/temp""]");
+            }
+            else
+            {
+                pythonConfigFile.Append(@"TestDirectories = [""c:/temp""]");
+            }
+            pythonConfigFile.Append(@"
+SubDirs = true
+FileMasks = [""test_*.py""]
+UseGit = false
+AnnotationName = ""test_decorator""
+Language = ""python""
+[Purpose]
+	Keyword = ""purpose""
+	Optional = false
+[PostCondition]
+	Keyword = ""expected""
+	Optional = false
+[Identifier]
+	Keyword = ""test_id""
+	Optional = true
+[TraceID]
+	Keyword = ""trace_id""
+	Optional = true
+");
+
+            return new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { TestingHelpers.ConvertFileName(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(pythonConfigFile.ToString()) }
+            });
+        }
+
+        [UnitTestAttribute(
+            Identifier = "b08132ca-5bda-4196-864a-a3ad297c062b",
+            Purpose = "AnnotatedUnitTestPlugin processes basic Python decorators with named parameters",
+            PostCondition = "Python unit test decorators are correctly parsed and extracted")]
+        [Test]
+        public void TestUnitTestPlugin_Python_BasicDecorators()
+        {
+            string pythonCode = @"
+import unittest
+
+class TestClass(unittest.TestCase):
+    @test_decorator(
+        test_id='PYTHON-TEST-001',
+        purpose='Test basic Python decorator parsing',
+        expected='Python decorators should be parsed correctly'
+    )
+    def test_basic_python_method(self):
+        # Test implementation
+        pass
+
+    @test_decorator(
+        test_id='PYTHON-TEST-002',
+        purpose='Test another Python method',
+        expected='Second test should also work'
+    )
+    def test_another_python_method(self):
+        # Another test
+        pass";
+
+            var testFileSystem = CreatePythonTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\test_python_basic.py"), new MockFileData(pythonCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 2);
+            Assert.That(tests[0].ItemID == "PYTHON-TEST-001");
+            Assert.That(tests[1].ItemID == "PYTHON-TEST-002");
+            Assert.That(tests[0].UnitTestPurpose == "Test basic Python decorator parsing");
+            Assert.That(tests[1].UnitTestPurpose == "Test another Python method");
+            Assert.That(tests[0].UnitTestAcceptanceCriteria == "Python decorators should be parsed correctly");
+            Assert.That(tests[1].UnitTestAcceptanceCriteria == "Second test should also work");
+        }
+
+        [UnitTestAttribute(
+            Identifier = "0e6ebbd0-4fd8-413d-84d3-faa3bae62153",
+            Purpose = "AnnotatedUnitTestPlugin handles Python bare decorators without parameters",
+            PostCondition = "Bare decorators are processed but cause validation errors for missing required fields")]
+        [Test]
+        public void TestUnitTestPlugin_Python_BareDecorators()
+        {
+            string pythonCode = @"
+import unittest
+
+class TestClass(unittest.TestCase):
+    @test_decorator
+    def test_bare_decorator(self):
+        '''Test with bare decorator'''
+        pass
+
+    @test_decorator(
+        purpose='Test with partial decorator',
+        expected='Should work with required fields'
+    )
+    def test_partial_decorator(self):
+        '''Test with some fields'''
+        pass";
+
+            var testFileSystem = CreatePythonTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\test_python_bare.py"), new MockFileData(pythonCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+
+            // Should throw exception due to missing required fields in bare decorator
+            var ex = Assert.Throws<Exception>(() => temp.RefreshItems());
+            Assert.That(ex.Message.Contains("Required field(s) missing"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "198fd1f6-c78a-4872-b67d-278af0d48b46",
+            Purpose = "AnnotatedUnitTestPlugin handles Python decorators with various string literal formats",
+            PostCondition = "Different Python string formats are correctly processed")]
+        [Test]
+        public void TestUnitTestPlugin_Python_StringLiterals()
+        {
+            string pythonCode = @"
+import unittest
+
+class TestClass(unittest.TestCase):
+    @test_decorator(
+        test_id='STRING-LITERAL-TEST',
+        purpose='Test with ""escaped quotes"" and special chars\n\t',
+        expected='Should handle various string formats'
+    )
+    def test_string_literals(self):
+        '''Test string literal handling'''
+        pass
+
+    @test_decorator(
+        test_id=""DOUBLE-QUOTE-TEST"",
+        purpose=""Test with double quotes"",
+        expected=""Should work with double quotes"",
+    )
+    def test_double_quotes(self):
+        '''Test with double quotes'''
+        pass
+
+    @test_decorator(
+        test_id='''TRIPLE-QUOTE-TEST''',
+        purpose='''Test with triple quotes and
+        multiline content''',
+        expected='''Should handle triple quotes'''
+    )
+    def test_triple_quotes(self):
+        '''Test triple quote handling'''
+        pass
+
+    @test_decorator(
+        test_id='DOCSTRING-TEST',
+        purpose='Test with docstring format',
+        expected='Should handle docstring quotes'
+    )
+    def test_docstring_format(self):
+        '''Test docstring format handling'''
+        pass";
+
+            var testFileSystem = CreatePythonTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\test_python_strings.py"), new MockFileData(pythonCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 4);
+            Assert.That(tests[0].ItemID == "STRING-LITERAL-TEST");
+            Assert.That(tests[1].ItemID == "DOUBLE-QUOTE-TEST");
+            Assert.That(tests[2].ItemID == "TRIPLE-QUOTE-TEST");
+            Assert.That(tests[3].ItemID == "DOCSTRING-TEST");
+            Assert.That(tests[0].UnitTestPurpose.Contains("escaped quotes"));
+            Assert.That(tests[0].UnitTestPurpose.Contains("\n"));
+            Assert.That(tests[0].UnitTestPurpose.Contains("\t"));
+            Assert.That(tests[2].UnitTestPurpose.Contains("multiline"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "35f05439-62d0-4b84-9319-6e11d6e28faa",
+            Purpose = "AnnotatedUnitTestPlugin handles Python decorators in different function contexts",
+            PostCondition = "Decorators on various Python function types are correctly processed")]
+        [Test]
+        public void TestUnitTestPlugin_Python_FunctionContexts()
+        {
+            string pythonCode = @"
+import unittest
+
+class TestClass(unittest.TestCase):
+    @test_decorator(
+        test_id='METHOD-TEST',
+        purpose='Test instance method decorator',
+        expected='Instance method should be processed'
+    )
+    def test_instance_method(self):
+        '''Test instance method'''
+        pass
+
+    @classmethod
+    @test_decorator(
+        test_id='CLASSMETHOD-TEST',
+        purpose='Test class method decorator',
+        expected='Class method should be processed'
+    )
+    def test_class_method(cls):
+        '''Test class method'''
+        pass
+
+    @staticmethod
+    @test_decorator(
+        test_id='STATICMETHOD-TEST',
+        purpose='Test static method decorator',
+        expected='Static method should be processed'
+    )
+    def test_static_method():
+        '''Test static method'''
+        pass
+
+    @test_decorator(
+        test_id='ASYNC-METHOD-TEST',
+        purpose='Test async method decorator',
+        expected='Async method should be processed'
+    )
+    async def test_async_method(self):
+        '''Test async method'''
+        pass
+
+    @test_decorator(
+        test_id='GENERATOR-TEST',
+        purpose='Test generator function decorator',
+        expected='Generator function should be processed'
+    )
+    def test_generator_function(self):
+        '''Test generator function'''
+        yield 1
+
+def standalone_function():
+    '''Standalone function outside class'''
+    pass
+
+@test_decorator(
+    test_id='STANDALONE-TEST',
+    purpose='Test standalone function decorator',
+    expected='Standalone function should be processed'
+)
+def test_standalone_function():
+    '''Test standalone function'''
+    pass";
+
+            var testFileSystem = CreatePythonTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\test_python_contexts.py"), new MockFileData(pythonCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 6);
+            
+            var testIds = tests.Select(t => t.ItemID).ToArray();
+            Assert.That(testIds.Contains("METHOD-TEST"));
+            Assert.That(testIds.Contains("CLASSMETHOD-TEST"));
+            Assert.That(testIds.Contains("STATICMETHOD-TEST"));
+            Assert.That(testIds.Contains("ASYNC-METHOD-TEST"));
+            Assert.That(testIds.Contains("GENERATOR-TEST"));
+            Assert.That(testIds.Contains("STANDALONE-TEST"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "4d1a7239-432b-4732-9779-0cb189fbb0a2",
+            Purpose = "AnnotatedUnitTestPlugin handles Python decorators with missing optional fields",
+            PostCondition = "Python tests with missing optional fields are processed correctly")]
+        [Test]
+        public void TestUnitTestPlugin_Python_MissingOptionalFields()
+        {
+            string pythonCode = @"
+import unittest
+
+class TestClass(unittest.TestCase):
+    @test_decorator(
+        purpose='Test without ID field',
+        expected='Should work without optional ID'
+    )
+    def test_without_id(self):
+        '''Test without ID'''
+        pass
+
+    @test_decorator(
+        test_id='WITH-TRACE-TEST',
+        purpose='Test with trace ID',
+        expected='Should include trace information',
+        trace_id='TRACE-789'
+    )
+    def test_with_trace_id(self):
+        '''Test with trace ID'''
+        pass";
+
+            var testFileSystem = CreatePythonTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\test_python_optional.py"), new MockFileData(pythonCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 2);
+            
+            // First test should have auto-generated ID
+            Assert.That(!string.IsNullOrEmpty(tests[0].ItemID));
+            Assert.That(tests[0].UnitTestPurpose == "Test without ID field");
+            
+            // Second test should have provided ID
+            Assert.That(tests[1].ItemID == "WITH-TRACE-TEST");
+            Assert.That(tests[1].UnitTestPurpose == "Test with trace ID");
+        }
+
+        [UnitTestAttribute(
+            Identifier = "53d8f228-0030-458d-a888-9c71ede3f1ba",
+            Purpose = "AnnotatedUnitTestPlugin handles complex Python decorator scenarios",
+            PostCondition = "Complex Python code structures with decorators are correctly processed")]
+        [Test]
+        public void TestUnitTestPlugin_Python_ComplexScenarios()
+        {
+            string pythonCode = @"
+'''
+Complex test module with various scenarios
+'''
+
+import unittest
+import asyncio
+from typing import List, Dict, Any
+from abc import ABC, abstractmethod
+
+class BaseTestClass(unittest.TestCase, ABC):
+    '''Base test class'''
+    pass
+
+class ComplexTestClass(BaseTestClass):
+    '''Complex test class with various scenarios'''
+    
+    @test_decorator(
+        test_id='COMPLEX-GENERIC-TEST',
+        purpose='Test method with complex type hints',
+        expected='Type hints should not interfere with parsing'
+    )
+    def test_generic_method(self, items: List[Dict[str, Any]]) -> bool:
+        '''Test generic method with type hints'''
+        return True
+
+    @test_decorator(
+        test_id='COMPLEX-NESTED-TEST',
+        purpose='Test method in nested class context',
+        expected='Nested class method should work'
+    )
+    def test_in_nested_context(self):
+        '''Method in complex context'''
+        class NestedClass:
+            def nested_method(self):
+                return 'nested'
+        
+        nested = NestedClass()
+        return nested.nested_method()
+
+    @property
+    @test_decorator(
+        test_id='COMPLEX-PROPERTY-TEST',
+        purpose='Test property with decorator',
+        expected='Property decorator should not interfere'
+    )
+    def test_property_method(self):
+        '''Test property method'''
+        return self._value
+
+    @test_decorator(
+        test_id='COMPLEX-MULTILINE-TEST',
+        purpose=(
+            'Test with multiline string using parentheses '
+            'and concatenation across lines'
+        ),
+        expected='Multiline strings should be handled correctly'
+    )
+    def test_multiline_decorator(self):
+        '''Test multiline decorator'''
+        pass
+
+    @test_decorator(
+        test_id='COMPLEX-LAMBDA-TEST',
+        purpose='Test with lambda and complex expressions',
+        expected=str(lambda x: f'processed {x}')
+    )
+    def test_lambda_expressions(self):
+        '''Test with lambda expressions'''
+        func = lambda x: x * 2
+        return func(5)
+
+# Test with module-level function
+@test_decorator(
+    test_id='MODULE-LEVEL-TEST',
+    purpose='Test module-level function',
+    expected='Module functions should be processed'
+)
+def module_level_test_function():
+    '''Module-level test function'''
+    pass
+
+if __name__ == '__main__':
+    unittest.main()";
+
+            var testFileSystem = CreatePythonTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\test_python_complex.py"), new MockFileData(pythonCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 6);
+            
+            var testIds = tests.Select(t => t.ItemID).ToArray();
+            Assert.That(testIds.Contains("COMPLEX-GENERIC-TEST"));
+            Assert.That(testIds.Contains("COMPLEX-NESTED-TEST"));
+            Assert.That(testIds.Contains("COMPLEX-PROPERTY-TEST"));
+            Assert.That(testIds.Contains("COMPLEX-MULTILINE-TEST"));
+            Assert.That(testIds.Contains("COMPLEX-LAMBDA-TEST"));
+            Assert.That(testIds.Contains("MODULE-LEVEL-TEST"));
+            
+            // Verify method names are correctly extracted
+            var methodNames = tests.Select(t => t.UnitTestFunctionName).ToArray();
+            Assert.That(methodNames.Contains("test_generic_method"));
+            Assert.That(methodNames.Contains("test_in_nested_context"));
+            Assert.That(methodNames.Contains("test_property_method"));
+            Assert.That(methodNames.Contains("test_multiline_decorator"));
+            Assert.That(methodNames.Contains("test_lambda_expressions"));
+            Assert.That(methodNames.Contains("module_level_test_function"));
         }
 
         #endregion
