@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using RoboClerk.Items;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -75,6 +76,10 @@ namespace RoboClerk
             else if (te.ID == "UnitTest")
             {
                 return GetAllUnitTests().Cast<LinkedItem>().ToList();
+            }
+            else if (te.ID == "TestResult")
+            {
+                return GetAllTestResults().Cast<LinkedItem>().ToList();
             }
             else if (te.ID == "Risk")
             {
@@ -248,6 +253,11 @@ namespace RoboClerk
             if ((idx = utest.FindIndex(o => o.ItemID == id)) >= 0)
             {
                 return utest[idx];
+            }
+            var testResults = GetAllTestResults();
+            if ((idx = testResults.FindIndex(o => o.ItemID == id)) >= 0)
+            {
+                return testResults[idx];
             }
             var anomalies = GetAllAnomalies();
             if ((idx = anomalies.FindIndex(o => o.ItemID == id)) >= 0)

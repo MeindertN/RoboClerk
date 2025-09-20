@@ -73,7 +73,7 @@ class TestClass {
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin is created using TreeSitter",
-        Identifier = "F1A2B3C4-D5E6-7890-AB12-CD34EF567890",
+        Identifier = "4d74ff03-bc34-40ac-ad23-f5150d8b71bc",
         PostCondition = "No exception is thrown")]
         [Test]
         public void TestUnitTestFNPlugin_Creation()
@@ -84,7 +84,7 @@ class TestClass {
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin extracts unit test information using TreeSitter and function mask parsing",
-        Identifier = "A1B2C3D4-E5F6-7890-1234-567890ABCDEF",
+        Identifier = "abcf064f-7078-41a0-a38e-ddd1d235d208",
         PostCondition = "Unit test information is correctly extracted using function name parsing")]
         [Test]
         public void TestUnitTestFNPlugin_ExtractTests()
@@ -112,7 +112,7 @@ class TestClass {
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin handles methods that don't match function mask correctly",
-        Identifier = "B2C3D4E5-F6A7-8901-2345-6789ABCDEF01",
+        Identifier = "afd65daa-bd37-4e5a-964a-558cf428f8ec",
         PostCondition = "Methods that don't match the function mask pattern are ignored")]
         [Test]
         public void TestUnitTestFNPlugin_IgnoreNonMatchingMethods()
@@ -148,7 +148,7 @@ class TestClass {
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin handles camelCase section separator correctly",
-        Identifier = "C3D4E5F6-A7B8-9012-3456-789ABCDEF012",
+        Identifier = "89065686-4147-46a3-b6ed-dd70ff94751e",
         PostCondition = "CamelCase function names are correctly parsed")]
         [Test]
         public void TestUnitTestFNPlugin_CamelCaseSeparator()
@@ -204,7 +204,7 @@ class TestClass {
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin handles missing configuration file gracefully",
-        Identifier = "D4E5F6A7-B8C9-0123-4567-89ABCDEF0123",
+        Identifier = "5c6ba4dc-ab2d-4071-84bc-095e877c75e3",
         PostCondition = "Exception is thrown with appropriate error message")]
         [Test]
         public void TestUnitTestFNPlugin_MissingConfigFile()
@@ -222,7 +222,7 @@ class TestClass {
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin handles invalid function mask correctly",
-        Identifier = "E5F6A7B8-C9D0-1234-5678-9ABCDEF01234",
+        Identifier = "4ed831a6-687a-4b27-b27c-510bc6abc614",
         PostCondition = "Exception is thrown for invalid function mask")]
         [Test]
         public void TestUnitTestFNPlugin_InvalidFunctionMask()
@@ -263,7 +263,7 @@ SectionSeparator = ""_""
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin processes Java methods correctly with TreeSitter",
-        Identifier = "12345678-1234-1234-1234-123456789ABC",
+        Identifier = "d3573677-c17d-4623-9172-daaaff2abe9b",
         PostCondition = "Java unit test methods are correctly extracted and parsed")]
         [Test]
         public void TestUnitTestFNPlugin_Java_ExtractTests()
@@ -329,7 +329,7 @@ public class TestClass {
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin processes Python functions correctly with TreeSitter",
-        Identifier = "23456789-2345-2345-2345-23456789ABCD",
+        Identifier = "eb8c82b5-67c9-41d5-a34e-69bceea47e81",
         PostCondition = "Python unit test functions are correctly extracted and parsed")]
         [Test]
         public void TestUnitTestFNPlugin_Python_ExtractTests()
@@ -404,7 +404,7 @@ def standalone_test_function_VERIFIES_standalone_functions_work():
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin processes TypeScript methods correctly with TreeSitter",
-        Identifier = "3456789A-3456-3456-3456-3456789ABCDE",
+        Identifier = "ba48f80c-dbb9-4089-87a4-99382bf75a44",
         PostCondition = "TypeScript unit test methods are correctly extracted and parsed")]
         [Test]
         public void TestUnitTestFNPlugin_TypeScript_ExtractTests()
@@ -482,7 +482,7 @@ function standalone_ts_function_VERIFIES_standalone_ts_functions_work(): void {
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin processes JavaScript methods correctly with TreeSitter",
-        Identifier = "456789AB-4567-4567-4567-456789ABCDEF",
+        Identifier = "c0e075b4-6408-4445-9842-036de8e3d430",
         PostCondition = "JavaScript unit test methods are correctly extracted and parsed")]
         [Test]
         public void TestUnitTestFNPlugin_JavaScript_ExtractTests()
@@ -560,7 +560,7 @@ function standalone_js_function_VERIFIES_standalone_js_functions_work() {
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin handles complex function masks with IDENTIFIER and TRACEID elements",
-        Identifier = "56789ABC-5678-5678-5678-56789ABCDEF0",
+        Identifier = "61d4f6a4-4691-404b-ac54-944299cd7924",
         PostCondition = "Complex function masks with all element types are correctly parsed")]
         [Test]
         public void TestUnitTestFNPlugin_ComplexFunctionMask()
@@ -629,7 +629,7 @@ class TestClass {
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin handles function masks with IGNORE elements correctly",
-        Identifier = "6789ABCD-6789-6789-6789-6789ABCDEF01",
+        Identifier = "9e2a5e54-a646-409e-8216-891ec32fa9fc",
         PostCondition = "Function masks with IGNORE elements skip specified parts correctly")]
         [Test]
         public void TestUnitTestFNPlugin_IgnoreElements()
@@ -695,7 +695,7 @@ class TestClass {
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin handles different section separators for various languages",
-        Identifier = "789ABCDE-7890-7890-7890-789ABCDEF012",
+        Identifier = "291cddda-281c-4a15-ad82-c965092906ff",
         PostCondition = "Different section separators work correctly for each language")]
         [Test]
         public void TestUnitTestFNPlugin_DifferentSeparators()

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using System.IO;
+using RoboClerk.Items;
 
 namespace RoboClerk.Tests
 {

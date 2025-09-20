@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.Scripting;
 using RoboClerk.Configuration;
+using RoboClerk.Items;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,14 +30,14 @@ namespace RoboClerk.ContentCreators
                 bool found = false;
                 foreach (var result in results)
                 {
-                    if ( (result.Type == TestResultType.SYSTEM && result.ID == item.ItemID) || 
-                         (item.TestCaseToUnitTest && result.Type == TestResultType.UNIT && 
-                          item.LinkedItems.Any(o => o.LinkType == ItemLinkType.UnitTest && o.TargetID == result.ID)) )
+                    if ( (result.ResultType == TestResultType.SYSTEM && result.TestID == item.ItemID) || 
+                         (item.TestCaseToUnitTest && result.ResultType == TestResultType.UNIT && 
+                          item.LinkedItems.Any(o => o.LinkType == ItemLinkType.UnitTest && o.TargetID == result.TestID)) )
                     {
                         found = true;
-                        if (result.Status == TestResultStatus.FAIL)
+                        if (result.ResultStatus == TestResultStatus.FAIL)
                         {
-                            errors.AppendLine($"* Test with ID \"{result.ID}\" has failed.");
+                            errors.AppendLine($"* Test with ID \"{result.TestID}\" has failed.");
                             errorsFound = true;
                         }
                         break;
@@ -51,12 +52,12 @@ namespace RoboClerk.ContentCreators
             }
             foreach (var result in results)
             {
-                if (result.Type != TestResultType.SYSTEM)
+                if (result.ResultType != TestResultType.SYSTEM)
                     continue;
                 bool found = false;
                 foreach (var item in items)
                 {
-                    if (((SoftwareSystemTestItem)item).TestCaseAutomated && result.ID == item.ItemID)
+                    if (((SoftwareSystemTestItem)item).TestCaseAutomated && result.TestID == item.ItemID)
                     {
                         found = true;
                         break;
@@ -65,7 +66,7 @@ namespace RoboClerk.ContentCreators
                 if (!found)
                 {
                     errorsFound = true;
-                    errors.AppendLine($"* Result for test with ID \"{result.ID}\" found, but test plan does not contain such an automated test.");
+                    errors.AppendLine($"* Result for test with ID \"{result.TestID}\" found, but test plan does not contain such an automated test.");
                 }
             }
             if (errorsFound)

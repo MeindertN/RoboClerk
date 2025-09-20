@@ -57,6 +57,7 @@ namespace RoboClerk
                 allItems.AddRange(plugin.GetRisks().Cast<LinkedItem>());
                 allItems.AddRange(plugin.GetSOUP().Cast<LinkedItem>());
                 allItems.AddRange(plugin.GetUnitTests().Cast<LinkedItem>());
+                allItems.AddRange(plugin.GetTestResults().Cast<LinkedItem>());
             }
 
             return allItems;
@@ -118,6 +119,8 @@ namespace RoboClerk
                 ItemLinkType.DocumentedBy => ItemLinkType.DOC,
                 ItemLinkType.UnitTest => ItemLinkType.UnitTests,
                 ItemLinkType.UnitTests => ItemLinkType.UnitTest,
+                ItemLinkType.ResultOf => ItemLinkType.Result, // Test result is result of test -> Test has a result
+                ItemLinkType.Result => ItemLinkType.ResultOf, // Test has a result -> Test result is result of test
                 ItemLinkType.Related => ItemLinkType.Related, // Related is bidirectional
                 ItemLinkType.Duplicate => ItemLinkType.Duplicate, // Duplicate is bidirectional
                 ItemLinkType.None => ItemLinkType.None,

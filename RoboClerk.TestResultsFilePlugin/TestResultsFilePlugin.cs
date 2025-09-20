@@ -1,4 +1,5 @@
 ﻿using RoboClerk.Configuration;
+using RoboClerk.Items;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Text.Json;
@@ -64,7 +65,7 @@ namespace RoboClerk.TestResultsFilePlugin
                         if (string.IsNullOrEmpty(result.ID))
                             throw new JsonException("The 'id' field is required.");
 
-                        testResults.Add(new TestResult(result.ID,result.Type,result.Status,result.Name,result.Message,result.ExecutionTime ?? DateTime.MinValue));
+                        testResults.Add(new TestResult(result.ID, result.Type, result.Status, result.Name, result.Message, result.ExecutionTime ?? DateTime.MinValue));
                     }
                 }
                 catch (JsonException)

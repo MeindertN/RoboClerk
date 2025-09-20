@@ -92,16 +92,6 @@ UseGit = false";
         }
 
         [UnitTestAttribute(
-        Identifier = "C4FC7062-B3F4-4EDE-A902-3CC936E0E088",
-        Purpose = "",
-        PostCondition = "")]
-        [Test]
-        public void TestEmptyAnnotationFields()
-        {
-            var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
-        }
-
-        [UnitTestAttribute(
         Identifier = "B73B72B4-628A-42B9-A7F6-8AA24775CD9C",
         Purpose = "SourceCodeAnalysisPlugin is created and initialized",
         PostCondition = "Expected values are set")]

@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.Scripting;
 using RoboClerk.Configuration;
+using RoboClerk.Items;
 using System.Collections.Generic;
 using System.Text;
 
@@ -23,12 +24,12 @@ namespace RoboClerk.ContentCreators
                 bool found = false;
                 foreach (var result in results)
                 {
-                    if (result.Type == TestResultType.UNIT && result.ID == item.ItemID)
+                    if (result.ResultType == TestResultType.UNIT && result.TestID == item.ItemID)
                     {
                         found = true;
-                        if (result.Status == TestResultStatus.FAIL)
+                        if (result.ResultStatus == TestResultStatus.FAIL)
                         {
-                            errors.AppendLine($"* Unit test with ID \"{result.ID}\" has failed.");
+                            errors.AppendLine($"* Unit test with ID \"{result.TestID}\" has failed.");
                             errorsFound = true;
                         }
                         break;
@@ -42,12 +43,12 @@ namespace RoboClerk.ContentCreators
             }
             foreach (var result in results)
             {
-                if (result.Type != TestResultType.UNIT)
+                if (result.ResultType != TestResultType.UNIT)
                     continue;
                 bool found = false;
                 foreach (var item in items)
                 {
-                    if (result.ID == item.ItemID)
+                    if (result.TestID == item.ItemID)
                     {
                         found = true;
                         break;
@@ -56,7 +57,7 @@ namespace RoboClerk.ContentCreators
                 if (!found)
                 {
                     errorsFound = true;
-                    errors.AppendLine($"* Result for unit test with ID \"{result.ID}\" found, but test plan does not contain such a unit test.");
+                    errors.AppendLine($"* Result for unit test with ID \"{result.TestID}\" found, but test plan does not contain such a unit test.");
                 }
             }
             if (errorsFound)

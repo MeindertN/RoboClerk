@@ -7,6 +7,7 @@ using RoboClerk.ContentCreators;
 using System;
 using System.Text.RegularExpressions;
 using System.IO;
+using RoboClerk.Items;
 
 namespace RoboClerk.Tests
 {
@@ -237,7 +238,8 @@ namespace RoboClerk.Tests
             var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
 
-            results[0].Status = TestResultStatus.FAIL;
+            // Replace the first result with a failed test result instead of trying to modify the read-only property
+            results[0] = new TestResult("tcid1", TestResultType.SYSTEM, TestResultStatus.FAIL, "the first test", "all bad", DateTime.Now);
             SoftwareSystemTestItem testcaseItem = new SoftwareSystemTestItem();
             testcaseItem.ItemID = "tcid3";
             testcaseItem.ItemRevision = "tcrev3";
