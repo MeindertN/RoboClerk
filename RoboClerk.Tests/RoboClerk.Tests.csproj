@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\RoboClerk.AnnotatedUnitTests\RoboClerk.AnnotatedUnitTests.csproj" />
     <ProjectReference Include="..\RoboClerk.Redmine\RoboClerk.Redmine.csproj" />
+    <ProjectReference Include="..\RoboClerk.UnitTestFN\RoboClerk.UnitTestFN.csproj" />
     <ProjectReference Include="..\RoboClerk\RoboClerk.csproj" />
   </ItemGroup>
 	<!-- The below is necesary due to a bug in the treesitter.dotnet package related to the dll entrypoint which uses an c_sharp instead of c-sharp -->
