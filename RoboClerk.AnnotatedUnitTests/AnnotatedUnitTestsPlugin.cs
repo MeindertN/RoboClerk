@@ -369,50 +369,110 @@ namespace RoboClerk.AnnotatedUnitTests
 )
 ",
 
-                // TypeScript/JavaScript decorators on class methods. Named args via object literal pairs.
+                // TypeScript/JavaScript decorators on class methods. Separated patterns to avoid duplicate methods.
                 Lang.TypeScript or Lang.JavaScript => @"
-; call-form with object literal pairs
+; ---------- D0: nearest call-form decorator ----------
 (
-  (method_definition
+  (class_body
     (decorator
       (call_expression
         function: (_) @attr_name
         arguments: (arguments
           (object
-            (pair key: (property_identifier) @arg_name value: (_) @arg_value)*
+            (pair
+              key:   (property_identifier) @arg_name
+              value: (_)                  @arg_value
+            )
           )
-        )?
+        )
       )
-    )+
-    name: (property_identifier) @method_name
-  ) @method_decl @attr
+    ) @attr .
+    (method_definition name: (_) @method_name) @method_decl
+  )
 )
-; bare decorator
+
+; ---------- D1: one above the nearest ----------
 (
-  (method_definition
-    (decorator (_) @attr_name)+
-    name: (property_identifier) @method_name
-  ) @method_decl @attr
-)
-; Identifier alt for some TS grammars
-(
-  (method_definition
+  (class_body
     (decorator
       (call_expression
         function: (_) @attr_name
         arguments: (arguments
-          (object (pair key: (property_identifier) @arg_name value: (_) @arg_value)*)
-        )?
+          (object
+            (pair
+              key:   (property_identifier) @arg_name
+              value: (_)                  @arg_value
+            )
+          )
+        )
       )
-    )+
-    name: (identifier) @method_name
-  ) @method_decl @attr
+    ) @attr .
+    (decorator (call_expression)) .                                   
+    (method_definition name: (_) @method_name) @method_decl
+  )
 )
+
+; ---------- D2: two above the nearest ----------
 (
-  (method_definition
-    (decorator (_) @attr_name)+
-    name: (identifier) @method_name
-  ) @method_decl @attr
+  (class_body
+    (decorator
+      (call_expression
+        function: (_) @attr_name
+        arguments: (arguments
+          (object
+            (pair
+              key:   (property_identifier) @arg_name
+              value: (_)                  @arg_value
+            )
+          )
+        )
+      )
+    ) @attr .
+    (decorator (call_expression)) .
+    (decorator (call_expression)) .                                  
+    (method_definition name: (_) @method_name) @method_decl
+  )
+)
+; ---------- D0: nearest call-form decorator — NO ARGS ----------
+(
+  (class_body
+    (decorator
+      (call_expression
+        function: (_) @attr_name
+        arguments: (arguments) @args_empty
+      )
+    ) @attr .
+    (method_definition name: (_) @method_name) @method_decl
+  )
+)
+
+; ---------- D1: one above the nearest — NO ARGS ----------
+(
+  (class_body
+    (decorator
+      (call_expression
+        function: (_) @attr_name
+        arguments: (arguments) @args_empty
+      )
+    ) @attr .
+    (decorator (call_expression)) .
+    (method_definition name: (_) @method_name) @method_decl
+  )
+)
+
+; ---------- D2: two above the nearest — NO ARGS ----------
+(
+  (class_body
+    (decorator
+      (call_expression
+        function: (_) @attr_name
+        arguments: (arguments) @args_empty
+      )
+    ) @attr .
+    (decorator (call_expression)) .
+    (decorator (call_expression)) .
+    (method_definition name: (_) @method_name) @method_decl
+  )
 )
 ",
 
@@ -538,8 +598,11 @@ namespace RoboClerk.AnnotatedUnitTests
                 return UnescapeCommon(inner);
             }
 
-            // Regular single- or double-quoted strings
-            if (s.Length >= 2 && ((s[0] == '"' && s[^1] == '"') || (s[0] == '\'' && s[^1] == '\'')))
+            // Regular single-, double-quoted, or template literal strings
+            if (s.Length >= 2 && 
+                ((s[0] == '"' && s[^1] == '"') || 
+                 (s[0] == '\'' && s[^1] == '\'') || 
+                 (s[0] == '`' && s[^1] == '`')))
             {
                 var inner = s.Substring(1, s.Length - 2);
                 return UnescapeCommon(inner);
@@ -562,7 +625,7 @@ namespace RoboClerk.AnnotatedUnitTests
             if (string.IsNullOrEmpty(s)) return s;
 
             // Handle various string literal prefixes across languages:
-            // C#: @"...", $"...", @$"...", $@"..."
+            // C#: @"...", $"...", @$"...", $@"...
             // Python: r"...", u"...", f"...", b"...", fr"...", rf"..., etc.
             // JavaScript/TypeScript: `...` (template literals don't have prefixes, but we handle them)
             
@@ -695,22 +758,6 @@ namespace RoboClerk.AnnotatedUnitTests
             try { info.FromToml(table); }
             catch (Exception e) { throw new Exception($"{e.Message}\"{tableName}\""); }
             information[tableName] = info;
-        }
-
-        private static HashSet<string> ReadNameList(TomlTable root, string key)
-        {
-            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            if (!root.ContainsKey(key)) return set;
-            if (root[key] is TomlArray arr)
-            {
-                foreach (var v in arr) if (v != null) set.Add(v.ToString());
-            }
-            else if (root[key] is string s)
-            {
-                foreach (var part in s.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
-                    set.Add(part.Trim());
-            }
-            return set;
         }
         #endregion
     }

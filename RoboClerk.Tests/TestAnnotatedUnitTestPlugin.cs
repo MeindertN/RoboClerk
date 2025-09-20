@@ -1086,7 +1086,7 @@ class TestClass(unittest.TestCase):
         expected='''Should handle triple quotes'''
     )
     def test_triple_quotes(self):
-        '''Test triple quote handling'''
+        '''Test docstring format handling'''
         pass
 
     @test_decorator(
@@ -1377,6 +1377,593 @@ if __name__ == '__main__':
             Assert.That(methodNames.Contains("test_multiline_decorator"));
             Assert.That(methodNames.Contains("test_lambda_expressions"));
             Assert.That(methodNames.Contains("module_level_test_function"));
+        }
+
+        #endregion
+
+        #region TypeScript/JavaScript Language Support Tests
+
+        private IFileSystem CreateTypeScriptTestFileSystem()
+        {
+            StringBuilder tsConfigFile = new StringBuilder();
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                tsConfigFile.Append(@"TestDirectories = [""/c/temp""]");
+            }
+            else
+            {
+                tsConfigFile.Append(@"TestDirectories = [""c:/temp""]");
+            }
+            tsConfigFile.Append(@"
+SubDirs = true
+FileMasks = [""*.test.ts"", ""*.spec.ts""]
+UseGit = false
+AnnotationName = ""TestDecorator""
+Language = ""typescript""
+[Purpose]
+	Keyword = ""description""
+	Optional = false
+[PostCondition]
+	Keyword = ""expected""
+	Optional = false
+[Identifier]
+	Keyword = ""testId""
+	Optional = true
+[TraceID]
+	Keyword = ""traceId""
+	Optional = true
+");
+
+            return new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { TestingHelpers.ConvertFileName(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(tsConfigFile.ToString()) }
+            });
+        }
+
+        private IFileSystem CreateJavaScriptTestFileSystem()
+        {
+            StringBuilder jsConfigFile = new StringBuilder();
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                jsConfigFile.Append(@"TestDirectories = [""/c/temp""]");
+            }
+            else
+            {
+                jsConfigFile.Append(@"TestDirectories = [""c:/temp""]");
+            }
+            jsConfigFile.Append(@"
+SubDirs = true
+FileMasks = [""*.test.js"", ""*.spec.js""]
+UseGit = false
+AnnotationName = ""TestDecorator""
+Language = ""javascript""
+[Purpose]
+	Keyword = ""description""
+	Optional = false
+[PostCondition]
+	Keyword = ""expected""
+	Optional = false
+[Identifier]
+	Keyword = ""testId""
+	Optional = true
+[TraceID]
+	Keyword = ""traceId""
+	Optional = true
+");
+
+            return new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { TestingHelpers.ConvertFileName(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(jsConfigFile.ToString()) }
+            });
+        }
+
+        [UnitTestAttribute(
+            Identifier = "e5754768-466f-496e-9755-3e6531884fc8",
+            Purpose = "AnnotatedUnitTestPlugin processes basic TypeScript decorators with named parameters",
+            PostCondition = "TypeScript unit test decorators are correctly parsed and extracted")]
+        [Test]
+        public void TestUnitTestPlugin_TypeScript_BasicDecorators()
+        {
+            string typeScriptCode = @"
+import { describe, test, expect } from '@jest/globals';
+
+class TestClass {
+    @TestDecorator({
+        testId: 'TS-TEST-001',
+        description: 'Test basic TypeScript decorator parsing',
+        expected: 'TypeScript decorators should be parsed correctly'
+    })
+    testBasicTypeScriptMethod(): void {
+        // Test implementation
+        expect(true).toBe(true);
+    }
+
+    @TestDecorator({
+        testId: 'TS-TEST-002',
+        description: 'Test another TypeScript method',
+        expected: 'Second test should also work'
+    })
+    testAnotherTypeScriptMethod(): boolean {
+        // Another test
+        return true;
+    }
+}";
+
+            var testFileSystem = CreateTypeScriptTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\basic.test.ts"), new MockFileData(typeScriptCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 2);
+            Assert.That(tests[0].ItemID == "TS-TEST-001");
+            Assert.That(tests[1].ItemID == "TS-TEST-002");
+            Assert.That(tests[0].UnitTestPurpose == "Test basic TypeScript decorator parsing");
+            Assert.That(tests[1].UnitTestPurpose == "Test another TypeScript method");
+            Assert.That(tests[0].UnitTestAcceptanceCriteria == "TypeScript decorators should be parsed correctly");
+            Assert.That(tests[1].UnitTestAcceptanceCriteria == "Second test should also work");
+        }
+
+        [UnitTestAttribute(
+            Identifier = "be3f875b-d5e1-4673-adb3-e46ca5b92ee0",
+            Purpose = "AnnotatedUnitTestPlugin processes basic JavaScript decorators with named parameters",
+            PostCondition = "JavaScript unit test decorators are correctly parsed and extracted")]
+        [Test]
+        public void TestUnitTestPlugin_JavaScript_BasicDecorators()
+        {
+            string javaScriptCode = @"
+const { describe, test, expect } = require('@jest/globals');
+
+class TestClass {
+    @TestDecorator({
+        testId: 'JS-TEST-001',
+        description: 'Test basic JavaScript decorator parsing',
+        expected: 'JavaScript decorators should be parsed correctly'
+    })
+    testBasicJavaScriptMethod() {
+        // Test implementation
+        expect(true).toBe(true);
+    }
+
+    @TestDecorator({
+        testId: 'JS-TEST-002',
+        description: 'Test another JavaScript method',
+        expected: 'Second test should also work'
+    })
+    testAnotherJavaScriptMethod() {
+        // Another test
+        return true;
+    }
+}";
+
+            var testFileSystem = CreateJavaScriptTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\basic.test.js"), new MockFileData(javaScriptCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 2);
+            Assert.That(tests[0].ItemID == "JS-TEST-001");
+            Assert.That(tests[1].ItemID == "JS-TEST-002");
+            Assert.That(tests[0].UnitTestPurpose == "Test basic JavaScript decorator parsing");
+            Assert.That(tests[1].UnitTestPurpose == "Test another JavaScript method");
+            Assert.That(tests[0].UnitTestAcceptanceCriteria == "JavaScript decorators should be parsed correctly");
+            Assert.That(tests[1].UnitTestAcceptanceCriteria == "Second test should also work");
+        }
+
+        [UnitTestAttribute(
+            Identifier = "9df80f8e-9257-48af-8ddc-be360e4157bf",
+            Purpose = "AnnotatedUnitTestPlugin handles TypeScript decorators with various string literal formats",
+            PostCondition = "Different TypeScript string formats are correctly processed")]
+        [Test]
+        public void TestUnitTestPlugin_TypeScript_StringLiterals()
+        {
+            string typeScriptCode = @"
+class TestClass {
+    @TestDecorator({
+        testId: 'STRING-LITERAL-TEST',
+        description: 'Test with ""escaped quotes"" and special chars\n\t',
+        expected: 'Should handle various string formats'
+    })
+    testStringLiterals(): void {
+        // Test string literal handling
+    }
+
+    @TestDecorator({
+        testId: ""DOUBLE-QUOTE-TEST"",
+        description: ""Test with double quotes"",
+        expected: ""Should work with double quotes""
+    })
+    testDoubleQuotes(): void {
+        // Test with double quotes
+    }
+
+    @TestDecorator({
+        testId: `TEMPLATE-LITERAL-TEST`,
+        description: `Test with template literals and ${`nested`} expressions`,
+        expected: `Should handle template literals`
+    })
+    testTemplateLiterals(): void {
+        // Test template literal handling
+    }
+
+    @TestDecorator({
+        testId: 'MULTILINE-TEST',
+        description: 'Test with ' +
+                    'string concatenation',
+        expected: 'Should handle concatenated strings'
+    })
+    testMultilineStrings(): void {
+        // Test multiline string handling
+    }
+}";
+
+            var testFileSystem = CreateTypeScriptTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\strings.test.ts"), new MockFileData(typeScriptCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 4);
+            Assert.That(tests[0].ItemID == "STRING-LITERAL-TEST");
+            Assert.That(tests[1].ItemID == "DOUBLE-QUOTE-TEST");
+            Assert.That(tests[2].ItemID == "TEMPLATE-LITERAL-TEST");
+            Assert.That(tests[3].ItemID == "MULTILINE-TEST");
+            Assert.That(tests[0].UnitTestPurpose.Contains("escaped quotes"));
+            Assert.That(tests[0].UnitTestPurpose.Contains("\n"));
+            Assert.That(tests[0].UnitTestPurpose.Contains("\t"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "27a0c4f4-2190-4237-a7a0-234d8c549168",
+            Purpose = "AnnotatedUnitTestPlugin handles TypeScript decorators in different method contexts",
+            PostCondition = "Decorators on various TypeScript method types are correctly processed")]
+        [Test]
+        public void TestUnitTestPlugin_TypeScript_MethodContexts()
+        {
+            string typeScriptCode = @"
+interface ITestInterface {
+    interfaceMethod(): void;
+}
+
+abstract class BaseTestClass {
+    abstract abstractMethod(): void;
+}
+
+class TestClass extends BaseTestClass implements ITestInterface {
+    
+    @TestDecorator({
+        testId: 'PUBLIC-METHOD-TEST',
+        description: 'Test public method decorator',
+        expected: 'Public method should be processed'
+    })
+    public testPublicMethod(): void {
+        // Public test method
+    }
+
+    @TestDecorator({
+        testId: 'PRIVATE-METHOD-TEST',
+        description: 'Test private method decorator',
+        expected: 'Private method should be processed'
+    })
+    private testPrivateMethod(): void {
+        // Private test method
+    }
+
+    @TestDecorator({
+        testId: 'STATIC-METHOD-TEST',
+        description: 'Test static method decorator',
+        expected: 'Static method should be processed'
+    })
+    static testStaticMethod(): void {
+        // Static test method
+    }
+
+    @TestDecorator({
+        testId: 'ASYNC-METHOD-TEST',
+        description: 'Test async method decorator',
+        expected: 'Async method should be processed'
+    })
+    async testAsyncMethod(): Promise<void> {
+        // Async test method
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    @TestDecorator({
+        testId: 'GENERIC-METHOD-TEST',
+        description: 'Test generic method decorator',
+        expected: 'Generic method should be processed'
+    })
+    testGenericMethod<T>(item: T): T {
+        // Generic test method
+        return item;
+    }
+
+    @TestDecorator({
+        testId: 'ABSTRACT-IMPL-TEST',
+        description: 'Test abstract method implementation',
+        expected: 'Abstract implementation should be processed'
+    })
+    abstractMethod(): void {
+        // Abstract method implementation
+    }
+
+    @TestDecorator({
+        testId: 'INTERFACE-IMPL-TEST',
+        description: 'Test interface method implementation',
+        expected: 'Interface implementation should be processed'
+    })
+    interfaceMethod(): void {
+        // Interface method implementation
+    }
+}";
+
+            var testFileSystem = CreateTypeScriptTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\contexts.test.ts"), new MockFileData(typeScriptCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 7);
+            
+            var testIds = tests.Select(t => t.ItemID).ToArray();
+            Assert.That(testIds.Contains("PUBLIC-METHOD-TEST"));
+            Assert.That(testIds.Contains("PRIVATE-METHOD-TEST"));
+            Assert.That(testIds.Contains("STATIC-METHOD-TEST"));
+            Assert.That(testIds.Contains("ASYNC-METHOD-TEST"));
+            Assert.That(testIds.Contains("GENERIC-METHOD-TEST"));
+            Assert.That(testIds.Contains("ABSTRACT-IMPL-TEST"));
+            Assert.That(testIds.Contains("INTERFACE-IMPL-TEST"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "ffbac816-12d1-4dde-8e86-460b0428a79e",
+            Purpose = "AnnotatedUnitTestPlugin handles JavaScript bare decorators without parameters",
+            PostCondition = "Bare decorators are processed but cause validation errors for missing required fields")]
+        [Test]
+        public void TestUnitTestPlugin_JavaScript_BareDecorators()
+        {
+            string javaScriptCode = @"
+class TestClass {
+    @TestDecorator()
+    testBareDecorator() {
+        // Test with bare decorator
+    }
+
+    @TestDecorator({
+        description: 'Test with partial decorator',
+        expected: 'Should work with required fields'
+    })
+    testPartialDecorator() {
+        // Test with some fields
+    }
+}";
+
+            var testFileSystem = CreateJavaScriptTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\bare.test.js"), new MockFileData(javaScriptCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+
+            // Should throw exception due to missing required fields in bare decorator
+            var ex = Assert.Throws<Exception>(() => temp.RefreshItems());
+            Assert.That(ex.Message.Contains("Required field(s) missing"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "de4a45e7-ce59-410f-8720-ef4a3326ec7c",
+            Purpose = "AnnotatedUnitTestPlugin handles TypeScript decorators with missing optional fields",
+            PostCondition = "TypeScript tests with missing optional fields are processed correctly")]
+        [Test]
+        public void TestUnitTestPlugin_TypeScript_MissingOptionalFields()
+        {
+            string typeScriptCode = @"
+class TestClass {
+    @TestDecorator({
+        description: 'Test without ID field',
+        expected: 'Should work without optional ID'
+    })
+    testWithoutId(): void {
+        // Test without ID
+    }
+
+    @TestDecorator({
+        testId: 'WITH-TRACE-TEST',
+        description: 'Test with trace ID',
+        expected: 'Should include trace information',
+        traceId: 'TRACE-999'
+    })
+    testWithTraceId(): void {
+        // Test with trace ID
+    }
+}";
+
+            var testFileSystem = CreateTypeScriptTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\optional.test.ts"), new MockFileData(typeScriptCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 2);
+            
+            // First test should have auto-generated ID
+            Assert.That(!string.IsNullOrEmpty(tests[0].ItemID));
+            Assert.That(tests[0].UnitTestPurpose == "Test without ID field");
+            
+            // Second test should have provided ID
+            Assert.That(tests[1].ItemID == "WITH-TRACE-TEST");
+            Assert.That(tests[1].UnitTestPurpose == "Test with trace ID");
+        }
+
+        [UnitTestAttribute(
+            Identifier = "8968846e-762a-49b2-b7ca-1e928594594e",
+            Purpose = "AnnotatedUnitTestPlugin handles complex TypeScript decorator scenarios",
+            PostCondition = "Complex TypeScript code structures with decorators are correctly processed")]
+        [Test]
+        public void TestUnitTestPlugin_TypeScript_ComplexScenarios()
+        {
+            string typeScriptCode = @"
+import { describe, test, expect } from '@jest/globals';
+
+// Type definitions and interfaces
+interface TestResult<T> {
+    success: boolean;
+    data: T;
+    error?: string;
+}
+
+type AsyncFunction<T> = () => Promise<T>;
+
+// Generic constraints and utility types
+type NonNullable<T> = T extends null | undefined ? never : T;
+
+/**
+ * Complex test class with various TypeScript scenarios
+ */
+class ComplexTestClass {
+    
+    @TestDecorator({
+        testId: 'COMPLEX-GENERIC-TEST',
+        description: 'Test method with complex generic constraints',
+        expected: 'Generic constraints should not interfere with parsing'
+    })
+    testGenericConstraints<K extends keyof T, V extends T[K]>(
+        obj: T,
+        key: K,
+        value: V
+    ): TestResult<V> {
+        // Complex generic method test
+        return { success: true, data: value };
+    }
+
+    @TestDecorator({
+        testId: 'COMPLEX-UNION-TEST',
+        description: 'Test method with union and intersection types',
+        expected: 'Complex type annotations should work'
+    })
+    testUnionTypes(
+        param: string | number | boolean,
+        options?: { strict?: boolean } & { verbose?: boolean }
+    ): param is string {
+        // Union and intersection types test
+        return typeof param === 'string';
+    }
+
+    @TestDecorator({
+        testId: 'COMPLEX-ASYNC-TEST',
+        description: 'Test async method with complex Promise handling',
+        expected: 'Async/await with complex types should be processed'
+    })
+    async testComplexAsync(): Promise<TestResult<T[]>> {
+        // Complex async method
+        const results = await Promise.all([
+            this.helperMethod(),
+            new Promise<T[]>(resolve => resolve([]))
+        ]);
+        
+        return {
+            success: true,
+            data: results[1]
+        };
+    }
+
+    @TestDecorator({
+        testId: 'COMPLEX-DECORATOR-COMPOSITION',
+        description: 'Test method with multiple decorators and complex annotations',
+        expected: 'Decorator composition should work correctly'
+    })
+    @deprecated('Use newMethod instead')
+    @performance.mark('test-method')
+    testDecoratorComposition<R>(
+        callback: AsyncFunction<R>
+    ): Promise<R> {
+        // Method with multiple decorators
+        return callback();
+    }
+
+    @TestDecorator({
+        testId: 'COMPLEX-CONDITIONAL-TYPES',
+        description: 'Test with conditional types and mapped types',
+        expected: 'Advanced TypeScript features should not break parsing'
+    })
+    testConditionalTypes<
+        U extends T,
+        K extends keyof U = keyof U
+    >(
+        input: U,
+        keys: K[]
+    ): { [P in K]: U[P] } {
+        // Conditional and mapped types
+        const result = {} as { [P in K]: U[P] };
+        keys.forEach(key => {
+            result[key] = input[key];
+        });
+        return result;
+    }
+
+    private async helperMethod(): Promise<void> {
+        // Private helper method
+    }
+}
+
+class ModuleFns {
+  @TestDecorator({
+    testId: 'MODULE-LEVEL-TS-TEST',
+    description: 'Test module-level function with TypeScript types',
+    expected: 'Module functions should be processed'
+  })
+  static moduleLevel<T>(items: T[]): T[] {
+    return items.filter(Boolean);
+  }
+}
+export const moduleLevel = ModuleFns.moduleLevel;
+
+// Export for testing
+export { ComplexTestClass, moduleLevel };";
+
+            var testFileSystem = CreateTypeScriptTestFileSystem();
+            var mockFileSystem = testFileSystem as MockFileSystem;
+            mockFileSystem.AddFile(TestingHelpers.ConvertFileName(@"c:\temp\complex.spec.ts"), new MockFileData(typeScriptCode));
+
+            var temp = new AnnotatedUnitTestPlugin(testFileSystem);
+            temp.InitializePlugin(configuration);
+            temp.RefreshItems();
+
+            var tests = temp.GetUnitTests().ToArray();
+            Assert.That(tests.Length == 6);
+            
+            var testIds = tests.Select(t => t.ItemID).ToArray();
+            Assert.That(testIds.Contains("COMPLEX-GENERIC-TEST"));
+            Assert.That(testIds.Contains("COMPLEX-UNION-TEST"));
+            Assert.That(testIds.Contains("COMPLEX-ASYNC-TEST"));
+            Assert.That(testIds.Contains("COMPLEX-DECORATOR-COMPOSITION"));
+            Assert.That(testIds.Contains("COMPLEX-CONDITIONAL-TYPES"));
+            Assert.That(testIds.Contains("MODULE-LEVEL-TS-TEST"));
+            
+            // Verify method names are correctly extracted
+            var methodNames = tests.Select(t => t.UnitTestFunctionName).ToArray();
+            Assert.That(methodNames.Contains("testGenericConstraints"));
+            Assert.That(methodNames.Contains("testUnionTypes"));
+            Assert.That(methodNames.Contains("testComplexAsync"));
+            Assert.That(methodNames.Contains("testDecoratorComposition"));
+            Assert.That(methodNames.Contains("testConditionalTypes"));
+            Assert.That(methodNames.Contains("moduleLevel"));
         }
 
         #endregion
