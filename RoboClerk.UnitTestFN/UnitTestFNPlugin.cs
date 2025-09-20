@@ -1,12 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using RoboClerk.Configuration;
+﻿using RoboClerk.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
-using Tomlyn.Model;
 using TreeSitter;
 
 namespace RoboClerk
@@ -37,8 +35,8 @@ namespace RoboClerk
                 base.InitializePlugin(configuration);
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
 
-                // Language selection
-                selectedLanguage = GetObjectForKey<string>(config, "Language", false) ?? "csharp";
+                // Language selection (make it optional)
+                selectedLanguage = configuration.CommandLineOptionOrDefault("Language", GetObjectForKey<string>(config, "Language", false) ?? "csharp");
                 
                 var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", GetObjectForKey<string>(config, "FunctionMask", true));
                 functionMaskElements = ParseFunctionMask(functionMask);
@@ -161,57 +159,64 @@ namespace RoboClerk
         private List<(string, string)> ApplyFunctionNameMask(string functionName)
         {
             List<(string, string)> resultingElements = new List<(string, string)>();
-            bool foundMatch = true;
             
             // Check if the function name matches the non-element parts of the mask
+            bool foundMatch = true;
             foreach (var functionMaskElement in functionMaskElements)
             {
                 if (!functionMaskElement.StartsWith('<'))
                 {
-                    foundMatch = foundMatch && functionName.Contains(functionMaskElement);
+                    if (!functionName.Contains(functionMaskElement))
+                    {
+                        foundMatch = false;
+                        break;
+                    }
                 }
             }
             
             if (foundMatch)
             {
                 string remainingFunctionName = functionName;
-                for (int i = 1; i < functionMaskElements.Count; i += 2)
+                
+                // Process pairs: identifier, separator, identifier, separator, etc.
+                for (int i = 0; i < functionMaskElements.Count; i++)
                 {
-                    if (remainingFunctionName == string.Empty)
-                    {
-                        foundMatch = false;
-                        break;
-                    }
                     if (functionMaskElements[i].StartsWith('<'))
                     {
-                        throw new Exception("Error in UnitTestFNPlugin element identifier in unexpected position. Check FunctionMask.");
-                    }
-                    var items = remainingFunctionName.Split(functionMaskElements[i]);
-                    resultingElements.Add((functionMaskElements[i - 1], items[0]));
-                    if (items.Length - 1 != 0)
-                    {
-                        remainingFunctionName = String.Join(functionMaskElements[i], items, 1, items.Length - 1);
-                    }
-                    else
-                    {
-                        remainingFunctionName = string.Empty;
-                    }
-                }
-                
-                // Handle the case where there's a final element after the last separator
-                if (!string.IsNullOrEmpty(remainingFunctionName) && functionMaskElements.Count >= 2)
-                {
-                    var lastElementIndex = functionMaskElements.Count - 1;
-                    if (functionMaskElements[lastElementIndex].StartsWith('<'))
-                    {
-                        resultingElements.Add((functionMaskElements[lastElementIndex], remainingFunctionName));
+                        // This is an element identifier
+                        if (i + 1 < functionMaskElements.Count && !functionMaskElements[i + 1].StartsWith('<'))
+                        {
+                            // Next element is a separator
+                            var separator = functionMaskElements[i + 1];
+                            var separatorIndex = remainingFunctionName.IndexOf(separator);
+                            
+                            if (separatorIndex >= 0)
+                            {
+                                var extractedContent = remainingFunctionName.Substring(0, separatorIndex);
+                                resultingElements.Add((functionMaskElements[i], extractedContent));
+                                remainingFunctionName = remainingFunctionName.Substring(separatorIndex + separator.Length);
+                            }
+                            else
+                            {
+                                foundMatch = false;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            // This is the last element - take all remaining content
+                            resultingElements.Add((functionMaskElements[i], remainingFunctionName));
+                            break;
+                        }
                     }
                 }
             }
+            
             if (!foundMatch)
             {
                 resultingElements.Clear();
             }
+            
             return resultingElements;
         }
 
@@ -343,13 +348,18 @@ namespace RoboClerk
 )",
 
                 "typescript" or "ts" or "javascript" or "js" => @"
-(method_definition
-  name: (identifier) @method_name
+; One pattern that matches class methods and standalone functions
+(
+  [
+    (method_definition
+      name: (_) @method_name      ; property_identifier, string, number, computed — all OK
+    )
+    (function_declaration
+      name: (identifier) @method_name
+    )
+  ]
 )
-
-(function_declaration
-  name: (identifier) @method_name
-)",
+",
 
                 _ => @"
 (method_declaration
