@@ -1,5 +1,4 @@
-﻿using RoboClerk.Items;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace RoboClerk
 {

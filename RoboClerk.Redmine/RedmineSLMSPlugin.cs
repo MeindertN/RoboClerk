@@ -322,7 +322,7 @@ namespace RoboClerk.Redmine
                     EliminationReason.IgnoredLinkTarget));
             }
 
-            var(keptTCs, eliminatedTCs) = CheckForLinkedItem(retrievedIDs, testCases, new List<ItemLinkType> { ItemLinkType.Parent, ItemLinkType.Related });
+            var(keptTCs, eliminatedTCs) = CheckForLinkedItem(retrievedIDs, testCases, new List<ItemLinkType> { ItemLinkType.Tests });
             testCases = keptTCs;
             foreach (var item in eliminatedTCs)
             {
@@ -454,14 +454,15 @@ namespace RoboClerk.Redmine
             }
 
             AddLinksToItem(redmineItem, resultItem);
-            //any software requirements are treated as parents, regardless of the link type
+            //ensure that the relationships to requirements are of type "Tests"
             foreach (var link in resultItem.LinkedItems)
             {
                 foreach (var issue in issues)
                 {
                     if (issue.Id.ToString() == link.TargetID && issue.Tracker.Name == SrsConfig.Name)
                     {
-                        link.LinkType = ItemLinkType.Parent;
+                        link.LinkType = ItemLinkType.Tests;
+                        break;
                     }
                 }
             }
@@ -898,6 +899,18 @@ namespace RoboClerk.Redmine
             }
 
             AddLinksToItem(redmineItem, resultItem);
+
+            //ensure that the relationships to SoftwareSystemTests are of type "TestedBy"
+            foreach (var link in resultItem.LinkedItems)
+            {
+                foreach (var issue in issues)
+                {
+                    if (issue.Id.ToString() == link.TargetID && issue.Tracker.Name == TcConfig.Name)
+                    {
+                        link.LinkType = ItemLinkType.TestedBy;
+                    }
+                }
+            }
             return resultItem;
         }
 

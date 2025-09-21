@@ -7,7 +7,6 @@ using RoboClerk.ContentCreators;
 using System;
 using System.Text.RegularExpressions;
 using System.IO;
-using RoboClerk.Items;
 
 namespace RoboClerk.Tests
 {
@@ -49,7 +48,7 @@ namespace RoboClerk.Tests
             testcaseItem.ItemRevision = "tcrev1";
             testcaseItem.ItemLastUpdated = new DateTime(1999,10,10);
             testcaseItem.ItemTargetVersion = "1";
-            testcaseItem.AddLinkedItem(new ItemLink("target1", ItemLinkType.Parent));
+            testcaseItem.AddLinkedItem(new ItemLink("target1", ItemLinkType.Tests));
             testcaseItem.TestCaseState = "state1";
             testcaseItem.TestCaseToUnitTest = false;
             testcaseItem.ItemTitle = "title1";
@@ -64,7 +63,7 @@ namespace RoboClerk.Tests
             testcaseItem.ItemRevision = "tcrev2";
             testcaseItem.ItemLastUpdated = new DateTime(1999, 12, 12);
             testcaseItem.ItemTargetVersion = "2";
-            testcaseItem.AddLinkedItem(new ItemLink("target2", ItemLinkType.Parent));
+            testcaseItem.AddLinkedItem(new ItemLink("target2", ItemLinkType.Tests));
             testcaseItem.TestCaseState = "state2";
             testcaseItem.TestCaseToUnitTest = false;
             testcaseItem.ItemTitle = "title2";

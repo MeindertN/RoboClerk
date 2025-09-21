@@ -112,4 +112,10 @@ And here is information about the unit tests:
 
 @@FILE:UnitTest(CheckResults=true)@@
 
+=== System Level Testing Summary Table
+
+@@@SLMS:TC(showResults=true,brief=true)
+
+@@@
+
 

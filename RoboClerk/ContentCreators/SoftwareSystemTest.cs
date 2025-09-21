@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.Scripting;
 using RoboClerk.Configuration;
-using RoboClerk.Items;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -84,7 +83,8 @@ namespace RoboClerk.ContentCreators
         protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             StringBuilder output = new StringBuilder();
-            var dataShare = new ScriptingBridge(data, analysis, sourceTE);
+            var dataShare = CreateScriptingBridge(tag, sourceTE);
+
             if (tag.HasParameter("CHECKRESULTS") && tag.GetParameterOrDefault("CHECKRESULTS").ToUpper() == "TRUE")
             {
                 //this will go over all SYSTEM test results (if available) and prints a summary statement or a list of found issues.
@@ -92,6 +92,25 @@ namespace RoboClerk.ContentCreators
             }
             else
             {
+                if (tag.HasParameter("BRIEF") && tag.GetParameterOrDefault("BRIEF").ToUpper() == "TRUE")
+                {
+                    //this will print a brief list of all software system tests that Roboclerk knows about
+                    dataShare.Items = items;
+                    var fileBrief = data.GetTemplateFile(@"./ItemTemplates/SoftwareSystemTest_brief.adoc");
+                    var rendererBrief = new ItemTemplateRenderer(fileBrief);
+                    try
+                    {
+                        var result = rendererBrief.RenderItemTemplate(dataShare);
+                        output.Append(result);
+                    }
+                    catch (CompilationErrorException e)
+                    {
+                        logger.Error($"A compilation error occurred while compiling SoftwareSystemTest_brief.adoc script: {e.Message}");
+                        throw;
+                    }
+                    ProcessTraces(docTE, dataShare);
+                    return output.ToString();
+                }
                 var file = data.GetTemplateFile(@"./ItemTemplates/SoftwareSystemTest_automated.adoc");
                 var rendererAutomated = new ItemTemplateRenderer(file);
                 file = data.GetTemplateFile(@"./ItemTemplates/SoftwareSystemTest_manual.adoc");

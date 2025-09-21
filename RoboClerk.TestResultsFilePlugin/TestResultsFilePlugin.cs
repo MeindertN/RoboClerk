@@ -1,11 +1,9 @@
 ﻿using RoboClerk.Configuration;
-using RoboClerk.Items;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Text.Json;
 using Tomlyn.Model;
 using System;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace RoboClerk.TestResultsFilePlugin
 {

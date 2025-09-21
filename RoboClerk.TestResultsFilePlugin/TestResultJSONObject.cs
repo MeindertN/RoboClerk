@@ -1,5 +1,4 @@
-﻿using RoboClerk.Items;
-using System;
+﻿using System;
 using System.Text.Json.Serialization;
 
 namespace RoboClerk.TestResultsFilePlugin

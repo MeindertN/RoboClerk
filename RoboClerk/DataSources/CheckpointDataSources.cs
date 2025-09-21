@@ -1,5 +1,4 @@
 ﻿using RoboClerk.Configuration;
-using RoboClerk.Items;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;

@@ -17,6 +17,33 @@ namespace RoboClerk.ContentCreators
         protected abstract string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE);
 
         /// <summary>
+        /// Creates a ScriptingBridge with the current tag set for parameter access.
+        /// </summary>
+        /// <param name="tag">The RoboClerk tag to associate with the bridge</param>
+        /// <param name="sourceTE">The source trace entity</param>
+        /// <returns>A configured ScriptingBridge instance</returns>
+        protected ScriptingBridge CreateScriptingBridge(RoboClerkTag tag, TraceEntity sourceTE)
+        {
+            var bridge = new ScriptingBridge(data, analysis, sourceTE);
+            bridge.Tag = tag;
+            return bridge;
+        }
+
+        /// <summary>
+        /// Creates a typed ScriptingBridge with the current tag set for parameter access.
+        /// </summary>
+        /// <typeparam name="T">The type of item the bridge will work with</typeparam>
+        /// <param name="tag">The RoboClerk tag to associate with the bridge</param>
+        /// <param name="sourceTE">The source trace entity</param>
+        /// <returns>A configured ScriptingBridge instance</returns>
+        protected ScriptingBridge<T> CreateScriptingBridge<T>(RoboClerkTag tag, TraceEntity sourceTE) where T : Item
+        {
+            var bridge = new ScriptingBridge<T>(data, analysis, sourceTE);
+            bridge.Tag = tag;
+            return bridge;
+        }
+
+        /// <summary>
         /// Sorts items based on tag parameters SORTBY and SORTORDER
         /// </summary>
         /// <param name="tag">The RoboClerk tag containing sorting parameters</param>

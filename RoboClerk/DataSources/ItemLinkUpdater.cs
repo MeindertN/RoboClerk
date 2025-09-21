@@ -87,11 +87,6 @@ namespace RoboClerk
                             var backLink = new ItemLink(sourceItem.ItemID, complementaryLinkType);
                             targetItem.AddLinkedItem(backLink);
                         }
-                        else if (existingBackLink.LinkType != complementaryLinkType)
-                        {
-                            // Update the existing link type if it's different from what we expect
-                            existingBackLink.LinkType = complementaryLinkType;
-                        }
                     }
                 }
             }

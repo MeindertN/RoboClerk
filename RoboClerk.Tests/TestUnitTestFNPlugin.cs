@@ -263,7 +263,7 @@ SectionSeparator = ""_""
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin processes Java methods correctly with TreeSitter",
-        Identifier = "d3573677-c17d-4623-9172-daaaff2abe9b",
+        Identifier = "d3573677-c17d-4623-9172-dbndsff2abe9b",
         PostCondition = "Java unit test methods are correctly extracted and parsed")]
         [Test]
         public void TestUnitTestFNPlugin_Java_ExtractTests()
@@ -695,7 +695,7 @@ class TestClass {
 
         [UnitTestAttribute(
         Purpose = "UnitTestFNPlugin handles different section separators for various languages",
-        Identifier = "291cddda-281c-4a15-ad82-c965092906ff",
+        Identifier = "291cddda-281c-4a15-ad82-c989092906ff",
         PostCondition = "Different section separators work correctly for each language")]
         [Test]
         public void TestUnitTestFNPlugin_DifferentSeparators()

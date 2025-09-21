@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RoboClerk.Items
+namespace RoboClerk
 {
     public enum TestResultType
     {
