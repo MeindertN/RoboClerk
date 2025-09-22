@@ -13,9 +13,9 @@ string softwareRequirementName = TraceabilityAnalysis.GetTitleForTraceEntity("So
 string CreateTopRow()
 {
 	if (showResults)
-		return $"| {te.Name} ID | {te.Name} Description | Linked {softwareRequirementName}s  | Actual Result | Timestamp \n";
+		return $"| *{te.Name} ID* | *{te.Name} Description* | *Linked {softwareRequirementName}s*  | *Actual Result* | *Timestamp* \n";
 	else
-		return $"| {te.Name} ID | {te.Name} Description | Linked {softwareRequirementName}s \n";
+		return $"| *{te.Name} ID* | *{te.Name} Description* | *Linked {softwareRequirementName}s* \n";
 }
 
 string CreateRows()
@@ -41,10 +41,10 @@ string CreateRows()
 			var testResult = resultItems.FirstOrDefault() as TestResult;
 			string actualResult = testResult != null ? testResult.ResultStatus.ToString() : "*NO RESULT*";
 			string timestamp = testResult != null ? testResult.ExecutionTime.ToString(@"yyyy-MM-ddTHH:mm:ss") : "N/A";
-			sb.Append($"| {GetItemLinkString(st)} | {st.ItemTitle} | {reqs.ToString()} | {actualResult} | {timestamp} \n\n");
+			sb.Append($"| {GetItemLinkString(st)} | {st.ItemTitle} | {(reqs.Length==0?"Missing":reqs.ToString())} | {actualResult} | {timestamp} \n\n");
 		}
 		else
-			sb.Append($"| {GetItemLinkString(st)} | {st.ItemTitle} | {reqs.ToString()} \n\n");
+			sb.Append($"| {GetItemLinkString(st)} | {st.ItemTitle} | {(reqs.Length==0?"Missing":reqs.ToString())} \n\n");
 	}
 	return sb.ToString();
 }]|====
