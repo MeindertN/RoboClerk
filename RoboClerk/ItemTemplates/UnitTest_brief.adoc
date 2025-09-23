@@ -14,9 +14,9 @@ string softwareSystemTestName = TraceabilityAnalysis.GetTitleForTraceEntity("Sof
 string CreateTopRow()
 {
 	if (showResults)
-		return $"| *File Name* | *Function Name* | *{te.Name} ID* | *Purpose* | *Acceptance* | *Linked {softwareRequirementName}s* | *Linked {softwareSystemTestName}* | *Result* | *Timestamp* \n";
+		return $"| *File Name* | *Function Name* | *{te.Name} ID* | *Purpose* | *Acceptance* | *Linked {softwareRequirementName}s* | *Linked {softwareSystemTestName}s* | *Result* | *Timestamp* \n";
 	else
-		return $"| *File Name* | *Function Name* | *{te.Name} ID* | *Purpose* | *Acceptance* | *Linked {softwareRequirementName}s* | *Linked {softwareSystemTestName}* \n"; 
+		return $"| *File Name* | *Function Name* | *{te.Name} ID* | *Purpose* | *Acceptance* | *Linked {softwareRequirementName}s* | *Linked {softwareSystemTestName}s* \n"; 
 }
 
 string CreateRows()
@@ -56,14 +56,13 @@ string CreateRows()
 			var testResult = resultItems.FirstOrDefault() as TestResult;
 			string actualResult = testResult != null ? testResult.ResultStatus.ToString() : "*NO RESULT*";
 			string timestamp = testResult != null ? testResult.ExecutionTime.ToString(@"yyyy-MM-ddTHH:mm:ss") : "N/A";
-			sb.Append($"| {st.UnitTestFileName} | {st.UnitTestFunctionName} | {st.ItemID} | {st.UnitTestPurpose} | {st.UnitTestAcceptanceCriteria} | {reqs.ToString()} | {tests.ToString()} | {actualResult} | {timestamp} \n\n");
+			sb.Append($"| {st.UnitTestFileName} | {st.UnitTestFunctionName} | {GetItemLinkString(st)} | {st.UnitTestPurpose} | {st.UnitTestAcceptanceCriteria} | {reqs.ToString()} | {tests.ToString()} | {actualResult} | {timestamp} \n\n");
 		}
 		else
-			sb.Append($"| {st.UnitTestFileName} | {st.UnitTestFunctionName} | {st.ItemID} | {st.UnitTestPurpose} | {st.UnitTestAcceptanceCriteria} | {reqs.ToString()} | {tests.ToString()} \n\n");
+			sb.Append($"| {st.UnitTestFileName} | {st.UnitTestFunctionName} | {GetItemLinkString(st)} | {st.UnitTestPurpose} | {st.UnitTestAcceptanceCriteria} | {reqs.ToString()} | {tests.ToString()} \n\n");
 	}
 	return sb.ToString();
 }]|====
 [csx:CreateTopRow()]
 
 [csx:CreateRows()]|====
-

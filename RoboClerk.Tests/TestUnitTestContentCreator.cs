@@ -34,6 +34,8 @@ namespace RoboClerk.Tests
             traceAnalysis.GetTraceEntityForID("UnitTest").Returns(te);
             traceAnalysis.GetTraceEntityForID("docID").Returns(teDoc);
             traceAnalysis.GetTraceEntityForTitle("docTitle").Returns(teDoc);
+            traceAnalysis.GetTitleForTraceEntity("SoftwareRequirement").Returns("Software Requirement");
+            traceAnalysis.GetTitleForTraceEntity("SoftwareSystemTest").Returns("Software System Test");
             fs = Substitute.For<IFileSystem>();
             traceAnalysis.GetTraceEntityForAnyProperty("UnitTest").Returns(te);
             documentConfig = new DocumentConfig("UnitLevelTestPlan", "docID", "docTitle", "docAbbr", @"c:\in\template.adoc");
@@ -60,6 +62,10 @@ namespace RoboClerk.Tests
             unittestItem.ItemID = "tcid2";
             unittestItem.ItemTargetVersion = "2";
             unittestItem.ItemTitle = "title2";
+            unittestItem.UnitTestFileName = "";
+            unittestItem.UnitTestFunctionName = "";
+            unittestItem.UnitTestPurpose = "";
+            unittestItem.UnitTestAcceptanceCriteria = "";
             unittestItem.Link = new Uri("http://localhost/");
             unittestItems.Add(unittestItem);
 
@@ -154,7 +160,7 @@ namespace RoboClerk.Tests
             var sst = new UnitTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 29, "@@SLMS:UnitTest(brief=true)@@", true);
             string content = sst.GetContent(tag, documentConfig);
-            string expectedContent = "|====\n| unittest ID | Function / File Name | unittest Purpose | Acceptance Criteria\n\n| tcid1 | functionname / filename | purpose1 | accept1 \n\n| http://localhost/[tcid2] |  /  |  |  \n\n|====\n";
+            string expectedContent = "|====\n| *File Name* | *Function Name* | *unittest ID* | *Purpose* | *Acceptance* | *Linked Software Requirements* | *Linked Software System Tests* \n\n\n| filename | functionname | tcid1 | purpose1 | accept1 | N/A | N/A \n\n|  |  | http://localhost/[tcid2] |  |  | N/A | N/A \n\n|====\n";
 
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent)); //ensure that we're always comparing the correct string, regardless of newline character for a platform
             Assert.DoesNotThrow(() => traceAnalysis.Received().AddTrace(Arg.Any<TraceEntity>(), "tcid1", Arg.Any<TraceEntity>(), "tcid1"));
@@ -273,9 +279,8 @@ namespace RoboClerk.Tests
             // Act
             string content = sst.GetContent(tag, documentConfig);
 
-            // Assert
-            // Should be sorted: ATest.cs, MTest.cs, ZTest.cs
-            string expectedContent = "|====\n| unittest ID | Function / File Name | unittest Purpose | Acceptance Criteria\n\n| test2 | SecondTest / ATest.cs | Second test purpose | Second criteria \n\n| test3 | ThirdTest / MTest.cs | Third test purpose | Third criteria \n\n| test1 | FirstTest / ZTest.cs | First test purpose | First criteria \n\n|====\n";
+            // Assert - Should be sorted: ATest.cs, MTest.cs, ZTest.cs
+            string expectedContent = "|====\n| *File Name* | *Function Name* | *unittest ID* | *Purpose* | *Acceptance* | *Linked Software Requirements* | *Linked Software System Tests* \n\n\n| ATest.cs | SecondTest | test2 | Second test purpose | Second criteria | N/A | N/A \n\n| MTest.cs | ThirdTest | test3 | Third test purpose | Third criteria | N/A | N/A \n\n| ZTest.cs | FirstTest | test1 | First test purpose | First criteria | N/A | N/A \n\n|====\n";
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
         }
 
@@ -327,9 +332,8 @@ namespace RoboClerk.Tests
             // Act
             string content = sst.GetContent(tag, documentConfig);
 
-            // Assert
-            // Should be sorted: ZTest.cs, MTest.cs, ATest.cs
-            string expectedContent = "|====\n| unittest ID | Function / File Name | unittest Purpose | Acceptance Criteria\n\n| test1 | FirstTest / ZTest.cs | First test purpose | First criteria \n\n| test3 | ThirdTest / MTest.cs | Third test purpose | Third criteria \n\n| test2 | SecondTest / ATest.cs | Second test purpose | Second criteria \n\n|====\n";
+            // Assert - Should be sorted: ZTest.cs, MTest.cs, ATest.cs
+            string expectedContent = "|====\n| *File Name* | *Function Name* | *unittest ID* | *Purpose* | *Acceptance* | *Linked Software Requirements* | *Linked Software System Tests* \n\n\n| ZTest.cs | FirstTest | test1 | First test purpose | First criteria | N/A | N/A \n\n| MTest.cs | ThirdTest | test3 | Third test purpose | Third criteria | N/A | N/A \n\n| ATest.cs | SecondTest | test2 | Second test purpose | Second criteria | N/A | N/A \n\n|====\n";
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
         }
 
@@ -371,9 +375,8 @@ namespace RoboClerk.Tests
             // Act
             string content = sst.GetContent(tag, documentConfig);
 
-            // Assert
-            // Should be sorted: AFunction, ZFunction
-            string expectedContent = "|====\n| unittest ID | Function / File Name | unittest Purpose | Acceptance Criteria\n\n| test2 | AFunction / TestFile.cs | Second test purpose | Second criteria \n\n| test1 | ZFunction / TestFile.cs | First test purpose | First criteria \n\n|====\n";
+            // Assert - Should be sorted: AFunction, ZFunction
+            string expectedContent = "|====\n| *File Name* | *Function Name* | *unittest ID* | *Purpose* | *Acceptance* | *Linked Software Requirements* | *Linked Software System Tests* \n\n\n| TestFile.cs | AFunction | test2 | Second test purpose | Second criteria | N/A | N/A \n\n| TestFile.cs | ZFunction | test1 | First test purpose | First criteria | N/A | N/A \n\n|====\n";
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
         }
 
@@ -392,9 +395,8 @@ namespace RoboClerk.Tests
             // Act
             string content = sst.GetContent(tag, documentConfig);
 
-            // Assert
-            // Should maintain original order when invalid property is specified
-            string expectedContent = "|====\n| unittest ID | Function / File Name | unittest Purpose | Acceptance Criteria\n\n| tcid1 | functionname / filename | purpose1 | accept1 \n\n| http://localhost/[tcid2] |  /  |  |  \n\n|====\n";
+            // Assert - Should maintain original order when invalid property is specified
+            string expectedContent = "|====\n| *File Name* | *Function Name* | *unittest ID* | *Purpose* | *Acceptance* | *Linked Software Requirements* | *Linked Software System Tests* \n\n\n| filename | functionname | tcid1 | purpose1 | accept1 | N/A | N/A \n\n|  |  | http://localhost/[tcid2] |  |  | N/A | N/A \n\n|====\n";
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
         }
     }
