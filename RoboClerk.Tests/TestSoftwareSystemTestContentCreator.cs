@@ -79,8 +79,52 @@ namespace RoboClerk.Tests
             dataSources.GetItems(te).Returns(testcaseItems);
             dataSources.GetTemplateFile("./ItemTemplates/SoftwareSystemTest_automated.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/SoftwareSystemTest_automated.adoc"));
             dataSources.GetTemplateFile("./ItemTemplates/SoftwareSystemTest_manual.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/SoftwareSystemTest_manual.adoc"));
+            dataSources.GetTemplateFile("./ItemTemplates/SoftwareSystemTest_brief.adoc").Returns(File.ReadAllText("../../../../RoboClerk/ItemTemplates/SoftwareSystemTest_brief.adoc"));
             dataSources.GetItem("target1").Returns(testcaseItem);
             dataSources.GetItem("target2").Returns(testcaseItem);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "0f3aefbc-b332-4e2a-a8ba-d534599295a6",
+        Purpose = "Software System Test content creator is provided with a tag that has BRIEF parameter set to TRUE",
+        PostCondition = "Brief template is used and appropriate result string is produced")]
+        [Test]
+        public void SoftwareSystemRenderTestBrief()
+        {
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
+            var tag = new RoboClerkTag(0, 23, "@@SLMS:TC(BRIEF=TRUE)@@", true);
+            string content = sst.GetContent(tag, documentConfig);
+            
+            // The brief template should produce a table with test case information
+            // We verify that the brief template was called by checking that the content
+            // contains expected brief format elements
+            Assert.That(content, Does.Contain("|===="), "Brief template should generate a table");
+            Assert.That(content, Does.Not.Contain("| *Step* | *Action* | *Expected Result*"), "Brief template should not contain detailed step information");
+            
+            // Verify that the brief template file was requested
+            dataSources.Received(1).GetTemplateFile("./ItemTemplates/SoftwareSystemTest_brief.adoc");
+        }
+
+        [UnitTestAttribute(
+        Identifier = "d10b4150-0222-4e2d-9107-0a5018ea24a3",
+        Purpose = "Software System Test content creator is provided with a tag that has BRIEF parameter set to FALSE",
+        PostCondition = "Detailed templates are used instead of brief template")]
+        [Test]
+        public void SoftwareSystemRenderTestBriefFalse()
+        {
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
+            var tag = new RoboClerkTag(0, 24, "@@SLMS:TC(BRIEF=FALSE)@@", true);
+            string content = sst.GetContent(tag, documentConfig);
+            
+            // When BRIEF is false or not set to TRUE, should use detailed templates
+            Assert.That(content, Does.Contain("| *Step* | *Action* | *Expected Result*"), "Should contain detailed step information when not using brief format");
+            
+            // Verify that the brief template file was NOT requested
+            dataSources.DidNotReceive().GetTemplateFile("./ItemTemplates/SoftwareSystemTest_brief.adoc");
+            
+            // Verify that the detailed templates were requested
+            dataSources.Received().GetTemplateFile("./ItemTemplates/SoftwareSystemTest_automated.adoc");
+            dataSources.Received().GetTemplateFile("./ItemTemplates/SoftwareSystemTest_manual.adoc");
         }
 
         [UnitTestAttribute(
@@ -261,5 +305,38 @@ namespace RoboClerk.Tests
             Assert.That(Regex.Replace(content, @"\r\n", "\n"), Is.EqualTo(expectedContent));
         }
 
+        [UnitTestAttribute(
+        Identifier = "d131f096-d338-482f-8597-7edbe7fbda3c",
+        Purpose = "Software System Test content creator throws InvalidOperationException when manual test case has TestCaseToUnitTest set to true",
+        PostCondition = "InvalidOperationException is thrown with appropriate error message")]
+        [Test]
+        public void SoftwareSystemRenderTestManualTestWithUnitTestKick()
+        {
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
+            var tag = new RoboClerkTag(0, 25, "@@SLMS:TC(itemid=tcid3)@@", true);
+            
+            // Create a manual test case (TestCaseAutomated = false) with TestCaseToUnitTest = true
+            SoftwareSystemTestItem manualTestCaseItem = new SoftwareSystemTestItem();
+            manualTestCaseItem.ItemID = "tcid3";
+            manualTestCaseItem.ItemRevision = "tcrev3";
+            manualTestCaseItem.ItemLastUpdated = new DateTime(1993, 10, 13);
+            manualTestCaseItem.ItemTargetVersion = "3";
+            manualTestCaseItem.AddLinkedItem(new ItemLink("target3", ItemLinkType.Parent));
+            manualTestCaseItem.TestCaseState = "state3";
+            manualTestCaseItem.TestCaseToUnitTest = true;  // This should cause the error
+            manualTestCaseItem.ItemTitle = "title3";
+            manualTestCaseItem.TestCaseAutomated = false;  // Manual test case
+            manualTestCaseItem.TestCaseDescription = "description3";
+            manualTestCaseItem.AddTestCaseStep(new TestStep("1", "input31", "expected result31"));
+            manualTestCaseItem.Link = new Uri("http://localhost/");
+            testcaseItems.Add(manualTestCaseItem);
+
+            // The operation should throw an InvalidOperationException
+            var ex = Assert.Throws<InvalidOperationException>(() => sst.GetContent(tag, documentConfig));
+            
+            // Verify the exception message contains the expected information
+            Assert.That(ex.Message, Does.Contain("Cannot kick manual test case tcid3 to unit test"));
+            Assert.That(ex.Message, Does.Contain("Change test type to automated"));
+        }
     }
 }
