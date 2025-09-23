@@ -69,12 +69,14 @@
 			<ScaffoldDir Include="$(ProjectDir)$(OutDir)RoboClerk_input" />
 			<BashScripts Include="$(ProjectDir)../BashScripts/*" />
 			<DemoDir Include="$(ProjectDir)../Demo" />
+			<RuntimesDir Include="$(ProjectDir)$(OutDir)runtimes" />
 		</ItemGroup>
 		<MakeDir Directories="$(ProjectDir)../RoboClerkDocker/Publish/scaffolding" />
 		<MakeDir Directories="$(ProjectDir)../RoboClerkDocker/Publish/scaffolding/RoboClerk_output" />
 		<MakeDir Directories="$(ProjectDir)../RoboClerkDocker/Publish/scaffolding/RoboClerk_input" />
 		<RecCopyDir InputDir="@(ScaffoldDir)" OutputDir="$(ProjectDir)../RoboClerkDocker/Publish/scaffolding/RoboClerk_input" />
 		<RecCopyDir InputDir="@(DemoDir)" OutputDir="$(ProjectDir)../RoboClerkDocker/Publish/Demo" />
+		<RecCopyDir InputDir="@(RuntimesDir)" OutputDir="$(ProjectDir)../RoboClerkDocker/Publish/runtimes" Condition="Exists('$(ProjectDir)$(OutDir)runtimes')" />
 		<Copy SourceFiles="@(RoboClerkFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish" />

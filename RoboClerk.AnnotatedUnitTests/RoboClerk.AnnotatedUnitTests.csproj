@@ -38,10 +38,17 @@
 	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
 		<ItemGroup>
 			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+			<RuntimeFilesWin Include="$(ProjectDir)$(OutDir)runtimes/win-x64/native/*.dll" />
+			<RuntimeFilesLin Include="$(ProjectDir)$(OutDir)runtimes/linux-x64/native/*.so" />
 		</ItemGroup>
 		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/plugins" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AnnotatedUnitTests.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.AnnotatedUnitTests.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+		<Copy SourceFiles="@(RuntimeFilesWin)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/runtimes/win-x64/native" />
+		<Copy SourceFiles="@(RuntimeFilesLin)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/runtimes/linux-x64/native" />
+		<!-- The below is necesary due to a bug in the treesitter.dotnet package related to the dll entrypoint which uses an c_sharp instead of c-sharp -->
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)runtimes/win-x64/native/tree-sitter-c-sharp.dll" DestinationFiles="$(ProjectDir)../RoboClerkDocker/Publish/runtimes/win-x64/native/tree-sitter-c_sharp.dll" Condition="Exists('$(ProjectDir)$(OutDir)runtimes/win-x64/native/tree-sitter-c-sharp.dll')" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)runtimes/linux-x64/native/libtree-sitter-c-sharp.so" DestinationFiles="$(ProjectDir)../RoboClerkDocker/Publish/runtimes/linux-x64/native/libtree-sitter-c_sharp.so" Condition="Exists('$(ProjectDir)$(OutDir)runtimes/linux-x64/native/libtree-sitter-c-sharp.so')" />
 	</Target>
 	<Target Name="CopyPlugin" AfterTargets="Build">
 		<ItemGroup>
