@@ -27,6 +27,6 @@ OutputDirectory = "{DOCUMENTATIONROOT}RoboClerk_output"
 ClearOutputDir = "True"
 
 # Logging level (DEBUG, INFO or WARN)
-LogLevel = "WARN"
+LogLevel = "DEBUG"
 
 

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 using Tomlyn.Model;
 
 namespace RoboClerk
@@ -69,6 +70,33 @@ namespace RoboClerk
                 {
                     logger.Error($"Error reading directory {testDirectory}");
                     throw;
+                }
+            }
+
+            // Preload git information for performance if git is enabled and we have files
+            if (gitRepo != null && sourceFiles.Any())
+            {
+                logger.Debug($"Preloading git information for {sourceFiles.Count} source files");
+                
+                // Get unique directories that contain our source files
+                var sourceDirectories = sourceFiles
+                    .Select(f => Path.GetDirectoryName(f))
+                    .Where(d => !string.IsNullOrEmpty(d))
+                    .Distinct()
+                    .ToList();
+
+                // Preload git information for each directory
+                foreach (var directory in sourceDirectories)
+                {
+                    try
+                    {
+                        gitRepo.PreloadDirectoryInfo(directory);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Warn($"Could not preload git information for directory {directory}: {ex.Message}");
+                        // Continue processing other directories even if one fails
+                    }
                 }
             }
         }
