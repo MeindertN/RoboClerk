@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Azure.Identity;
+using System.IO.Abstractions;
 
 namespace RoboClerk.SharePointFileProvider
 {
@@ -13,7 +14,7 @@ namespace RoboClerk.SharePointFileProvider
     /// SharePoint file provider plugin that provides access to SharePoint Online document libraries
     /// using Microsoft Graph SDK with OAuth2 authentication.
     /// </summary>
-    public class SharePointFileProviderPlugin : FileProviderPluginBase, IFileProviderPlugin
+    public class SharePointFileProviderPlugin : FileProviderPluginBase
     {
         private string siteUrl = string.Empty;
         private string clientId = string.Empty;
@@ -21,11 +22,11 @@ namespace RoboClerk.SharePointFileProvider
         private string tenantId = string.Empty;
         private string driveId = string.Empty;
         private GraphServiceClient graphClient = null!;
-        private IFileProviderPlugin localFileSystem = null!;
+        private IFileProviderPlugin fileSystem = null!;
 
         public SharePointFileProviderPlugin(IFileProviderPlugin localFileSystem)
         {
-            this.localFileSystem = localFileSystem;
+            fileSystem = localFileSystem;
             name = "SharePointFileProviderPlugin";
             description = "Provides access to SharePoint Online document libraries using Microsoft Graph SDK.";
         }
@@ -35,11 +36,11 @@ namespace RoboClerk.SharePointFileProvider
             try
             {
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-                siteUrl = GetObjectForKey<string>(config, "SiteUrl", true);
-                clientId = GetObjectForKey<string>(config, "ClientId", true);
-                clientSecret = GetObjectForKey<string>(config, "ClientSecret", true);
-                tenantId = GetObjectForKey<string>(config, "TenantId", true);
-                driveId = GetObjectForKey<string>(config, "DriveId", true);
+                siteUrl = configuration.CommandLineOptionOrDefault("SPSiteUrl",GetObjectForKey<string>(config, "SPSiteUrl", true));
+                clientId = configuration.CommandLineOptionOrDefault("SPClientId",GetObjectForKey<string>(config, "SPClientId", true));
+                clientSecret = configuration.CommandLineOptionOrDefault("SPClientSecret",GetObjectForKey<string>(config, "SPClientSecret", true));
+                tenantId = configuration.CommandLineOptionOrDefault("SPTenantId",GetObjectForKey<string>(config, "SPTenantId", true));
+                driveId = configuration.CommandLineOptionOrDefault("SPDriveId",GetObjectForKey<string>(config, "SPDriveId", true));
 
                 // Initialize Graph client with OAuth2 authentication
                 var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
@@ -67,8 +68,8 @@ namespace RoboClerk.SharePointFileProvider
                 throw new ArgumentException("Cannot get configuration table because the plugin configuration directory or the config filename are empty.");
             }
             
-            var configFileLocation = Path.Combine(pluginConfDir, confFileName);
-            return Toml.Parse(File.ReadAllText(configFileLocation)).ToModel();
+            var configFileLocation = fileSystem.Combine(pluginConfDir, confFileName);
+            return Toml.Parse(fileSystem.ReadAllText(configFileLocation)).ToModel();
         }
 
         /// <summary>

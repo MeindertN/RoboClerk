@@ -174,6 +174,76 @@ namespace RoboClerk
             return null;
         }
 
+        /// <summary>
+        /// Creates a SharePoint file provider plugin based on command line options.
+        /// </summary>
+        internal static IFileProviderPlugin CreateSharePointProvider(IConfiguration config, IPluginLoader pluginLoader, ILogger logger)
+        {
+            try
+            {
+                logger.Info("Initializing SharePoint file provider plugin");
+                
+                // Load SharePoint plugin from plugin directories
+                var pluginsDir = config.PluginDirs;
+                IFileProviderPlugin sharePointPlugin = null;
+                foreach (var dir in pluginsDir)
+                {
+
+                    sharePointPlugin = pluginLoader.LoadByName<IFileProviderPlugin>(
+                        pluginDir: dir,
+                        typeName: "SharePointFileProviderPlugin",
+                        configureGlobals: sc =>
+                        {
+                            sc.AddTransient<IFileSystem, FileSystem>();
+                        });
+                    if (sharePointPlugin != null)
+                        break;
+                }
+                if (sharePointPlugin == null)
+                {
+                    throw new InvalidOperationException("SharePointFileProviderPlugin not found in plugins directory");
+                }
+
+                logger.Info($"Loaded SharePoint provider: {sharePointPlugin.Name}");
+                return sharePointPlugin;
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"Failed to create SharePoint provider: {ex.Message}");
+                throw new InvalidOperationException($"Failed to initialize SharePoint provider: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Creates the configuration with appropriate file providers.
+        /// </summary>
+        internal static IConfiguration CreateConfiguration(
+            string roboClerkConfigFile,
+            string projectConfigFile,
+            Dictionary<string, string> commandLineOptions,
+            IServiceProvider serviceProvider,
+            ILogger logger)
+        {
+            var localFileProvider = new LocalFileSystemPlugin(new FileSystem());
+            var projectFileProvider = serviceProvider.GetRequiredService<IFileProviderPlugin>();
+            
+            try
+            {
+                var finalConfig = RoboClerk.Configuration.Configuration.CreateBuilder()
+                    .WithRoboClerkConfig(localFileProvider, roboClerkConfigFile, commandLineOptions)
+                    .WithProjectConfig(projectFileProvider, projectConfigFile)
+                    .Build();
+
+                logger.Info("Configuration loaded successfully.");
+                return finalConfig;
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"Failed to create configuration: {ex.Message}");
+                throw new InvalidOperationException($"Configuration loading failed: {ex.Message}", ex);
+            }
+        }
+
         static int Main(string[] args)
         {
             try
@@ -208,13 +278,38 @@ namespace RoboClerk
                        var commandlineOptions = GetConfigOptions(options.ConfigurationOptions, logger);
                        try
                        {
+                           // build the roboclerk configuration first
+                           var roboclerkConfig = RoboClerk.Configuration.Configuration.CreateBuilder()
+                            .WithRoboClerkConfig(new LocalFileSystemPlugin(new FileSystem()), roboClerkConfigFile)
+                            .Build();
+
                            var serviceCollection = new ServiceCollection();
-                           serviceCollection.AddTransient<IFileProviderPlugin>(x=> new LocalFileSystemPlugin(new FileSystem()));
+                           if (roboclerkConfig.FileProviderPlugin == "SharePointFileProviderPlugin")
+                           {
+                               serviceCollection.AddTransient(x => CreateSharePointProvider(roboclerkConfig,new PluginLoader(new FileSystem(), new LocalFileSystemPlugin(new FileSystem())), logger));
+                           }
+                           else
+                           {
+                               serviceCollection.AddTransient<IFileProviderPlugin>(x => new LocalFileSystemPlugin(new FileSystem()));
+                           }
                            serviceCollection.AddTransient<IFileSystem, FileSystem>();
-                           serviceCollection.AddSingleton<IConfiguration>(x => new RoboClerk.Configuration.Configuration(x.GetRequiredService<IFileProviderPlugin>(), roboClerkConfigFile, projectConfigFile, commandlineOptions));
                            serviceCollection.AddSingleton<IPluginLoader, PluginLoader>();
                            serviceCollection.AddSingleton<ITraceabilityAnalysis, TraceabilityAnalysis>();
                            serviceCollection.AddSingleton<IRoboClerkCore, RoboClerkTextCore>();
+
+                           // Build service provider first so we can access services for configuration
+                           var tempServiceProvider = serviceCollection.BuildServiceProvider();
+
+                           // Create configuration using the new builder pattern
+                           var configuration = CreateConfiguration(
+                               roboClerkConfigFile, 
+                               projectConfigFile, 
+                               commandlineOptions, 
+                               tempServiceProvider, 
+                               logger);
+
+                           // Register the configuration
+                           serviceCollection.AddSingleton<IConfiguration>(configuration);
 
                            // Register all content creators
                            RegisterContentCreators(serviceCollection);

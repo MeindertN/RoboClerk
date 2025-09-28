@@ -58,7 +58,11 @@ namespace RoboClerk.Server.Services
                 
                 logger.Info($"Loading SharePoint project from: {projectPath}");
 
-                var configuration = new RoboClerk.Configuration.Configuration(fileProvider, roboClerkConfigPath, projectConfigPath, commandLineOptions);
+                // Use the new Configuration builder pattern
+                var configuration = RoboClerk.Configuration.Configuration.CreateBuilder()
+                    .WithRoboClerkConfig(fileProvider, roboClerkConfigPath, commandLineOptions)
+                    .WithProjectConfig(fileProvider, projectConfigPath)
+                    .Build();
 
                 // Filter for DOCX documents only
                 var docxDocuments = configuration.Documents

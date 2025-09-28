@@ -11,7 +11,6 @@ namespace RoboClerk.Configuration
 {
     public class Configuration : IConfiguration
     {
-        private readonly IFileProviderPlugin fileSystem = null;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         //The information contained in the general configuration file
@@ -23,6 +22,7 @@ namespace RoboClerk.Configuration
         private string pluginConfigDir = string.Empty;
         private bool clearOutput = false;
         private string outputFormat = string.Empty;
+        private string fileProviderPlugin = string.Empty;
 
         //The information contained in the project configuration file
         private List<TraceEntity> truthEntities = new List<TraceEntity>();
@@ -37,37 +37,147 @@ namespace RoboClerk.Configuration
         private string projectRoot = string.Empty;
 
         //The information supplied on the commandline
-        private Dictionary<string, string> commandLineOptions = new Dictionary<string, string>();
+        internal Dictionary<string, string> commandLineOptions = new Dictionary<string, string>();
 
-        public Configuration(IFileProviderPlugin fileSystem, string configFileName, string projectConfigFileName, Dictionary<string, string> commandLineOptions)
+        internal bool projectConfigLoaded = false;
+
+        // Internal constructor - accessible to builder
+        internal Configuration() { }
+
+        /// <summary>
+        /// Creates a new configuration builder
+        /// </summary>
+        /// <returns>A new ConfigurationBuilder instance</returns>
+        public static ConfigurationBuilder CreateBuilder()
         {
-            this.commandLineOptions = commandLineOptions;
-            this.fileSystem = fileSystem;
-            logger.Debug($"Loading configuration files into RoboClerk: {configFileName} and {projectConfigFileName}");
-            (configFileName, projectConfigFileName) = LoadConfigFiles(configFileName, projectConfigFileName);
-            ProcessConfigs(configFileName, projectConfigFileName);
+            return new ConfigurationBuilder();
         }
 
+        // Public properties
         public List<string> DataSourcePlugins => dataSourcePlugins;
         public List<string> PluginDirs => pluginDirs;
         public string OutputDir => outputDir;
         public string LogLevel => logLevel;
         public string OutputFormat => outputFormat;
-        public List<TraceEntity> TruthEntities => truthEntities;
-        public List<TraceEntity> AICheckTraceEntities => checkTraceEntitiesAI;
-        public bool AICheckTemplateContents => checkTemplateContentsAI;
-        public List<DocumentConfig> Documents => documents;
-        public List<TraceConfig> TraceConfig => traceConfig;
-        public CheckpointConfig CheckpointConfig => checkpointConfig;
-        public ConfigurationValues ConfigVals => configVals;
         public string PluginConfigDir => pluginConfigDir;
-        public string TemplateDir => templateDir;
-        public string MediaDir => mediaDir;
-        public string ProjectRoot => projectRoot;
         public bool ClearOutputDir => clearOutput;
         public string AIPlugin => aiPlugin;
+        public string FileProviderPlugin => fileProviderPlugin;
 
-        private (string, string) LoadConfigFiles(string configFile, string projectConfigFile)
+        // Project-specific properties with guards
+        public List<TraceEntity> TruthEntities 
+        { 
+            get 
+            { 
+                EnsureProjectConfigLoaded();
+                return truthEntities; 
+            } 
+        }
+        
+        public List<TraceEntity> AICheckTraceEntities 
+        { 
+            get 
+            { 
+                EnsureProjectConfigLoaded();
+                return checkTraceEntitiesAI; 
+            } 
+        }
+        
+        public bool AICheckTemplateContents 
+        { 
+            get 
+            { 
+                EnsureProjectConfigLoaded();
+                return checkTemplateContentsAI; 
+            } 
+        }
+        
+        public List<DocumentConfig> Documents 
+        { 
+            get 
+            { 
+                EnsureProjectConfigLoaded();
+                return documents; 
+            } 
+        }
+        
+        public List<TraceConfig> TraceConfig 
+        { 
+            get 
+            { 
+                EnsureProjectConfigLoaded();
+                return traceConfig; 
+            } 
+        }
+        
+        public CheckpointConfig CheckpointConfig 
+        { 
+            get 
+            { 
+                EnsureProjectConfigLoaded();
+                return checkpointConfig; 
+            } 
+        }
+        
+        public ConfigurationValues ConfigVals 
+        { 
+            get 
+            { 
+                EnsureProjectConfigLoaded();
+                return configVals; 
+            } 
+        }
+        
+        public string TemplateDir 
+        { 
+            get 
+            { 
+                EnsureProjectConfigLoaded();
+                return templateDir; 
+            } 
+        }
+        
+        public string MediaDir 
+        { 
+            get 
+            { 
+                EnsureProjectConfigLoaded();
+                return mediaDir; 
+            } 
+        }
+        
+        public string ProjectRoot 
+        { 
+            get 
+            { 
+                EnsureProjectConfigLoaded();
+                return projectRoot; 
+            } 
+        }
+
+        // Internal method to load project config after RoboClerk config is loaded
+        internal void LoadProjectConfiguration(string projectConfigContent)
+        {
+            if (projectConfigLoaded)
+            {
+                throw new InvalidOperationException("Project configuration already loaded");
+            }
+
+            ReadProjectConfigFile(projectConfigContent);
+            projectConfigLoaded = true;
+            logger.Debug("Project configuration loaded successfully");
+        }
+
+        private void EnsureProjectConfigLoaded()
+        {
+            if (!projectConfigLoaded)
+            {
+                throw new InvalidOperationException("Project configuration not loaded. Use ConfigurationBuilder to load project configuration first.");
+            }
+        }
+
+        // Legacy method for backward compatibility
+        private (string, string) LoadConfigFiles(IFileProviderPlugin fileSystem, string configFile, string projectConfigFile)
         {
             string config;
             string projectConfig;
@@ -96,7 +206,7 @@ namespace RoboClerk.Configuration
             ReadProjectConfigFile(projectConfig);
         }
 
-        private void ReadGeneralConfigFile(string configFile)
+        internal void ReadGeneralConfigFile(string configFile)
         {
             var toml = Toml.Parse(configFile).ToModel();
             foreach (var obj in (TomlArray)toml["DataSourcePlugin"])
@@ -113,6 +223,7 @@ namespace RoboClerk.Configuration
             clearOutput = CommandLineOptionOrDefault("ClearOutputDir", (string)toml["ClearOutputDir"]).ToUpper() == "TRUE";
             logLevel = CommandLineOptionOrDefault("LogLevel", (string)toml["LogLevel"]);
             outputFormat = CommandLineOptionOrDefault("OutputFormat", (string)toml["OutputFormat"]);
+            fileProviderPlugin = CommandLineOptionOrDefault("FileProviderPlugin", (string)toml["FileProviderPlugin"]);
         }
 
         private void ReadProjectConfigFile(string projectConfig)
@@ -246,6 +357,135 @@ namespace RoboClerk.Configuration
                 return commandLineOptions[name];
             }
             return defaultValue;
+        }
+    }
+
+    /// <summary>
+    /// Builder for Configuration class that allows flexible loading of RoboClerk and project configurations
+    /// from different file providers and at different times.
+    /// </summary>
+    public class ConfigurationBuilder
+    {
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        private Configuration config = new Configuration();
+        private bool roboClerkConfigLoaded = false;
+
+        internal ConfigurationBuilder() { }
+
+        /// <summary>
+        /// Loads the RoboClerk configuration from the specified file provider and path.
+        /// This should be called first as it contains information needed to determine
+        /// how to load the project configuration.
+        /// </summary>
+        /// <param name="fileProvider">The file provider to use for reading the config file</param>
+        /// <param name="configPath">The path to the RoboClerk configuration file</param>
+        /// <param name="commandLineOptions">Optional command line options that can override config values</param>
+        /// <returns>This builder instance for chaining</returns>
+        public ConfigurationBuilder WithRoboClerkConfig(IFileProviderPlugin fileProvider, string configPath, Dictionary<string, string> commandLineOptions = null)
+        {
+            if (roboClerkConfigLoaded)
+            {
+                throw new InvalidOperationException("RoboClerk configuration already loaded");
+            }
+
+            config.commandLineOptions = commandLineOptions ?? new Dictionary<string, string>();
+            
+            try
+            {
+                string configContent = fileProvider.ReadAllText(configPath);
+                config.ReadGeneralConfigFile(configContent);
+                roboClerkConfigLoaded = true;
+                logger.Debug($"RoboClerk configuration loaded from: {configPath}");
+            }
+            catch (IOException ex)
+            {
+                throw new FileNotFoundException($"Unable to read RoboClerk config file: {configPath}", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error parsing RoboClerk config file: {configPath}", ex);
+            }
+            
+            return this;
+        }
+
+        /// <summary>
+        /// Loads the project configuration from the specified file provider and path.
+        /// This should be called after WithRoboClerkConfig().
+        /// </summary>
+        /// <param name="fileProvider">The file provider to use for reading the project config file</param>
+        /// <param name="projectConfigPath">The path to the project configuration file</param>
+        /// <returns>This builder instance for chaining</returns>
+        public ConfigurationBuilder WithProjectConfig(IFileProviderPlugin fileProvider, string projectConfigPath)
+        {
+            if (!roboClerkConfigLoaded)
+            {
+                throw new InvalidOperationException("RoboClerk configuration must be loaded before project configuration. Call WithRoboClerkConfig() first.");
+            }
+
+            try
+            {
+                string projectConfigContent = fileProvider.ReadAllText(projectConfigPath);
+                config.LoadProjectConfiguration(projectConfigContent);
+                logger.Debug($"Project configuration loaded from: {projectConfigPath}");
+            }
+            catch (IOException ex)
+            {
+                throw new FileNotFoundException($"Unable to read project config file: {projectConfigPath}", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error parsing project config file: {projectConfigPath}", ex);
+            }
+            
+            return this;
+        }
+
+        /// <summary>
+        /// Loads the project configuration from a string content.
+        /// This is useful when the project config content is already available as a string.
+        /// </summary>
+        /// <param name="projectConfigContent">The project configuration content as a string</param>
+        /// <returns>This builder instance for chaining</returns>
+        public ConfigurationBuilder WithProjectConfigContent(string projectConfigContent)
+        {
+            if (!roboClerkConfigLoaded)
+            {
+                throw new InvalidOperationException("RoboClerk configuration must be loaded before project configuration. Call WithRoboClerkConfig() first.");
+            }
+
+            try
+            {
+                config.LoadProjectConfiguration(projectConfigContent);
+                logger.Debug("Project configuration loaded from content string");
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Error parsing project config content", ex);
+            }
+            
+            return this;
+        }
+
+        /// <summary>
+        /// Builds and returns the final Configuration instance.
+        /// </summary>
+        /// <returns>A fully configured Configuration instance</returns>
+        public Configuration Build()
+        {
+            if (!roboClerkConfigLoaded)
+            {
+                throw new InvalidOperationException("RoboClerk configuration must be loaded before building. Call WithRoboClerkConfig() first.");
+            }
+
+            // Validate that all required configs are loaded
+            if (!config.projectConfigLoaded)
+            {
+                logger.Warn("Configuration built without project configuration - some features may not be available");
+            }
+            
+            logger.Debug("Configuration build completed successfully");
+            return config;
         }
     }
 }
