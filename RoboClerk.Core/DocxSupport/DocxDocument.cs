@@ -33,7 +33,7 @@ namespace RoboClerk.Core.DocxSupport
             ParseContentControls();
         }
 
-        public void SaveToFile(string filePath)
+        public MemoryStream SaveToStream()
         {
             if (wordDocument == null)
                 throw new InvalidOperationException("Document not loaded. Call FromStream first.");
@@ -45,10 +45,9 @@ namespace RoboClerk.Core.DocxSupport
             wordDocument.Save();
 
             // Clone the document to the specified file path
-            using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite))
-            {
-                wordDocument.Clone(fileStream);
-            }
+            MemoryStream memoryStream = new MemoryStream();
+            wordDocument.Clone(memoryStream);
+            return memoryStream;
         }
 
         public string ToText()

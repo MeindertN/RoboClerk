@@ -7,6 +7,7 @@ using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Azure.Identity;
 using System.IO.Abstractions;
+using Microsoft.Graph.Drives.Item.Items.Item.CreateUploadSession;
 
 namespace RoboClerk.SharePointFileProvider
 {
@@ -135,7 +136,16 @@ namespace RoboClerk.SharePointFileProvider
             try
             {
                 var content = GetFileContentAsync(path).Result;
-                return Encoding.UTF8.GetString(content);
+                var text = Encoding.UTF8.GetString(content);
+                
+                // Remove BOM if present (SharePoint often adds it)
+                if (text.Length > 0 && text[0] == '\uFEFF')
+                {
+                    text = text.Substring(1);
+                    logger.Debug($"Removed BOM from file: {path}");
+                }
+                
+                return text;
             }
             catch (Exception ex)
             {
@@ -191,7 +201,6 @@ namespace RoboClerk.SharePointFileProvider
         public override void WriteAllText(string path, string contents)
         {
             ValidatePath(path);
-            ValidatePath(contents, "contents");
             
             try
             {
@@ -547,13 +556,65 @@ namespace RoboClerk.SharePointFileProvider
 
         public async Task UploadFileAsync(string path, byte[] content)
         {
-            var normalizedPath = path.TrimStart('/');
-            using var stream = new MemoryStream(content);
-            await graphClient.Drives[driveId].Root.ItemWithPath(normalizedPath).Content.PutAsync(stream);
+            var normalizedPath = path.TrimStart('/'); // MUST include a file name, e.g. "FolderA/FolderB/file.txt"
+
+            try
+            {
+                using var stream = new MemoryStream(content);
+
+                if (content.Length < 4 * 1024 * 1024)
+                {
+                    // PUT /drive/root:/normalizedPath:/content  (binary stream)
+                    await graphClient
+                        .Drives[driveId]
+                        .Root
+                        .ItemWithPath(normalizedPath)
+                        .Content
+                        .PutAsync(stream);   
+                }
+                else
+                {
+                    // >4MB: upload session + chunks
+                    var uploadSession = await graphClient
+                        .Drives[driveId]
+                        .Root
+                        .ItemWithPath(normalizedPath)
+                        .CreateUploadSession
+                        .PostAsync(new CreateUploadSessionPostRequestBody
+                        {
+                            Item = new DriveItemUploadableProperties
+                            {
+                                // Optional: pick how to handle name collisions
+                                AdditionalData = new Dictionary<string, object>
+                                {
+                            { "@microsoft.graph.conflictBehavior", "replace" }  // or "rename", "fail"
+                                }
+                            }
+                        });
+
+                    using var largeStream = new MemoryStream(content);
+                    var maxChunkSize = 320 * 1024; // 320KB
+                    var task = new LargeFileUploadTask<DriveItem>(uploadSession, largeStream, maxChunkSize, graphClient.RequestAdapter);
+                    await task.UploadAsync();
+                }
+            }
+            catch (ServiceException ex)
+            {
+                logger.Error($"Failed to upload file to SharePoint: {path}. Status: {ex.ResponseStatusCode}, Error: {ex.Message}", ex);
+                throw;
+            }
         }
+
 
         private async Task CreateFolderAsync(string path)
         {
+            // Check if the folder already exists before trying to create it
+            if (DirectoryExists(path))
+            {
+                logger.Debug($"Directory already exists, skipping creation: {path}");
+                return;
+            }
+
             var folderName = GetFileName(path);
             var parentPath = GetDirectoryName(path);
             var normalizedParentPath = parentPath.TrimStart('/');
@@ -628,4 +689,4 @@ namespace RoboClerk.SharePointFileProvider
 
         #endregion
     }
-} 
+}

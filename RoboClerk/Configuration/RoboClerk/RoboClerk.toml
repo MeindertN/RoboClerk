@@ -3,7 +3,7 @@
 # Provide the name of the file provider plugin. The default is the LocalFileProviderPlugin 
 # that assumes files are being read off of the local filesystem. The other is the
 # SharePointFileProviderPlugin if the files are hosted in a sharepoint library.
-FileProviderPlugin = "LocalFileSystemPlugin"
+FileProviderPlugin = "LocalFileProviderPlugin"
 
 # Provide the names of the DataSource plugin(s) in a comma seperated list
 # For example: DataSourcePlugin = [ "AzureDevOpsSLMSPlugin", "RedmineCSVSLMSPlugin" ]
@@ -24,9 +24,6 @@ PluginDirs = [ "{PLUGINROOT}/plugins" ]
 # the following configuration item is empty, then the standard location 
 # in the Configuration subdir of the plugins directory is assumed.
 PluginConfigurationDir = "{DOCUMENTATIONROOT}RoboClerk_input/PluginConfig"
-
-# The output directory is where the output files and logs are placed
-OutputDirectory = "{DOCUMENTATIONROOT}RoboClerk_output"
 
 # Clear output directory before creating new output files.
 ClearOutputDir = "True"

@@ -7,7 +7,11 @@
 
 # Directory where all template files are located 
 
-TemplateDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/"
+TemplateDirectory = "{DOCUMENTATIONROOT}/RoboClerk_input/"
+
+# The output directory is where the output files and logs are placed
+
+OutputDirectory = "{DOCUMENTATIONROOT}/RoboClerk_output"
 
 # Root of the development project
 
@@ -16,7 +20,12 @@ ProjectRoot = "{PROJECTROOT}"
 # Directory where all media files (images etc.) are located. This will be copied to the output directory so the documents
 # can be built. Leave empty if no images are needed.
 
-MediaDirectory = "{DOCUMENTATIONROOT}RoboClerk_input/media"
+MediaDirectory = "{DOCUMENTATIONROOT}/RoboClerk_input/media"
+
+# Directory where plugin configurations are located. This is optional and overwrites the default location as specified in 
+# the RoboClerk.toml configuration file. If left empty/commented out, the default location is assumed.
+
+PluginConfigurationDir="{DOCUMENTATIONROOT}/RoboClerk_input/PluginConfig"
 
 # Truth items are those items retrieved from the source of truth (e.g. the SLMS). Specify how the these truth trace entities
 # should be called. This will ensure that the trace output makes sense in your context. The way these are defined here are 

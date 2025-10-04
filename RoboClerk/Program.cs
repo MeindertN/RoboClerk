@@ -21,38 +21,7 @@ namespace RoboClerk
 {
     class Program
     {
-        internal static void ConfigureLogging(string configFile)
-        {
-            var toml = Toml.Parse(File.ReadAllText(configFile)).ToModel();
-            var logLevel = (string)toml["LogLevel"];
-            var outputDir = (string)toml["OutputDirectory"];
-
-            var config = new NLog.Config.LoggingConfiguration();
-
-            // Targets where to log to
-            var logFile = new NLog.Targets.FileTarget("logfile")
-            {
-                FileName =
-                $"{outputDir}{Path.DirectorySeparatorChar}RoboClerkLog.txt",
-                DeleteOldFileOnStartup = true
-            };
-            Console.WriteLine(logFile.FileName);
-            if (logLevel.ToUpper() == "DEBUG")
-            {
-                config.AddRule(LogLevel.Debug, LogLevel.Fatal, logFile);
-            }
-            else if (logLevel.ToUpper() == "WARN")
-            {
-                config.AddRule(LogLevel.Warn, LogLevel.Fatal, logFile);
-            }
-            else 
-            {
-                config.AddRule(LogLevel.Info, LogLevel.Fatal, logFile);
-            }
-            LogManager.Configuration = config;
-        }
-
-        internal static Dictionary<string, string> GetConfigOptions(IEnumerable<string> commandlineOptions, ILogger logger)
+        internal static Dictionary<string, string> GetConfigOptions(IEnumerable<string> commandlineOptions)
         {
             Dictionary<string, string> options = new Dictionary<string, string>();
             foreach (var commandlineOption in commandlineOptions)
@@ -61,8 +30,7 @@ namespace RoboClerk
                 {
                     var elements = commandlineOption.Split('=');
                     if (elements.Length != 2)
-                    {
-                        logger.Error($"Commandline option can not be parsed: {commandlineOption}. Please check commandline call, it should be in the form of <IDENTIFIER>=<VALUE>");
+                    {                        
                         Console.WriteLine($"An error occurred parsing commandline option: {commandlineOption}. Expected syntax is <IDENTIFIER>=<VALUE>.");
                         throw new Exception("Error parsing commandline options.");
                     }
@@ -72,16 +40,15 @@ namespace RoboClerk
             return options;
         }
 
-        internal static void CleanOutputDirectory(string outputDir, ILogger logger)
+        internal static void CleanOutputDirectory(IFileProviderPlugin fileSystem, string outputDir, ILogger logger)
         {
             logger.Info("Cleaning output directory.");
-            string[] files = Directory.GetFiles(outputDir);
+            string[] files = fileSystem.GetFiles(outputDir);
             foreach (string file in files)
             {
-                if (!file.Contains("RoboClerkLog.txt") &&
-                    !file.Contains(".gitignore"))
+                if (!file.Contains(".gitignore"))
                 {
-                    File.Delete(file);
+                    fileSystem.DeleteFile(file);
                 }
             }
         }
@@ -197,7 +164,10 @@ namespace RoboClerk
                             sc.AddTransient<IFileSystem, FileSystem>();
                         });
                     if (sharePointPlugin != null)
+                    {
+                        sharePointPlugin.InitializePlugin(config);
                         break;
+                    }
                 }
                 if (sharePointPlugin == null)
                 {
@@ -246,13 +216,14 @@ namespace RoboClerk
 
         static int Main(string[] args)
         {
+            Logging roboClerkLogger = new Logging();
+
             try
             {
                 Parser.Default.ParseArguments<CommandlineOptions>(args)
                     .WithParsed<CommandlineOptions>(options =>
                    {
-                       //set up logging first
-                       var assembly = Assembly.GetExecutingAssembly();
+                       var assembly = Assembly.GetExecutingAssembly(); 
                        var projectConfigFile = $"{Path.GetDirectoryName(assembly.Location)}/RoboClerk_input/RoboClerkConfig/projectConfig.toml";
                        var roboClerkConfigFile = $"{Path.GetDirectoryName(assembly.Location)}/RoboClerk_input/RoboClerkConfig/RoboClerk.toml";
                        if (options.ConfigurationFile != null)
@@ -264,18 +235,7 @@ namespace RoboClerk
                            projectConfigFile = options.ProjectConfigurationFile;
                        }
 
-                       try
-                       {
-                           ConfigureLogging(roboClerkConfigFile);
-                       }
-                       catch (Exception e)
-                       {
-                           Console.WriteLine($"An error occurred configuring Roboclerk logging: \n{e.Message}");
-                           throw;
-                       }
-                       var logger = NLog.LogManager.GetCurrentClassLogger();
-                       logger.Warn($"RoboClerk Version: {Assembly.GetExecutingAssembly().GetName().Version}");
-                       var commandlineOptions = GetConfigOptions(options.ConfigurationOptions, logger);
+                       var commandlineOptions = GetConfigOptions(options.ConfigurationOptions);
                        try
                        {
                            // build the roboclerk configuration first
@@ -283,10 +243,23 @@ namespace RoboClerk
                             .WithRoboClerkConfig(new LocalFileSystemPlugin(new FileSystem()), roboClerkConfigFile)
                             .Build();
 
+                           try
+                           {
+                               roboClerkLogger.ConfigureLogging(roboclerkConfig.LogLevel);
+                           }
+                           catch (Exception e)
+                           {
+                               Console.WriteLine($"An error occurred configuring Roboclerk logging: \n{e.Message}");
+                               throw;
+                           }
+
+                           var logger = NLog.LogManager.GetCurrentClassLogger();
+                           logger.Warn($"RoboClerk Version: {Assembly.GetExecutingAssembly().GetName().Version}");
+
                            var serviceCollection = new ServiceCollection();
                            if (roboclerkConfig.FileProviderPlugin == "SharePointFileProviderPlugin")
                            {
-                               serviceCollection.AddTransient(x => CreateSharePointProvider(roboclerkConfig,new PluginLoader(new FileSystem(), new LocalFileSystemPlugin(new FileSystem())), logger));
+                               serviceCollection.AddSingleton(x => CreateSharePointProvider(roboclerkConfig,new PluginLoader(new FileSystem(), new LocalFileSystemPlugin(new FileSystem())), logger));
                            }
                            else
                            {
@@ -318,26 +291,28 @@ namespace RoboClerk
                            serviceCollection.AddSingleton<IContentCreatorFactory>(serviceProvider =>
                                new ContentCreatorFactory(serviceProvider, serviceProvider.GetRequiredService<ITraceabilityAnalysis>()));
 
-                           var serviceProvider = serviceCollection.BuildServiceProvider();
-
-                           // Register AI plugin after service provider is built
-                           RegisterAIPlugin(serviceCollection, serviceProvider.GetService<IConfiguration>(), serviceProvider.GetService<IPluginLoader>());
-
-                           //clean the output directory before we start working
-                           var config = serviceProvider.GetService<IConfiguration>();
-                           if (config != null && config.ClearOutputDir)
-                           {
-                               CleanOutputDirectory(config.OutputDir, logger);
-                           }
-                           if (config.CheckpointConfig.CheckpointFile == string.Empty) //check if we are not using a checkpoint
+                           if (configuration.CheckpointConfig.CheckpointFile == string.Empty) //check if we are not using a checkpoint
                            {
                                serviceCollection.AddSingleton<IDataSources, PluginDataSources>();
                            }
                            else
                            {
-                               serviceCollection.AddSingleton<IDataSources>(x => new CheckpointDataSources(x.GetRequiredService<IConfiguration>(), x.GetRequiredService<IPluginLoader>(), x.GetRequiredService<IFileProviderPlugin>(), config.CheckpointConfig.CheckpointFile));
+                               serviceCollection.AddSingleton<IDataSources>(x => new CheckpointDataSources(x.GetRequiredService<IConfiguration>(), x.GetRequiredService<IPluginLoader>(), x.GetRequiredService<IFileProviderPlugin>(), configuration.CheckpointConfig.CheckpointFile));
                            }
-                           serviceProvider = serviceCollection.BuildServiceProvider();
+
+                           // Register AI plugin after service provider is built
+                           RegisterAIPlugin(serviceCollection, configuration, tempServiceProvider.GetService<IPluginLoader>());
+
+                           var serviceProvider = serviceCollection.BuildServiceProvider();
+
+                           // Set log file destination now that we have configuration and file provider
+                           roboClerkLogger.SetLogDestination(serviceProvider.GetService<IFileProviderPlugin>(), configuration.OutputDir);
+
+                           //clean the output directory before we start working
+                           if (configuration.ClearOutputDir)
+                           {
+                               CleanOutputDirectory(serviceProvider.GetService<IFileProviderPlugin>(),configuration.OutputDir, logger);
+                           }
 
                            var core = serviceProvider.GetService<IRoboClerkCore>();
                            core.GenerateDocs();
@@ -345,8 +320,16 @@ namespace RoboClerk
                        }
                        catch (Exception e)
                        {
-                           logger.Error("An unhandled exception has occurred. RoboClerk failed to complete:\n\n");
-                           logger.Error(e);
+                           if (roboClerkLogger.Configured)
+                           {
+                               var logger = NLog.LogManager.GetCurrentClassLogger();
+                               logger.Error("An unhandled exception has occurred. RoboClerk failed to complete:\n\n");
+                               logger.Error(e);
+                           }
+                           else
+                           {
+                               Console.WriteLine($"An unhandled exception has occurred. RoboClerk failed to complete:\n\n{e.Message}");
+                           }
                            throw;
                        }
                    });
@@ -354,6 +337,10 @@ namespace RoboClerk
             catch
             {
                 return 1;
+            }
+            finally
+            {
+                roboClerkLogger.WriteLogToFile();
             }
             return 0;
         }

@@ -11,15 +11,15 @@ namespace RoboClerk
         protected string title = string.Empty;
         protected string rawText = string.Empty;
         protected string templateFile = string.Empty;
-        protected IFileSystem fileSystem = null;
+        protected IFileProviderPlugin fileSystem = null;
 
         protected List<RoboClerkTextTag> roboclerkTags = new List<RoboClerkTextTag>();
 
-        public TextDocument(string title, string templateFile, IFileSystem fileSystem = null)
+        public TextDocument(string title, string templateFile, IFileProviderPlugin fileSystem)
         {
             this.title = title;
             this.templateFile = templateFile;
-            this.fileSystem = fileSystem ?? new FileSystem(); // Default to real filesystem if not provided
+            this.fileSystem = fileSystem;
         }
 
         public void FromString(string text)
@@ -54,16 +54,11 @@ namespace RoboClerk
             return RoboClerkTextParser.ReInsertRoboClerkTags(rawText, roboclerkTags);
         }
 
-        public void SaveToFile(string filePath)
+        public MemoryStream SaveToStream()
         {
-            // Ensure the directory exists before writing the file
-            var directory = fileSystem.Path.GetDirectoryName(filePath);
-            if (!string.IsNullOrEmpty(directory) && !fileSystem.Directory.Exists(directory))
-            {
-                fileSystem.Directory.CreateDirectory(directory);
-            }
-            
-            fileSystem.File.WriteAllText(filePath, ToText());
+            var text = ToText();
+            var byteArray = Encoding.UTF8.GetBytes(text);
+            return new MemoryStream(byteArray);
         }
 
         public DocumentType DocumentType => DocumentType.Text;

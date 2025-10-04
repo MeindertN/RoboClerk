@@ -29,9 +29,9 @@ namespace RoboClerk.Core
         string TemplateFile { get; }
         
         /// <summary>
-        /// Save document to file
+        /// Save document to a stream
         /// </summary>
-        void SaveToFile(string filePath);
+        MemoryStream SaveToStream();
         
         /// <summary>
         /// Get document content as string (for text documents)

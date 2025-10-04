@@ -10,6 +10,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using IConfiguration = RoboClerk.Core.Configuration.IConfiguration;
+using System.Security.Cryptography;
 
 namespace RoboClerk
 {
@@ -22,11 +23,11 @@ namespace RoboClerk
         private readonly IContentCreatorFactory contentCreatorFactory = null;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private List<IDocument> documents = new List<IDocument>();
-        private IFileSystem fileSystem = null;
+        private IFileProviderPlugin fileSystem = null;
         private IPluginLoader pluginLoader = null;
 
         public RoboClerkTextCore(IConfiguration config, IDataSources dataSources, ITraceabilityAnalysis traceAnalysis, 
-            IFileSystem fs, IPluginLoader loader, IContentCreatorFactory contentCreatorFactory, IAISystemPlugin aiPlugin = null)
+            IFileProviderPlugin fs, IPluginLoader loader, IContentCreatorFactory contentCreatorFactory, IAISystemPlugin aiPlugin = null)
         {
             configuration = config;
             this.dataSources = dataSources;
@@ -42,7 +43,7 @@ namespace RoboClerk
             logger.Info("Starting document generation.");
             if (configuration.MediaDir != string.Empty)
             {
-                if (fileSystem.Directory.Exists(configuration.MediaDir))
+                if (fileSystem.DirectoryExists(configuration.MediaDir))
                 {
                     CleanAndCopyMediaDirectory();
                 }
@@ -72,9 +73,10 @@ namespace RoboClerk
                     continue;  //skip documents without template
 
                 logger.Info($"Reading document template: {doc.RoboClerkID}");
-                
+
                 IDocument document = CreateDocument(doc);
-                document.FromStream(fileSystem.FileStream.New(fileSystem.Path.Join(configuration.TemplateDir, doc.DocumentTemplate), FileMode.Open));
+                byte[] bytes = fileSystem.ReadAllBytes(fileSystem.Combine(configuration.TemplateDir, doc.DocumentTemplate));
+                document.FromStream(new MemoryStream(bytes));
                 
                 logger.Info($"Generating document: {doc.RoboClerkID}");
                 ProcessDocumentTags(document, doc);
@@ -87,7 +89,7 @@ namespace RoboClerk
 
         private IDocument CreateDocument(DocumentConfig doc)
         {
-            string extension = fileSystem.Path.GetExtension(doc.DocumentTemplate).ToLowerInvariant();
+            string extension = fileSystem.GetExtension(doc.DocumentTemplate).ToLowerInvariant();
             
             return extension switch
             {
@@ -257,18 +259,19 @@ namespace RoboClerk
             logger.Info($"Saving documents to directory: {configuration.OutputDir}");
             
             // Ensure the output directory exists
-            if (!fileSystem.Directory.Exists(configuration.OutputDir))
+            if (!fileSystem.DirectoryExists(configuration.OutputDir))
             {
-                fileSystem.Directory.CreateDirectory(configuration.OutputDir);
+                fileSystem.CreateDirectory(configuration.OutputDir);
             }
             
             foreach (var doc in documents)
             {
-                logger.Debug($"Writing document to disk: {fileSystem.Path.GetFileName(doc.TemplateFile)}");
+                logger.Debug($"Writing document to disk: {fileSystem.GetFileName(doc.TemplateFile)}");
                 
-                string outputPath = fileSystem.Path.Combine(configuration.OutputDir, fileSystem.Path.GetFileName(doc.TemplateFile));
-                doc.SaveToFile(outputPath);
-                
+                string outputPath = fileSystem.Combine(configuration.OutputDir, fileSystem.GetFileName(doc.TemplateFile));
+                var stream = doc.SaveToStream();
+                fileSystem.WriteAllBytes(outputPath, stream.ToArray());
+
                 //run the commands
                 logger.Info($"Running commands associated with {doc.Title}");
                 var configDoc = configuration.Documents.Find(x => x.DocumentTitle == doc.Title);
@@ -282,28 +285,28 @@ namespace RoboClerk
                 }
             }
             
-            fileSystem.File.WriteAllText(fileSystem.Path.Combine(configuration.OutputDir, "DataSourceData.json"), dataSources.ToJSON());
+            fileSystem.WriteAllText(fileSystem.Combine(configuration.OutputDir, "DataSourceData.json"), dataSources.ToJSON());
         }
 
         private void CleanAndCopyMediaDirectory()
         {
             logger.Info("Cleaning the media directory and copying the media files.");
-            string toplineDir = fileSystem.Path.GetFileName(configuration.MediaDir);
-            string targetDir = fileSystem.Path.Combine(configuration.OutputDir, toplineDir);
-            if (fileSystem.Directory.Exists(targetDir))
+            string toplineDir = fileSystem.GetFileName(configuration.MediaDir);
+            string targetDir = fileSystem.Combine(configuration.OutputDir, toplineDir);
+            if (fileSystem.DirectoryExists(targetDir))
             {
-                fileSystem.Directory.Delete(targetDir, true);
+                fileSystem.DeleteDirectory(targetDir, true);
             }
-            fileSystem.Directory.CreateDirectory(targetDir);
-            string[] files = fileSystem.Directory.GetFiles(configuration.MediaDir, "*", SearchOption.AllDirectories);
+            fileSystem.CreateDirectory(targetDir);
+            string[] files = fileSystem.GetFiles(configuration.MediaDir, "*", SearchOption.AllDirectories);
             foreach (string file in files)
             {
                 if (!file.Contains(".gitignore"))
                 {
-                    var relPath = fileSystem.Path.GetRelativePath(configuration.MediaDir, file);
-                    string destPath = fileSystem.Path.Combine(targetDir, relPath);
-                    fileSystem.Directory.CreateDirectory(fileSystem.Path.GetDirectoryName(destPath));
-                    fileSystem.File.Copy(file, destPath);
+                    var relPath = fileSystem.GetRelativePath(configuration.MediaDir, file);
+                    string destPath = fileSystem.Combine(targetDir, relPath);
+                    fileSystem.CreateDirectory(fileSystem.GetDirectoryName(destPath));
+                    fileSystem.CopyFile(file, destPath);
                 }
             }
         }

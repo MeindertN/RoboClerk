@@ -219,7 +219,6 @@ namespace RoboClerk.Configuration
             }
             aiPlugin = CommandLineOptionOrDefault("AISystemPlugin", (string)toml["AISystemPlugin"]);
             pluginConfigDir = CommandLineOptionOrDefault("PluginConfigurationDir", (string)toml["PluginConfigurationDir"]);
-            outputDir = CommandLineOptionOrDefault("OutputDirectory", (string)toml["OutputDirectory"]);
             clearOutput = CommandLineOptionOrDefault("ClearOutputDir", (string)toml["ClearOutputDir"]).ToUpper() == "TRUE";
             logLevel = CommandLineOptionOrDefault("LogLevel", (string)toml["LogLevel"]);
             outputFormat = CommandLineOptionOrDefault("OutputFormat", (string)toml["OutputFormat"]);
@@ -230,6 +229,7 @@ namespace RoboClerk.Configuration
         {
             var toml = Toml.Parse(projectConfig).ToModel();
             templateDir = CommandLineOptionOrDefault("TemplateDirectory", (string)toml["TemplateDirectory"]);
+            outputDir = CommandLineOptionOrDefault("OutputDirectory", (string)toml["OutputDirectory"]);
             projectRoot = CommandLineOptionOrDefault("ProjectRoot", (string)toml["ProjectRoot"]);
             if (toml.ContainsKey("MediaDirectory"))
             {
@@ -238,6 +238,10 @@ namespace RoboClerk.Configuration
             else
             {
                 logger.Warn("MediaDirectory entry is missing from project configuration file, some images will not be shown in output documents.");
+            }
+            if(toml.ContainsKey("PluginConfigurationDir") && ((string)toml["PluginConfigurationDir"]) != string.Empty)
+            {
+                pluginConfigDir = (string)toml["PluginConfigurationDir"];
             }
             ReadTruthTraceItems(toml);
             ReadDocuments(toml);
