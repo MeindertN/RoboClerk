@@ -23,13 +23,13 @@ DataSourcePlugin = [ ""RedmineSLMSPlugin"", ""DependenciesFilePlugin"" ]
 AISystemPlugin = ""OpenAIPlugin""
 PluginDirs = [ ""I:/test/plugindir"" ]
 PluginConfigurationDir = ""testdir""
-OutputDirectory = ""I:/temp/Roboclerk_output""
 ClearOutputDir = ""True""
 OutputFormat = ""ASCIIDOC""
 LogLevel = ""INFO""";
 
             string roboProjectConf = @"
 TemplateDirectory = ""I:/temp/roboclerk_input/""
+OutputDirectory = ""I:/temp/Roboclerk_output""
 ProjectRoot = ""I:/code/RoboClerk""
 MediaDirectory = ""I:/temp/Roboclerk_input/media""
 [Truth.SystemRequirement]
@@ -189,6 +189,7 @@ CompanyName = ""Acme Inc.""
         {
             string roboProjectConf = @"
 TemplateDirectory = ""I:/temp/roboclerk_input/""
+OutputDirectory = ""I:/temp/Roboclerk_output""
 ProjectRoot = ""I:/code/RoboClerk""
 MediaDirectory = ""I:/temp/Roboclerk_input/media""
 [Truth.SystemRequirement]

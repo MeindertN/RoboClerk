@@ -25,6 +25,7 @@ namespace RoboClerk.Tests
         private IServiceCollection mockServiceCollection = null;
         private MockFileSystem mockFileSystem = null;
         private ILogger mockLogger = null;
+        private Logging logging = null;
 
         [SetUp]
         public void TestSetup()
@@ -34,6 +35,7 @@ namespace RoboClerk.Tests
             mockServiceCollection = new ServiceCollection();
             mockFileSystem = new MockFileSystem();
             mockLogger = Substitute.For<ILogger>();
+            logging = new Logging();
         }
 
         [TearDown]
@@ -339,36 +341,17 @@ namespace RoboClerk.Tests
         [Test]
         public void ConfigureLogging_DebugLevel_DebugConfigurationSet()
         {
-            // Setup
-            var configContent = @"
-LogLevel = ""DEBUG""
-OutputDirectory = ""C:\\temp\\output""
-";
-            var configFile = @"C:\\temp\\config.toml";
-            mockFileSystem.AddFile(configFile, configContent);
+            // Act
+            Assert.DoesNotThrow(() => logging.ConfigureLogging("DEBUG"));
 
-            // Use real file system for this test since ConfigureLogging uses File.ReadAllText directly
-            var tempFile = Path.GetTempFileName();
-            try
-            {
-                File.WriteAllText(tempFile, configContent);
-
-                // Act
-                Assert.DoesNotThrow(() => Program.ConfigureLogging(tempFile));
-
-                // Assert: Verify NLog configuration was set
-                Assert.That(NLog.LogManager.Configuration, Is.Not.Null, "NLog configuration should be set");
-                
-                var rules = NLog.LogManager.Configuration.LoggingRules;
-                Assert.That(rules.Count, Is.GreaterThan(0), "Should have logging rules configured");
-                
-                var debugRule = rules.FirstOrDefault(r => r.Levels.Contains(LogLevel.Debug));
-                Assert.That(debugRule, Is.Not.Null, "Should have DEBUG level rule configured");
-            }
-            finally
-            {
-                File.Delete(tempFile);
-            }
+            // Assert: Verify NLog configuration was set
+            Assert.That(NLog.LogManager.Configuration, Is.Not.Null, "NLog configuration should be set");
+            
+            var rules = NLog.LogManager.Configuration.LoggingRules;
+            Assert.That(rules.Count, Is.GreaterThan(0), "Should have logging rules configured");
+            
+            var debugRule = rules.FirstOrDefault(r => r.Levels.Contains(LogLevel.Debug));
+            Assert.That(debugRule, Is.Not.Null, "Should have DEBUG level rule configured");
         }
 
         [UnitTestAttribute(
@@ -378,30 +361,15 @@ OutputDirectory = ""C:\\temp\\output""
         [Test]
         public void ConfigureLogging_WarnLevel_WarnConfigurationSet()
         {
-            // Setup
-            var configContent = @"
-LogLevel = ""WARN""
-OutputDirectory = ""C:\\temp\\output""
-";
-            var tempFile = Path.GetTempFileName();
-            try
-            {
-                File.WriteAllText(tempFile, configContent);
+            // Act
+            Assert.DoesNotThrow(() => logging.ConfigureLogging("WARN"));
 
-                // Act
-                Assert.DoesNotThrow(() => Program.ConfigureLogging(tempFile));
-
-                // Assert: Verify NLog configuration was set
-                Assert.That(NLog.LogManager.Configuration, Is.Not.Null, "NLog configuration should be set");
-                
-                var rules = NLog.LogManager.Configuration.LoggingRules;
-                var warnRule = rules.FirstOrDefault(r => r.Levels.Contains(LogLevel.Warn) && !r.Levels.Contains(LogLevel.Debug));
-                Assert.That(warnRule, Is.Not.Null, "Should have WARN level rule configured without DEBUG");
-            }
-            finally
-            {
-                File.Delete(tempFile);
-            }
+            // Assert: Verify NLog configuration was set
+            Assert.That(NLog.LogManager.Configuration, Is.Not.Null, "NLog configuration should be set");
+            
+            var rules = NLog.LogManager.Configuration.LoggingRules;
+            var warnRule = rules.FirstOrDefault(r => r.Levels.Contains(LogLevel.Warn) && !r.Levels.Contains(LogLevel.Debug));
+            Assert.That(warnRule, Is.Not.Null, "Should have WARN level rule configured without DEBUG");
         }
 
         [UnitTestAttribute(
@@ -411,44 +379,33 @@ OutputDirectory = ""C:\\temp\\output""
         [Test]
         public void ConfigureLogging_DefaultLevel_InfoConfigurationSet()
         {
-            // Setup
-            var configContent = @"
-LogLevel = ""INFO""
-OutputDirectory = ""C:\\temp\\output""
-";
-            var tempFile = Path.GetTempFileName();
-            try
-            {
-                File.WriteAllText(tempFile, configContent);
+            // Act
+            Assert.DoesNotThrow(() => logging.ConfigureLogging("INFO"));
 
-                // Act
-                Assert.DoesNotThrow(() => Program.ConfigureLogging(tempFile));
-
-                // Assert: Verify NLog configuration was set
-                Assert.That(NLog.LogManager.Configuration, Is.Not.Null, "NLog configuration should be set");
-                
-                var rules = NLog.LogManager.Configuration.LoggingRules;
-                var infoRule = rules.FirstOrDefault(r => r.Levels.Contains(LogLevel.Info) && !r.Levels.Contains(LogLevel.Debug));
-                Assert.That(infoRule, Is.Not.Null, "Should have INFO level rule configured without DEBUG");
-            }
-            finally
-            {
-                File.Delete(tempFile);
-            }
+            // Assert: Verify NLog configuration was set
+            Assert.That(NLog.LogManager.Configuration, Is.Not.Null, "NLog configuration should be set");
+            
+            var rules = NLog.LogManager.Configuration.LoggingRules;
+            var infoRule = rules.FirstOrDefault(r => r.Levels.Contains(LogLevel.Info) && !r.Levels.Contains(LogLevel.Debug));
+            Assert.That(infoRule, Is.Not.Null, "Should have INFO level rule configured without DEBUG");
         }
 
         [UnitTestAttribute(
             Identifier = "L2M3N4O5-P6Q7-8901-LMNO-P12345678901",
-            Purpose = "ConfigureLogging validation with invalid file",
-            PostCondition = "Exception is thrown for invalid configuration file")]
+            Purpose = "ConfigureLogging validation with invalid configuration",
+            PostCondition = "Exception is thrown for invalid configuration")]
         [Test]
-        public void ConfigureLogging_InvalidFile_ExceptionThrown()
+        public void ConfigureLogging_InvalidConfiguration_ExceptionThrown()
         {
-            // Setup: Non-existent file
-            var invalidFile = @"C:\\config.toml";
-
-            // Act & Assert
-            Assert.Throws<FileNotFoundException>(() => Program.ConfigureLogging(invalidFile));
+            // Test that providing invalid log level still works (defaults to INFO)
+            // The ConfigureLogging method doesn't throw exceptions, it defaults to INFO
+            Assert.DoesNotThrow(() => logging.ConfigureLogging("INVALID"));
+            
+            // Verify it defaulted to INFO level behavior
+            Assert.That(NLog.LogManager.Configuration, Is.Not.Null, "NLog configuration should be set");
+            var rules = NLog.LogManager.Configuration.LoggingRules;
+            var infoRule = rules.FirstOrDefault(r => r.Levels.Contains(LogLevel.Info) && !r.Levels.Contains(LogLevel.Debug));
+            Assert.That(infoRule, Is.Not.Null, "Should have INFO level rule configured for invalid input");
         }
 
         #endregion
@@ -466,7 +423,7 @@ OutputDirectory = ""C:\\temp\\output""
             var commandlineOptions = new List<string> { "Key1=Value1", "Key2=Value2", "Key3=Value3" };
 
             // Act
-            var result = Program.GetConfigOptions(commandlineOptions, mockLogger);
+            var result = Program.GetConfigOptions(commandlineOptions);
 
             // Assert
             Assert.That(result, Is.Not.Null, "Result should not be null");
@@ -487,7 +444,7 @@ OutputDirectory = ""C:\\temp\\output""
             var commandlineOptions = new List<string> { "Key1=Value1", ",", "Key2=Value2", ",", "Key3=Value3" };
 
             // Act
-            var result = Program.GetConfigOptions(commandlineOptions, mockLogger);
+            var result = Program.GetConfigOptions(commandlineOptions);
 
             // Assert
             Assert.That(result, Is.Not.Null, "Result should not be null");
@@ -508,11 +465,8 @@ OutputDirectory = ""C:\\temp\\output""
             var commandlineOptions = new List<string> { "Key1=Value1", "InvalidOptionWithoutEquals", "Key3=Value3" };
 
             // Act & Assert
-            var ex = Assert.Throws<Exception>(() => Program.GetConfigOptions(commandlineOptions, mockLogger));
+            var ex = Assert.Throws<Exception>(() => Program.GetConfigOptions(commandlineOptions));
             Assert.That(ex.Message, Does.Contain("Error parsing commandline options"), "Should contain appropriate error message");
-
-            // Verify error was logged
-            mockLogger.Received().Error(Arg.Is<string>(s => s.Contains("InvalidOptionWithoutEquals")));
         }
 
         [UnitTestAttribute(
@@ -526,7 +480,7 @@ OutputDirectory = ""C:\\temp\\output""
             var commandlineOptions = new List<string>();
 
             // Act
-            var result = Program.GetConfigOptions(commandlineOptions, mockLogger);
+            var result = Program.GetConfigOptions(commandlineOptions);
 
             // Assert
             Assert.That(result, Is.Not.Null, "Result should not be null");
@@ -558,6 +512,7 @@ OutputDirectory = ""C:\\temp\\output""
             // Create a real temporary directory for this test
             var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempDir);
+            var fileProvider = new LocalFileSystemPlugin(new FileSystem());
 
             try
             {
@@ -570,18 +525,18 @@ OutputDirectory = ""C:\\temp\\output""
                 }
 
                 // Act
-                Assert.DoesNotThrow(() => Program.CleanOutputDirectory(tempDir, mockLogger));
+                Assert.DoesNotThrow(() => Program.CleanOutputDirectory(fileProvider, tempDir, mockLogger));
 
                 // Assert
                 var remainingFiles = Directory.GetFiles(tempDir);
-                Assert.That(remainingFiles.Length, Is.EqualTo(2), "Should have 2 files remaining");
+                Assert.That(remainingFiles.Length, Is.EqualTo(1), "Should have 1 file remaining");
                 
                 var fileNames = remainingFiles.Select(Path.GetFileName).ToList();
-                Assert.That(fileNames, Does.Contain("RoboClerkLog.txt"), "RoboClerkLog.txt should be preserved");
                 Assert.That(fileNames, Does.Contain(".gitignore"), ".gitignore should be preserved");
                 Assert.That(fileNames, Does.Not.Contain("document1.html"), "document1.html should be deleted");
                 Assert.That(fileNames, Does.Not.Contain("document2.adoc"), "document2.adoc should be deleted");
                 Assert.That(fileNames, Does.Not.Contain("temp.tmp"), "temp.tmp should be deleted");
+                Assert.That(fileNames, Does.Not.Contain("RoboClerkLog.txt"), "RoboClerkLog.txt should be deleted");
 
                 // Verify info log was called
                 mockLogger.Received().Info("Cleaning output directory.");
@@ -604,9 +559,10 @@ OutputDirectory = ""C:\\temp\\output""
         {
             // Setup
             var nonExistentDir = @"C:\nonexistent\directory";
+            var fileProvider = new LocalFileSystemPlugin(new FileSystem());
 
             // Act & Assert
-            Assert.Throws<DirectoryNotFoundException>(() => Program.CleanOutputDirectory(nonExistentDir, mockLogger));
+            Assert.Throws<DirectoryNotFoundException>(() => Program.CleanOutputDirectory(fileProvider, nonExistentDir, mockLogger));
         }
 
         #endregion
@@ -657,4 +613,4 @@ OutputDirectory = ""C:\\temp\\output""
 
         #endregion
     }
-} 
+}

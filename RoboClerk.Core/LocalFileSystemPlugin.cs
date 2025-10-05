@@ -88,7 +88,6 @@ namespace RoboClerk
         public override void WriteAllText(string path, string contents)
         {
             ValidatePath(path);
-            ValidatePath(contents, "contents");
             
             // Ensure directory exists
             string directory = GetDirectoryName(path);

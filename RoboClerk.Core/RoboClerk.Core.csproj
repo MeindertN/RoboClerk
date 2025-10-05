@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
     <PackageReference Include="NLog" Version="5.3.4" />
     <PackageReference Include="SkiaSharp" Version="2.88.9" />
-    <PackageReference Include="System.IO.Abstractions" Version="21.0.29" />
+    <PackageReference Include="System.IO.Abstractions" Version="22.0.16" />
     <PackageReference Include="System.IO.Packaging" Version="8.0.1" />
     <PackageReference Include="System.Text.Json" Version="8.0.6" />
     <PackageReference Include="Tomlyn" Version="0.17.0" />

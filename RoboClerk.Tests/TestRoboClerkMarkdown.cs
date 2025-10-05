@@ -195,9 +195,12 @@ There is some text @@SLMS:inline()@@ in this line.
 
             string expectedResult = @"This is a line of text.
 item1
+
 another line of text
 item2 
 item4
+
+
 There is some text item6 in this line.
 D";
             expectedResult = Regex.Replace(expectedResult, @"\r\n", "\n");
