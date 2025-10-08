@@ -1,10 +1,15 @@
+using AngleSharp.Io;
+using DocumentFormat.OpenXml;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using RoboClerk.ContentCreators;
 using RoboClerk.Core;
 using RoboClerk.Core.DocxSupport;
-using RoboClerk.ContentCreators;
 using RoboClerk.Server.Models;
+using RoboClerk.SharePointFileProvider;
 using System.Collections.Concurrent;
 using System.IO.Abstractions;
-using DocumentFormat.OpenXml;
+using System.Security.Cryptography;
+using System.Text;
 using IConfiguration = RoboClerk.Core.Configuration.IConfiguration;
 
 namespace RoboClerk.Server.Services
@@ -24,45 +29,74 @@ namespace RoboClerk.Server.Services
             this.dataSourcesFactory = dataSourcesFactory;
         }
 
-        public async Task<ProjectLoadResult> LoadProjectAsync(string projectPath)
+        public async Task<ProjectLoadResult> LoadProjectAsync(LoadProjectRequest request)
         {
             try
             {
-                var projectId = Guid.NewGuid().ToString();
-                
-                // Validate SharePoint path
-                if (!IsSharePointPath(projectPath))
+                // Generate deterministic project ID from driveId and config path
+                var projectConfigPath = fileSystem.Path.Combine(request.ProjectPath, "RoboClerkConfig", "projectConfig.toml");
+                var projectId = request.ProjectIdentifier ?? GenerateProjectIdentifier(request.SPDriveId, projectConfigPath);
+
+                // Check if this project is already loaded
+                if (loadedProjects.ContainsKey(projectId))
                 {
-                    logger.Warn($"Non-SharePoint path provided: {projectPath}");
+                    logger.Info($"Project already loaded, returning existing instance: {projectId}");
+                    var existingProject = loadedProjects[projectId];
+                    var existingConfig = existingProject.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+                    return new ProjectLoadResult
+                    {
+                        Success = true,
+                        ProjectId = projectId,
+                        ProjectName = existingProject.ProjectName,
+                        Documents = existingConfig.Documents
+                            .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+                            .Select(d => new DocumentInfo(d.RoboClerkID, d.DocumentTitle, d.DocumentTemplate))
+                            .ToList()
+                    };
+                }
+
+                // Validate SharePoint path
+                if (!IsSharePointPath(request.ProjectPath))
+                {
+                    logger.Warn($"Non-SharePoint path provided: {request.ProjectPath}");
                     return new ProjectLoadResult { Success = false, Error = "Only SharePoint project paths are supported for Word add-in use" };
                 }
-                
-                // Support SharePoint paths
-                var roboClerkConfigPath = fileSystem.Path.Combine(projectPath, "RoboClerkConfig", "RoboClerk.toml");
-                var projectConfigPath = fileSystem.Path.Combine(projectPath, "RoboClerkConfig", "projectConfig.toml");
 
-                if (!fileSystem.File.Exists(roboClerkConfigPath) || !fileSystem.File.Exists(projectConfigPath))
+                var sharePointFileProvider = await CreateSharePointFileProviderAsync(request);
+                if (sharePointFileProvider == null)
                 {
-                    return new ProjectLoadResult { Success = false, Error = "Required configuration files not found in SharePoint project" };
+                    return new ProjectLoadResult { Success = false, Error = "Failed to initialize SharePoint file provider" };
                 }
 
-                var fileProvider = serviceProvider.GetRequiredService<IFileProviderPlugin>();
-                
-                // Configure for SharePoint
-                var commandLineOptions = new Dictionary<string, string>
-                {
-                    ["ProjectRoot"] = projectPath,
-                    ["TemplateDirectory"] = fileSystem.Path.Combine(projectPath, "Templates"),
-                    ["MediaDirectory"] = fileSystem.Path.Combine(projectPath, "Media")
-                };
-                
-                logger.Info($"Loading SharePoint project from: {projectPath}");
+                // Load project configuration from SharePoint to determine ProjectRoot and other settings
+                logger.Info($"Loading project configuration from SharePoint: {projectConfigPath}");
 
-                // Use the new Configuration builder pattern
-                var configuration = RoboClerk.Configuration.Configuration.CreateBuilder()
-                    .WithRoboClerkConfig(fileProvider, roboClerkConfigPath, commandLineOptions)
-                    .WithProjectConfig(fileProvider, projectConfigPath)
-                    .Build();
+                var baseConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
+
+                // Check if base configuration is the concrete type we need
+                if (baseConfiguration is not RoboClerk.Configuration.Configuration concreteConfig)
+                {
+                    return new ProjectLoadResult { Success = false, Error = "Configuration service is not of expected type" };
+                }
+
+                // Create configuration with project config loaded
+                RoboClerk.Configuration.Configuration configuration;
+                try
+                {
+                    // Use the new Configuration builder pattern to clone existing and add project config
+                    configuration = RoboClerk.Configuration.ConfigurationBuilder
+                        .FromExisting(concreteConfig.Clone())
+                        .WithProjectConfig(sharePointFileProvider, projectConfigPath)
+                        .Build();
+                    configuration.AddOrUpdateCommandLineOption("SPDriveId", request.SPDriveId);
+                    configuration.AddOrUpdateCommandLineOption("SPSiteUrl", request.SPSiteUrl);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, "Failed to load project configuration from SharePoint");
+                    return new ProjectLoadResult { Success = false, Error = $"Failed to load project configuration: {ex.Message}" };
+                }
+                logger.Info($"Loading SharePoint project from: {request.ProjectPath}");
 
                 // Filter for DOCX documents only
                 var docxDocuments = configuration.Documents
@@ -74,25 +108,17 @@ namespace RoboClerk.Server.Services
                     return new ProjectLoadResult { Success = false, Error = "No DOCX documents found in SharePoint project" };
                 }
 
-                // Initialize data sources with enhanced error handling for SharePoint
-                IDataSources dataSources;
-                try
-                {
-                    dataSources = await dataSourcesFactory.CreateDataSourcesAsync(configuration);
-                }
-                catch (Exception ex)
-                {
-                    logger.Error(ex, "Failed to initialize data sources for SharePoint project");
-                    return new ProjectLoadResult { Success = false, Error = $"Failed to initialize data sources: {ex.Message}" };
-                }
-                
+                // Create project-specific service provider with all dependencies
+                var projectServiceProvider = CreateProjectServiceProvider(
+                    sharePointFileProvider,
+                    configuration);
+
                 var projectContext = new ProjectContext
                 {
                     ProjectId = projectId,
-                    ProjectPath = projectPath,
-                    Configuration = configuration,
-                    DataSources = dataSources,
-                    DocxDocuments = docxDocuments,
+                    ProjectPath = request.ProjectPath,
+                    ProjectName = configuration.ProjectName,
+                    ProjectServiceProvider = projectServiceProvider,
                     LoadedDocuments = new ConcurrentDictionary<string, IDocument>()
                 };
 
@@ -103,7 +129,7 @@ namespace RoboClerk.Server.Services
                 {
                     Success = true,
                     ProjectId = projectId,
-                    ProjectName = fileSystem.Path.GetFileName(projectPath),
+                    ProjectName = configuration.ProjectName,
                     Documents = docxDocuments.Select(d => new DocumentInfo(
                         d.RoboClerkID,
                         d.DocumentTitle,
@@ -113,7 +139,7 @@ namespace RoboClerk.Server.Services
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"Failed to load SharePoint project: {projectPath}");
+                logger.Error(ex, $"Failed to load SharePoint project: {request.ProjectPath}");
                 return new ProjectLoadResult { Success = false, Error = $"Failed to load SharePoint project: {ex.Message}" };
             }
         }
@@ -125,39 +151,32 @@ namespace RoboClerk.Server.Services
 
             try
             {
-                var docConfig = project.DocxDocuments.FirstOrDefault(d => d.RoboClerkID == documentId);
+                // Get dependencies from project service provider
+                var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+                var fileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
+
+                var docConfig = configuration.Documents
+                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+                    .FirstOrDefault(d => d.RoboClerkID == documentId);
+
                 if (docConfig == null)
                     return new DocumentLoadResult { Success = false, Error = "Document not found in SharePoint project" };
 
-                var templatePath = fileSystem.Path.Combine(project.Configuration.TemplateDir, docConfig.DocumentTemplate);
-                if (!fileSystem.File.Exists(templatePath))
+                var templatePath = fileProvider.Combine(configuration.TemplateDir, docConfig.DocumentTemplate);
+                if (!fileProvider.FileExists(templatePath))
                     return new DocumentLoadResult { Success = false, Error = "Template file not found in SharePoint" };
 
-                var document = new DocxDocument(docConfig.DocumentTitle, docConfig.DocumentTemplate, project.Configuration);
-                using var stream = fileSystem.FileStream.New(templatePath, FileMode.Open);
+                var document = new DocxDocument(docConfig.DocumentTitle, docConfig.DocumentTemplate, configuration);
+                using var stream = fileProvider.OpenRead(templatePath);
                 document.FromStream(stream);
 
                 project.LoadedDocuments[documentId] = document;
 
-                // Only return RoboClerkDocxTag instances (content control-based tags)
-                var tags = document.RoboClerkTags
-                    .OfType<RoboClerkDocxTag>()
-                    .Select(tag => new TagInfo
-                    {
-                        TagId = Guid.NewGuid().ToString(),
-                        Source = tag.Source.ToString(),
-                        ContentCreatorId = tag.ContentCreatorID,
-                        ContentControlId = tag.ContentControlId,
-                        Parameters = tag.Parameters.ToDictionary(p => p, p => tag.GetParameterOrDefault(p, "")),
-                        CurrentContent = tag.Contents
-                    }).ToList();
-
-                logger.Info($"Loaded document {documentId} with {tags.Count} content control tags");
+                logger.Info($"Loaded document {documentId}");
                 return new DocumentLoadResult
                 {
                     Success = true,
-                    DocumentId = documentId,
-                    Tags = tags
+                    DocumentId = documentId
                 };
             }
             catch (Exception ex)
@@ -472,5 +491,127 @@ namespace RoboClerk.Server.Services
                    (path.Contains(".sharepoint.com", StringComparison.OrdinalIgnoreCase) ||
                     path.Contains("sharepoint", StringComparison.OrdinalIgnoreCase));
         }
+
+        /// <summary>
+        /// Generates a unique, deterministic project identifier from driveId and config file path
+        /// </summary>
+        private static string GenerateProjectIdentifier(string driveId, string configFilePath)
+        {
+            // Normalize the path to ensure consistency
+            var normalizedPath = configFilePath.Trim('/').Replace('\\', '/');
+            var combinedString = $"{driveId}:{normalizedPath}";
+            
+            // Generate SHA256 hash for uniqueness and consistency
+            using var sha256 = SHA256.Create();
+            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(combinedString));
+            
+            // Convert to hex string and take first 16 characters for readability
+            var hashString = Convert.ToHexString(hashBytes)[..16].ToLowerInvariant();
+            
+            return $"sp-{hashString}"; // Prefix to indicate SharePoint project
+        }
+
+        private async Task<IFileProviderPlugin?> CreateSharePointFileProviderAsync(LoadProjectRequest request)
+        {
+            try
+            {
+                logger.Info($"Creating SharePoint file provider for drive: {request.SPDriveId}");
+
+                // Get the plugin loader to load SharePoint plugin
+                var pluginLoader = serviceProvider.GetRequiredService<IPluginLoader>();
+
+                // Create a temporary configuration with the SharePoint parameters
+                var tempConfig = serviceProvider.GetRequiredService<IConfiguration>() as Configuration.Configuration;
+                if (tempConfig == null)
+                {
+                    logger.Error("Base configuration is not of expected type");
+                    return null;
+                }
+                tempConfig = tempConfig.Clone();  //make sure we're not modifying the global config
+                tempConfig.AddOrUpdateCommandLineOption("SPDriveId", request.SPDriveId);
+                if (!string.IsNullOrEmpty(request.SPSiteUrl))
+                {
+                    tempConfig.AddOrUpdateCommandLineOption("SPSiteUrl", request.SPSiteUrl);
+                }
+
+                // Load the SharePoint file provider plugin
+                SharePointFileProviderPlugin? sharePointPlugin = null;
+
+                // Try loading from each plugin directory
+                foreach (var pluginDir in tempConfig.PluginDirs)
+                {
+                    try
+                    {
+                        sharePointPlugin = pluginLoader.LoadByName<SharePointFileProviderPlugin>(
+                            pluginDir: pluginDir,
+                            typeName: "SharePointFileProviderPlugin",
+                            configureGlobals: sc =>
+                            {
+                                sc.AddSingleton<IFileProviderPlugin>(new LocalFileSystemPlugin(fileSystem));
+                                sc.AddSingleton(tempConfig);
+                            });
+
+                        if (sharePointPlugin != null)
+                        {
+                            logger.Info($"Successfully loaded SharePoint file provider from: {pluginDir}");
+                            break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Warn($"Failed to load SharePoint plugin from {pluginDir}: {ex.Message}");
+                    }
+                }
+
+                if (sharePointPlugin == null)
+                {
+                    logger.Error("Could not load SharePoint file provider plugin from any plugin directory");
+                    return null;
+                }
+
+                // Initialize the plugin with the project-specific configuration
+                sharePointPlugin.InitializePlugin(tempConfig);
+
+                return sharePointPlugin;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Failed to create SharePoint file provider");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Creates a project-specific service provider that uses the SharePoint file provider
+        /// </summary>
+        private IServiceProvider CreateProjectServiceProvider(IFileProviderPlugin sharePointFileProvider, IConfiguration configuration)
+        {
+            var services = new ServiceCollection();
+
+            // Project-specific file provider
+            services.AddSingleton(sharePointFileProvider);
+
+            // Project-specific configuration
+            services.AddSingleton(configuration);
+
+            // Data sources factory (using project-specific file provider)
+            services.AddSingleton(serviceProvider.GetRequiredService<IDataSourcesFactory>());
+
+            // Other required services from the main service provider
+            services.AddSingleton(serviceProvider.GetRequiredService<IPluginLoader>());
+            services.AddSingleton(serviceProvider.GetRequiredService<ITraceabilityAnalysis>());
+            services.AddSingleton(serviceProvider.GetRequiredService<IContentCreatorFactory>());
+
+            // Add data sources as a factory that creates them on first access
+            services.AddSingleton<IDataSources>(provider =>
+            {
+                var factory = provider.GetRequiredService<IDataSourcesFactory>();
+                var config = provider.GetRequiredService<IConfiguration>();
+                return factory.CreateDataSourcesAsync(config).Result;
+            });
+
+            return services.BuildServiceProvider();
+        }
     }
+
 }

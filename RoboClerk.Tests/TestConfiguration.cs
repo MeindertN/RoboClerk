@@ -19,8 +19,6 @@ namespace RoboClerk.Tests
             cmdOptions = new Dictionary<string, string>();
             string roboConf = @"
 FileProviderPlugin = ""LocalFileSystemPlugin""
-DataSourcePlugin = [ ""RedmineSLMSPlugin"", ""DependenciesFilePlugin"" ]
-AISystemPlugin = ""OpenAIPlugin""
 PluginDirs = [ ""I:/test/plugindir"" ]
 PluginConfigurationDir = ""testdir""
 ClearOutputDir = ""True""
@@ -31,6 +29,8 @@ LogLevel = ""INFO""";
 TemplateDirectory = ""I:/temp/roboclerk_input/""
 OutputDirectory = ""I:/temp/Roboclerk_output""
 ProjectRoot = ""I:/code/RoboClerk""
+DataSourcePlugin = [ ""RedmineSLMSPlugin"", ""DependenciesFilePlugin"" ]
+AISystemPlugin = ""OpenAIPlugin""
 MediaDirectory = ""I:/temp/Roboclerk_input/media""
 [Truth.SystemRequirement]
 	name = ""Requirement""
@@ -191,6 +191,8 @@ CompanyName = ""Acme Inc.""
 TemplateDirectory = ""I:/temp/roboclerk_input/""
 OutputDirectory = ""I:/temp/Roboclerk_output""
 ProjectRoot = ""I:/code/RoboClerk""
+DataSourcePlugin = [ ""RedmineSLMSPlugin"", ""DependenciesFilePlugin"" ]
+AISystemPlugin = ""OpenAIPlugin""
 MediaDirectory = ""I:/temp/Roboclerk_input/media""
 [Truth.SystemRequirement]
 	name = ""Requirement""

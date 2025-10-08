@@ -31,5 +31,3 @@ LogLevel = "WARN"
 # Output format (ASCIIDOC, HTML or DOCX)
 
 OutputFormat = "{OUTPUTFORMAT}"
-
-

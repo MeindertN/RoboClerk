@@ -20,7 +20,23 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RoboClerk.Core\RoboClerk.Core.csproj" />
+    <ProjectReference Include="..\RoboClerk.SharePointFileProviderPlugin\RoboClerk.SharePointFileProvider.csproj" />
     <ProjectReference Include="..\RoboClerk\RoboClerk.csproj" />
   </ItemGroup>
 
+	<Target Name="CreateDirectory" BeforeTargets="Start" AfterTargets="Build">
+		<MakeDir Directories="$(ProjectDir)$(OutDir)RoboClerk_input\RoboClerkConfig" />
+		<MakeDir Directories="$(ProjectDir)$(OutDir)RoboClerk_input\PluginConfig" />
+		<MakeDir Directories="$(ProjectDir)$(OutDir)plugins" />
+	</Target>
+
+	<Target Name="CopyConfigFiles" BeforeTargets="Start" AfterTargets="Build">
+		<ItemGroup>
+			<Plugins Include="$(ProjectDir)..\RoboClerk\$(OutDir)plugins\*.dll" />
+			<PluginConfigs Include="$(ProjectDir)..\RoboClerk\$(OutDir)RoboClerk_input\PluginConfig\*.toml" />
+		</ItemGroup>
+		<Copy SourceFiles="$(ProjectDir)Configuration/RoboClerk.toml" DestinationFolder="$(ProjectDir)$(OutDir)RoboClerk_input\RoboClerkConfig" />
+		<Copy SourceFiles="@(Plugins)" DestinationFolder="$(ProjectDir)$(OutDir)plugins" />
+		<Copy SourceFiles="@(PluginConfigs)" DestinationFolder="$(ProjectDir)$(OutDir)RoboClerk_input\PluginConfig" />
+	</Target>
 </Project>

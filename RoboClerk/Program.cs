@@ -240,7 +240,7 @@ namespace RoboClerk
                        {
                            // build the roboclerk configuration first
                            var roboclerkConfig = RoboClerk.Configuration.Configuration.CreateBuilder()
-                            .WithRoboClerkConfig(new LocalFileSystemPlugin(new FileSystem()), roboClerkConfigFile)
+                            .WithRoboClerkConfig(new LocalFileSystemPlugin(new FileSystem()), roboClerkConfigFile, commandlineOptions)
                             .Build();
 
                            try
@@ -334,8 +334,9 @@ namespace RoboClerk
                        }
                    });
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine($"An error occurred starting RoboClerk:\n{e.Message}");
                 return 1;
             }
             finally

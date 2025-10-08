@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 using Tomlyn;
 using Tomlyn.Model;
 
@@ -35,6 +36,7 @@ namespace RoboClerk.Configuration
         private string templateDir = string.Empty;
         private string mediaDir = string.Empty;
         private string projectRoot = string.Empty;
+        private string projectName = string.Empty;
 
         //The information supplied on the commandline
         internal Dictionary<string, string> commandLineOptions = new Dictionary<string, string>();
@@ -53,6 +55,49 @@ namespace RoboClerk.Configuration
             return new ConfigurationBuilder();
         }
 
+        /// <summary>
+        /// Creates a deep clone of this configuration object
+        /// </summary>
+        /// <returns>A new Configuration instance that is a deep copy of this one</returns>
+        public Configuration Clone()
+        {
+            var cloned = new Configuration();
+            
+            // Clone general configuration
+            cloned.pluginDirs = new List<string>(pluginDirs);
+            cloned.logLevel = logLevel;
+            cloned.pluginConfigDir = pluginConfigDir;
+            cloned.clearOutput = clearOutput;
+            cloned.outputFormat = outputFormat;
+            cloned.fileProviderPlugin = fileProviderPlugin;
+
+            // Clone command line options
+            cloned.commandLineOptions = new Dictionary<string, string>(commandLineOptions);
+            
+            // Clone project configuration if loaded
+            if (projectConfigLoaded)
+            {
+                cloned.dataSourcePlugins = new List<string>(dataSourcePlugins);
+                cloned.truthEntities = new List<TraceEntity>(truthEntities);
+                cloned.documents = new List<DocumentConfig>(documents);
+                cloned.traceConfig = new List<TraceConfig>(traceConfig);
+                cloned.checkpointConfig = checkpointConfig; // CheckpointConfig should implement proper cloning if needed
+                cloned.checkTraceEntitiesAI = new List<TraceEntity>(checkTraceEntitiesAI);
+                cloned.checkTemplateContentsAI = checkTemplateContentsAI;
+                cloned.configVals = configVals; // ConfigurationValues should implement proper cloning if needed
+                cloned.templateDir = templateDir;
+                cloned.mediaDir = mediaDir;
+                cloned.projectRoot = projectRoot;
+                cloned.projectConfigLoaded = projectConfigLoaded;
+                cloned.projectName = projectName;
+                cloned.aiPlugin = aiPlugin;
+                cloned.outputDir = outputDir;
+            }
+            
+            logger.Debug("Configuration cloned successfully");
+            return cloned;
+        }
+
         // Public properties
         public List<string> DataSourcePlugins => dataSourcePlugins;
         public List<string> PluginDirs => pluginDirs;
@@ -63,6 +108,27 @@ namespace RoboClerk.Configuration
         public bool ClearOutputDir => clearOutput;
         public string AIPlugin => aiPlugin;
         public string FileProviderPlugin => fileProviderPlugin;
+        public string ProjectName => projectName;
+        
+        public string GetCommandLineOption(string name)
+        {
+            if (commandLineOptions.ContainsKey(name))
+            {
+                return commandLineOptions[name];
+            }
+            throw new KeyNotFoundException($"Command line option '{name}' not found.");
+        }
+
+        public bool HasCommandLineOption(string name)
+        {
+            return commandLineOptions.ContainsKey(name);
+        }
+
+        public void AddOrUpdateCommandLineOption(string name, string value)
+        {
+            commandLineOptions[name] = value;
+            logger.Debug($"Command line option '{name}' set to '{value}'");
+        }
 
         // Project-specific properties with guards
         public List<TraceEntity> TruthEntities 
@@ -176,48 +242,13 @@ namespace RoboClerk.Configuration
             }
         }
 
-        // Legacy method for backward compatibility
-        private (string, string) LoadConfigFiles(IFileProviderPlugin fileSystem, string configFile, string projectConfigFile)
-        {
-            string config;
-            string projectConfig;
-            try
-            {
-                config = fileSystem.ReadAllText(configFile);
-            }
-            catch (IOException)
-            {
-                throw new FileNotFoundException($"Unable to read config file: {configFile}");
-            }
-            try
-            {
-                projectConfig = fileSystem.ReadAllText(projectConfigFile);
-            }
-            catch (IOException)
-            {
-                throw new FileNotFoundException($"Unable to read project config file {projectConfigFile}");
-            }
-            return (config, projectConfig);
-        }
-
-        private void ProcessConfigs(string config, string projectConfig)
-        {
-            ReadGeneralConfigFile(config);
-            ReadProjectConfigFile(projectConfig);
-        }
-
         internal void ReadGeneralConfigFile(string configFile)
         {
             var toml = Toml.Parse(configFile).ToModel();
-            foreach (var obj in (TomlArray)toml["DataSourcePlugin"])
-            {
-                dataSourcePlugins.Add((string)obj);
-            }
             foreach (var obj in (TomlArray)toml["PluginDirs"])
             {
                 pluginDirs.Add((string)obj);
             }
-            aiPlugin = CommandLineOptionOrDefault("AISystemPlugin", (string)toml["AISystemPlugin"]);
             pluginConfigDir = CommandLineOptionOrDefault("PluginConfigurationDir", (string)toml["PluginConfigurationDir"]);
             clearOutput = CommandLineOptionOrDefault("ClearOutputDir", (string)toml["ClearOutputDir"]).ToUpper() == "TRUE";
             logLevel = CommandLineOptionOrDefault("LogLevel", (string)toml["LogLevel"]);
@@ -231,6 +262,12 @@ namespace RoboClerk.Configuration
             templateDir = CommandLineOptionOrDefault("TemplateDirectory", (string)toml["TemplateDirectory"]);
             outputDir = CommandLineOptionOrDefault("OutputDirectory", (string)toml["OutputDirectory"]);
             projectRoot = CommandLineOptionOrDefault("ProjectRoot", (string)toml["ProjectRoot"]);
+            aiPlugin = CommandLineOptionOrDefault("AISystemPlugin", (string)toml["AISystemPlugin"]);
+            projectName = CommandLineOptionOrDefault("ProjectName", (string)toml["ProjectName"]);
+            foreach (var obj in (TomlArray)toml["DataSourcePlugin"])
+            {
+                dataSourcePlugins.Add((string)obj);
+            }
             if (toml.ContainsKey("MediaDirectory"))
             {
                 mediaDir = CommandLineOptionOrDefault("MediaDirectory", (string)toml["MediaDirectory"]);
@@ -375,6 +412,29 @@ namespace RoboClerk.Configuration
         private bool roboClerkConfigLoaded = false;
 
         internal ConfigurationBuilder() { }
+
+        /// <summary>
+        /// Creates a builder from an existing configuration object.
+        /// This is useful when you want to modify or reload parts of an existing configuration.
+        /// </summary>
+        /// <param name="existingConfig">The existing configuration to base this builder on</param>
+        /// <returns>A new ConfigurationBuilder instance initialized with the existing configuration</returns>
+        public static ConfigurationBuilder FromExisting(Configuration existingConfig)
+        {
+            if (existingConfig == null)
+                throw new ArgumentNullException(nameof(existingConfig));
+
+            var builder = new ConfigurationBuilder();
+            builder.config = existingConfig;
+            
+            // Determine if RoboClerk config was already loaded based on the presence of general config data
+            builder.roboClerkConfigLoaded = !string.IsNullOrEmpty(existingConfig.LogLevel) || 
+                                           existingConfig.PluginDirs.Any() || 
+                                           !string.IsNullOrEmpty(existingConfig.OutputFormat);
+            
+            logger.Debug("ConfigurationBuilder created from existing configuration");
+            return builder;
+        }
 
         /// <summary>
         /// Loads the RoboClerk configuration from the specified file provider and path.

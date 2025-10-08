@@ -5,6 +5,10 @@
 # facilitate debugging. If you are using a copy of this config file for your own 
 # setup, just make sure to replace all these with valid values for your install.
 
+# The name of the project. This is used to make it easier to identify the project.
+
+ProjectName = "TestProject"
+
 # Directory where all template files are located 
 
 TemplateDirectory = "{DOCUMENTATIONROOT}/RoboClerk_input/"
@@ -16,6 +20,16 @@ OutputDirectory = "{DOCUMENTATIONROOT}/RoboClerk_output"
 # Root of the development project
 
 ProjectRoot = "{PROJECTROOT}"
+
+# Provide the names of the DataSource plugin(s) in a comma seperated list
+# For example: DataSourcePlugin = [ "AzureDevOpsSLMSPlugin", "RedmineCSVSLMSPlugin" ]
+
+DataSourcePlugin = [ "RedmineSLMSPlugin", "DependenciesFilePlugin", "UnitTestFNPlugin", "AnnotatedUnitTestPlugin", "TestResultsFilePlugin" ]
+
+# Indicate what AI system plugin you'd like to use (if any). Provide "" for no AI plugin.
+# If you have an OpenAI key, you can use "OpenAIPlugin"
+
+AISystemPlugin = ""
 
 # Directory where all media files (images etc.) are located. This will be copied to the output directory so the documents
 # can be built. Leave empty if no images are needed.
