@@ -3,6 +3,8 @@ using DocumentFormat.OpenXml;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using RoboClerk.ContentCreators;
 using RoboClerk.Core;
+using RoboClerk.Core.ASCIIDOCSupport;
+using RoboClerk.Core.Configuration;
 using RoboClerk.Core.DocxSupport;
 using RoboClerk.Server.Models;
 using RoboClerk.SharePointFileProvider;
@@ -125,6 +127,19 @@ namespace RoboClerk.Server.Services
                 loadedProjects[projectId] = projectContext;
 
                 logger.Info($"Successfully loaded SharePoint project: {projectId} with {docxDocuments.Count} DOCX documents");
+                
+                try
+                {
+                    foreach (var docxDocument in docxDocuments)
+                    {
+                        projectContext.LoadedDocuments[""] = ProcessTemplate(projectServiceProvider,docxDocument);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn(ex, $"Error processing documents in project: {ex}");
+                }
+
                 return new ProjectLoadResult
                 {
                     Success = true,
@@ -142,6 +157,129 @@ namespace RoboClerk.Server.Services
                 logger.Error(ex, $"Failed to load SharePoint project: {request.ProjectPath}");
                 return new ProjectLoadResult { Success = false, Error = $"Failed to load SharePoint project: {ex.Message}" };
             }
+        }
+
+        private IDocument ProcessTemplate(IServiceProvider projectServiceProvider, Core.Configuration.DocumentConfig docxDocument)
+        {
+            var configuration = projectServiceProvider.GetRequiredService<IConfiguration>();
+            var fileSystem = projectServiceProvider.GetRequiredService<IFileProviderPlugin>();
+            IDocument document= new DocxDocument(docxDocument.DocumentTitle, docxDocument.DocumentTemplate, configuration);
+            logger.Info($"Reading document template: {docxDocument.RoboClerkID}");
+            byte[] bytes = fileSystem.ReadAllBytes(fileSystem.Combine(configuration.TemplateDir, docxDocument.DocumentTemplate));
+            document.FromStream(new MemoryStream(bytes));
+
+            logger.Info($"Generating document: {docxDocument.RoboClerkID}");
+            var contentCreatorFactory = projectServiceProvider.GetRequiredService<IContentCreatorFactory>();
+            ProcessDocumentTags(document, docxDocument, contentCreatorFactory);
+
+            logger.Info($"Finished creating document {docxDocument.RoboClerkID}");
+            return document;
+        }
+
+        private void ProcessDocumentTags(IDocument document, DocumentConfig doc, IContentCreatorFactory factory)
+        {
+            // Get all tags in the document
+            var tags = document.RoboClerkTags.ToList(); // Create a snapshot
+            bool anyTagProcessed = false;
+
+            foreach (var tag in tags)
+            {
+                if (ProcessSingleTag(tag, doc, factory))
+                {
+                    anyTagProcessed = true;
+
+                    // Process nested tags recursively - this handles all nested levels internally
+                    ProcessNestedTagsRecursively(tag, factory);
+                }
+            }
+        }
+
+        private bool ProcessSingleTag(IRoboClerkTag tag, DocumentConfig doc, IContentCreatorFactory factory)
+        {
+            if (tag.Source == DataSource.Trace)
+            {
+                logger.Debug($"Trace tag found and added to traceability: {tag.GetParameterOrDefault("ID", "ERROR")}");
+                IContentCreator contentCreator = factory.CreateContentCreator(DataSource.Trace, null);
+                string newContent = contentCreator.GetContent(tag, doc);
+                if (tag.Contents != newContent)
+                {
+                    tag.Contents = newContent;
+                    return true;
+                }
+                return false;
+            }
+
+            if (tag.Source != DataSource.Unknown)
+            {
+                try
+                {
+                    IContentCreator contentCreator = factory.CreateContentCreator(tag.Source, tag.ContentCreatorID);
+                    string newContent = contentCreator.GetContent(tag, doc);
+                    if (tag.Contents != newContent)
+                    {
+                        tag.Contents = newContent;
+                        return true;
+                    }
+                    return false;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    logger.Warn($"Content creator for source '{tag.Source}' not found: {ex.Message}");
+                    string errorContent = $"UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS '{tag.Source}:{tag.ContentCreatorID}' IS KNOWN TO ROBOCLERK.\n";
+                    if (tag.Contents != errorContent)
+                    {
+                        tag.Contents = errorContent;
+                        return true;
+                    }
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        private void ProcessNestedTagsRecursively(IRoboClerkTag tag, IContentCreatorFactory factory)
+        {
+            if (string.IsNullOrEmpty(tag.Contents))
+                return;
+
+            // Process nested tags recursively up to 5 levels to prevent infinite loops
+            int nestedLevel = 0;
+            string currentContent = tag.Contents;
+
+            do
+            {
+                nestedLevel++;
+                var nestedTags = new List<IRoboClerkTag>();
+                bool contentChanged = false;
+
+                // we currently only support text-based nested tags
+                var textBasedNested = RoboClerkTextParser.ExtractRoboClerkTags(currentContent);
+                nestedTags.AddRange(textBasedNested.Cast<IRoboClerkTag>());
+
+                // Process each nested tag found at this level using the existing ProcessSingleTag logic
+                foreach (var nestedTag in nestedTags)
+                {
+                    // Create a temporary DocumentConfig for nested processing
+                    // This ensures nested tags can be processed independently
+                    var tempDoc = new DocumentConfig("temp", "temp", "temp", "temp", "temp");
+
+                    if (ProcessSingleTag(nestedTag, tempDoc, factory))
+                    {
+                        contentChanged = true;
+                    }
+                }
+
+                // If content changed, update the parent tag's content and prepare for next iteration
+                if (contentChanged)
+                {
+                    tag.Contents = RoboClerkTextParser.ReInsertRoboClerkTags(currentContent, nestedTags.Cast<RoboClerkTextTag>().ToList()); 
+                }
+
+                // Exit if no changes or max nested levels reached
+                if (!contentChanged || nestedLevel >= 5)
+                    break;
+
+            } while (true);
         }
 
         public async Task<DocumentLoadResult> LoadDocumentAsync(string projectId, string documentId)
