@@ -26,7 +26,7 @@ namespace RoboClerk.Server.Controllers
             {
                 logger.Info($"Loading SharePoint project: {request.ProjectPath}");
                 
-                var result = await projectManager.LoadProjectAsync(request.ProjectPath);
+                var result = await projectManager.LoadProjectAsync(request);
                 if (!result.Success)
                 {
                     logger.Warn($"Failed to load project: {result.Error}");
@@ -56,23 +56,23 @@ namespace RoboClerk.Server.Controllers
         }
 
         /// <summary>
-        /// Load a specific document from the SharePoint project and analyze its content controls
+        /// Refresh a project to discover all available templates and RoboClerk content controls
         /// </summary>
-        [HttpPost("project/{projectId}/document/{documentId}/load")]
-        public async Task<ActionResult<DocumentLoadResult>> LoadDocument(string projectId, string documentId)
+        [HttpGet("project/{projectId}/refresh")]
+        public async Task<ActionResult<DocumentAnalysisResult>> RefreshProject(string projectId, bool full=true)
         {
             try
             {
-                logger.Info($"Loading document {documentId} from project {projectId}");
+                logger.Info($"Refreshing project {projectId}");
                 
-                var result = await projectManager.LoadDocumentAsync(projectId, documentId);
+                var result = await projectManager.RefreshProject(projectId, full);
                 if (!result.Success)
                 {
-                    logger.Warn($"Failed to load document: {result.Error}");
+                    logger.Warn($"Failed to refresh document: {result.Error}");
                     return BadRequest(result);
                 }
 
-                logger.Info($"Successfully loaded document with {result.Tags?.Count ?? 0} content controls");
+                logger.Info($"Project refresh complete: {result.SupportedTagCount}/{result.TotalTagCount} content controls supported");
                 return Ok(result);
             }
             catch (ArgumentException)
@@ -82,40 +82,8 @@ namespace RoboClerk.Server.Controllers
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"Error loading document {documentId}");
-                return StatusCode(500, "Failed to load document from SharePoint");
-            }
-        }
-
-        /// <summary>
-        /// Analyze a document to discover all available RoboClerk content controls and their capabilities
-        /// </summary>
-        [HttpGet("project/{projectId}/document/{documentId}/analyze")]
-        public async Task<ActionResult<DocumentAnalysisResult>> AnalyzeDocument(string projectId, string documentId)
-        {
-            try
-            {
-                logger.Info($"Analyzing document {documentId} from project {projectId}");
-                
-                var result = await projectManager.AnalyzeDocumentForWordAddInAsync(projectId, documentId);
-                if (!result.Success)
-                {
-                    logger.Warn($"Failed to analyze document: {result.Error}");
-                    return BadRequest(result);
-                }
-
-                logger.Info($"Document analysis complete: {result.SupportedTagCount}/{result.TotalTagCount} content controls supported");
-                return Ok(result);
-            }
-            catch (ArgumentException)
-            {
-                logger.Warn($"Project {projectId} not found or not loaded");
-                return NotFound("SharePoint project not loaded. Please load the project first.");
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"Error analyzing document {documentId}");
-                return StatusCode(500, "Failed to analyze document");
+                logger.Error(ex, $"Error analyzing project {projectId}");
+                return StatusCode(500, "Failed to analyze project");
             }
         }
 
@@ -157,7 +125,7 @@ namespace RoboClerk.Server.Controllers
         /// <summary>
         /// Refresh data sources (e.g., when SharePoint data has been updated)
         /// </summary>
-        [HttpPost("project/{projectId}/refresh")]
+        [HttpPost("project/{projectId}/refreshds")]
         public async Task<ActionResult<RefreshResult>> RefreshDataSources(string projectId)
         {
             try

@@ -11,6 +11,7 @@ namespace RoboClerk.Server.Models
         public string ProjectPath { get; init; } = string.Empty;        // SharePoint folder path
         public string ProjectName { get; init; } = string.Empty;        // Display name
         public string SPDriveId { get; init; } = string.Empty;         // SharePoint drive ID
+        public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
         public IServiceProvider ProjectServiceProvider { get; init; } = null!; // Project-specific service provider
         public ConcurrentDictionary<string, IDocument> LoadedDocuments { get; init; } = new();
     }

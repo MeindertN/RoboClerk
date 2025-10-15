@@ -30,18 +30,12 @@ namespace RoboClerk.Server.Models
         public string? Error { get; init; }
         public string? ProjectId { get; init; }
         public string? ProjectName { get; init; }
+        public DateTime? LastUpdated { get; init; }
         public List<DocumentInfo>? Documents { get; init; }
     }
     
     public record DocumentInfo(string DocumentId, string Title, string Template);
-    
-    public record DocumentLoadResult
-    {
-        public bool Success { get; init; }
-        public string? Error { get; init; }
-        public string? DocumentId { get; init; }
-    }
-    
+        
     public record RoboClerkContentControlTagRequest
     {
         [Required]

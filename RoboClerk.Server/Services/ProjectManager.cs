@@ -50,6 +50,7 @@ namespace RoboClerk.Server.Services
                         Success = true,
                         ProjectId = projectId,
                         ProjectName = existingProject.ProjectName,
+                        LastUpdated = existingProject.LastUpdated,
                         Documents = existingConfig.Documents
                             .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
                             .Select(d => new DocumentInfo(d.RoboClerkID, d.DocumentTitle, d.DocumentTemplate))
@@ -282,48 +283,6 @@ namespace RoboClerk.Server.Services
             } while (true);
         }
 
-        public async Task<DocumentLoadResult> LoadDocumentAsync(string projectId, string documentId)
-        {
-            if (!loadedProjects.TryGetValue(projectId, out var project))
-                throw new ArgumentException("SharePoint project not loaded");
-
-            try
-            {
-                // Get dependencies from project service provider
-                var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
-                var fileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
-
-                var docConfig = configuration.Documents
-                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
-                    .FirstOrDefault(d => d.RoboClerkID == documentId);
-
-                if (docConfig == null)
-                    return new DocumentLoadResult { Success = false, Error = "Document not found in SharePoint project" };
-
-                var templatePath = fileProvider.Combine(configuration.TemplateDir, docConfig.DocumentTemplate);
-                if (!fileProvider.FileExists(templatePath))
-                    return new DocumentLoadResult { Success = false, Error = "Template file not found in SharePoint" };
-
-                var document = new DocxDocument(docConfig.DocumentTitle, docConfig.DocumentTemplate, configuration);
-                using var stream = fileProvider.OpenRead(templatePath);
-                document.FromStream(stream);
-
-                project.LoadedDocuments[documentId] = document;
-
-                logger.Info($"Loaded document {documentId}");
-                return new DocumentLoadResult
-                {
-                    Success = true,
-                    DocumentId = documentId
-                };
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"Failed to load document from SharePoint: {documentId}");
-                return new DocumentLoadResult { Success = false, Error = $"Failed to load document from SharePoint: {ex.Message}" };
-            }
-        }
-
         public async Task<List<ConfigurationValue>> GetProjectConfigurationAsync(string projectId)
         {
             if (!loadedProjects.TryGetValue(projectId, out var project))
@@ -440,20 +399,20 @@ namespace RoboClerk.Server.Services
                     return false;
                 }
 
+                // Verify basic project structure
+                if (project.ProjectServiceProvider == null)
+                {
+                    logger.Warn($"Project service provider missing for project: {projectId}");
+                    return false;
+                }
+
                 // Check if SharePoint file provider is available and working
-                var fileProvider = serviceProvider.GetRequiredService<IFileProviderPlugin>();
+                var fileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
                 if (!fileProvider.GetType().Name.Contains("SharePoint"))
                 {
                     logger.Warn($"SharePoint file provider not available for project: {projectId}");
                     return false;
-                }
-
-                // Verify basic project structure
-                if (project.Configuration == null || project.DataSources == null)
-                {
-                    logger.Warn($"Project configuration or data sources missing for project: {projectId}");
-                    return false;
-                }
+                }                
 
                 logger.Info($"SharePoint project validated successfully: {projectId}");
                 return true;
@@ -466,10 +425,14 @@ namespace RoboClerk.Server.Services
         }
 
         /// <summary>
-        /// Pre-processes a document for Word add-in scenarios by loading and analyzing all content control tags
+        /// Refreshes a document for Word add-in scenarios by loading and analyzing all content control tags (full or partial).
         /// </summary>
-        public async Task<DocumentAnalysisResult> AnalyzeDocumentForWordAddInAsync(string projectId, string documentId)
+        public async Task<DocumentAnalysisResult> RefreshDocumentForWordAddInAsync(string projectId, string documentId, bool full)
         {
+            //if full is true, delete the document from loaded documents to force a full reload
+            //if full is false, keep the document if already loaded to allow partial refresh and skip any known tags
+
+
             if (!loadedProjects.TryGetValue(projectId, out var project))
                 throw new ArgumentException("SharePoint project not loaded");
 
