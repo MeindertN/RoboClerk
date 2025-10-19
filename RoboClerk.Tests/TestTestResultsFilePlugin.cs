@@ -21,8 +21,8 @@ namespace RoboClerk.Tests
         [SetUp]
         public void TestSetup()
         {
-            string configFile = @"
-FileLocations = [""c:/temp/system_results.json"", ""c:/temp/unit_results.json""]
+            string configFile = $@"
+FileLocations = [""{TestingHelpers.ConvertFileName(@"c:/temp/system_results.json")}"", ""{TestingHelpers.ConvertFileName(@"c:/temp/unit_results.json")}""]
 ";
             
             string systemResultsJson = JsonSerializer.Serialize(new[]
