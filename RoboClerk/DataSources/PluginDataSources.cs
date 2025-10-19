@@ -62,6 +62,7 @@ namespace RoboClerk
         {
             var itemLinkUpdater = new ItemLinkUpdater(this);
             itemLinkUpdater.UpdateAllItemLinks(plugins);
+
         }
 
         public override List<SOUPItem> GetAllSOUP()
@@ -124,12 +125,32 @@ namespace RoboClerk
             return results;
         }
 
+        public override List<EliminatedTestResult> GetAllEliminatedTestResults()
+        {
+            var results = new List<EliminatedTestResult>();
+            foreach (var plugin in plugins)
+            {
+                results.AddRange(plugin.GetEliminatedTestResults());
+            }
+            return results;
+        }
+
         public override List<UnitTestItem> GetAllUnitTests()
         {
             var unitTests = new List<UnitTestItem>();
             foreach (var plugin in plugins)
             {
                 unitTests.AddRange(plugin.GetUnitTests());
+            }
+            return unitTests;
+        }
+
+        public override List<EliminatedUnitTestItem> GetAllEliminatedUnitTests()
+        {
+            var unitTests = new List<EliminatedUnitTestItem>();
+            foreach (var plugin in plugins)
+            {
+                unitTests.AddRange(plugin.GetEliminatedUnitTests());
             }
             return unitTests;
         }

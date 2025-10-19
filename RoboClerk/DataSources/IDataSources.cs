@@ -11,12 +11,14 @@ namespace RoboClerk
         List<RequirementItem> GetAllSoftwareRequirements();
         List<EliminatedRequirementItem> GetAllEliminatedSoftwareRequirements();
         List<UnitTestItem> GetAllUnitTests();
+        List<EliminatedUnitTestItem> GetAllEliminatedUnitTests();
         List<SoftwareSystemTestItem> GetAllSoftwareSystemTests();
         List<EliminatedSoftwareSystemTestItem> GetAllEliminatedSoftwareSystemTests();
         List<RequirementItem> GetAllSystemRequirements();
         List<EliminatedRequirementItem> GetAllEliminatedSystemRequirements();
         List<ExternalDependency> GetAllExternalDependencies();
         List<TestResult> GetAllTestResults();
+        List<EliminatedTestResult> GetAllEliminatedTestResults();
         List<RequirementItem> GetAllDocumentationRequirements();
         List<EliminatedRequirementItem> GetAllEliminatedDocumentationRequirements();
         List<RiskItem> GetAllRisks();
@@ -32,6 +34,7 @@ namespace RoboClerk
         EliminatedRequirementItem GetEliminatedSoftwareRequirement(string id);
         SoftwareSystemTestItem GetSoftwareSystemTest(string id);
         UnitTestItem GetUnitTest(string id);
+        EliminatedUnitTestItem GetEliminatedUnitTest(string id);
         RequirementItem GetSystemRequirement(string id);
         EliminatedRequirementItem GetEliminatedSystemRequirement(string id);
         RequirementItem GetDocumentationRequirement(string id);

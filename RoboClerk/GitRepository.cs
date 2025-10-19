@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 using CliWrap;
@@ -13,9 +14,11 @@ namespace RoboClerk
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private string projectRoot = string.Empty;
         private readonly Dictionary<string, GitFileInfo> fileInfoCache = new();
+        private readonly IFileSystem fileSystem;
 
-        public GitRepository(IConfiguration config) 
+        public GitRepository(IConfiguration config, IFileSystem fileSystem) 
         {
+            this.fileSystem = fileSystem;
             projectRoot = config.ProjectRoot;
             var result = RunGitCommand("--version");
             if(!result.Contains("git version"))
@@ -118,8 +121,10 @@ namespace RoboClerk
             }
             else
             {
-                logger.Error($"GitRepoInformation: Requested file version not available, file {file} is not checked into git.");
-                throw new Exception($"Error occurred when trying to retrieve the versioning information for {file}. File appears not checked into git.");
+                // For new/untracked files, return empty version instead of throwing
+                logger.Debug($"File {file} is not checked into git, returning empty version.");
+                UpdateCacheEntry(normalizedPath, version: string.Empty);
+                return string.Empty;
             }
         }
 
@@ -133,7 +138,7 @@ namespace RoboClerk
                 return cachedInfo.LastUpdated;
             }
 
-            // Fall back to individual command
+            // Try to get date from git first
             var dateTime = RunGitCommand($"log -n 1 --format=\"%ai\" -- \"{file}\"");
             if (!dateTime.Contains("fatal:") && dateTime.Length != 0)
             {
@@ -144,10 +149,29 @@ namespace RoboClerk
                 }
                 else
                 {
-                    throw new Exception($"Error trying to get DateTime for file \"{file}\", Git command output \"{dateTime}\".");
+                    logger.Warn($"Could not parse git date for file \"{file}\", falling back to file system date. Git output: \"{dateTime}\"");
                 }
             }
-            throw new Exception($"Error trying to get DateTime for file \"{file}\", Git command output \"{dateTime}\".");
+            
+            // Fall back to file system modified date for new or untracked files
+            try
+            {
+                if (fileSystem.File.Exists(normalizedPath))
+                {
+                    var fileModifiedDate = fileSystem.File.GetLastWriteTime(normalizedPath);
+                    logger.Debug($"Using file system modified date for file \"{file}\": {fileModifiedDate}");
+                    UpdateCacheEntry(normalizedPath, lastUpdated: fileModifiedDate);
+                    return fileModifiedDate;
+                }
+                else
+                {
+                    throw new Exception($"File \"{file}\" does not exist.");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error trying to get DateTime for file \"{file}\": {ex.Message}");
+            }
         }
 
         private HashSet<string> GetModifiedFiles(List<string> trackedFiles)
@@ -188,31 +212,54 @@ namespace RoboClerk
             var fileArgs = string.Join(" ", files.Select(f => $"\"{Path.GetRelativePath(projectRoot, f)}\""));
             var logOutput = RunGitCommand($"log --name-only --pretty=format:\"%H|%ai\" -- {fileArgs}");
             
-            if (string.IsNullOrWhiteSpace(logOutput))
-                return result;
-
-            // Parse the output
-            var lines = logOutput.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-            string currentHash = null;
-            DateTime currentDate = DateTime.MinValue;
-            
-            foreach (var line in lines)
+            // Parse the git output for tracked files
+            if (!string.IsNullOrWhiteSpace(logOutput))
             {
-                if (line.Contains("|")) // This is a commit info line
+                var lines = logOutput.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                string currentHash = null;
+                DateTime currentDate = DateTime.MinValue;
+                
+                foreach (var line in lines)
                 {
-                    var parts = line.Split('|');
-                    if (parts.Length >= 2)
+                    if (line.Contains("|")) // This is a commit info line
                     {
-                        currentHash = parts[0].Substring(0, Math.Min(7, parts[0].Length));
-                        DateTime.TryParse(parts[1], out currentDate);
+                        var parts = line.Split('|');
+                        if (parts.Length >= 2)
+                        {
+                            currentHash = parts[0].Substring(0, Math.Min(7, parts[0].Length));
+                            DateTime.TryParse(parts[1], out currentDate);
+                        }
+                    }
+                    else if (!string.IsNullOrWhiteSpace(line) && currentHash != null) // This is a file name
+                    {
+                        var fullPath = Path.GetFullPath(Path.Combine(projectRoot, line.Trim()));
+                        if (!result.ContainsKey(fullPath)) // Only store the most recent commit info
+                        {
+                            result[fullPath] = (currentHash, currentDate);
+                        }
                     }
                 }
-                else if (!string.IsNullOrWhiteSpace(line) && currentHash != null) // This is a file name
+            }
+
+            // For files not found in git (new/untracked files), use file system date
+            foreach (var file in files)
+            {
+                var normalizedPath = Path.GetFullPath(file);
+                if (!result.ContainsKey(normalizedPath))
                 {
-                    var fullPath = Path.GetFullPath(Path.Combine(projectRoot, line.Trim()));
-                    if (!result.ContainsKey(fullPath)) // Only store the most recent commit info
+                    try
                     {
-                        result[fullPath] = (currentHash, currentDate);
+                        if (fileSystem.File.Exists(normalizedPath))
+                        {
+                            var fileModifiedDate = fileSystem.File.GetLastWriteTime(normalizedPath);
+                            result[normalizedPath] = (string.Empty, fileModifiedDate);
+                            logger.Debug($"Using file system date for untracked file: {normalizedPath}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Warn($"Could not get file system date for {normalizedPath}: {ex.Message}");
+                        result[normalizedPath] = (string.Empty, DateTime.MinValue);
                     }
                 }
             }

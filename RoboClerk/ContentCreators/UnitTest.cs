@@ -23,7 +23,7 @@ namespace RoboClerk.ContentCreators
                 bool found = false;
                 foreach (var result in results)
                 {
-                    if (result.ResultType == TestResultType.UNIT && result.TestID == item.ItemID)
+                    if (result.ResultType == TestType.UNIT && result.TestID == item.ItemID)
                     {
                         found = true;
                         if (result.ResultStatus == TestResultStatus.FAIL)
@@ -42,7 +42,7 @@ namespace RoboClerk.ContentCreators
             }
             foreach (var result in results)
             {
-                if (result.ResultType != TestResultType.UNIT)
+                if (result.ResultType != TestType.UNIT)
                     continue;
                 bool found = false;
                 foreach (var item in items)

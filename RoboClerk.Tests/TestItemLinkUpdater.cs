@@ -43,6 +43,8 @@ namespace RoboClerk.Tests
             plugin.GetRisks().Returns(new RiskItem[0]);
             plugin.GetSOUP().Returns(new SOUPItem[0]);
             plugin.GetUnitTests().Returns(new UnitTestItem[0]);
+            plugin.GetTestResults().Returns(new TestResult[0]);
+            SetupEliminatedItemMethods();
 
             var plugins = new List<IDataSourcePlugin> { plugin };
 
@@ -83,6 +85,8 @@ namespace RoboClerk.Tests
             plugin.GetRisks().Returns(new RiskItem[0]);
             plugin.GetSOUP().Returns(new SOUPItem[0]);
             plugin.GetUnitTests().Returns(new UnitTestItem[0]);
+            plugin.GetTestResults().Returns(new TestResult[0]);
+            SetupEliminatedItemMethods();
 
             var plugins = new List<IDataSourcePlugin> { plugin };
 
@@ -119,6 +123,8 @@ namespace RoboClerk.Tests
             plugin.GetRisks().Returns(new[] { risk });
             plugin.GetSOUP().Returns(new SOUPItem[0]);
             plugin.GetUnitTests().Returns(new UnitTestItem[0]);
+            plugin.GetTestResults().Returns(new TestResult[0]);
+            SetupEliminatedItemMethods();
 
             var plugins = new List<IDataSourcePlugin> { plugin };
 
@@ -155,6 +161,8 @@ namespace RoboClerk.Tests
             plugin.GetRisks().Returns(new RiskItem[0]);
             plugin.GetSOUP().Returns(new SOUPItem[0]);
             plugin.GetUnitTests().Returns(new UnitTestItem[0]);
+            plugin.GetTestResults().Returns(new TestResult[0]);
+            SetupEliminatedItemMethods();
 
             var plugins = new List<IDataSourcePlugin> { plugin };
 
@@ -191,6 +199,8 @@ namespace RoboClerk.Tests
             plugin.GetRisks().Returns(new RiskItem[0]);
             plugin.GetSOUP().Returns(new SOUPItem[0]);
             plugin.GetUnitTests().Returns(new UnitTestItem[0]);
+            plugin.GetTestResults().Returns(new TestResult[0]);
+            SetupEliminatedItemMethods();
 
             var plugins = new List<IDataSourcePlugin> { plugin };
 
@@ -232,6 +242,8 @@ namespace RoboClerk.Tests
             plugin.GetRisks().Returns(new RiskItem[0]);
             plugin.GetSOUP().Returns(new SOUPItem[0]);
             plugin.GetUnitTests().Returns(new UnitTestItem[0]);
+            plugin.GetTestResults().Returns(new TestResult[0]);
+            SetupEliminatedItemMethods();
 
             var plugins = new List<IDataSourcePlugin> { plugin };
 
@@ -271,6 +283,8 @@ namespace RoboClerk.Tests
             plugin.GetRisks().Returns(new RiskItem[0]);
             plugin.GetSOUP().Returns(new SOUPItem[0]);
             plugin.GetUnitTests().Returns(new[] { unitTest });
+            plugin.GetTestResults().Returns(new TestResult[0]);
+            SetupEliminatedItemMethods();
 
             var plugins = new List<IDataSourcePlugin> { plugin };
 
@@ -311,6 +325,8 @@ namespace RoboClerk.Tests
             plugin.GetRisks().Returns(new RiskItem[0]);
             plugin.GetSOUP().Returns(new SOUPItem[0]);
             plugin.GetUnitTests().Returns(new[] { unitTest });
+            plugin.GetTestResults().Returns(new TestResult[0]);
+            SetupEliminatedItemMethods();
 
             var plugins = new List<IDataSourcePlugin> { plugin };
 
@@ -352,6 +368,8 @@ namespace RoboClerk.Tests
             plugin.GetRisks().Returns(new RiskItem[0]);
             plugin.GetSOUP().Returns(new SOUPItem[0]);
             plugin.GetUnitTests().Returns(new UnitTestItem[0]);
+            plugin.GetTestResults().Returns(new TestResult[0]);
+            SetupEliminatedItemMethods();
 
             var plugins = new List<IDataSourcePlugin> { plugin };
 
@@ -367,6 +385,332 @@ namespace RoboClerk.Tests
             var docLinks = docContent.LinkedItems.ToList();
             Assert.That(docLinks.Count, Is.EqualTo(1), "Document should still have its DocumentedBy link");
             Assert.That(docLinks[0].LinkType, Is.EqualTo(ItemLinkType.DocumentedBy), "Document should maintain DocumentedBy link type");
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "3E4F5A6B-7C8D-9E0F-1A2B-3C4D5E6F7A8B",
+            Purpose = "Test that TestResult-ResultOf relationships are bidirectional after update",
+            PostCondition = "Test has Result link and test result has ResultOf link")]
+        public void UpdateAllItemLinks_CreatesComplementaryTestResultLinks()
+        {
+            // Arrange
+            var unitTest = new UnitTestItem { ItemID = "UNIT-001" };
+            var testResult = new TestResult("UNIT-001", TestType.UNIT, TestResultStatus.PASS, "Unit Test Result", "Test passed", System.DateTime.Now);
+            
+            plugin.GetSystemRequirements().Returns(new RequirementItem[0]);
+            plugin.GetSoftwareRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocumentationRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocContents().Returns(new DocContentItem[0]);
+            plugin.GetSoftwareSystemTests().Returns(new SoftwareSystemTestItem[0]);
+            plugin.GetAnomalies().Returns(new AnomalyItem[0]);
+            plugin.GetRisks().Returns(new RiskItem[0]);
+            plugin.GetSOUP().Returns(new SOUPItem[0]);
+            plugin.GetUnitTests().Returns(new[] { unitTest });
+            plugin.GetTestResults().Returns(new[] { testResult });
+            SetupEliminatedItemMethods();
+
+            var plugins = new List<IDataSourcePlugin> { plugin };
+
+            // Act
+            itemLinkUpdater.UpdateAllItemLinks(plugins);
+
+            // Assert - TestResult constructor should have automatically created the links
+            var testResultLinks = testResult.LinkedItems.ToList();
+            var unitTestLinks = unitTest.LinkedItems.ToList();
+            
+            // Verify the links were created properly by the TestResult constructor and maintained
+            Assert.That(testResultLinks.Any(link => link.TargetID == "UNIT-001" && link.LinkType == ItemLinkType.ResultOf), 
+                Is.True, "Test result should have ResultOf link to unit test");
+            Assert.That(unitTestLinks.Any(link => link.TargetID == testResult.ItemID && link.LinkType == ItemLinkType.Result), 
+                Is.True, "Unit test should have Result link to test result");
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "8A9B0C1D-2E3F-4A5B-6C7D-8E9F0A1B2C3D",
+            Purpose = "Test that Result-ResultOf relationships are properly complemented in both directions",
+            PostCondition = "Test has Result link and TestResult has ResultOf link when created from either direction")]
+        public void UpdateAllItemLinks_CreatesComplementaryResultLinks()
+        {
+            // Arrange - Create a test that should get a result link to a test result
+            var systemTest = new SoftwareSystemTestItem { ItemID = "TC-001" };
+            var testResult = new TestResult("TC-001", TestType.SYSTEM, TestResultStatus.PASS, "System Test Result", "Test passed", System.DateTime.Now);
+            
+            // Remove the automatic link that TestResult constructor creates to test our logic
+            var existingLinks = testResult.LinkedItems.ToList();
+            foreach (var link in existingLinks)
+            {
+                testResult.RemoveLinkedItem(link);
+            }
+            
+            // Manually add only the ResultOf link to test the complementary logic
+            testResult.AddLinkedItem(new ItemLink("TC-001", ItemLinkType.ResultOf));
+
+            plugin.GetSystemRequirements().Returns(new RequirementItem[0]);
+            plugin.GetSoftwareRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocumentationRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocContents().Returns(new DocContentItem[0]);
+            plugin.GetSoftwareSystemTests().Returns(new[] { systemTest });
+            plugin.GetAnomalies().Returns(new AnomalyItem[0]);
+            plugin.GetRisks().Returns(new RiskItem[0]);
+            plugin.GetSOUP().Returns(new SOUPItem[0]);
+            plugin.GetUnitTests().Returns(new UnitTestItem[0]);
+            plugin.GetTestResults().Returns(new[] { testResult });
+            SetupEliminatedItemMethods();
+
+            var plugins = new List<IDataSourcePlugin> { plugin };
+
+            // Act
+            itemLinkUpdater.UpdateAllItemLinks(plugins);
+
+            // Assert
+            var systemTestLinks = systemTest.LinkedItems.ToList();
+            Assert.That(systemTestLinks.Count, Is.EqualTo(1), "System test should have exactly one link to test result");
+            Assert.That(systemTestLinks[0].TargetID, Is.EqualTo(testResult.ItemID), "System test should link to test result");
+            Assert.That(systemTestLinks[0].LinkType, Is.EqualTo(ItemLinkType.Result), "System test should have Result link type");
+            
+            var testResultLinks = testResult.LinkedItems.ToList();
+            Assert.That(testResultLinks.Count, Is.EqualTo(1), "Test result should still have its ResultOf link");
+            Assert.That(testResultLinks[0].LinkType, Is.EqualTo(ItemLinkType.ResultOf), "Test result should maintain ResultOf link type");
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "9A8B7C6D-5E4F-3A2B-1C0D-9E8F7A6B5C4D",
+            Purpose = "Test that items linking to eliminated targets have their links removed",
+            PostCondition = "Links to eliminated targets are removed from source items")]
+        public void UpdateAllItemLinks_RemovesLinksToEliminatedTargets()
+        {
+            // Arrange
+            var requirement1 = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "REQ-001" };
+            var requirement2 = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "REQ-002" };
+            
+            // REQ-001 links to REQ-002, but REQ-002 gets eliminated
+            requirement1.AddLinkedItem(new ItemLink("REQ-002", ItemLinkType.Related));
+            
+            var eliminatedReq2 = new EliminatedRequirementItem(requirement2, "Test elimination", EliminationReason.LinkedItemMissing);
+
+            plugin.GetSystemRequirements().Returns(new[] { requirement1 });
+            plugin.GetSoftwareRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocumentationRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocContents().Returns(new DocContentItem[0]);
+            plugin.GetSoftwareSystemTests().Returns(new SoftwareSystemTestItem[0]);
+            plugin.GetAnomalies().Returns(new AnomalyItem[0]);
+            plugin.GetRisks().Returns(new RiskItem[0]);
+            plugin.GetSOUP().Returns(new SOUPItem[0]);
+            plugin.GetUnitTests().Returns(new UnitTestItem[0]);
+            plugin.GetTestResults().Returns(new TestResult[0]);
+            
+            // Setup eliminated items
+            plugin.GetEliminatedSystemRequirements().Returns(new[] { eliminatedReq2 });
+            plugin.GetEliminatedSoftwareRequirements().Returns(new EliminatedRequirementItem[0]);
+            plugin.GetEliminatedDocumentationRequirements().Returns(new EliminatedRequirementItem[0]);
+            plugin.GetEliminatedDocContents().Returns(new EliminatedDocContentItem[0]);
+            plugin.GetEliminatedSoftwareSystemTests().Returns(new EliminatedSoftwareSystemTestItem[0]);
+            plugin.GetEliminatedAnomalies().Returns(new EliminatedAnomalyItem[0]);
+            plugin.GetEliminatedRisks().Returns(new EliminatedRiskItem[0]);
+            plugin.GetEliminatedSOUP().Returns(new EliminatedSOUPItem[0]);
+            plugin.GetEliminatedTestResults().Returns(new EliminatedTestResult[0]);
+            plugin.GetEliminatedUnitTests().Returns(new EliminatedUnitTestItem[0]);
+
+            var plugins = new List<IDataSourcePlugin> { plugin };
+
+            // Act
+            itemLinkUpdater.UpdateAllItemLinks(plugins);
+
+            // Assert
+            var req1Links = requirement1.LinkedItems.ToList();
+            Assert.That(req1Links.Count, Is.EqualTo(0), "Requirement should have no links after target was eliminated");
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "1F2E3D4C-5B6A-9C8D-7E6F-5A4B3C2D1E0F",
+            Purpose = "Test that items with no remaining links get eliminated during rescan",
+            PostCondition = "Items with no links are eliminated and EliminateItem is called")]
+        public void UpdateAllItemLinks_EliminatesItemsWithNoRemainingLinks()
+        {
+            // Arrange
+            var requirement1 = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "REQ-001" };
+            var requirement2 = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "REQ-002" };
+            
+            // REQ-001 only links to REQ-002, and REQ-002 gets eliminated, leaving REQ-001 with no links
+            requirement1.AddLinkedItem(new ItemLink("REQ-002", ItemLinkType.Related));
+            
+            var eliminatedReq2 = new EliminatedRequirementItem(requirement2, "Test elimination", EliminationReason.LinkedItemMissing);
+
+            plugin.GetSystemRequirements().Returns(new[] { requirement1 });
+            plugin.GetSoftwareRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocumentationRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocContents().Returns(new DocContentItem[0]);
+            plugin.GetSoftwareSystemTests().Returns(new SoftwareSystemTestItem[0]);
+            plugin.GetAnomalies().Returns(new AnomalyItem[0]);
+            plugin.GetRisks().Returns(new RiskItem[0]);
+            plugin.GetSOUP().Returns(new SOUPItem[0]);
+            plugin.GetUnitTests().Returns(new UnitTestItem[0]);
+            plugin.GetTestResults().Returns(new TestResult[0]);
+            
+            // Setup eliminated items
+            plugin.GetEliminatedSystemRequirements().Returns(new[] { eliminatedReq2 });
+            plugin.GetEliminatedSoftwareRequirements().Returns(new EliminatedRequirementItem[0]);
+            plugin.GetEliminatedDocumentationRequirements().Returns(new EliminatedRequirementItem[0]);
+            plugin.GetEliminatedDocContents().Returns(new EliminatedDocContentItem[0]);
+            plugin.GetEliminatedSoftwareSystemTests().Returns(new EliminatedSoftwareSystemTestItem[0]);
+            plugin.GetEliminatedAnomalies().Returns(new EliminatedAnomalyItem[0]);
+            plugin.GetEliminatedRisks().Returns(new EliminatedRiskItem[0]);
+            plugin.GetEliminatedSOUP().Returns(new EliminatedSOUPItem[0]);
+
+            var plugins = new List<IDataSourcePlugin> { plugin };
+
+            // Act
+            itemLinkUpdater.UpdateAllItemLinks(plugins);
+
+            // Assert
+            plugin.Received().EliminateItem("REQ-001", "All items this item linked to were eliminated.", EliminationReason.LinkedItemMissing);
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "2A1B2C3D-4E5F-6A7B-8C9D-0E1F2A3B4C5D",
+            Purpose = "Test that links to non-existent, non-eliminated targets throw exception",
+            PostCondition = "Exception is thrown when target item is not found and not eliminated")]
+        public void UpdateAllItemLinks_ThrowsExceptionForMissingNonEliminatedTargets()
+        {
+            // Arrange
+            var requirement1 = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "REQ-001" };
+            
+            // REQ-001 links to REQ-999 which doesn't exist and wasn't eliminated
+            requirement1.AddLinkedItem(new ItemLink("REQ-999", ItemLinkType.Related));
+
+            plugin.GetSystemRequirements().Returns(new[] { requirement1 });
+            plugin.GetSoftwareRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocumentationRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocContents().Returns(new DocContentItem[0]);
+            plugin.GetSoftwareSystemTests().Returns(new SoftwareSystemTestItem[0]);
+            plugin.GetAnomalies().Returns(new AnomalyItem[0]);
+            plugin.GetRisks().Returns(new RiskItem[0]);
+            plugin.GetSOUP().Returns(new SOUPItem[0]);
+            plugin.GetUnitTests().Returns(new UnitTestItem[0]);
+            plugin.GetTestResults().Returns(new TestResult[0]);
+            SetupEliminatedItemMethods(); // All return empty arrays
+
+            var plugins = new List<IDataSourcePlugin> { plugin };
+
+            // Act & Assert
+            var ex = Assert.Throws<System.Exception>(() => itemLinkUpdater.UpdateAllItemLinks(plugins));
+            Assert.That(ex.Message, Does.Contain("Target item with ID 'REQ-999' not found and was not eliminated"));
+            Assert.That(ex.Message, Does.Contain("Link from item 'REQ-001' of type 'SystemRequirement' is invalid"));
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "3B2C3D4E-5F6A-7B8C-9D0E-1F2A3B4C5D6E",
+            Purpose = "Test that item with only eliminated target links gets eliminated", 
+            PostCondition = "Item linking only to eliminated targets is eliminated")]
+        public void UpdateAllItemLinks_EliminatesItemLinkingOnlyToEliminatedTargets()
+        {
+            // Arrange - REQ-002 only links to REQ-003 which is eliminated
+            var requirement2 = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "REQ-002" };
+            
+            requirement2.AddLinkedItem(new ItemLink("REQ-003", ItemLinkType.Related));
+            
+            var eliminatedReq3 = new EliminatedRequirementItem(
+                new RequirementItem(RequirementType.SystemRequirement) { ItemID = "REQ-003" }, 
+                "Initial elimination", 
+                EliminationReason.LinkedItemMissing);
+
+            plugin.GetSystemRequirements().Returns(new[] { requirement2 });
+            plugin.GetSoftwareRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocumentationRequirements().Returns(new RequirementItem[0]);
+            plugin.GetDocContents().Returns(new DocContentItem[0]);
+            plugin.GetSoftwareSystemTests().Returns(new SoftwareSystemTestItem[0]);
+            plugin.GetAnomalies().Returns(new AnomalyItem[0]);
+            plugin.GetRisks().Returns(new RiskItem[0]);
+            plugin.GetSOUP().Returns(new SOUPItem[0]);
+            plugin.GetUnitTests().Returns(new UnitTestItem[0]);
+            plugin.GetTestResults().Returns(new TestResult[0]);
+            
+            // Setup eliminated items
+            plugin.GetEliminatedSystemRequirements().Returns(new[] { eliminatedReq3 });
+            plugin.GetEliminatedSoftwareRequirements().Returns(new EliminatedRequirementItem[0]);
+            plugin.GetEliminatedDocumentationRequirements().Returns(new EliminatedRequirementItem[0]);
+            plugin.GetEliminatedDocContents().Returns(new EliminatedDocContentItem[0]);
+            plugin.GetEliminatedSoftwareSystemTests().Returns(new EliminatedSoftwareSystemTestItem[0]);
+            plugin.GetEliminatedAnomalies().Returns(new EliminatedAnomalyItem[0]);
+            plugin.GetEliminatedRisks().Returns(new EliminatedRiskItem[0]);
+            plugin.GetEliminatedSOUP().Returns(new EliminatedSOUPItem[0]);
+            plugin.GetEliminatedTestResults().Returns(new EliminatedTestResult[0]);
+            plugin.GetEliminatedUnitTests().Returns(new EliminatedUnitTestItem[0]);
+
+            var plugins = new List<IDataSourcePlugin> { plugin };
+
+            // Act
+            itemLinkUpdater.UpdateAllItemLinks(plugins);
+
+            // Assert - REQ-002 should be eliminated because its only link (to REQ-003) was removed
+            plugin.Received().EliminateItem("REQ-002", "All items this item linked to were eliminated.", EliminationReason.LinkedItemMissing);
+            
+            // Verify the link was actually removed from REQ-002
+            Assert.That(requirement2.LinkedItems.Count(), Is.EqualTo(0), "REQ-002 should have no remaining links");
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "5D4E5F6A-7B8C-9D0E-1F2A-3B4C5D6E7F8A",
+            Purpose = "Test that constructor throws ArgumentNullException for null dataSources",
+            PostCondition = "ArgumentNullException is thrown")]
+        public void Constructor_ThrowsArgumentNullException_WhenDataSourcesIsNull()
+        {
+            // Act & Assert
+            var ex = Assert.Throws<System.ArgumentNullException>(() => new ItemLinkUpdater(null));
+            Assert.That(ex.ParamName, Is.EqualTo("dataSources"));
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "6E5F6A7B-8C9D-0E1F-2A3B-4C5D6E7F8A9B",
+            Purpose = "Test that UpdateAllItemLinks throws ArgumentNullException for null plugins",
+            PostCondition = "ArgumentNullException is thrown")]
+        public void UpdateAllItemLinks_ThrowsArgumentNullException_WhenPluginsIsNull()
+        {
+            // Act & Assert
+            var ex = Assert.Throws<System.ArgumentNullException>(() => itemLinkUpdater.UpdateAllItemLinks(null));
+            Assert.That(ex.ParamName, Is.EqualTo("plugins"));
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "7F6A7B8C-9D0E-1F2A-3B4C-5D6E7F8A9B0C",
+            Purpose = "Test that EliminatedItemIDs property returns read-only list of eliminated items",
+            PostCondition = "EliminatedItemIDs contains expected items")]
+        public void EliminatedItemIDs_ReturnsReadOnlyListOfEliminatedItems()
+        {
+            // The EliminatedItemIDs property should be empty initially since no items have been eliminated yet
+            // This test verifies the property exists and returns a read-only collection
+            
+            // Act
+            var eliminatedIds = itemLinkUpdater.EliminatedItemIDs;
+
+            // Assert
+            Assert.That(eliminatedIds, Is.Not.Null, "EliminatedItemIDs should not be null");
+            Assert.That(eliminatedIds.Count, Is.EqualTo(0), "EliminatedItemIDs should be empty initially");
+            Assert.That(eliminatedIds, Is.InstanceOf<System.Collections.Generic.IReadOnlyList<string>>(), 
+                "EliminatedItemIDs should be a read-only list");
+        }
+
+        private void SetupEliminatedItemMethods()
+        {
+            plugin.GetEliminatedSystemRequirements().Returns(new EliminatedRequirementItem[0]);
+            plugin.GetEliminatedSoftwareRequirements().Returns(new EliminatedRequirementItem[0]);
+            plugin.GetEliminatedDocumentationRequirements().Returns(new EliminatedRequirementItem[0]);
+            plugin.GetEliminatedDocContents().Returns(new EliminatedDocContentItem[0]);
+            plugin.GetEliminatedSoftwareSystemTests().Returns(new EliminatedSoftwareSystemTestItem[0]);
+            plugin.GetEliminatedAnomalies().Returns(new EliminatedAnomalyItem[0]);
+            plugin.GetEliminatedRisks().Returns(new EliminatedRiskItem[0]);
+            plugin.GetEliminatedSOUP().Returns(new EliminatedSOUPItem[0]);
+            plugin.GetEliminatedTestResults().Returns(new EliminatedTestResult[0]);
+            plugin.GetEliminatedUnitTests().Returns(new EliminatedUnitTestItem[0]);
         }
     }
 }

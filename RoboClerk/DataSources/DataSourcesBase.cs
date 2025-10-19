@@ -32,7 +32,11 @@ namespace RoboClerk
 
         public abstract List<TestResult> GetAllTestResults();
 
+        public abstract List<EliminatedTestResult> GetAllEliminatedTestResults();
+
         public abstract List<UnitTestItem> GetAllUnitTests();
+
+        public abstract List<EliminatedUnitTestItem> GetAllEliminatedUnitTests();
 
         public abstract List<RequirementItem> GetAllSoftwareRequirements();
 
@@ -110,6 +114,8 @@ namespace RoboClerk
                         .Concat(GetAllEliminatedAnomalies())
                         .Concat(GetAllEliminatedDocContents())
                         .Concat(GetAllEliminatedSOUP())
+                        .Concat(GetAllEliminatedUnitTests())
+                        .Concat(GetAllEliminatedTestResults())
                         .ToList();
             }
             else
@@ -145,6 +151,12 @@ namespace RoboClerk
         public UnitTestItem GetUnitTest(string id)
         {
             var items = GetAllUnitTests();
+            return items.Find(f => (f.ItemID == id));
+        }
+
+        public EliminatedUnitTestItem GetEliminatedUnitTest(string id)
+        {
+            var items = GetAllEliminatedUnitTests();
             return items.Find(f => (f.ItemID == id));
         }
 

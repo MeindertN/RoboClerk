@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace RoboClerk.TestResultsFilePlugin
 {
+    [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Skip)]
     public class TestResultJSONObject
     {
         [JsonPropertyName("id")]
@@ -15,7 +16,7 @@ namespace RoboClerk.TestResultsFilePlugin
         [JsonPropertyName("type")]
         [JsonRequired]
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public TestResultType Type { get; set; }
+        public TestType Type { get; set; }
 
         [JsonPropertyName("status")]
         [JsonRequired]
@@ -28,5 +29,4 @@ namespace RoboClerk.TestResultsFilePlugin
         [JsonPropertyName("executionTime")]
         public DateTime? ExecutionTime { get; set; }
     }
-
 }

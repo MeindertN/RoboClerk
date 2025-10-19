@@ -27,6 +27,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboClerk.TestResultsFilePl
 		{F6965014-F81B-48AC-B3D8-CA742589856B} = {F6965014-F81B-48AC-B3D8-CA742589856B}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoboClerk.TestDescriptionFilePlugin", "RoboClerk.TestDescriptionImportPlugin\RoboClerk.TestDescriptionFilePlugin.csproj", "{C6889FB3-C42A-460D-9135-BF4952336826}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F6965014-F81B-48AC-B3D8-CA742589856B} = {F6965014-F81B-48AC-B3D8-CA742589856B}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -202,6 +207,24 @@ Global
 		{1F6AD501-4983-46ED-81DC-E466C553A1E6}.ReleasePublish|x64.Build.0 = ReleasePublish|Any CPU
 		{1F6AD501-4983-46ED-81DC-E466C553A1E6}.ReleasePublish|x86.ActiveCfg = Release|Any CPU
 		{1F6AD501-4983-46ED-81DC-E466C553A1E6}.ReleasePublish|x86.Build.0 = Release|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.Debug|x64.Build.0 = Debug|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.Debug|x86.Build.0 = Debug|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.Release|x64.ActiveCfg = Release|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.Release|x64.Build.0 = Release|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.Release|x86.ActiveCfg = Release|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.Release|x86.Build.0 = Release|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.ReleasePublish|Any CPU.ActiveCfg = Release|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.ReleasePublish|Any CPU.Build.0 = Release|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.ReleasePublish|x64.ActiveCfg = Release|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.ReleasePublish|x64.Build.0 = Release|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.ReleasePublish|x86.ActiveCfg = Release|Any CPU
+		{C6889FB3-C42A-460D-9135-BF4952336826}.ReleasePublish|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

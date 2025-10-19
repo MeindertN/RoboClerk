@@ -11,7 +11,18 @@ string CreateRows()
 	foreach( var item in Items)
 	{
 		EliminatedLinkedItem eli = (EliminatedLinkedItem)item;
-		sb.Append($"| {GetItemLinkString(item)} | {eli.ItemType} | {eli.ItemTitle} | {eli.EliminationReason} \n\n");
+		if (eli.ItemType == "TestResult" )
+		{
+		    var testResult = eli as EliminatedTestResult;
+			if (testResult != null)
+			{
+			    sb.Append($"| {GetItemLinkString(item)} | Result for {testResult.TestID} | {eli.ItemTitle} | The item this was the result for has been eliminated. \n\n");
+			}
+		}
+		else
+		{
+			sb.Append($"| {GetItemLinkString(item)} | {eli.ItemType} | {eli.ItemTitle} | {eli.EliminationReason} \n\n");
+		}
 	}
 	return sb.ToString();
 }]|====

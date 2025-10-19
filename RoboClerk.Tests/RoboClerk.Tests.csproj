@@ -27,6 +27,8 @@
     <ProjectReference Include="..\RoboClerk.Redmine\RoboClerk.Redmine.csproj" />
     <ProjectReference Include="..\RoboClerk.UnitTestFN\RoboClerk.UnitTestFN.csproj" />
     <ProjectReference Include="..\RoboClerk\RoboClerk.csproj" />
+    <ProjectReference Include="..\RoboClerk.TestResultsFilePlugin\RoboClerk.TestResultsFilePlugin.csproj" />
+    <ProjectReference Include="..\RoboClerk.TestDescriptionImportPlugin\RoboClerk.TestDescriptionFilePlugin.csproj" />
   </ItemGroup>
 	<!-- Copy runtime files from all referenced plugins -->
 	<Target Name="CopyRuntimeFiles" AfterTargets="Build">

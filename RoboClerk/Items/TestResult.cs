@@ -2,7 +2,7 @@
 
 namespace RoboClerk
 {
-    public enum TestResultType
+    public enum TestType
     {
         UNIT,
         SYSTEM
@@ -18,12 +18,12 @@ namespace RoboClerk
     {
         private string name;
         private string testID;
-        private TestResultType resultType;
+        private TestType resultType;
         private TestResultStatus resultStatus;
         private string message;
         private DateTime executionTime;
 
-        public TestResult(string testID, TestResultType type, TestResultStatus status, string name = default, 
+        public TestResult(string testID, TestType type, TestResultStatus status, string name = default, 
             string message = default, DateTime executionTime = default)
         {
             this.testID = testID;
@@ -61,7 +61,7 @@ namespace RoboClerk
             get { return name; }
         }
 
-        public TestResultType ResultType
+        public TestType ResultType
         {
             get { return resultType; }
         }

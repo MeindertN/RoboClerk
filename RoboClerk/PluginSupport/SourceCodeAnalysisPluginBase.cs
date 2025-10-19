@@ -39,7 +39,7 @@ namespace RoboClerk
             {
                 if (config.ContainsKey("UseGit") && (bool)config["UseGit"])
                 {
-                    gitRepo = new GitRepository(configuration);
+                    gitRepo = new GitRepository(configuration,fileSystem);
                 }
             }
             catch (Exception)

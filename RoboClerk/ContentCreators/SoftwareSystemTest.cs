@@ -29,8 +29,8 @@ namespace RoboClerk.ContentCreators
                 bool found = false;
                 foreach (var result in results)
                 {
-                    if ( (result.ResultType == TestResultType.SYSTEM && result.TestID == item.ItemID) || 
-                         (item.TestCaseToUnitTest && result.ResultType == TestResultType.UNIT && 
+                    if ( (result.ResultType == TestType.SYSTEM && result.TestID == item.ItemID) || 
+                         (item.TestCaseToUnitTest && result.ResultType == TestType.UNIT && 
                           item.LinkedItems.Any(o => o.LinkType == ItemLinkType.UnitTest && o.TargetID == result.TestID)) )
                     {
                         found = true;
@@ -51,7 +51,7 @@ namespace RoboClerk.ContentCreators
             }
             foreach (var result in results)
             {
-                if (result.ResultType != TestResultType.SYSTEM)
+                if (result.ResultType != TestType.SYSTEM)
                     continue;
                 bool found = false;
                 foreach (var item in items)

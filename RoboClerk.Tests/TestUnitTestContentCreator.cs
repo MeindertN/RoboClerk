@@ -41,9 +41,9 @@ namespace RoboClerk.Tests
             documentConfig = new DocumentConfig("UnitLevelTestPlan", "docID", "docTitle", "docAbbr", @"c:\in\template.adoc");
 
             results.Clear();
-            results.Add(new TestResult("tcid1", TestResultType.UNIT, TestResultStatus.PASS, "the first test", "all good", DateTime.Now));
-            results.Add(new TestResult("unit1", TestResultType.SYSTEM, TestResultStatus.PASS, "the first unit test", "all bad", DateTime.Now));
-            results.Add(new TestResult("tcid2", TestResultType.SYSTEM, TestResultStatus.FAIL, "the first system test", "none good", DateTime.Now));
+            results.Add(new TestResult("tcid1", TestType.UNIT, TestResultStatus.PASS, "the first test", "all good", DateTime.Now));
+            results.Add(new TestResult("unit1", TestType.SYSTEM, TestResultStatus.PASS, "the first unit test", "all bad", DateTime.Now));
+            results.Add(new TestResult("tcid2", TestType.SYSTEM, TestResultStatus.FAIL, "the first system test", "none good", DateTime.Now));
 
             unittestItems.Clear();
             var unittestItem = new UnitTestItem();
@@ -191,7 +191,7 @@ namespace RoboClerk.Tests
         {
             var sst = new UnitTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 34, "@@SLMS:UnitTest(CheckResults=true)@@", true);
-            results.Add(new TestResult("tcid2", TestResultType.UNIT, TestResultStatus.PASS, "the second unit test", "all good", DateTime.Now));
+            results.Add(new TestResult("tcid2", TestType.UNIT, TestResultStatus.PASS, "the second unit test", "all good", DateTime.Now));
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "All unit tests from the test plan were successfully executed and passed.";
 
@@ -207,7 +207,7 @@ namespace RoboClerk.Tests
         {
             var sst = new UnitTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 34, "@@SLMS:UnitTest(CheckResults=true)@@", true);
-            results.Add(new TestResult("tcid2", TestResultType.UNIT, TestResultStatus.FAIL, "the second unit test", "all bad", DateTime.Now));
+            results.Add(new TestResult("tcid2", TestType.UNIT, TestResultStatus.FAIL, "the second unit test", "all bad", DateTime.Now));
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "RoboClerk detected problems with the unit testing:\n\n* Unit test with ID \"tcid2\" has failed.\n\n";
 
@@ -223,8 +223,8 @@ namespace RoboClerk.Tests
         {
             var sst = new UnitTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 34, "@@SLMS:UnitTest(CheckResults=true)@@", true);
-            results.Add(new TestResult("tcid3", TestResultType.UNIT, TestResultStatus.FAIL, "the third unit test", "all bad", DateTime.Now));
-            results.Add(new TestResult("tcid2", TestResultType.UNIT, TestResultStatus.PASS, "the second unit test", "all good", DateTime.Now));
+            results.Add(new TestResult("tcid3", TestType.UNIT, TestResultStatus.FAIL, "the third unit test", "all bad", DateTime.Now));
+            results.Add(new TestResult("tcid2", TestType.UNIT, TestResultStatus.PASS, "the second unit test", "all good", DateTime.Now));
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "RoboClerk detected problems with the unit testing:\n\n* Result for unit test with ID \"tcid3\" found, but test plan does not contain such a unit test.\n\n";
 

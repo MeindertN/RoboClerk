@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "A unique identifier for the test case",
+        "minLength": 1
+      },
+      "name": {
+        "type": "string",
+        "description": "The name of the test case",
+        "minLength": 1
+      },
+      "type": {
+        "type": "string",
+        "description": "The type of the test case, either 'UNIT' or 'SYSTEM'",
+        "enum": [ "UNIT", "SYSTEM" ]
+      },
+      "description": {
+        "type": "string",
+        "description": "Description of the test case",
+        "minLength": 1
+      },
+      "trace": {
+        "type": "array",
+        "description": "Array of specification ticket numbers that this test traces to",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "minItems": 1
+      },
+      "filename": {
+        "type": "string",
+        "description": "Optional filename associated with the test case",
+        "minLength": 1
+      },
+      "purpose": {
+        "type": "string",
+        "description": "Purpose or objective of the test case (required for UNIT tests)",
+        "minLength": 1
+      },
+      "acceptance": {
+        "type": "string",
+        "description": "Acceptance criteria for the test case (required for UNIT tests)",
+        "minLength": 1
+      }
+    },
+    "required": [ "id", "name", "type", "description", "trace" ],
+    "additionalProperties": false,
+    "if": {
+      "properties": {
+        "type": { "const": "UNIT" }
+      }
+    },
+    "then": {
+      "required": [ "id", "name", "type", "description", "trace", "purpose", "acceptance" ]
+    },
+    "else": {
+      "required": [ "id", "name", "type", "description", "trace" ]
+    }
+  }
+}

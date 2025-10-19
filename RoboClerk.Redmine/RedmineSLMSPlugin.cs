@@ -359,47 +359,6 @@ namespace RoboClerk.Redmine
             TrimLinkedItems(soup, retrievedIDs);
             TrimLinkedItems(docContents, retrievedIDs);
         }
-
-        private List<TestStep> GetTestSteps(string testDescription)
-        {
-            string[] lines = testDescription.Split('\n');
-            List<TestStep> output = new List<TestStep>();
-            bool thenFound = false;
-            foreach (var line in lines)
-            {
-                if (string.IsNullOrWhiteSpace(line))
-                {
-                    continue; //skip empty lines
-                }
-                if (!line.ToUpper().Contains("THEN:") && !thenFound)
-                {
-                    output.Add(new TestStep((output.Count + 1).ToString(), line, string.Empty));
-                }
-                else
-                {
-                    if (!thenFound)
-                    {
-                        thenFound = true;
-                        output[output.Count - 1].ExpectedResult = line;
-                    }
-                    else if (line.ToUpper().Contains("WHEN:"))
-                    {
-                        output.Add(new TestStep((output.Count + 1).ToString(), line, string.Empty));
-                        thenFound = false;
-                    }
-                    else if (!line.ToUpper().Contains("AND:"))
-                    {
-                        output[output.Count - 1].ExpectedResult = output[output.Count - 1].ExpectedResult + '\n' + line;
-                    }
-                    else
-                    {
-                        output.Add(new TestStep((output.Count + 1).ToString(), string.Empty, line));
-                    }
-                }
-            }
-            return output;
-        }
-
         protected SoftwareSystemTestItem CreateTestCase(List<RedmineIssue> issues, RedmineIssue redmineItem)
         {
             logger.Debug($"Creating test case item: {redmineItem.Id}");
@@ -422,7 +381,7 @@ namespace RoboClerk.Redmine
             }
             logger.Debug($"Getting test steps for item: {redmineItem.Id}");
             string itemDescription = redmineItem.Description ?? string.Empty;
-            var testCaseSteps = GetTestSteps(convertTextile ? converter.ConvertTextile2AsciiDoc(itemDescription) : itemDescription);
+            var testCaseSteps = SoftwareSystemTestItem.GetTestSteps(convertTextile ? converter.ConvertTextile2AsciiDoc(itemDescription) : itemDescription);
             foreach (var testCaseStep in testCaseSteps)
             {
                 resultItem.AddTestCaseStep(testCaseStep);

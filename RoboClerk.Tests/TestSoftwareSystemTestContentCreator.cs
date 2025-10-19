@@ -39,8 +39,8 @@ namespace RoboClerk.Tests
             documentConfig = new DocumentConfig("SystemLevelTestPlan", "docID", "docTitle", "docAbbr", @"c:\in\template.adoc");
 
             results.Clear();
-            results.Add(new TestResult("tcid1", TestResultType.SYSTEM, TestResultStatus.PASS, "the first test", "all good", DateTime.Now));
-            results.Add(new TestResult("unit1", TestResultType.UNIT, TestResultStatus.FAIL, "the first unit test", "all bad", DateTime.Now));
+            results.Add(new TestResult("tcid1", TestType.SYSTEM, TestResultStatus.PASS, "the first test", "all good", DateTime.Now));
+            results.Add(new TestResult("unit1", TestType.UNIT, TestResultStatus.FAIL, "the first unit test", "all bad", DateTime.Now));
             
             testcaseItems.Clear();
             var testcaseItem = new SoftwareSystemTestItem();
@@ -198,7 +198,7 @@ namespace RoboClerk.Tests
             var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
 
-            results.Add(new TestResult("tcid3", TestResultType.SYSTEM, TestResultStatus.PASS, "the second test", "all good", DateTime.Now));
+            results.Add(new TestResult("tcid3", TestType.SYSTEM, TestResultStatus.PASS, "the second test", "all good", DateTime.Now));
             SoftwareSystemTestItem testcaseItem = new SoftwareSystemTestItem();
             testcaseItem.ItemID = "tcid3";
             testcaseItem.ItemRevision = "tcrev3";
@@ -231,7 +231,7 @@ namespace RoboClerk.Tests
             var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
 
-            results.Add(new TestResult("tcid3", TestResultType.SYSTEM, TestResultStatus.PASS, "the second test", "all good", DateTime.Now));
+            results.Add(new TestResult("tcid3", TestType.SYSTEM, TestResultStatus.PASS, "the second test", "all good", DateTime.Now));
 
             string content = sst.GetContent(tag, documentConfig);
             string expectedContent = "RoboClerk detected problems with the automated testing:\n\n* Result for test with ID \"tcid3\" found, but test plan does not contain such an automated test.\n\n";
@@ -282,7 +282,7 @@ namespace RoboClerk.Tests
             var tag = new RoboClerkTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
 
             // Replace the first result with a failed test result instead of trying to modify the read-only property
-            results[0] = new TestResult("tcid1", TestResultType.SYSTEM, TestResultStatus.FAIL, "the first test", "all bad", DateTime.Now);
+            results[0] = new TestResult("tcid1", TestType.SYSTEM, TestResultStatus.FAIL, "the first test", "all bad", DateTime.Now);
             SoftwareSystemTestItem testcaseItem = new SoftwareSystemTestItem();
             testcaseItem.ItemID = "tcid3";
             testcaseItem.ItemRevision = "tcrev3";
