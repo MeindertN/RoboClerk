@@ -24,21 +24,16 @@ namespace RoboClerk.Tests
         [SetUp]
         public void TestSetup()
         {
-            StringBuilder configFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                configFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                configFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
-            configFile.Append(@"
+            string configFile = ($@"
+UseGit = false
+[[TestConfigurations]]
 SubDirs = true
 FileMasks = [""Test*.cs""]
-UseGit = false
+TestDirectory = ""{TestingHelpers.ConvertFileName(@"c:/temp")}""
 AnnotationName = ""TestingAttribute""
 Language = ""csharp""
+Project = ""RoboClerk""
+
 [Purpose]
 	Keyword = ""Purpose""
 	Optional = false
@@ -73,7 +68,7 @@ class TestClass {
         }}";
             fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(configFile.ToString()) },
+                { TestingHelpers.ConvertFileName(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(configFile) },
                 { TestingHelpers.ConvertFileName(@"c:\temp\TestDummy.cs"), new MockFileData(testFile) },
             });
             configuration = Substitute.For<IConfiguration>();
@@ -553,21 +548,16 @@ public void MySpecificTestMethodName()
 
         private IFileSystem CreateJavaTestFileSystem()
         {
-            StringBuilder javaConfigFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                javaConfigFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                javaConfigFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
-            javaConfigFile.Append(@"
+            string javaConfigFile = ($@"
+UseGit = false
+[[TestConfigurations]]
 SubDirs = true
 FileMasks = [""Test*.java""]
-UseGit = false
+TestDirectory = ""{TestingHelpers.ConvertFileName(@"c:/temp")}""
 AnnotationName = ""TestAnnotation""
 Language = ""java""
+Project = ""RoboClerk""
+
 [Purpose]
 	Keyword = ""purpose""
 	Optional = false
@@ -584,7 +574,7 @@ Language = ""java""
 
             return new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(javaConfigFile.ToString()) }
+                { TestingHelpers.ConvertFileName(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(javaConfigFile) }
             });
         }
 
@@ -932,21 +922,16 @@ public class ComplexTestClass extends BaseTestClass implements TestInterface {
 
         private IFileSystem CreatePythonTestFileSystem()
         {
-            StringBuilder pythonConfigFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                pythonConfigFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                pythonConfigFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
-            pythonConfigFile.Append(@"
-SubDirs = true
-FileMasks = [""test_*.py""]
+            string pythonConfigFile = ($@"
 UseGit = false
+[[TestConfigurations]]
+SubDirs = true
+TestDirectory = ""{TestingHelpers.ConvertFileName(@"c:/temp")}""
+FileMasks = [""test_*.py""]
 AnnotationName = ""test_decorator""
 Language = ""python""
+Project = ""RoboClerk""
+
 [Purpose]
 	Keyword = ""purpose""
 	Optional = false
@@ -963,7 +948,7 @@ Language = ""python""
 
             return new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(pythonConfigFile.ToString()) }
+                { TestingHelpers.ConvertFileName(@"c:\test\AnnotatedUnitTestPlugin.toml"), new MockFileData(pythonConfigFile) }
             });
         }
 
@@ -1385,21 +1370,16 @@ if __name__ == '__main__':
 
         private IFileSystem CreateTypeScriptTestFileSystem()
         {
-            StringBuilder tsConfigFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                tsConfigFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                tsConfigFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
-            tsConfigFile.Append(@"
+            string tsConfigFile = ($@"
+UseGit = false
+[[TestConfigurations]]
 SubDirs = true
 FileMasks = [""*.test.ts"", ""*.spec.ts""]
-UseGit = false
+TestDirectory = ""{TestingHelpers.ConvertFileName(@"c:/temp")}""
 AnnotationName = ""TestDecorator""
 Language = ""typescript""
+Project = ""RoboClerk""
+
 [Purpose]
 	Keyword = ""description""
 	Optional = false
@@ -1422,21 +1402,16 @@ Language = ""typescript""
 
         private IFileSystem CreateJavaScriptTestFileSystem()
         {
-            StringBuilder jsConfigFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                jsConfigFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                jsConfigFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
-            jsConfigFile.Append(@"
+            string jsConfigFile = ($@"
+UseGit = false
+[[TestConfigurations]]
 SubDirs = true
 FileMasks = [""*.test.js"", ""*.spec.js""]
-UseGit = false
 AnnotationName = ""TestDecorator""
+TestDirectory = ""{TestingHelpers.ConvertFileName(@"c:/temp")}""
 Language = ""javascript""
+Project = ""RoboClerk""
+
 [Purpose]
 	Keyword = ""description""
 	Optional = false

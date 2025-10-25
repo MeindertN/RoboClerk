@@ -35,5 +35,8 @@ namespace RoboClerk.TestDescriptionFilePlugin
 
         [JsonPropertyName("acceptance")]
         public string? Acceptance { get; set; }
+
+        [JsonPropertyName("project")]
+        public string? Project { get; set; }
     }
 }

@@ -22,21 +22,17 @@ namespace RoboClerk.Tests
         public void TestSetup()
         {
             StringBuilder configFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                configFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                configFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
             configFile.Append(@"
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:/temp") + @"""
 SubDirs = true
 FileMasks = [""Test*.cs""]
-UseGit = false
-Language = ""csharp""
+Project = ""RoboClerk""
 FunctionMask = ""<PURPOSE>_VERIFIES_<POSTCONDITION>""
 SectionSeparator = ""_""
+
+UseGit = false
 ");
 
             string testFile = @"
@@ -63,8 +59,8 @@ class TestClass {
                 { TestingHelpers.ConvertFileName(@"c:\temp\TestDummy.cs"), new MockFileData(testFile) },
             });
             configuration = Substitute.For<IConfiguration>();
-            configuration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:/test/"));
-            configuration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:/temp/"));
+            configuration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:\test\"));
+            configuration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:\temp\"));
             configuration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
         }
@@ -153,20 +149,14 @@ class TestClass {
         [Test]
         public void TestUnitTestFNPlugin_CamelCaseSeparator()
         {
-            StringBuilder configFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                configFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                configFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
-            configFile.Append(@"
+            string configFile = ($@"
+UseGit = false
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""{TestingHelpers.ConvertFileName(@"c:/temp")}""
 SubDirs = true
 FileMasks = [""Test*.cs""]
-UseGit = false
-Language = ""csharp""
+Project = ""RoboClerk""
 FunctionMask = ""<PURPOSE>VERIFIES<POSTCONDITION>""
 SectionSeparator = ""CAMELCASE""
 ");
@@ -181,13 +171,13 @@ class TestClass {
 
             var testFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { TestingHelpers.ConvertFileName(@"c:\test\UnitTestFNPlugin.toml"), new MockFileData(configFile.ToString()) },
+                { TestingHelpers.ConvertFileName(@"c:\test\UnitTestFNPlugin.toml"), new MockFileData(configFile) },
                 { TestingHelpers.ConvertFileName(@"c:\temp\TestCamelCase.cs"), new MockFileData(testFile) },
             });
 
             var testConfiguration = Substitute.For<IConfiguration>();
-            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:/test/"));
-            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:/temp/"));
+            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:\test\"));
+            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:\temp\"));
             testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
@@ -228,21 +218,17 @@ class TestClass {
         public void TestUnitTestFNPlugin_InvalidFunctionMask()
         {
             StringBuilder configFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                configFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                configFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
             configFile.Append(@"
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
 SubDirs = true
 FileMasks = [""Test*.cs""]
-UseGit = false
-Language = ""csharp""
+Project = ""RoboClerk""
 FunctionMask = ""INVALID_MASK_WITHOUT_ELEMENT_IDENTIFIER""
 SectionSeparator = ""_""
+
+UseGit = false
 ");
 
             var testFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
@@ -269,21 +255,17 @@ SectionSeparator = ""_""
         public void TestUnitTestFNPlugin_Java_ExtractTests()
         {
             StringBuilder configFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                configFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                configFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
             configFile.Append(@"
+[[TestConfigurations]]
+Language = ""java""
+TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
 SubDirs = true
 FileMasks = [""Test*.java""]
-UseGit = false
-Language = ""java""
+Project = ""RoboClerk""
 FunctionMask = ""<PURPOSE>_VERIFIES_<POSTCONDITION>""
 SectionSeparator = ""_""
+
+UseGit = false
 ");
 
             string javaTestFile = @"
@@ -308,8 +290,8 @@ public class TestClass {
             });
 
             var testConfiguration = Substitute.For<IConfiguration>();
-            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:/test/"));
-            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:/temp/"));
+            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:\test\"));
+            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:\temp\"));
             testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
@@ -335,21 +317,17 @@ public class TestClass {
         public void TestUnitTestFNPlugin_Python_ExtractTests()
         {
             StringBuilder configFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                configFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                configFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
             configFile.Append(@"
+[[TestConfigurations]]
+Language = ""python""
+TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
 SubDirs = true
 FileMasks = [""test_*.py""]
-UseGit = false
-Language = ""python""
+Project = ""RoboClerk""
 FunctionMask = ""<PURPOSE>_VERIFIES_<POSTCONDITION>""
 SectionSeparator = ""_""
+
+UseGit = false
 ");
 
             string pythonTestFile = @"
@@ -381,8 +359,8 @@ def standalone_test_function_VERIFIES_standalone_functions_work():
             });
 
             var testConfiguration = Substitute.For<IConfiguration>();
-            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:/test/"));
-            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:/temp/"));
+            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:\test\"));
+            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:\temp\"));
             testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
@@ -410,21 +388,17 @@ def standalone_test_function_VERIFIES_standalone_functions_work():
         public void TestUnitTestFNPlugin_TypeScript_ExtractTests()
         {
             StringBuilder configFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                configFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                configFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
             configFile.Append(@"
+[[TestConfigurations]]
+Language = ""typescript""
+TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
 SubDirs = true
 FileMasks = [""*.test.ts""]
-UseGit = false
-Language = ""typescript""
+Project = ""RoboClerk""
 FunctionMask = ""<PURPOSE>_VERIFIES_<POSTCONDITION>""
 SectionSeparator = ""_""
+
+UseGit = false
 ");
 
             string tsTestFile = @"
@@ -459,8 +433,8 @@ function standalone_ts_function_VERIFIES_standalone_ts_functions_work(): void {
             });
 
             var testConfiguration = Substitute.For<IConfiguration>();
-            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:/test/"));
-            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:/temp/"));
+            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:\test\"));
+            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:\temp\"));
             testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
@@ -488,21 +462,17 @@ function standalone_ts_function_VERIFIES_standalone_ts_functions_work(): void {
         public void TestUnitTestFNPlugin_JavaScript_ExtractTests()
         {
             StringBuilder configFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                configFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                configFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
             configFile.Append(@"
+[[TestConfigurations]]
+Language = ""javascript""
+TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
 SubDirs = true
 FileMasks = [""*.test.js""]
-UseGit = false
-Language = ""javascript""
+Project = ""RoboClerk""
 FunctionMask = ""<PURPOSE>_VERIFIES_<POSTCONDITION>""
 SectionSeparator = ""_""
+
+UseGit = false
 ");
 
             string jsTestFile = @"
@@ -537,8 +507,8 @@ function standalone_js_function_VERIFIES_standalone_js_functions_work() {
             });
 
             var testConfiguration = Substitute.For<IConfiguration>();
-            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:/test/"));
-            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:/temp/"));
+            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:\test\"));
+            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:\temp\"));
             testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
@@ -566,21 +536,17 @@ function standalone_js_function_VERIFIES_standalone_js_functions_work() {
         public void TestUnitTestFNPlugin_ComplexFunctionMask()
         {
             StringBuilder configFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                configFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                configFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
             configFile.Append(@"
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
 SubDirs = true
 FileMasks = [""Test*.cs""]
-UseGit = false
-Language = ""csharp""
+Project = ""RoboClerk""
 FunctionMask = ""<IDENTIFIER>_<PURPOSE>_VERIFIES_<POSTCONDITION>_TRACE_<TRACEID>""
 SectionSeparator = ""_""
+
+UseGit = false
 ");
 
             string testFile = @"
@@ -602,8 +568,8 @@ class TestClass {
             });
 
             var testConfiguration = Substitute.For<IConfiguration>();
-            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:/test/"));
-            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:/temp/"));
+            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:\test\"));
+            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:\temp\"));
             testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
@@ -635,21 +601,17 @@ class TestClass {
         public void TestUnitTestFNPlugin_IgnoreElements()
         {
             StringBuilder configFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                configFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                configFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
             configFile.Append(@"
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
 SubDirs = true
 FileMasks = [""Test*.cs""]
-UseGit = false
-Language = ""csharp""
+Project = ""RoboClerk""
 FunctionMask = ""<PURPOSE>_IGNORE_<IGNORE>_VERIFIES_<POSTCONDITION>""
 SectionSeparator = ""_""
+
+UseGit = false
 ");
 
             string testFile = @"
@@ -671,8 +633,8 @@ class TestClass {
             });
 
             var testConfiguration = Substitute.For<IConfiguration>();
-            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:/test/"));
-            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:/temp/"));
+            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:\test\"));
+            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:\temp\"));
             testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
@@ -701,21 +663,17 @@ class TestClass {
         public void TestUnitTestFNPlugin_DifferentSeparators()
         {
             StringBuilder configFile = new StringBuilder();
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                configFile.Append(@"TestDirectories = [""/c/temp""]");
-            }
-            else
-            {
-                configFile.Append(@"TestDirectories = [""c:/temp""]");
-            }
             configFile.Append(@"
+[[TestConfigurations]]
+Language = ""python""
+TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
 SubDirs = true
 FileMasks = [""test_*.py""]
-UseGit = false
-Language = ""python""
+Project = ""RoboClerk""
 FunctionMask = ""<PURPOSE>__VERIFIES__<POSTCONDITION>""
 SectionSeparator = ""__""
+
+UseGit = false
 ");
 
             string pythonTestFile = @"
@@ -735,8 +693,8 @@ def another__python__test__VERIFIES__python__separator__handling():
             });
 
             var testConfiguration = Substitute.For<IConfiguration>();
-            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:/test/"));
-            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:/temp/"));
+            testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFileName(@"c:\test\"));
+            testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFileName(@"c:\temp\"));
             testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 

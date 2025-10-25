@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace RoboClerk.ContentCreators
 {
@@ -44,7 +45,40 @@ namespace RoboClerk.ContentCreators
         }
 
         /// <summary>
-        /// Sorts items based on tag parameters SORTBY and SORTORDER
+        /// Performs natural sorting on a string value, treating numeric parts as numbers
+        /// </summary>
+        /// <param name="value">The string value to create sort keys for</param>
+        /// <returns>An enumerable of comparable objects for natural sorting</returns>
+        private static IEnumerable<IComparable> GetNaturalSortKeys(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                yield break;
+            }
+
+            // Split the string into parts, keeping numeric sequences together
+            var parts = Regex.Split(value, @"(\d+)");
+            
+            foreach (var part in parts)
+            {
+                if (string.IsNullOrEmpty(part))
+                    continue;
+
+                // Try to parse as integer for numeric parts
+                if (int.TryParse(part, out int numericValue))
+                {
+                    yield return numericValue;
+                }
+                else
+                {
+                    // Non-numeric parts are compared as strings (case-insensitive)
+                    yield return part.ToLowerInvariant();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sorts items based on tag parameters SORTBY and SORTORDER with natural sorting for string values
         /// </summary>
         /// <param name="tag">The RoboClerk tag containing sorting parameters</param>
         /// <param name="items">The items to sort</param>
@@ -87,12 +121,12 @@ namespace RoboClerk.ContentCreators
                     return items;
                 }
 
-                // Perform sorting
+                // Perform sorting with natural sort for strings
                 var sortedItems = ascending 
-                    ? items.OrderBy(item => GetSortValue(item, sortProperty)).ToList()
-                    : items.OrderByDescending(item => GetSortValue(item, sortProperty)).ToList();
+                    ? items.OrderBy(item => GetNaturalSortValue(item, sortProperty), new NaturalSortComparer()).ToList()
+                    : items.OrderByDescending(item => GetNaturalSortValue(item, sortProperty), new NaturalSortComparer()).ToList();
 
-                logger.Debug($"Sorted {items.Count} items by {sortProperty.Name} in {(ascending ? "ascending" : "descending")} order");
+                logger.Debug($"Sorted {items.Count} items by {sortProperty.Name} in {(ascending ? "ascending" : "descending")} order using natural sorting");
                 return sortedItems;
             }
             catch (Exception ex)
@@ -105,7 +139,7 @@ namespace RoboClerk.ContentCreators
         /// <summary>
         /// Gets the value to sort by, handling null values and different property types
         /// </summary>
-        private object GetSortValue(LinkedItem item, PropertyInfo property)
+        private object GetNaturalSortValue(LinkedItem item, PropertyInfo property)
         {
             var value = property.GetValue(item);
             
@@ -115,13 +149,47 @@ namespace RoboClerk.ContentCreators
                 return string.Empty;
             }
 
-            // For strings, ensure case-insensitive sorting
+            // For strings, return the string for natural sorting
             if (value is string stringValue)
             {
                 return stringValue ?? string.Empty;
             }
 
-            return value;
+            // For non-string types, convert to string for consistent natural sorting
+            return value.ToString() ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Comparer that implements natural sorting for strings containing numeric parts
+        /// </summary>
+        private class NaturalSortComparer : IComparer<object>
+        {
+            public int Compare(object x, object y)
+            {
+                if (x == null && y == null) return 0;
+                if (x == null) return -1;
+                if (y == null) return 1;
+
+                string strX = x.ToString() ?? string.Empty;
+                string strY = y.ToString() ?? string.Empty;
+
+                var keysX = GetNaturalSortKeys(strX).ToArray();
+                var keysY = GetNaturalSortKeys(strY).ToArray();
+
+                int minLength = Math.Min(keysX.Length, keysY.Length);
+                
+                for (int i = 0; i < minLength; i++)
+                {
+                    int comparison = keysX[i].CompareTo(keysY[i]);
+                    if (comparison != 0)
+                    {
+                        return comparison;
+                    }
+                }
+
+                // If all compared parts are equal, the shorter one comes first
+                return keysX.Length.CompareTo(keysY.Length);
+            }
         }
 
         public override string GetContent(RoboClerkTag tag, DocumentConfig doc)

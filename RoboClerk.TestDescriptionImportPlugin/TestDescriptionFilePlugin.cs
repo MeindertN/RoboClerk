@@ -70,6 +70,7 @@ namespace RoboClerk.TestDescriptionFilePlugin
                             test.UnitTestPurpose = description.Purpose;
                             test.UnitTestAcceptanceCriteria = description.Acceptance;   
                             test.UnitTestFileName = description.Filename;
+                            test.ItemProject = description.Project ?? string.Empty;
                             foreach (var trace in description.Trace)
                             {
                                 test.AddLinkedItem(new ItemLink(trace,ItemLinkType.Tests));
@@ -80,6 +81,7 @@ namespace RoboClerk.TestDescriptionFilePlugin
                         {
                             var test = new SoftwareSystemTestItem();
                             test.ItemID = description.ID;
+                            test.ItemProject = description.Project ?? string.Empty;
                             var testDescription = description.Description.ToUpper();
                             if (testDescription.Contains("GIVEN:") && testDescription.Contains("WHEN:") && testDescription.Contains("THEN:"))
                             {

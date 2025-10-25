@@ -28,5 +28,8 @@ namespace RoboClerk.TestResultsFilePlugin
 
         [JsonPropertyName("executionTime")]
         public DateTime? ExecutionTime { get; set; }
+
+        [JsonPropertyName("project")]
+        public string? Project { get; set; }
     }
 }

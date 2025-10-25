@@ -4,18 +4,6 @@
 # test function name. The test function name must follow a standard pattern
 # specified in this configuration file.
 
-# Language selection (one per project): csharp | java | python | typescript | javascript
-Language = "csharp"
-
-# Directories where RoboClerk should search for unit tests
-TestDirectories = ["{PROJECTROOT}RoboClerk.Tests"]
-
-# Set to true to include subdirs 
-SubDirs = true
-
-# Set the filemasks that will be used to match files
-FileMasks = ["Test*.cs"]
-
 # Function name mask is used to define how to parse various sections of the unit
 # test description from the function name. The following element identifiers are
 # supported:
@@ -29,18 +17,26 @@ FileMasks = ["Test*.cs"]
 # Example: "<PURPOSE>_VERIFIES_<POSTCONDITION>" matches
 #          This_is_the_purpose_VERIFIES_that_the_test_is_good
 # NOTE THAT THE FUNCTION MASK MUST START WITH AN ELEMENT IDENTIFIER
-FunctionMask = "<PURPOSE>_VERIFIES_<POSTCONDITION>"
 
+# use information in git to assign a last modified date to the test cases
+UseGit = true
+
+# TestConfigurations - New format that supports multiple configurations per project
+[[TestConfigurations]]
+Language = "csharp" # Language selection (one per project): csharp | java | python | typescript | javascript
+TestDirectory = "{PROJECTROOT}RoboClerk.Tests" # Directory where RoboClerk should search for unit tests
+SubDirs = true # Set to true to include subdirs 
+FileMasks = ["Test*.cs"] # Set the filemasks that will be used to match files
+Project = "RoboClerk" # Project identifier for this configuration
+FunctionMask = "<PURPOSE>_VERIFIES_<POSTCONDITION>"
+SectionSeparator = "_"
 # As spaces are not allowed in function names, a system must be used to separate
 # the words in each section. For this configuration one or more separator 
 # characters can be indicated (e.g. this_is_not_camel_case with separator _) or
 # CAMELCASE for a camelcase (e.g. thisIsCamelCase) based approach.
-SectionSeparator = "_"
 
-# Use git to determine the version and time of last update for a given unit test
-# file. Be careful enabling this because if files are not in a git repository 
-# this will cause errors.
-UseGit = true
+
+
 
 
 

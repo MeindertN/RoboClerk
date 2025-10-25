@@ -2,25 +2,29 @@
   {
     "id": "1C2B7995-ABAB-466B-96D8-B8165EDC28C8",
     "type": "UNIT",
-    "status": "PASS"
+    "status": "PASS",
+    "project": "AuthenticationService"
   },
   {
     "id": "1C2B7995-DFDF-466B-96D8-B8165VFC28C8",
     "type": "UNIT",
     "status": "FAIL",
-    "message": "timeout error"
+    "message": "timeout error",
+    "project": "DatabaseLayer"
   },
   {
     "id": "1e746ccd-db14-4b0d-b3f6-00109385f3d2",
     "type": "UNIT",
     "status": "PASS",
-    "message": "Test passed successfully"
+    "message": "Test passed successfully",
+    "project": "ValidationFramework"
   },
   {
     "id": "a04fac6d-e67d-47a7-a024-a69cb926386d",
     "type": "UNIT",
     "status": "PASS",
-    "executionTime": "2023-10-02T09:00:00Z"
+    "executionTime": "2023-10-02T09:00:00Z",
+    "project": "SecurityModule"
   },
   {
     "id": "6d06e760-3f8d-482a-a7a5-4b2bc502eb39",
@@ -32,7 +36,8 @@
     "type": "UNIT",
     "status": "PASS",
     "message": "test passed successfully",
-    "executionTime": "2023-10-02T10:00:00Z"
+    "executionTime": "2023-10-02T10:00:00Z",
+    "project": "SessionManagement"
   },
   {
     "id": "8b4425cc-e83a-433d-bfca-54d70ec1145b",
@@ -43,7 +48,8 @@
   {
     "id": "fbd68b90-f467-4781-a8e9-f162b2dd28c8",
     "type": "UNIT",
-    "status": "PASS"
+    "status": "PASS",
+    "project": "ConfigurationService"
   },
   {
     "id": "39c20bca-06ee-47ac-b2d1-c05da1537f99",
@@ -55,7 +61,8 @@
     "id": "7c23f883-ee8a-4b86-926e-22c9e0565ca5",
     "type": "UNIT",
     "status": "FAIL",
-    "message": "connection error"
+    "message": "connection error",
+    "project": "DatabaseLayer"
   },
   {
     "id": "d782c973-135d-4120-a83f-841a9cdada8b",

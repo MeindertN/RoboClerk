@@ -11,8 +11,6 @@ namespace RoboClerk
 {
     public class UnitTestFNPlugin : SourceCodeAnalysisPluginBase
     {
-        private List<string> functionMaskElements = new List<string>();
-        private string sectionSeparator = string.Empty;
         private string selectedLanguage = "csharp";
 
         public UnitTestFNPlugin(IFileSystem fileSystem)
@@ -32,24 +30,50 @@ namespace RoboClerk
             logger.Info("Initializing the Unit Test Function Name Plugin");
             try
             {
+                // Base class handles both TestConfigurations and legacy format
                 base.InitializePlugin(configuration);
-                var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
 
-                // Language selection (make it optional)
-                selectedLanguage = configuration.CommandLineOptionOrDefault("Language", GetObjectForKey<string>(config, "Language", false) ?? "csharp");
+                // For backward compatibility, check if we have configurations or legacy format
+                if (TestConfigurations.Count == 0)
+                {
+                    throw new Exception("No test configurations found. At least one TestConfiguration is required for UnitTestFN plugin.");
+                }
+
+                // Validate that all configurations have required parameters
+                foreach (var testConfig in TestConfigurations)
+                {
+                    var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", testConfig.GetValue<string>("FunctionMask"));
+                    if (string.IsNullOrEmpty(functionMask))
+                    {
+                        throw new Exception($"FunctionMask is required for test configuration '{testConfig.Project}'. Please ensure FunctionMask is specified in the TestConfiguration.");
+                    }
+                    
+                    var functionMaskElements = ParseFunctionMask(functionMask);
+                    ValidateFunctionMaskElements(functionMaskElements);
+                    
+                    var sectionSeparator = configuration.CommandLineOptionOrDefault("SectionSeparator", testConfig.GetValue<string>("SectionSeparator"));
+                    if (string.IsNullOrEmpty(sectionSeparator))
+                    {
+                        throw new Exception($"SectionSeparator is required for test configuration '{testConfig.Project}'. Please ensure SectionSeparator is specified in the TestConfiguration.");
+                    }
+                }
+
+                // Get the primary configuration (first one for single-config scenarios)
+                var primaryConfig = TestConfigurations[0];
                 
-                var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", GetObjectForKey<string>(config, "FunctionMask", true));
-                functionMaskElements = ParseFunctionMask(functionMask);
-                ValidateFunctionMaskElements(functionMaskElements);
-                sectionSeparator = configuration.CommandLineOptionOrDefault("SectionSeparator", GetObjectForKey<string>(config, "SectionSeparator", true));
+                // Try to get plugin-specific fields from command line first, then from configuration
+                selectedLanguage = configuration.CommandLineOptionOrDefault("Language", primaryConfig.GetValue<string>("Language", "csharp"));
+
+                ScanDirectoriesForSourceFiles();
+
+                logger.Debug($"Initialized UnitTestFN plugin with {TestConfigurations.Count} test configurations, primary language: {selectedLanguage}");
             }
             catch (Exception e)
             {
-                logger.Error("Error reading configuration file for Unit Test FN plugin.");
+                logger.Error($"Error reading configuration file for Unit Test FN plugin: {e.Message}");
                 logger.Error(e);
                 throw new Exception("The Unit Test FN plugin could not read its configuration. Aborting...");
             }
-            ScanDirectoriesForSourceFiles();
         }
 
         private List<string> ParseFunctionMask(string functionMask)
@@ -121,7 +145,7 @@ namespace RoboClerk
             }
         }
 
-        private string SeparateSection(string section)
+        private string SeparateSection(string section, string sectionSeparator)
         {
             if (sectionSeparator.ToUpper() == "CAMELCASE")
             {
@@ -156,7 +180,7 @@ namespace RoboClerk
             }
         }
 
-        private List<(string, string)> ApplyFunctionNameMask(string functionName)
+        private List<(string, string)> ApplyFunctionNameMask(string functionName, List<string> functionMaskElements)
         {
             List<(string, string)> resultingElements = new List<(string, string)>();
             
@@ -220,7 +244,7 @@ namespace RoboClerk
             return resultingElements;
         }
 
-        private void AddUnitTest(List<(string, string)> els, string fileName, int lineNumber, string functionName)
+        private void AddUnitTest(List<(string, string)> els, string fileName, int lineNumber, string functionName, string sectionSeparator)
         {
             var unitTest = new UnitTestItem();
             bool identified = false;
@@ -229,9 +253,9 @@ namespace RoboClerk
             {
                 switch (el.Item1.ToUpper())
                 {
-                    case "<PURPOSE>": unitTest.UnitTestPurpose = SeparateSection(el.Item2); break;
-                    case "<POSTCONDITION>": unitTest.UnitTestAcceptanceCriteria = SeparateSection(el.Item2); break;
-                    case "<IDENTIFIER>": unitTest.ItemID = SeparateSection(el.Item2); identified = true; break;
+                    case "<PURPOSE>": unitTest.UnitTestPurpose = SeparateSection(el.Item2, sectionSeparator); break;
+                    case "<POSTCONDITION>": unitTest.UnitTestAcceptanceCriteria = SeparateSection(el.Item2, sectionSeparator); break;
+                    case "<IDENTIFIER>": unitTest.ItemID = SeparateSection(el.Item2, sectionSeparator); identified = true; break;
                     case "<TRACEID>": unitTest.AddLinkedItem(new ItemLink(el.Item2, ItemLinkType.UnitTests)); break;
                     case "<IGNORE>": break;
                     default: throw new Exception($"Unknown element identifier in FunctionMask: {el.Item1.ToUpper()}");
@@ -264,23 +288,54 @@ namespace RoboClerk
 
         public override void RefreshItems()
         {
-            foreach (var sourceFile in sourceFiles)
+            // Use the optimized approach: iterate through configurations and their associated files
+            foreach (var testConfig in TestConfigurations)
             {
-                var text = fileSystem.File.ReadAllText(sourceFile);
-                FindAndProcessFunctions(text, sourceFile);
+                if (testConfig.SourceFiles.Count == 0)
+                {
+                    logger.Warn($"No source files found for configuration '{testConfig.Project}' (Language: {testConfig.Language})");
+                    continue;
+                }
+                
+                logger.Debug($"Processing {testConfig.SourceFiles.Count} files for configuration '{testConfig.Project}' (Language: {testConfig.Language})");
+                
+                // Get configuration-specific parameters for this test configuration
+                var configLanguage = testConfig.GetValue<string>("Language", selectedLanguage);
+                var functionMask = testConfig.GetValue<string>("FunctionMask");
+                var sectionSeparator = testConfig.GetValue<string>("SectionSeparator");
+                
+                // Parse function mask for this configuration
+                var functionMaskElements = ParseFunctionMask(functionMask);
+                
+                var languageId = GetTreeSitterLanguageId(configLanguage);
+                
+                // Load language resources once per configuration
+                using var language = new Language(languageId);
+                using var parser = new Parser(language);
+                
+                var queryString = GetQueryForLanguage(configLanguage);
+                using var query = new Query(language, queryString);
+                
+                // Process all files for this configuration with the same language resources
+                foreach (var sourceFile in testConfig.SourceFiles)
+                {
+                    try
+                    {
+                        var text = fileSystem.File.ReadAllText(sourceFile);
+                        FindAndProcessFunctions(text, sourceFile, parser, query, functionMaskElements, sectionSeparator);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.Error($"Error processing file {sourceFile}: {e.Message}");
+                        throw;
+                    }
+                }
             }
         }
 
-        private void FindAndProcessFunctions(string sourceText, string filename)
+        private void FindAndProcessFunctions(string sourceText, string filename, Parser parser, Query query, List<string> functionMaskElements, string sectionSeparator)
         {
-            var languageId = GetTreeSitterLanguageId(selectedLanguage);
-            
-            using var language = new Language(languageId);
-            using var parser = new Parser(language);
             using var tree = parser.Parse(sourceText);
-
-            var queryString = GetQueryForLanguage(selectedLanguage);
-            using var query = new Query(language, queryString);
             var exec = query.Execute(tree.RootNode);
 
             // Process all methods found by TreeSitter
@@ -309,10 +364,10 @@ namespace RoboClerk
                     processedMethods.Add(methodKey);
                                         
                     // Try to apply the function name mask
-                    var els = ApplyFunctionNameMask(methodName);
+                    var els = ApplyFunctionNameMask(methodName, functionMaskElements);
                     if (els.Count > 0)
                     {
-                        AddUnitTest(els, filename, methodLine, methodName);
+                        AddUnitTest(els, filename, methodLine, methodName, sectionSeparator);
                     }
                 }
             }

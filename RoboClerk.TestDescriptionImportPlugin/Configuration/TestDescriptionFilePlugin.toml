@@ -18,10 +18,11 @@ FileLocations = ["{PROJECTROOT}RoboClerk_input/ExampleSystemLevelTestDescription
 #    "filename": "LoginTests.cs",    <--- OPTIONAL filename associated with the test case
 #    "purpose": "Verify that valid credentials allow user access",    <--- REQUIRED for UNIT tests, OPTIONAL for SYSTEM tests
 #    "acceptance": "User should be redirected to dashboard after successful login"    <--- REQUIRED for UNIT tests, OPTIONAL for SYSTEM tests
+#    "project": "AuthenticationService"
 #  }
 # ]
 
 # Field Requirements by Test Type:
 # UNIT tests require: id, name, type, description, trace, purpose, acceptance
 # SYSTEM tests require: id, name, type, description, trace
-# Both types optionally support: filename
+# Both types optionally support: filename, project

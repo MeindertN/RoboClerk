@@ -19,12 +19,6 @@ namespace RoboClerk.AnnotatedUnitTests
     {
         private enum Lang { CSharp, Java, Python, TypeScript, JavaScript }
 
-        private Lang selectedLang;
-        private string tsLanguageId = string.Empty; // Tree-sitter language id string for the parser
-
-        // Names of annotations/decorators to treat as unit tests
-        private string acceptedAnnotationName = string.Empty;
-
         // Map TOML fields -> UTInformation
         private readonly Dictionary<string, UTInformation> information = new();
 
@@ -39,18 +33,21 @@ namespace RoboClerk.AnnotatedUnitTests
             logger.Info("Initializing the Annotated Unit Tests Plugin (Tree‑sitter only)");
             try
             {
+                // Base class parses ALL fields including AnnotationName
                 base.InitializePlugin(configuration);
+
+                // Validate that all configurations have required annotation-specific fields
+                foreach (var testConfig in TestConfigurations)
+                {
+                    var annotationName = testConfig.GetValue<string>("AnnotationName");
+                    if (string.IsNullOrEmpty(annotationName))
+                    {
+                        throw new Exception($"AnnotationName is required for test configuration in project '{testConfig.Project}'");
+                    }
+                }
+
+                // Read other plugin-specific configuration (outside TestConfigurations)
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-
-                // ---- Language (one per project) ----
-                var langStr = GetObjectForKey<string>(config, "Language", true) ?? "csharp";
-                selectedLang = ParseLanguage(langStr);
-                tsLanguageId = GetTreeSitterLanguageId(selectedLang);
-
-                // ---- Annotation/decorator names to accept ----
-                acceptedAnnotationName = config["AnnotationName"].ToString();
-                
-                // ---- Required UT fields mapping ----
                 PopulateUTInfo("Purpose", config);
                 PopulateUTInfo("PostCondition", config);
                 PopulateUTInfo("Identifier", config);
@@ -68,21 +65,48 @@ namespace RoboClerk.AnnotatedUnitTests
 
         public override void RefreshItems()
         {
-            foreach (var sourceFile in sourceFiles)
+            // Use the optimized approach: iterate through configurations and their associated files
+            foreach (var testConfig in TestConfigurations)
             {
-                var text = fileSystem.File.ReadAllText(sourceFile);
-                FindAndProcessAnnotations(text, sourceFile);
+                if (testConfig.SourceFiles.Count == 0)
+                {
+                    logger.Warn($"No source files found for configuration '{testConfig.Project}' (Language: {testConfig.Language})");
+                    continue;
+                }
+                
+                logger.Debug($"Processing {testConfig.SourceFiles.Count} files for configuration '{testConfig.Project}' (Language: {testConfig.Language})");
+                
+                // Load language resources once per configuration
+                var selectedLang = ParseLanguage(testConfig.Language);
+                var tsLanguageId = GetTreeSitterLanguageId(selectedLang);
+                var acceptedAnnotationName = testConfig.GetValue<string>("AnnotationName");
+                
+                using var language = new Language(tsLanguageId);
+                using var parser = new Parser(language);
+                
+                var queryString = GetQueryForLanguage(selectedLang);
+                using var query = new Query(language, queryString);
+                
+                // Process all files for this configuration with the same language resources
+                foreach (var sourceFile in testConfig.SourceFiles)
+                {
+                    try
+                    {
+                        var text = fileSystem.File.ReadAllText(sourceFile);
+                        FindAndProcessAnnotations(text, sourceFile, testConfig, selectedLang, acceptedAnnotationName, parser, query);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.Error($"Error processing file {sourceFile}: {e.Message}");
+                        throw;
+                    }
+                }
             }
         }
 
-        private void FindAndProcessAnnotations(string sourceText, string filename)
+        private void FindAndProcessAnnotations(string sourceText, string filename, TestConfiguration testConfig, Lang selectedLang, string acceptedAnnotationName, Parser parser, Query query)
         {
-            using var language = new Language(tsLanguageId);
-            using var parser = new Parser(language);
             using var tree = parser.Parse(sourceText);
-
-            var queryString = GetQueryForLanguage(selectedLang);
-            using var query = new Query(language, queryString);
             var exec = query.Execute(tree.RootNode);
 
             // Group by method
@@ -191,7 +215,7 @@ namespace RoboClerk.AnnotatedUnitTests
                 {
                     var ad = kv.Value;
                     if (string.IsNullOrEmpty(ad.Name)) continue;
-                    if (!acceptedAnnotationName.Equals(ad.Name,StringComparison.OrdinalIgnoreCase))
+                    if (!acceptedAnnotationName.Equals(ad.Name, StringComparison.OrdinalIgnoreCase))
                         continue;
 
                     try
@@ -214,9 +238,9 @@ namespace RoboClerk.AnnotatedUnitTests
                         }
 
                         // Validate that all required fields are present
-                        ValidateRequiredFields(translated, filename, ad.Line, methodName);
+                        ValidateRequiredFields(translated, filename, ad.Line, methodName, acceptedAnnotationName);
 
-                        AddUnitTest(filename, ad.Line, translated, methodName);
+                        AddUnitTest(filename, ad.Line, translated, methodName, testConfig.Project);
                     }
                     catch (Exception e)
                     {
@@ -511,7 +535,7 @@ namespace RoboClerk.AnnotatedUnitTests
         }
         #endregion
 
-        private void ValidateRequiredFields(Dictionary<string, string> translated, string filename, int lineNumber, string methodName)
+        private void ValidateRequiredFields(Dictionary<string, string> translated, string filename, int lineNumber, string methodName, string acceptedAnnotationName)
         {
             var missingFields = new List<string>();
             
@@ -535,7 +559,7 @@ namespace RoboClerk.AnnotatedUnitTests
             }
         }
 
-        private void AddUnitTest(string fileName, int lineNumber, Dictionary<string, string> parameterValues, string methodName)
+        private void AddUnitTest(string fileName, int lineNumber, Dictionary<string, string> parameterValues, string methodName, string projectName = "")
         {
             var unitTest = new UnitTestItem
             {
@@ -560,7 +584,10 @@ namespace RoboClerk.AnnotatedUnitTests
             }
 
             if (!identified)
-                unitTest.ItemID = $"{unitTest.UnitTestFileName}:{lineNumber}";
+            {
+                var projectPrefix = !string.IsNullOrEmpty(projectName) ? $"{projectName}:" : "";
+                unitTest.ItemID = $"{projectPrefix}{unitTest.UnitTestFileName}:{lineNumber}";
+            }
 
             if (gitRepo != null && !gitRepo.GetFileLocallyUpdated(fileName))
             {
@@ -577,6 +604,11 @@ namespace RoboClerk.AnnotatedUnitTests
                 throw new Exception($"Duplicate unit test identifier detected in {unitTest.UnitTestFileName} in the annotation starting on line {lineNumber}. Ensure all unit tests have a unique identifier.");
 
             unitTests.Add(unitTest);
+            
+            if (!string.IsNullOrEmpty(projectName))
+            {
+                logger.Debug($"Added unit test '{unitTest.ItemID}' from project '{projectName}' (Language: {GetConfigurationForFile(fileName)?.Language ?? "unknown"})");
+            }
         }
 
         private static string Unquote(string s)

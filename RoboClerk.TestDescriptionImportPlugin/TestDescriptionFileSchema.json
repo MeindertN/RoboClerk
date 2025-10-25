@@ -47,6 +47,11 @@
         "type": "string",
         "description": "Acceptance criteria for the test case (required for UNIT tests)",
         "minLength": 1
+      },
+      "project": {
+        "type": "string",
+        "description": "Optional project name",
+        "minLength": 1
       }
     },
     "required": [ "id", "name", "type", "description", "trace" ],

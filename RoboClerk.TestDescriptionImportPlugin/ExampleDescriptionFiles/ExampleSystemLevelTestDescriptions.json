@@ -4,35 +4,40 @@
     "name": "User Authentication System Test",
     "type": "SYSTEM",
     "description": "GIVEN: A user with valid credentials\nWHEN: The user attempts to log into the system\nTHEN: The user is successfully authenticated and redirected to the dashboard",
-    "trace": ["33", "32", "29"]
+    "trace": ["33", "32", "29"],
+    "project": "AuthenticationService"
   },
   {
     "id": "ST-002",
     "name": "Password Security System Test",
     "type": "SYSTEM",
     "description": "GIVEN: A user changing their password\nWHEN: The new password is submitted\nTHEN: The password is encrypted and stored securely in the database",
-    "trace": ["28", "26"]
+    "trace": ["28", "26"],
+    "project": "SecurityModule"
   },
   {
     "id": "ST-003",
     "name": "Database Connection Failure Test",
     "type": "SYSTEM",
     "description": "GIVEN: The database server is unavailable\nWHEN: The application attempts to connect to the database\nTHEN: The system displays an appropriate error message and continues to function in offline mode",
-    "trace": ["26"]
+    "trace": ["26"],
+    "project": "DatabaseLayer"
   },
   {
     "id": "ST-004",
     "name": "Input Validation End-to-End Test",
     "type": "SYSTEM",
     "description": "System test to verify that malicious input is properly handled throughout the entire application flow",
-    "trace": ["12", "4", "3"]
+    "trace": ["12", "4", "3"],
+    "project": "ValidationFramework"
   },
   {
     "id": "ST-005",
     "name": "Session Timeout System Test",
     "type": "SYSTEM",
     "description": "GIVEN: A user is logged into the system\nWHEN: The user remains inactive for the configured timeout period\nTHEN: The user session expires and the user is redirected to the login page",
-    "trace": ["12"]
+    "trace": ["12"],
+    "project": "SessionManagement"
   },
   {
     "id": "ST-006",
@@ -40,7 +45,8 @@
     "type": "SYSTEM",
     "description": "System test to verify that multiple users can access the system simultaneously without conflicts",
     "trace": ["33", "5", "4"],
-    "filename": "ConcurrencyTests.feature"
+    "filename": "ConcurrencyTests.feature",
+    "project": "ConcurrencyModule"
   },
   {
     "id": "ST-007",
@@ -49,6 +55,7 @@
     "description": "GIVEN: The system configuration file is updated\nWHEN: The application is restarted\nTHEN: The new configuration values are loaded and applied correctly",
     "trace": ["3"],
     "purpose": "Verify that configuration changes are properly applied across the entire system",
-    "acceptance": "All system components use the updated configuration values after restart"
+    "acceptance": "All system components use the updated configuration values after restart",
+    "project": "ConfigurationService"
   }
 ]

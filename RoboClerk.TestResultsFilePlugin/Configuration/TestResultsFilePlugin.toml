@@ -16,5 +16,6 @@ FileLocations = ["{PROJECTROOT}RoboClerk_input/ExampleSystemLevelTestResults.jso
 #    "status": "PASS",    <----- REQUIRED can be either "PASS" or "FAIL"
 #	 "message": "all good",
 #    "executionTime": "2023-10-01T12:34:56Z"
+#    "project": "AuthenticationService"
 #  }
 # ]

@@ -30,6 +30,7 @@ namespace RoboClerk
             this.status = originalItem.ItemStatus;
             this.targetVersion = originalItem.ItemTargetVersion;
             this.lastUpdated = originalItem.ItemLastUpdated;
+            this.project = originalItem.ItemProject;
 
             if (originalItem.HasLink)
                 this.link = originalItem.Link;

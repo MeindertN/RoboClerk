@@ -566,5 +566,141 @@ AND: The user should see a welcome message",
             Assert.That(complexTest.TestCaseSteps.Count(), Is.EqualTo(6));
             Assert.That(complexTest.TestCaseDescription, Is.EqualTo("Complex Given-When-Then Test"));
         }
+
+        [UnitTestAttribute(
+            Purpose = "TestDescriptionFilePlugin handles optional project field correctly",
+            Identifier = "45e80ecc-cd7e-44e6-8519-37e2b4b277a8",
+            PostCondition = "Project field is properly set on test items when provided")]
+        [Test]
+        public void TestDescriptionFilePlugin_ProjectField()
+        {
+            string jsonWithProject = JsonSerializer.Serialize(new[]
+            {
+                new RoboClerk.TestDescriptionFilePlugin.TestDescriptionJSONObject
+                {
+                    ID = "SYS-PROJ-001",
+                    Name = "System test with project",
+                    Type = TestType.SYSTEM,
+                    Description = "System test description",
+                    Trace = new List<string> { "REQ-001" },
+                    Project = "ProjectAlpha"
+                },
+                new RoboClerk.TestDescriptionFilePlugin.TestDescriptionJSONObject
+                {
+                    ID = "UNIT-PROJ-001",
+                    Name = "testWithProject",
+                    Type = TestType.UNIT,
+                    Description = "Unit test with project",
+                    Trace = new List<string> { "REQ-002" },
+                    Purpose = "Test with project field",
+                    Acceptance = "Project field is set correctly",
+                    Project = "ProjectBeta"
+                },
+                new RoboClerk.TestDescriptionFilePlugin.TestDescriptionJSONObject
+                {
+                    ID = "SYS-NO-PROJ-001",
+                    Name = "System test without project",
+                    Type = TestType.SYSTEM,
+                    Description = "System test without project field",
+                    Trace = new List<string> { "REQ-003" }
+                    // No project field
+                }
+            }, new JsonSerializerOptions { WriteIndented = true });
+
+            var testFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { TestingHelpers.ConvertFileName(@"c:\test\TestDescriptionFilePlugin.toml"), fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\test\TestDescriptionFilePlugin.toml")) },
+                { TestingHelpers.ConvertFileName(@"c:\temp\system_descriptions.json"), new MockFileData(jsonWithProject) },
+                { TestingHelpers.ConvertFileName(@"c:\temp\unit_descriptions.json"), new MockFileData("[]") }
+            });
+
+            var plugin = new RoboClerk.TestDescriptionFilePlugin.TestDescriptionFilePlugin(testFileSystem);
+            plugin.InitializePlugin(configuration);
+            plugin.RefreshItems();
+
+            var unitTests = plugin.GetUnitTests().ToArray();
+            var systemTests = plugin.GetSoftwareSystemTests().ToArray();
+            
+            // Check unit test project
+            var unitTestWithProject = unitTests.FirstOrDefault(ut => ut.ItemID == "UNIT-PROJ-001");
+            Assert.That(unitTestWithProject, Is.Not.Null);
+            Assert.That(unitTestWithProject.ItemProject, Is.EqualTo("ProjectBeta"));
+            
+            // Check system test project
+            var systemTestWithProject = systemTests.FirstOrDefault(st => st.ItemID == "SYS-PROJ-001");
+            Assert.That(systemTestWithProject, Is.Not.Null);
+            Assert.That(systemTestWithProject.ItemProject, Is.EqualTo("ProjectAlpha"));
+            
+            // Check system test without project (should have empty string)
+            var systemTestWithoutProject = systemTests.FirstOrDefault(st => st.ItemID == "SYS-NO-PROJ-001");
+            Assert.That(systemTestWithoutProject, Is.Not.Null);
+            Assert.That(systemTestWithoutProject.ItemProject, Is.EqualTo(string.Empty));
+        }
+
+        [UnitTestAttribute(
+            Purpose = "TestDescriptionFilePlugin handles null project field gracefully",
+            Identifier = "aefd177b-1a52-4e39-9d9a-728d6977841a",
+            PostCondition = "Null project field is converted to empty string")]
+        [Test]
+        public void TestDescriptionFilePlugin_NullProjectField()
+        {
+            // Create test data with explicit null project
+            var testData = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    ["id"] = "NULL-PROJ-001",
+                    ["name"] = "Test with null project",
+                    ["type"] = "SYSTEM",
+                    ["description"] = "Test description",
+                    ["trace"] = new[] { "REQ-001" },
+                    ["project"] = (string)null
+                }
+            };
+
+            string jsonWithNullProject = JsonSerializer.Serialize(testData, new JsonSerializerOptions { WriteIndented = true });
+
+            var testFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { TestingHelpers.ConvertFileName(@"c:\test\TestDescriptionFilePlugin.toml"), fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\test\TestDescriptionFilePlugin.toml")) },
+                { TestingHelpers.ConvertFileName(@"c:\temp\system_descriptions.json"), new MockFileData(jsonWithNullProject) },
+                { TestingHelpers.ConvertFileName(@"c:\temp\unit_descriptions.json"), new MockFileData("[]") }
+            });
+
+            var plugin = new RoboClerk.TestDescriptionFilePlugin.TestDescriptionFilePlugin(testFileSystem);
+            plugin.InitializePlugin(configuration);
+            plugin.RefreshItems();
+
+            var systemTests = plugin.GetSoftwareSystemTests().ToArray();
+            Assert.That(systemTests.Length, Is.EqualTo(1));
+            
+            var testWithNullProject = systemTests[0];
+            Assert.That(testWithNullProject.ItemID, Is.EqualTo("NULL-PROJ-001"));
+            Assert.That(testWithNullProject.ItemProject, Is.EqualTo(string.Empty));
+        }
+
+        [UnitTestAttribute(
+            Purpose = "TestDescriptionFilePlugin maintains backward compatibility when project field is absent",
+            Identifier = "434720b2-b4dd-47e6-9829-b2cfe578b197",
+            PostCondition = "Tests without project field are processed normally with empty project")]
+        [Test]
+        public void TestDescriptionFilePlugin_BackwardCompatibility()
+        {
+            // Use original test setup which doesn't include project field
+            var plugin = new RoboClerk.TestDescriptionFilePlugin.TestDescriptionFilePlugin(fileSystem);
+            plugin.InitializePlugin(configuration);
+            plugin.RefreshItems();
+
+            var unitTests = plugin.GetUnitTests().ToArray();
+            var systemTests = plugin.GetSoftwareSystemTests().ToArray();
+            
+            // All tests should have empty project field
+            Assert.That(unitTests.All(ut => ut.ItemProject == string.Empty), Is.True);
+            Assert.That(systemTests.All(st => st.ItemProject == string.Empty), Is.True);
+            
+            // But other functionality should work normally
+            Assert.That(unitTests.Length, Is.EqualTo(2));
+            Assert.That(systemTests.Length, Is.EqualTo(2));
+        }
     }
 }

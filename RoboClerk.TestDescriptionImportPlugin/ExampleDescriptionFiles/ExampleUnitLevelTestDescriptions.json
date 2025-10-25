@@ -7,7 +7,8 @@
     "trace": ["33", "32"],
     "filename": "AuthenticationTests.cs",
     "purpose": "Verify that the validateCredentials method correctly identifies valid and invalid user credentials",
-    "acceptance": "Method returns true for valid credentials and false for invalid credentials, with appropriate logging"
+    "acceptance": "Method returns true for valid credentials and false for invalid credentials, with appropriate logging",
+    "project": "AuthenticationService"
   },
   {
     "id": "UT-002",
@@ -17,7 +18,8 @@
     "trace": ["29", "28"],
     "filename": "SecurityTests.cs",
     "purpose": "Validate that password encryption follows security standards and produces consistent results",
-    "acceptance": "Encrypted password matches expected hash format and can be verified against original password"
+    "acceptance": "Encrypted password matches expected hash format and can be verified against original password",
+    "project": "SecurityModule"
   },
   {
     "id": "UT-003",
@@ -27,7 +29,8 @@
     "trace": ["26"],
     "filename": "DatabaseTests.cs",
     "purpose": "Ensure database connections are properly established and handle connection failures gracefully",
-    "acceptance": "Connection succeeds with valid parameters, throws appropriate exceptions for invalid parameters"
+    "acceptance": "Connection succeeds with valid parameters, throws appropriate exceptions for invalid parameters",
+    "project": "DatabaseLayer"
   },
   {
     "id": "UT-004",
@@ -37,7 +40,8 @@
     "trace": ["12", "10"],
     "filename": "ValidationTests.cs",
     "purpose": "Verify that all user inputs are properly sanitized to prevent injection attacks",
-    "acceptance": "Invalid inputs are rejected with clear error messages, valid inputs pass through unchanged"
+    "acceptance": "Invalid inputs are rejected with clear error messages, valid inputs pass through unchanged",
+    "project": "ValidationFramework"
   },
   {
     "id": "UT-005",
@@ -47,7 +51,8 @@
     "trace": ["5", "4"],
     "filename": "SessionTests.cs",
     "purpose": "Ensure user sessions are properly managed throughout the application lifecycle",
-    "acceptance": "Sessions are created with unique IDs, expire after timeout, and are properly cleaned up"
+    "acceptance": "Sessions are created with unique IDs, expire after timeout, and are properly cleaned up",
+    "project": "SessionManagement"
   },
   {
     "id": "UT-006",
@@ -57,6 +62,7 @@
     "trace": ["3"],
     "filename": "ConfigurationTests.cs",
     "purpose": "Validate that application configuration is loaded correctly from various sources",
-    "acceptance": "Configuration values are loaded with correct types and defaults are applied when values are missing"
+    "acceptance": "Configuration values are loaded with correct types and defaults are applied when values are missing",
+    "project": "ConfigurationService"
   }
 ]

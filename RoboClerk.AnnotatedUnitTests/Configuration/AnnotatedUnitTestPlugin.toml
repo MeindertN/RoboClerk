@@ -1,16 +1,25 @@
-﻿# One language per project: csharp | java | python | typescript | javascript
-Language = "csharp"
-
-# Directories to scan and file masks (same semantics as your base class)
-TestDirectories = ["{PROJECTROOT}RoboClerk.Tests"]
-SubDirs = true
-FileMasks = ["Test*.cs"]
-
-# Use git metadata if available
+﻿# Use git metadata if available
 UseGit = true
 
-# Which annotation/decorator names should count as unit tests
-AnnotationName = "UnitTestAttribute"
+# Multiple test configurations - each can have its own directory, subdirs, filemasks, project, language, and annotation
+[[TestConfigurations]]
+Language = "csharp" # One language per config: csharp | java | python | typescript | javascript
+TestDirectory = "{PROJECTROOT}RoboClerk.Tests" # Directory to scan and file masks (same semantics as your base class)
+SubDirs = true # include subdirectories when scanning for test files
+FileMasks = ["Test*.cs"] # File masks to identify test files
+AnnotationName = "UnitTestAttribute" # Which annotation/decorator names should count as unit tests
+Project = "RoboClerk" # The name of the project to associate the tests with. Can be empty.
+
+# you can have as many of these as you like, for different languages/projects
+
+# Example configuration for a different language
+# [[TestConfigurations]]
+# Language = "python"
+# TestDirectory = "c:\temp\pythontests" 
+# SubDirs = true 
+# FileMasks = ["*_test.py", "test_*.py"]
+# AnnotationName = "pytest.mark.unit" 
+# Project = "PythonProject" 
 
 # Map annotation/decorator named args to RoboClerk fields
 [Purpose]

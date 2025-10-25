@@ -372,5 +372,174 @@ FileLocations = [""{TestingHelpers.ConvertFileName(@"c:/temp/system_results.json
             
             Assert.Throws<JsonException>(() => plugin.RefreshItems());
         }
+
+        [UnitTestAttribute(
+            Purpose = "TestResultsFilePlugin handles optional project field correctly",
+            Identifier = "e0c7b549-ebae-4e18-8cb0-aef7a8712f38",
+            PostCondition = "Project field is properly set on test results when provided")]
+        [Test]
+        public void TestResultsFilePlugin_ProjectField()
+        {
+            string jsonWithProject = JsonSerializer.Serialize(new[]
+            {
+                new RoboClerk.TestResultsFilePlugin.TestResultJSONObject
+                {
+                    ID = "SYS-PROJ-001",
+                    Name = "System test with project",
+                    Type = TestType.SYSTEM,
+                    Status = TestResultStatus.PASS,
+                    Message = "Test passed",
+                    Project = "ProjectAlpha"
+                },
+                new RoboClerk.TestResultsFilePlugin.TestResultJSONObject
+                {
+                    ID = "UNIT-PROJ-001",
+                    Name = "Unit test with project", 
+                    Type = TestType.UNIT,
+                    Status = TestResultStatus.FAIL,
+                    Message = "Test failed",
+                    Project = "ProjectBeta"
+                },
+                new RoboClerk.TestResultsFilePlugin.TestResultJSONObject
+                {
+                    ID = "SYS-NO-PROJ-001",
+                    Name = "System test without project",
+                    Type = TestType.SYSTEM,
+                    Status = TestResultStatus.PASS
+                    // No project field
+                }
+            }, new JsonSerializerOptions { WriteIndented = true });
+
+            var testFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { TestingHelpers.ConvertFileName(@"c:\test\TestResultsFilePlugin.toml"), fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\test\TestResultsFilePlugin.toml")) },
+                { TestingHelpers.ConvertFileName(@"c:\temp\system_results.json"), new MockFileData(jsonWithProject) },
+                { TestingHelpers.ConvertFileName(@"c:\temp\unit_results.json"), new MockFileData("[]") }
+            });
+
+            var plugin = new RoboClerk.TestResultsFilePlugin.TestResultsFilePlugin(testFileSystem);
+            plugin.InitializePlugin(configuration);
+            plugin.RefreshItems();
+
+            var results = plugin.GetTestResults().ToArray();
+            Assert.That(results.Length, Is.EqualTo(3));
+            
+            // Check result with ProjectAlpha
+            var resultWithProjectAlpha = results.FirstOrDefault(r => r.TestID == "SYS-PROJ-001");
+            Assert.That(resultWithProjectAlpha, Is.Not.Null);
+            Assert.That(resultWithProjectAlpha.ItemProject, Is.EqualTo("ProjectAlpha"));
+            
+            // Check result with ProjectBeta
+            var resultWithProjectBeta = results.FirstOrDefault(r => r.TestID == "UNIT-PROJ-001");
+            Assert.That(resultWithProjectBeta, Is.Not.Null);
+            Assert.That(resultWithProjectBeta.ItemProject, Is.EqualTo("ProjectBeta"));
+            
+            // Check result without project (should have empty string)
+            var resultWithoutProject = results.FirstOrDefault(r => r.TestID == "SYS-NO-PROJ-001");
+            Assert.That(resultWithoutProject, Is.Not.Null);
+            Assert.That(resultWithoutProject.ItemProject, Is.EqualTo(string.Empty));
+        }
+
+        [UnitTestAttribute(
+            Purpose = "TestResultsFilePlugin handles null project field gracefully",
+            Identifier = "38c30256-bebf-4d3d-8a84-f7111629438a",
+            PostCondition = "Null project field is converted to empty string")]
+        [Test]
+        public void TestResultsFilePlugin_NullProjectField()
+        {
+            // Create test data with explicit null project
+            var testData = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    ["id"] = "NULL-PROJ-001",
+                    ["name"] = "Test with null project",
+                    ["type"] = "UNIT",
+                    ["status"] = "PASS",
+                    ["project"] = (string)null
+                }
+            };
+
+            string jsonWithNullProject = JsonSerializer.Serialize(testData, new JsonSerializerOptions { WriteIndented = true });
+
+            var testFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { TestingHelpers.ConvertFileName(@"c:\test\TestResultsFilePlugin.toml"), fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\test\TestResultsFilePlugin.toml")) },
+                { TestingHelpers.ConvertFileName(@"c:\temp\system_results.json"), new MockFileData(jsonWithNullProject) },
+                { TestingHelpers.ConvertFileName(@"c:\temp\unit_results.json"), new MockFileData("[]") }
+            });
+
+            var plugin = new RoboClerk.TestResultsFilePlugin.TestResultsFilePlugin(testFileSystem);
+            plugin.InitializePlugin(configuration);
+            plugin.RefreshItems();
+
+            var results = plugin.GetTestResults().ToArray();
+            Assert.That(results.Length, Is.EqualTo(1));
+            
+            var resultWithNullProject = results[0];
+            Assert.That(resultWithNullProject.TestID, Is.EqualTo("NULL-PROJ-001"));
+            Assert.That(resultWithNullProject.ItemProject, Is.EqualTo(string.Empty));
+        }
+
+        [UnitTestAttribute(
+            Purpose = "TestResultsFilePlugin maintains backward compatibility when project field is absent",
+            Identifier = "aefe435e-b112-4f08-bdfb-da8413ae9dbd",
+            PostCondition = "Test results without project field are processed normally with empty project")]
+        [Test]
+        public void TestResultsFilePlugin_BackwardCompatibility()
+        {
+            // Use original test setup which doesn't include project field
+            var plugin = new RoboClerk.TestResultsFilePlugin.TestResultsFilePlugin(fileSystem);
+            plugin.InitializePlugin(configuration);
+            plugin.RefreshItems();
+
+            var results = plugin.GetTestResults().ToArray();
+            
+            // All results should have empty project field
+            Assert.That(results.All(r => r.ItemProject == string.Empty), Is.True);
+            
+            // But other functionality should work normally
+            Assert.That(results.Length, Is.EqualTo(4));
+            Assert.That(results.Any(r => r.TestID == "SYS-001"), Is.True);
+            Assert.That(results.Any(r => r.TestID == "UNIT-001"), Is.True);
+        }
+
+        [UnitTestAttribute(
+            Purpose = "TestResultsFilePlugin handles empty string project field",
+            Identifier = "f6fd801a-2bc2-4248-b4d2-6ea323bc8606",
+            PostCondition = "Empty string project field is preserved as empty string")]
+        [Test]
+        public void TestResultsFilePlugin_EmptyStringProjectField()
+        {
+            string jsonWithEmptyProject = JsonSerializer.Serialize(new[]
+            {
+                new RoboClerk.TestResultsFilePlugin.TestResultJSONObject
+                {
+                    ID = "EMPTY-PROJ-001",
+                    Name = "Test with empty project",
+                    Type = TestType.UNIT,
+                    Status = TestResultStatus.PASS,
+                    Project = ""
+                }
+            }, new JsonSerializerOptions { WriteIndented = true });
+
+            var testFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                { TestingHelpers.ConvertFileName(@"c:\test\TestResultsFilePlugin.toml"), fileSystem.File.ReadAllText(TestingHelpers.ConvertFileName(@"c:\test\TestResultsFilePlugin.toml")) },
+                { TestingHelpers.ConvertFileName(@"c:\temp\system_results.json"), new MockFileData(jsonWithEmptyProject) },
+                { TestingHelpers.ConvertFileName(@"c:\temp\unit_results.json"), new MockFileData("[]") }
+            });
+
+            var plugin = new RoboClerk.TestResultsFilePlugin.TestResultsFilePlugin(testFileSystem);
+            plugin.InitializePlugin(configuration);
+            plugin.RefreshItems();
+
+            var results = plugin.GetTestResults().ToArray();
+            Assert.That(results.Length, Is.EqualTo(1));
+            
+            var resultWithEmptyProject = results[0];
+            Assert.That(resultWithEmptyProject.TestID, Is.EqualTo("EMPTY-PROJ-001"));
+            Assert.That(resultWithEmptyProject.ItemProject, Is.EqualTo(string.Empty));
+        }
     }
 }
