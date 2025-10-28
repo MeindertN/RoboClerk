@@ -255,10 +255,10 @@ UseGit = false
         public void TestUnitTestFNPlugin_Java_ExtractTests()
         {
             StringBuilder configFile = new StringBuilder();
-            configFile.Append(@"
+            configFile.Append($@"
 [[TestConfigurations]]
 Language = ""java""
-TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
+TestDirectory = ""{TestingHelpers.ConvertFileName(@"c:/temp")}""
 SubDirs = true
 FileMasks = [""Test*.java""]
 Project = ""RoboClerk""
@@ -317,10 +317,10 @@ public class TestClass {
         public void TestUnitTestFNPlugin_Python_ExtractTests()
         {
             StringBuilder configFile = new StringBuilder();
-            configFile.Append(@"
+            configFile.Append($@"
 [[TestConfigurations]]
 Language = ""python""
-TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
+TestDirectory = ""{TestingHelpers.ConvertFileName(@"c:/temp")}""
 SubDirs = true
 FileMasks = [""test_*.py""]
 Project = ""RoboClerk""
@@ -388,10 +388,10 @@ def standalone_test_function_VERIFIES_standalone_functions_work():
         public void TestUnitTestFNPlugin_TypeScript_ExtractTests()
         {
             StringBuilder configFile = new StringBuilder();
-            configFile.Append(@"
+            configFile.Append($@"
 [[TestConfigurations]]
 Language = ""typescript""
-TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
+TestDirectory = ""{TestingHelpers.ConvertFileName(@"c:/temp")}""
 SubDirs = true
 FileMasks = [""*.test.ts""]
 Project = ""RoboClerk""
@@ -462,10 +462,10 @@ function standalone_ts_function_VERIFIES_standalone_ts_functions_work(): void {
         public void TestUnitTestFNPlugin_JavaScript_ExtractTests()
         {
             StringBuilder configFile = new StringBuilder();
-            configFile.Append(@"
+            configFile.Append($@"
 [[TestConfigurations]]
 Language = ""javascript""
-TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
+TestDirectory = ""{TestingHelpers.ConvertFileName(@"c:/temp")}""
 SubDirs = true
 FileMasks = [""*.test.js""]
 Project = ""RoboClerk""
@@ -536,10 +536,10 @@ function standalone_js_function_VERIFIES_standalone_js_functions_work() {
         public void TestUnitTestFNPlugin_ComplexFunctionMask()
         {
             StringBuilder configFile = new StringBuilder();
-            configFile.Append(@"
+            configFile.Append($@"
 [[TestConfigurations]]
 Language = ""csharp""
-TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
+TestDirectory = ""{TestingHelpers.ConvertFileName(@"c:/temp")}""
 SubDirs = true
 FileMasks = [""Test*.cs""]
 Project = ""RoboClerk""
@@ -601,10 +601,10 @@ class TestClass {
         public void TestUnitTestFNPlugin_IgnoreElements()
         {
             StringBuilder configFile = new StringBuilder();
-            configFile.Append(@"
+            configFile.Append($@"
 [[TestConfigurations]]
 Language = ""csharp""
-TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
+TestDirectory = ""{TestingHelpers.ConvertFileName(@"c:/temp")}""
 SubDirs = true
 FileMasks = [""Test*.cs""]
 Project = ""RoboClerk""
@@ -663,10 +663,10 @@ class TestClass {
         public void TestUnitTestFNPlugin_DifferentSeparators()
         {
             StringBuilder configFile = new StringBuilder();
-            configFile.Append(@"
+            configFile.Append($@"
 [[TestConfigurations]]
 Language = ""python""
-TestDirectory = """ + TestingHelpers.ConvertFileName(@"c:\temp") + @"""
+TestDirectory = ""{TestingHelpers.ConvertFileName(@"c:/temp")}""
 SubDirs = true
 FileMasks = [""test_*.py""]
 Project = ""RoboClerk""
