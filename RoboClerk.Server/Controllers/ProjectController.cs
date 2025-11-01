@@ -59,20 +59,20 @@ namespace RoboClerk.Server.Controllers
         /// Refresh a project to discover all available templates and RoboClerk content controls
         /// </summary>
         [HttpGet("project/{projectId}/refresh")]
-        public async Task<ActionResult<DocumentAnalysisResult>> RefreshProject(string projectId, bool full=true)
+        public async Task<ActionResult<DocumentAnalysisResult>> RefreshProject(string projectId)
         {
             try
             {
                 logger.Info($"Refreshing project {projectId}");
                 
-                var result = await projectManager.RefreshProject(projectId, full);
+                var result = await projectManager.RefreshProjectAsync(projectId,false);
                 if (!result.Success)
                 {
                     logger.Warn($"Failed to refresh document: {result.Error}");
                     return BadRequest(result);
                 }
 
-                logger.Info($"Project refresh complete: {result.SupportedTagCount}/{result.TotalTagCount} content controls supported");
+                logger.Info($"Project refresh complete");
                 return Ok(result);
             }
             catch (ArgumentException)
@@ -132,7 +132,7 @@ namespace RoboClerk.Server.Controllers
             {
                 logger.Info($"Refreshing data sources for project {projectId}");
                 
-                var result = await projectManager.RefreshProjectAsync(projectId);
+                var result = await projectManager.RefreshProjectAsync(projectId,true);
                 if (!result.Success)
                 {
                     logger.Warn($"Failed to refresh data sources: {result.Error}");

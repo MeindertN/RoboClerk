@@ -133,7 +133,7 @@ namespace RoboClerk.Server.Services
                 {
                     foreach (var docxDocument in docxDocuments)
                     {
-                        projectContext.LoadedDocuments[""] = ProcessTemplate(projectServiceProvider,docxDocument);
+                        projectContext.LoadedDocuments[docxDocument.RoboClerkID] = ProcessTemplate(projectServiceProvider,docxDocument);
                     }
                 }
                 catch (Exception ex)
@@ -288,28 +288,29 @@ namespace RoboClerk.Server.Services
             if (!loadedProjects.TryGetValue(projectId, out var project))
                 throw new ArgumentException("SharePoint project not loaded");
 
+            var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
             var configValues = new List<ConfigurationValue>
             {
                 new("ProjectType", "SharePoint"),
-                new("OutputDirectory", project.Configuration.OutputDir),
-                new("TemplateDirectory", project.Configuration.TemplateDir),
-                new("ProjectRoot", project.Configuration.ProjectRoot),
-                new("MediaDirectory", project.Configuration.MediaDir),
-                new("LogLevel", project.Configuration.LogLevel),
-                new("OutputFormat", project.Configuration.OutputFormat),
-                new("PluginConfigDir", project.Configuration.PluginConfigDir)
+                new("OutputDirectory", configuration.OutputDir),
+                new("TemplateDirectory", configuration.TemplateDir),
+                new("ProjectRoot", configuration.ProjectRoot),
+                new("MediaDirectory", configuration.MediaDir),
+                new("LogLevel", configuration.LogLevel),
+                new("OutputFormat", configuration.OutputFormat),
+                new("PluginConfigDir", configuration.PluginConfigDir)
             };
 
             // Add data source plugins
-            for (int i = 0; i < project.Configuration.DataSourcePlugins.Count; i++)
+            for (int i = 0; i < configuration.DataSourcePlugins.Count; i++)
             {
-                configValues.Add(new($"DataSourcePlugin[{i}]", project.Configuration.DataSourcePlugins[i]));
+                configValues.Add(new($"DataSourcePlugin[{i}]", configuration.DataSourcePlugins[i]));
             }
 
             // Add plugin directories
-            for (int i = 0; i < project.Configuration.PluginDirs.Count; i++)
+            for (int i = 0; i < configuration.PluginDirs.Count; i++)
             {
-                configValues.Add(new($"PluginDir[{i}]", project.Configuration.PluginDirs[i]));
+                configValues.Add(new($"PluginDir[{i}]", configuration.PluginDirs[i]));
             }
 
             return configValues;
@@ -327,9 +328,13 @@ namespace RoboClerk.Server.Services
             try
             {
                 var contentCreatorFactory = serviceProvider.GetRequiredService<IContentCreatorFactory>();
+                var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
                 
                 // Find the appropriate document config
-                var docConfig = project.DocxDocuments.FirstOrDefault(d => d.RoboClerkID == tagRequest.DocumentId);
+                var docxDocuments = configuration.Documents
+                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                var docConfig = docxDocuments.FirstOrDefault(d => d.RoboClerkID == tagRequest.DocumentId);
                 if (docConfig == null)
                     return new TagContentResult { Success = false, Error = "Document not found in SharePoint project" };
 
@@ -337,11 +342,21 @@ namespace RoboClerk.Server.Services
                 if (!project.LoadedDocuments.TryGetValue(tagRequest.DocumentId, out var document) || 
                     document is not DocxDocument docxDocument)
                 {
-                    var loadResult = await LoadDocumentAsync(projectId, tagRequest.DocumentId);
-                    if (!loadResult.Success)
-                        return new TagContentResult { Success = false, Error = loadResult.Error };
-                    
-                    docxDocument = (DocxDocument)project.LoadedDocuments[tagRequest.DocumentId];
+                    // Document not loaded, try to load it
+                    try
+                    {
+                        var processedDocument = ProcessTemplate(project.ProjectServiceProvider, docConfig);
+                        project.LoadedDocuments[tagRequest.DocumentId] = processedDocument;
+                        docxDocument = (DocxDocument)processedDocument;
+                    }
+                    catch (Exception ex)
+                    {
+                        return new TagContentResult { Success = false, Error = $"Failed to load document: {ex.Message}" };
+                    }
+                }
+                else
+                {
+                    docxDocument = (DocxDocument)document;
                 }
 
                 // Find the specific RoboClerkDocxTag by content control ID
@@ -424,117 +439,109 @@ namespace RoboClerk.Server.Services
             }
         }
 
-        /// <summary>
-        /// Refreshes a document for Word add-in scenarios by loading and analyzing all content control tags (full or partial).
-        /// </summary>
-        public async Task<DocumentAnalysisResult> RefreshDocumentForWordAddInAsync(string projectId, string documentId, bool full)
+        // if project refresh is full, also refresh data sources, otherwise just re-analyze documents
+        public async Task<RefreshResult> RefreshProjectAsync(string projectId, bool full)
         {
-            //if full is true, delete the document from loaded documents to force a full reload
-            //if full is false, keep the document if already loaded to allow partial refresh and skip any known tags
-
-
             if (!loadedProjects.TryGetValue(projectId, out var project))
                 throw new ArgumentException("SharePoint project not loaded");
 
             try
             {
-                // Load the document if not already loaded
-                if (!project.LoadedDocuments.ContainsKey(documentId))
+                IDataSources? newDataSources = null;
+                
+                if (full)
                 {
-                    var loadResult = await LoadDocumentAsync(projectId, documentId);
-                    if (!loadResult.Success)
-                    {
-                        return new DocumentAnalysisResult 
-                        { 
-                            Success = false, 
-                            Error = loadResult.Error 
-                        };
-                    }
+                    logger.Info($"Full refresh: Refreshing data sources for SharePoint project: {projectId}");
+                    
+                    // Refresh data sources by recreating them
+                    var config = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+                    newDataSources = await dataSourcesFactory.CreateDataSourcesAsync(config);
+                    
+                    logger.Info($"Successfully refreshed SharePoint project data sources: {projectId}");
+                }
+                else
+                {
+                    logger.Info($"Partial refresh: Skipping data source refresh for SharePoint project: {projectId}");
+                }
+                
+                // Always rescan and process the project directory (regardless of full flag)
+                logger.Info($"Rescanning and processing project directory for SharePoint project: {projectId}");
+                
+                // Get the current configuration
+                var currentConfig = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+                
+                // Get DOCX documents from configuration
+                var docxDocuments = currentConfig.Documents
+                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                // Clear existing loaded documents if doing a full refresh
+                if (full)
+                {
+                    project.LoadedDocuments.Clear();
                 }
 
-                var document = project.LoadedDocuments[documentId];
-                var availableTags = new List<AvailableTagInfo>();
-                var contentCreatorFactory = serviceProvider.GetRequiredService<IContentCreatorFactory>();
-
-                // Only analyze RoboClerkDocxTag instances (content control-based tags)
-                foreach (var tag in document.RoboClerkTags.OfType<RoboClerkDocxTag>())
+                // Process each document
+                foreach (var docxDocument in docxDocuments)
                 {
                     try
                     {
-                        // Test if content creator is available
-                        var contentCreator = contentCreatorFactory.CreateContentCreator(tag.Source, tag.ContentCreatorID);
-                        
-                        availableTags.Add(new AvailableTagInfo
+                        // For full refresh or if document not already loaded, process it
+                        if (full || !project.LoadedDocuments.ContainsKey(docxDocument.RoboClerkID))
                         {
-                            TagId = Guid.NewGuid().ToString(),
-                            Source = tag.Source.ToString(),
-                            ContentCreatorId = tag.ContentCreatorID,
-                            ContentControlId = tag.ContentControlId,
-                            Parameters = tag.Parameters.ToDictionary(p => p, p => tag.GetParameterOrDefault(p, "")),
-                            IsSupported = true,
-                            ContentPreview = await GetTagContentPreviewAsync(tag, project)
-                        });
+                            logger.Info($"Processing document: {docxDocument.RoboClerkID}");
+                            
+                            // Create new service provider if we have new data sources
+                            var serviceProviderToUse = project.ProjectServiceProvider;
+                            if (newDataSources != null)
+                            {
+                                // We need to create a new service provider with the updated data sources
+                                var sharePointFileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
+                                serviceProviderToUse = CreateProjectServiceProvider(sharePointFileProvider, currentConfig, newDataSources);
+                            }
+                            
+                            var processedDocument = ProcessTemplate(serviceProviderToUse, docxDocument);
+                            project.LoadedDocuments[docxDocument.RoboClerkID] = processedDocument;
+                        }
+                        else
+                        {
+                            logger.Info($"Document already loaded, skipping: {docxDocument.RoboClerkID}");
+                        }
                     }
                     catch (Exception ex)
                     {
-                        logger.Warn(ex, $"Content creator not available for tag: {tag.Source}:{tag.ContentCreatorID}");
-                        availableTags.Add(new AvailableTagInfo
-                        {
-                            TagId = Guid.NewGuid().ToString(),
-                            Source = tag.Source.ToString(),
-                            ContentCreatorId = tag.ContentCreatorID,
-                            ContentControlId = tag.ContentControlId,
-                            Parameters = tag.Parameters.ToDictionary(p => p, p => tag.GetParameterOrDefault(p, "")),
-                            IsSupported = false,
-                            Error = $"Content creator not available: {ex.Message}"
-                        });
+                        logger.Warn(ex, $"Error processing document {docxDocument.RoboClerkID}: {ex.Message}");
                     }
                 }
 
-                logger.Info($"Document analysis complete: {availableTags.Count(t => t.IsSupported)}/{availableTags.Count} content controls supported");
-                return new DocumentAnalysisResult
+                // Update the project context with new service provider if we created one
+                if (newDataSources != null)
                 {
-                    Success = true,
-                    DocumentId = documentId,
-                    AvailableTags = availableTags,
-                    TotalTagCount = availableTags.Count,
-                    SupportedTagCount = availableTags.Count(t => t.IsSupported)
-                };
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"Failed to analyze document for Word add-in: {documentId}");
-                return new DocumentAnalysisResult 
-                { 
-                    Success = false, 
-                    Error = ex.Message 
-                };
-            }
-        }
-
-        public async Task<RefreshResult> RefreshProjectAsync(string projectId)
-        {
-            if (!loadedProjects.TryGetValue(projectId, out var project))
-                throw new ArgumentException("SharePoint project not loaded");
-
-            try
-            {
-                logger.Info($"Refreshing data sources for SharePoint project: {projectId}");
+                    var sharePointFileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
+                    var newServiceProvider = CreateProjectServiceProvider(sharePointFileProvider, currentConfig, newDataSources);
+                    
+                    // Create updated project context
+                    var updatedProject = project with 
+                    { 
+                        ProjectServiceProvider = newServiceProvider,
+                        LastUpdated = DateTime.UtcNow
+                    };
+                    loadedProjects[projectId] = updatedProject;
+                }
+                else
+                {
+                    // Update the LastUpdated timestamp even for partial refresh
+                    var updatedProject = project with { LastUpdated = DateTime.UtcNow };
+                    loadedProjects[projectId] = updatedProject;
+                }
                 
-                // Refresh data sources by recreating them
-                var newDataSources = await dataSourcesFactory.CreateDataSourcesAsync(project.Configuration);
-                
-                // Update the project context with new data sources
-                var updatedProject = project with { DataSources = newDataSources };
-                loadedProjects[projectId] = updatedProject;
-                
-                logger.Info($"Successfully refreshed SharePoint project data sources: {projectId}");
+                logger.Info($"Successfully refreshed SharePoint project: {projectId}");
                 return new RefreshResult { Success = true };
             }
             catch (Exception ex)
             {
                 logger.Error(ex, $"Failed to refresh SharePoint project: {projectId}");
-                return new RefreshResult { Success = false, Error = $"Failed to refresh data sources: {ex.Message}" };
+                return new RefreshResult { Success = false, Error = $"Failed to refresh project: {ex.Message}" };
             }
         }
 
@@ -560,7 +567,11 @@ namespace RoboClerk.Server.Services
             try
             {
                 var contentCreatorFactory = serviceProvider.GetRequiredService<IContentCreatorFactory>();
-                var docConfig = project.DocxDocuments.FirstOrDefault();
+                var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+                var docxDocuments = configuration.Documents
+                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                var docConfig = docxDocuments.FirstOrDefault();
                 
                 if (docConfig != null)
                 {
@@ -685,7 +696,7 @@ namespace RoboClerk.Server.Services
         /// <summary>
         /// Creates a project-specific service provider that uses the SharePoint file provider
         /// </summary>
-        private IServiceProvider CreateProjectServiceProvider(IFileProviderPlugin sharePointFileProvider, IConfiguration configuration)
+        private IServiceProvider CreateProjectServiceProvider(IFileProviderPlugin sharePointFileProvider, IConfiguration configuration, IDataSources? dataSources = null)
         {
             var services = new ServiceCollection();
 
@@ -703,13 +714,20 @@ namespace RoboClerk.Server.Services
             services.AddSingleton(serviceProvider.GetRequiredService<ITraceabilityAnalysis>());
             services.AddSingleton(serviceProvider.GetRequiredService<IContentCreatorFactory>());
 
-            // Add data sources as a factory that creates them on first access
-            services.AddSingleton<IDataSources>(provider =>
+            // Add data sources - either provided ones or create new ones
+            if (dataSources != null)
             {
-                var factory = provider.GetRequiredService<IDataSourcesFactory>();
-                var config = provider.GetRequiredService<IConfiguration>();
-                return factory.CreateDataSourcesAsync(config).Result;
-            });
+                services.AddSingleton(dataSources);
+            }
+            else
+            {
+                services.AddSingleton<IDataSources>(provider =>
+                {
+                    var factory = provider.GetRequiredService<IDataSourcesFactory>();
+                    var config = provider.GetRequiredService<IConfiguration>();
+                    return factory.CreateDataSourcesAsync(config).Result;
+                });
+            }
 
             return services.BuildServiceProvider();
         }
