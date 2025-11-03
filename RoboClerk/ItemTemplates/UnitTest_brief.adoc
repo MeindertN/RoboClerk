@@ -37,6 +37,15 @@ string CreateRows()
 				if (tests.Length > 0)
 					tests.Append(", ");
 				tests.Append(GetItemLinkString(sst));
+				foreach( var reqit in GetLinkedItems(sst, ItemLinkType.Tests) )
+				{
+					if( reqit is RequirementItem lsri && lsri.TypeOfRequirement==RequirementType.SoftwareRequirement )
+					{
+						if (reqs.Length > 0)
+							reqs.Append(", ");
+						reqs.Append(GetItemLinkString(lsri));
+					}
+				}
 				continue;
 			}
 			if(it is RequirementItem sri && sri.TypeOfRequirement==RequirementType.SoftwareRequirement)
