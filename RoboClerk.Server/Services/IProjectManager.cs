@@ -10,8 +10,7 @@ namespace RoboClerk.Server.Services
         Task UnloadProjectAsync(string projectId);
         
         // Word Add-in specific methods for SharePoint integration
-        Task<bool> ValidateProjectForWordAddInAsync(string projectId);
-        Task<DocumentAnalysisResult> RefreshDocumentForWordAddInAsync(string projectId, string documentId);
+        bool ValidateProjectForWordAddInAsync(string projectId, LoadProjectRequest request);
         
         // Content control-based tag content generation
         Task<TagContentResult> GetTagContentWithContentControlAsync(string projectId, RoboClerkContentControlTagRequest tagRequest);

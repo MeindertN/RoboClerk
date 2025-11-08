@@ -64,9 +64,6 @@ namespace RoboClerk.Server.Models
         public bool Success { get; init; }
         public string? Error { get; init; }
         public string? DocumentId { get; init; }
-        public List<AvailableTagInfo>? AvailableTags { get; init; }
-        public int TotalTagCount { get; init; }
-        public int SupportedTagCount { get; init; }
     }
 
     public record AvailableTagInfo

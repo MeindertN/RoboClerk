@@ -5,6 +5,6 @@ namespace RoboClerk.Server.Services
 {
     public interface IDataSourcesFactory
     {
-        Task<IDataSources> CreateDataSourcesAsync(IConfiguration configuration);
+        IDataSources CreateDataSources(IConfiguration configuration);
     }
 }

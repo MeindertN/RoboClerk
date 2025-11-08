@@ -10,6 +10,7 @@ using RoboClerk.Server.Models;
 using RoboClerk.SharePointFileProvider;
 using System.Collections.Concurrent;
 using System.IO.Abstractions;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using IConfiguration = RoboClerk.Core.Configuration.IConfiguration;
@@ -59,7 +60,7 @@ namespace RoboClerk.Server.Services
                 }
 
                 // Validate SharePoint path
-                if (!IsSharePointPath(request.ProjectPath))
+                if (!IsSharePointPath(request.ProjectPath, request))
                 {
                     logger.Warn($"Non-SharePoint path provided: {request.ProjectPath}");
                     return new ProjectLoadResult { Success = false, Error = "Only SharePoint project paths are supported for Word add-in use" };
@@ -129,16 +130,9 @@ namespace RoboClerk.Server.Services
 
                 logger.Info($"Successfully loaded SharePoint project: {projectId} with {docxDocuments.Count} DOCX documents");
                 
-                try
+                foreach (var docxDocument in docxDocuments)
                 {
-                    foreach (var docxDocument in docxDocuments)
-                    {
-                        projectContext.LoadedDocuments[docxDocument.RoboClerkID] = ProcessTemplate(projectServiceProvider,docxDocument);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    logger.Warn(ex, $"Error processing documents in project: {ex}");
+                    projectContext.LoadedDocuments[docxDocument.RoboClerkID] = ProcessTemplate(projectServiceProvider,docxDocument);
                 }
 
                 return new ProjectLoadResult
@@ -400,7 +394,7 @@ namespace RoboClerk.Server.Services
         /// <summary>
         /// Validates that a project is properly configured for Word add-in usage with SharePoint
         /// </summary>
-        public async Task<bool> ValidateProjectForWordAddInAsync(string projectId)
+        public bool ValidateProjectForWordAddInAsync(string projectId,LoadProjectRequest request)
         {
             if (!loadedProjects.TryGetValue(projectId, out var project))
                 return false;
@@ -408,7 +402,7 @@ namespace RoboClerk.Server.Services
             try
             {
                 // Verify SharePoint path
-                if (!IsSharePointPath(project.ProjectPath))
+                if (!IsSharePointPath(project.ProjectPath,request))
                 {
                     logger.Warn($"Project path is not a SharePoint URL: {project.ProjectPath}");
                     return false;
@@ -455,7 +449,7 @@ namespace RoboClerk.Server.Services
                     
                     // Refresh data sources by recreating them
                     var config = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
-                    newDataSources = await dataSourcesFactory.CreateDataSourcesAsync(config);
+                    newDataSources = dataSourcesFactory.CreateDataSources(config);
                     
                     logger.Info($"Successfully refreshed SharePoint project data sources: {projectId}");
                 }
@@ -559,46 +553,25 @@ namespace RoboClerk.Server.Services
             }
         }
 
-        /// <summary>
-        /// Gets a preview of tag content for analysis purposes
-        /// </summary>
-        private async Task<string> GetTagContentPreviewAsync(RoboClerkDocxTag tag, ProjectContext project)
-        {
-            try
-            {
-                var contentCreatorFactory = serviceProvider.GetRequiredService<IContentCreatorFactory>();
-                var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
-                var docxDocuments = configuration.Documents
-                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-                var docConfig = docxDocuments.FirstOrDefault();
-                
-                if (docConfig != null)
-                {
-                    var contentCreator = contentCreatorFactory.CreateContentCreator(tag.Source, tag.ContentCreatorID);
-                    var content = contentCreator.GetContent(tag, docConfig);
-                    
-                    // Return first 100 characters as preview
-                    return content.Length > 100 ? content.Substring(0, 100) + "..." : content;
-                }
-                
-                return "Preview not available";
-            }
-            catch
-            {
-                return "Preview not available";
-            }
-        }
+
 
         /// <summary>
-        /// Determines if the given path is a SharePoint path
+        /// Determines if the given path is a SharePoint path.
+        /// Validates based on either full SharePoint URLs or drive-relative paths with SharePoint context.
         /// </summary>
-        private bool IsSharePointPath(string path)
+        private bool IsSharePointPath(string path, LoadProjectRequest? request = null)
         {
             if (string.IsNullOrEmpty(path))
                 return false;
 
-            // Check for common SharePoint URL patterns
+            // Check if we have SharePoint context (drive ID provided)
+            if (request != null && !string.IsNullOrEmpty(request.SPDriveId))
+            {
+                // For SharePoint drive operations, paths are relative to the drive root
+                return path.StartsWith("/");
+            }
+
+            // Fallback to checking for full SharePoint URLs
             return path.StartsWith("https://", StringComparison.OrdinalIgnoreCase) &&
                    (path.Contains(".sharepoint.com", StringComparison.OrdinalIgnoreCase) ||
                     path.Contains("sharepoint", StringComparison.OrdinalIgnoreCase));
@@ -647,14 +620,14 @@ namespace RoboClerk.Server.Services
                 }
 
                 // Load the SharePoint file provider plugin
-                SharePointFileProviderPlugin? sharePointPlugin = null;
+                IFileProviderPlugin? sharePointPlugin = null;
 
                 // Try loading from each plugin directory
                 foreach (var pluginDir in tempConfig.PluginDirs)
                 {
                     try
                     {
-                        sharePointPlugin = pluginLoader.LoadByName<SharePointFileProviderPlugin>(
+                        sharePointPlugin = pluginLoader.LoadByName<IFileProviderPlugin>(
                             pluginDir: pluginDir,
                             typeName: "SharePointFileProviderPlugin",
                             configureGlobals: sc =>
@@ -707,12 +680,27 @@ namespace RoboClerk.Server.Services
             services.AddSingleton(configuration);
 
             // Data sources factory (using project-specific file provider)
-            services.AddSingleton(serviceProvider.GetRequiredService<IDataSourcesFactory>());
+            services.AddSingleton<IDataSourcesFactory>(provider =>
+            {
+                return new DataSourcesFactory(provider);
+            });
 
-            // Other required services from the main service provider
+            // Get plugin loader from main service provider (doesn't depend on project config)
             services.AddSingleton(serviceProvider.GetRequiredService<IPluginLoader>());
-            services.AddSingleton(serviceProvider.GetRequiredService<ITraceabilityAnalysis>());
-            services.AddSingleton(serviceProvider.GetRequiredService<IContentCreatorFactory>());
+
+            // Create project-specific ITraceabilityAnalysis with project-specific configuration
+            services.AddSingleton<ITraceabilityAnalysis>(provider =>
+            {
+                var projectConfig = provider.GetRequiredService<IConfiguration>();
+                return new RoboClerk.TraceabilityAnalysis(projectConfig);
+            });
+
+            // Register all content creators dynamically - same pattern as main application
+            RegisterContentCreators(services);
+
+            // Create project-specific IContentCreatorFactory with project-specific configuration
+            services.AddSingleton<IContentCreatorFactory>(provider =>
+                new ContentCreatorFactory(provider, provider.GetRequiredService<ITraceabilityAnalysis>()));
 
             // Add data sources - either provided ones or create new ones
             if (dataSources != null)
@@ -725,11 +713,71 @@ namespace RoboClerk.Server.Services
                 {
                     var factory = provider.GetRequiredService<IDataSourcesFactory>();
                     var config = provider.GetRequiredService<IConfiguration>();
-                    return factory.CreateDataSourcesAsync(config).Result;
+                    return factory.CreateDataSources(config);
                 });
+
             }
 
             return services.BuildServiceProvider();
+        }
+
+        /// <summary>
+        /// Registers all content creators in the service collection - same pattern as main application
+        /// </summary>
+        private void RegisterContentCreators(IServiceCollection services)
+        {
+            ArgumentNullException.ThrowIfNull(services);
+
+            try
+            {
+                // Get the assembly containing the content creators using the fileSystem object
+                var currentDir = fileSystem.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+                var coreAssemblyPath = fileSystem.Path.Combine(currentDir, "RoboClerk.Core.dll");
+                
+                if (!fileSystem.File.Exists(coreAssemblyPath))
+                {
+                    // Try alternative paths for different deployment scenarios
+                    coreAssemblyPath = fileSystem.Path.Combine(AppContext.BaseDirectory, "RoboClerk.Core.dll");
+                }
+                
+                // Verify the assembly file exists before attempting to load
+                if (!fileSystem.File.Exists(coreAssemblyPath))
+                {
+                    logger.Warn($"RoboClerk.Core.dll not found at expected locations. Content creators may not be available.");
+                    return;
+                }
+
+                var assembly = Assembly.LoadFrom(coreAssemblyPath);
+
+                // Find all types that implement IContentCreator
+                var contentCreatorTypes = assembly.GetTypes()
+                    .Where(t => typeof(IContentCreator).IsAssignableFrom(t) && 
+                               !t.IsInterface && 
+                               !t.IsAbstract &&
+                               !t.IsGenericType)
+                    .ToList();
+
+                logger.Debug($"Found {contentCreatorTypes.Count} content creator types to register for project");
+
+                foreach (var type in contentCreatorTypes)
+                {
+                    try
+                    {
+                        // Register each content creator as transient
+                        services.AddTransient(type);
+                        logger.Debug($"Registered content creator for project: {type.Name}");
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Warn($"Failed to register content creator {type.Name} for project: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error registering content creators for project");
+                // Don't throw here - let the application continue with what it has
+            }
         }
     }
 

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RoboClerk.Server.TestClient": {
+      "commandName": "Project",
+      "commandLineArgs": "\"/RoboClerk_input\" \"b!w6Nti4OD_U2r8vMUeG1K6omwehgcsHVErfuYsRoGyRLMtxx7u7tjQrstgEy_JtGp\" \"RoboClerk_input\" \"SoftwareDesignSpecification\" \"https://samdiaconsultingllc.sharepoint.com/sites/TestSite\" \"https://localhost:51045\""
+    }
+  }
+}

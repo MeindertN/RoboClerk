@@ -13,7 +13,7 @@ namespace RoboClerk.Server.Services
             this.serviceProvider = serviceProvider;
         }
 
-        public async Task<IDataSources> CreateDataSourcesAsync(IConfiguration configuration)
+        public IDataSources CreateDataSources(IConfiguration configuration)
         {
             try
             {

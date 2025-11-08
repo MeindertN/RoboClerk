@@ -5,15 +5,18 @@ using System.Text;
 
 namespace RoboClerk
 {
-    public class ItemTemplateRenderer
+    public class ItemTemplateRenderer : IDisposable
     {
         private ItemTemplateParser parser = null!;
         private string fileContent = string.Empty;
+        private ScriptOptions? scriptOptions;
+        private bool disposed = false;
 
-        public ItemTemplateRenderer(string templateContent)
+        public ItemTemplateRenderer(string templateContent) 
         {
             fileContent = templateContent;
             parser = new ItemTemplateParser(templateContent);
+            scriptOptions = ScriptOptions.Default.WithReferences(Assembly.GetExecutingAssembly());
         }
 
         public string RenderItemTemplate<T>(ScriptingBridge<T> bridge) where T : Item
@@ -23,7 +26,7 @@ namespace RoboClerk
             {
                 return sb.ToString();
             }
-            ScriptState<object> beginState = CSharpScript.RunAsync(parser.StartSegment.Item1, ScriptOptions.Default.WithReferences(Assembly.GetExecutingAssembly()), globals: bridge).Result;
+            ScriptState<object> beginState = CSharpScript.RunAsync(parser.StartSegment.Item1, scriptOptions, globals: bridge).Result;
             foreach (var segment in parser.Segments)
             {
                 var state = beginState.ContinueWithAsync<string>(segment.Item1).Result;
@@ -34,6 +37,23 @@ namespace RoboClerk
             //remove start segment
             sb.Remove(parser.StartSegment.Item2, parser.StartSegment.Item3 - parser.StartSegment.Item2);
             return sb.ToString();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed && disposing)
+            {
+                scriptOptions = null;
+                parser = null!;
+                fileContent = string.Empty;
+                disposed = true;
+            }
         }
     }
 }

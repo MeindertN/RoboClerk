@@ -39,4 +39,10 @@
 		<Copy SourceFiles="@(Plugins)" DestinationFolder="$(ProjectDir)$(OutDir)plugins" />
 		<Copy SourceFiles="@(PluginConfigs)" DestinationFolder="$(ProjectDir)$(OutDir)RoboClerk_input\PluginConfig" />
 	</Target>
+
+	<Target Name="SetupConfigFilesForDebug" BeforeTargets="Start" AfterTargets="CopyConfigFiles">
+		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{PLUGINROOT}" ReplacementText="$(ProjectDir)$(OutDir)" />
+		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{DOCUMENTATIONROOT}" ReplacementText="$(ProjectDir)$(OutDir)" />
+	</Target>
+	
 </Project>

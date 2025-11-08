@@ -10,31 +10,63 @@ namespace RoboClerk.Server.TestClient
         static async Task<int> Main(string[] args)
         {
             // Parse command line arguments
-            if (args.Length < 2)
+            if (args.Length < 5)
             {
-                Console.WriteLine("Usage: RoboClerk.Server.TestClient <SharePointProjectUrl> <DocumentName> [ServerUrl]");
+                Console.WriteLine("Usage: RoboClerk.Server.TestClient <ProjectPath> <SPDriveId> <ProjectRoot> <DocumentName> <SPSiteUrl> [ServerUrl] [StartupDelayMs]");
                 Console.WriteLine();
                 Console.WriteLine("Parameters:");
-                Console.WriteLine("  SharePointProjectUrl - URL to SharePoint project (e.g., https://company.sharepoint.com/sites/project/MyRoboClerkProject)");
-                Console.WriteLine("  DocumentName         - Name of the document to test (e.g., SRS)");
-                Console.WriteLine("  ServerUrl           - Optional: RoboClerk Server URL (default: http://localhost:5000)");
+                Console.WriteLine("  ProjectPath    - SharePoint project path (e.g., /sites/project/Shared Documents/MyRoboClerkProject)");
+                Console.WriteLine("  SPDriveId      - SharePoint Drive ID (obtained from Microsoft Graph API)");
+                Console.WriteLine("  ProjectRoot    - Project root directory name (e.g., MyRoboClerkProject)");
+                Console.WriteLine("  DocumentName   - Name of the document to test (e.g., SRS)");
+                Console.WriteLine("  SPSiteUrl      - SharePoint site URL (e.g., https://company.sharepoint.com/sites/project)");
+                Console.WriteLine("  ServerUrl      - Optional: RoboClerk Server URL (default: http://localhost:5000)");
+                Console.WriteLine("  StartupDelayMs - Optional: Startup delay in milliseconds (default: 2000, use 0 to disable)");
                 Console.WriteLine();
                 Console.WriteLine("Example:");
-                Console.WriteLine("  RoboClerk.Server.TestClient \"https://mycompany.sharepoint.com/sites/projects/MyProject\" \"SRS\"");
+                Console.WriteLine("  RoboClerk.Server.TestClient \"/sites/projects/Shared Documents/MyProject\" \"b!abc123...\" \"MyProject\" \"SRS\" \"https://mycompany.sharepoint.com/sites/projects\"");
+                Console.WriteLine("  RoboClerk.Server.TestClient \"/sites/projects/Shared Documents/MyProject\" \"b!abc123...\" \"MyProject\" \"SRS\" \"https://mycompany.sharepoint.com/sites/projects\" \"http://localhost:5000\" \"5000\"");
+                Console.WriteLine();
+                Console.WriteLine("Note: This test client simulates the Word add-in workflow using real SharePoint parameters.");
+                Console.WriteLine("      The SharePoint Drive ID must be obtained through the Microsoft Graph API.");
+                Console.WriteLine("      The server must be properly configured with SharePoint access credentials.");
+                Console.WriteLine("      When debugging, a longer startup delay (5000ms) is recommended to allow the server to fully start.");
                 return 1;
             }
 
-            var sharePointProjectUrl = args[0];
-            var documentName = args[1];
-            var serverUrl = args.Length > 2 ? args[2] : "http://localhost:5000";
+            var projectPath = args[0];
+            var spDriveId = args[1]; 
+            var projectRoot = args[2];
+            var documentName = args[3];
+            var spSiteUrl = args[4];
+            var serverUrl = args.Length > 5 ? args[5] : "http://localhost:5000";
+            
+            // Parse startup delay parameter
+            var startupDelayMs = 2000; // Default delay
+            if (args.Length > 6)
+            {
+                if (int.TryParse(args[6], out var customDelay) && customDelay >= 0)
+                {
+                    startupDelayMs = customDelay;
+                }
+                else
+                {
+                    Console.WriteLine($"Warning: Invalid startup delay '{args[6]}'. Using default of {startupDelayMs}ms.");
+                }
+            }
+            else if (System.Diagnostics.Debugger.IsAttached)
+            {
+                // Auto-increase delay when debugging
+                startupDelayMs = 5000;
+            }
 
             // Setup dependency injection and logging
             var host = Host.CreateDefaultBuilder(args)
                 .ConfigureServices((context, services) =>
                 {
                     services.AddHttpClient();
-                    services.AddSingleton<IRoboClerkServerClient, RoboClerkServerClient>();
-                    services.AddSingleton<IWordAddInSimulator, WordAddInSimulator>();
+                    services.AddTransient<IRoboClerkServerClient, RoboClerkServerClient>();
+                    services.AddTransient<IWordAddInSimulator, WordAddInSimulator>();
                 })
                 .ConfigureLogging(logging =>
                 {
@@ -50,20 +82,41 @@ namespace RoboClerk.Server.TestClient
             try
             {
                 logger.LogInformation("=== RoboClerk Server Test Client ===");
-                logger.LogInformation("SharePoint Project: {ProjectUrl}", sharePointProjectUrl);
+                logger.LogInformation("Project Path: {ProjectPath}", projectPath);
+                logger.LogInformation("SharePoint Drive ID: {SPDriveId}", spDriveId);
+                logger.LogInformation("Project Root: {ProjectRoot}", projectRoot);
                 logger.LogInformation("Document Name: {DocumentName}", documentName);
+                logger.LogInformation("SharePoint Site URL: {SPSiteUrl}", spSiteUrl);
                 logger.LogInformation("Server URL: {ServerUrl}", serverUrl);
-                logger.LogInformation("");
+                logger.LogInformation("Startup Delay: {StartupDelayMs}ms", startupDelayMs);
+                
+                if (System.Diagnostics.Debugger.IsAttached)
+                {
+                    logger.LogInformation("?? Debug mode detected");
+                }
+                
+                logger.LogInformation("" +
+                    "");
+
+                // Apply startup delay if configured
+                if (startupDelayMs > 0)
+                {
+                    logger.LogInformation("? Applying startup delay of {DelayMs}ms to allow server to be ready...", startupDelayMs);
+                    await Task.Delay(startupDelayMs);
+                }
 
                 // Run the Word add-in simulation
                 var success = await simulator.SimulateWordAddInWorkflowAsync(
                     serverUrl, 
-                    sharePointProjectUrl, 
+                    projectPath,
+                    spDriveId,
+                    projectRoot,
+                    spSiteUrl,
                     documentName);
 
                 if (success)
                 {
-                    logger.LogInformation("? Word add-in workflow simulation completed successfully!");
+                    logger.LogInformation("?? Word add-in workflow simulation completed successfully!");
                     return 0;
                 }
                 else

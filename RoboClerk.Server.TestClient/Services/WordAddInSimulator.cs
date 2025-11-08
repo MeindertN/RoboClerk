@@ -1,4 +1,5 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
+using RoboClerk.Server.TestClient.Models;
 
 namespace RoboClerk.Server.TestClient.Services
 {
@@ -13,9 +14,15 @@ namespace RoboClerk.Server.TestClient.Services
             this.logger = logger;
         }
 
-        public async Task<bool> SimulateWordAddInWorkflowAsync(string serverUrl, string sharePointProjectUrl, string documentName)
+        public async Task<bool> SimulateWordAddInWorkflowAsync(
+            string serverUrl, 
+            string projectPath, 
+            string spDriveId, 
+            string projectRoot, 
+            string spSiteUrl, 
+            string documentName)
         {
-            logger.LogInformation("?? Starting Word Add-in Workflow Simulation");
+            logger.LogInformation("📄 Starting Word Add-in Workflow Simulation");
             logger.LogInformation("================================================");
             
             try
@@ -27,27 +34,36 @@ namespace RoboClerk.Server.TestClient.Services
                 }
 
                 // Step 1: Health Check
-                logger.LogInformation("?? Step 1: Server Health Check");
+                logger.LogInformation("🔍 Step 1: Server Health Check");
                 logger.LogInformation("------------------------------");
                 
                 var healthResult = await serverClient.HealthCheckAsync();
                 if (healthResult == null)
                 {
-                    logger.LogError("? Server health check failed - cannot continue");
+                    logger.LogError("❌ Server health check failed - cannot continue");
                     return false;
                 }
                 
                 await Task.Delay(1000); // Simulate user interaction delay
                 
-                // Step 2: Load SharePoint Project
+                // Step 2: Load SharePoint Project with actual parameters
                 logger.LogInformation("");
-                logger.LogInformation("?? Step 2: Load SharePoint Project");
+                logger.LogInformation("📂 Step 2: Load SharePoint Project");
                 logger.LogInformation("----------------------------------");
                 
-                var projectResult = await serverClient.LoadProjectAsync(sharePointProjectUrl);
+                var projectRequest = new LoadProjectRequest
+                {
+                    ProjectPath = projectPath,
+                    SPDriveId = spDriveId,
+                    ProjectRoot = projectRoot,
+                    SPSiteUrl = spSiteUrl
+                };
+                
+                var projectResult = await serverClient.LoadProjectAsync(projectRequest);
                 if (projectResult?.Success != true || string.IsNullOrEmpty(projectResult.ProjectId))
                 {
-                    logger.LogError("? Failed to load SharePoint project - cannot continue");
+                    logger.LogError("❌ Failed to load SharePoint project - cannot continue");
+                    logger.LogError("Error: {Error}", projectResult?.Error);
                     return false;
                 }
                 
@@ -58,170 +74,175 @@ namespace RoboClerk.Server.TestClient.Services
                 
                 if (targetDocument == null)
                 {
-                    logger.LogError("? Document '{DocumentName}' not found in project", documentName);
+                    logger.LogError("❌ Document '{DocumentName}' not found in project", documentName);
                     logger.LogInformation("Available documents:");
                     foreach (var doc in projectResult.Documents ?? [])
                     {
                         logger.LogInformation("  - {DocumentId}: {Title} ({Template})", doc.DocumentId, doc.Title, doc.Template);
                     }
+                    await CleanupProject(projectId);
                     return false;
                 }
                 
                 await Task.Delay(1000);
                 
-                // Step 3: Load Document
+                // Step 3: Refresh Project State
                 logger.LogInformation("");
-                logger.LogInformation("?? Step 3: Load Document from SharePoint");
-                logger.LogInformation("----------------------------------------");
+                logger.LogInformation("🔄 Step 3: Refresh Project State");
+                logger.LogInformation("--------------------------------");
                 
-                var documentResult = await serverClient.LoadDocumentAsync(projectId, targetDocument.DocumentId);
-                if (documentResult?.Success != true)
+                var refreshResult = await serverClient.RefreshProjectAsync(projectId);
+                if (refreshResult?.Success != true)
                 {
-                    logger.LogError("? Failed to load document - cannot continue");
+                    logger.LogError("❌ Failed to refresh project - cannot continue");
+                    logger.LogError("Error: {Error}", refreshResult?.Error);
                     await CleanupProject(projectId);
                     return false;
                 }
                 
-                if (documentResult.Tags?.Any() != true)
-                {
-                    logger.LogWarning("?? No content controls found in document - workflow complete but no content to generate");
-                    await CleanupProject(projectId);
-                    return true;
-                }
-                
+                logger.LogInformation("✅ Project state refreshed successfully");
                 await Task.Delay(1000);
-                
-                // Step 4: Analyze Document
+                throw new NotImplementedException();
+                // Step 4: Simulate Word Add-in Document Analysis and Content Generation
                 logger.LogInformation("");
-                logger.LogInformation("?? Step 4: Analyze Document Content Controls");
-                logger.LogInformation("--------------------------------------------");
+                logger.LogInformation("📝 Step 4: Simulate Word Add-in Document Analysis & Content Generation");
+                logger.LogInformation("---------------------------------------------------------------------");
+                logger.LogInformation("🔎 [SIMULATED] Word add-in scanning document for RoboClerk content controls...");
                 
-                var analysisResult = await serverClient.AnalyzeDocumentAsync(projectId, targetDocument.DocumentId);
-                if (analysisResult?.Success != true)
+                // Simulate realistic content control IDs that a Word add-in might find
+                var simulatedContentControls = new List<(string id, string description)>
                 {
-                    logger.LogError("? Failed to analyze document");
-                    await CleanupProject(projectId);
-                    return false;
+                    ("RoboClerk:RequirementsList:SystemRequirements", "System Requirements List"),
+                    ("RoboClerk:RequirementsList:SoftwareRequirements", "Software Requirements List"), 
+                    ("RoboClerk:TraceabilityMatrix:RequirementsToTests", "Requirements to Tests Traceability"),
+                    ("RoboClerk:TestCases:UnitTests", "Unit Test Cases"),
+                    ("RoboClerk:Configuration:ProjectName", "Project Name"),
+                    ("RoboClerk:DocumentInfo:LastUpdated", "Document Last Updated")
+                };
+
+                logger.LogInformation("📋 [SIMULATED] Found {Count} RoboClerk content controls in document:", simulatedContentControls.Count);
+                foreach (var (id, description) in simulatedContentControls)
+                {
+                    logger.LogInformation("  📎 {Id} - {Description}", id, description);
                 }
                 
-                var supportedTags = analysisResult.AvailableTags?.Where(t => t.IsSupported).ToList() ?? [];
-                if (!supportedTags.Any())
-                {
-                    logger.LogWarning("?? No supported content controls found - workflow complete but no content to generate");
-                    await CleanupProject(projectId);
-                    return true;
-                }
-                
-                await Task.Delay(1500);
-                
-                // Step 5: Generate Content for Each Supported Content Control
-                logger.LogInformation("");
-                logger.LogInformation("?? Step 5: Generate Content for Content Controls");
-                logger.LogInformation("-----------------------------------------------");
+                await Task.Delay(2000); // Simulate document scanning time
                 
                 var successfulGenerations = 0;
-                var totalGenerations = Math.Min(supportedTags.Count, 5); // Limit to first 5 for demo
+                var totalGenerations = Math.Min(simulatedContentControls.Count, 5); // Limit to first 5 for demo
                 
                 for (int i = 0; i < totalGenerations; i++)
                 {
-                    var tag = supportedTags[i];
-                    logger.LogInformation("?? Generating content {Index}/{Total} for control: {ContentControlId}", 
-                        i + 1, totalGenerations, tag.ContentControlId);
+                    var (contentControlId, description) = simulatedContentControls[i];
+                    logger.LogInformation("⚡ Generating content {Index}/{Total} for: {Description}", 
+                        i + 1, totalGenerations, description);
+                    logger.LogInformation("   Content Control ID: {ContentControlId}", contentControlId);
                     
                     var contentResult = await serverClient.GenerateContentAsync(
                         projectId, 
                         targetDocument.DocumentId, 
-                        tag.ContentControlId!);
+                        contentControlId);
                     
                     if (contentResult?.Success == true)
                     {
                         successfulGenerations++;
-                        logger.LogInformation("? Content generated successfully for {ContentControlId}", tag.ContentControlId);
+                        var contentLength = contentResult.Content?.Length ?? 0;
+                        logger.LogInformation("✅ Content generated successfully ({ContentLength} characters)", contentLength);
                         
                         // Simulate Word add-in inserting content into document
-                        await Task.Delay(500);
-                        logger.LogInformation("?? [SIMULATED] Content inserted into Word document");
+                        await Task.Delay(300);
+                        logger.LogInformation("📝 [SIMULATED] Content inserted into Word document content control");
                     }
                     else
                     {
-                        logger.LogError("? Failed to generate content for {ContentControlId}: {Error}", 
-                            tag.ContentControlId, contentResult?.Error);
+                        logger.LogError("❌ Failed to generate content for {ContentControlId}: {Error}", 
+                            contentControlId, contentResult?.Error);
                     }
                     
-                    await Task.Delay(1000); // Simulate user interaction delay
+                    await Task.Delay(800); // Simulate user interaction delay
                 }
                 
-                // Step 6: Test Data Source Refresh (optional)
+                // Step 5: Test Data Source Refresh (optional)
                 if (successfulGenerations > 0)
                 {
                     logger.LogInformation("");
-                    logger.LogInformation("?? Step 6: Test Data Source Refresh");
+                    logger.LogInformation("🔄 Step 5: Test Data Source Refresh");
                     logger.LogInformation("----------------------------------");
                     
-                    var refreshResult = await serverClient.RefreshProjectAsync(projectId);
-                    if (refreshResult?.Success == true)
+                    var dataSourceRefreshResult = await serverClient.RefreshDataSourcesAsync(projectId);
+                    if (dataSourceRefreshResult?.Success == true)
                     {
-                        logger.LogInformation("? Data sources refreshed successfully");
+                        logger.LogInformation("✅ Data sources refreshed successfully");
                         
                         // Regenerate one piece of content to show refresh worked
-                        logger.LogInformation("?? Re-generating content for first control to demonstrate refresh...");
-                        var firstTag = supportedTags.First();
+                        logger.LogInformation("🔄 Re-generating content for first control to demonstrate refresh...");
+                        var firstControl = simulatedContentControls.First();
                         var retestResult = await serverClient.GenerateContentAsync(
                             projectId, 
                             targetDocument.DocumentId, 
-                            firstTag.ContentControlId!);
+                            firstControl.id);
                         
                         if (retestResult?.Success == true)
                         {
-                            logger.LogInformation("? Content re-generation after refresh successful");
+                            logger.LogInformation("✅ Content re-generation after refresh successful");
+                        }
+                        else
+                        {
+                            logger.LogWarning("⚠️ Content re-generation after refresh failed: {Error}", retestResult?.Error);
                         }
                     }
                     else
                     {
-                        logger.LogWarning("?? Data source refresh failed: {Error}", refreshResult?.Error);
+                        logger.LogWarning("⚠️ Data source refresh failed: {Error}", dataSourceRefreshResult?.Error);
                     }
                     
                     await Task.Delay(1000);
                 }
                 
-                // Step 7: Get Configuration (for diagnostics)
+                // Step 6: Get Configuration (for diagnostics)
                 logger.LogInformation("");
-                logger.LogInformation("?? Step 7: Get Project Configuration (Diagnostic)");
+                logger.LogInformation("🔧 Step 6: Get Project Configuration (Diagnostic)");
                 logger.LogInformation("------------------------------------------------");
                 
                 var configResult = await serverClient.GetProjectConfigurationAsync(projectId);
-                // Configuration logging is handled in the client
+                if (configResult?.Any() == true)
+                {
+                    logger.LogInformation("📋 Retrieved {ConfigCount} configuration values", configResult.Count);
+                }
+                else
+                {
+                    logger.LogWarning("⚠️ No configuration values retrieved");
+                }
                 
                 await Task.Delay(500);
                 
-                // Step 8: Cleanup
+                // Step 7: Cleanup
                 logger.LogInformation("");
-                logger.LogInformation("?? Step 8: Cleanup and End Session");
+                logger.LogInformation("🧹 Step 7: Cleanup and End Session");
                 logger.LogInformation("----------------------------------");
                 
                 var cleanupSuccess = await CleanupProject(projectId);
                 
                 // Final Summary
                 logger.LogInformation("");
-                logger.LogInformation("?? WORKFLOW SUMMARY");
+                logger.LogInformation("📊 WORKFLOW SUMMARY");
                 logger.LogInformation("==================");
-                logger.LogInformation("? Project loaded: {ProjectName}", projectResult.ProjectName);
-                logger.LogInformation("? Document loaded: {DocumentTitle}", targetDocument.Title);
-                logger.LogInformation("? Content controls found: {TotalCount}", analysisResult.TotalTagCount);
-                logger.LogInformation("? Supported content controls: {SupportedCount}", analysisResult.SupportedTagCount);
-                logger.LogInformation("? Successful content generations: {SuccessfulCount}/{AttemptedCount}", 
+                logger.LogInformation("📁 Project loaded: {ProjectName}", projectResult.ProjectName);
+                logger.LogInformation("📄 Document loaded: {DocumentTitle}", targetDocument.Title);
+                logger.LogInformation("📎 Content controls found: {TotalCount}", simulatedContentControls.Count);
+                logger.LogInformation("⚡ Successful content generations: {SuccessfulCount}/{AttemptedCount}", 
                     successfulGenerations, totalGenerations);
-                logger.LogInformation("? Session cleanup: {CleanupStatus}", cleanupSuccess ? "Success" : "Failed");
+                logger.LogInformation("🧹 Session cleanup: {CleanupStatus}", cleanupSuccess ? "Success" : "Failed");
                 
                 var overallSuccess = successfulGenerations > 0 && cleanupSuccess;
-                logger.LogInformation("?? Overall workflow result: {Result}", 
+                logger.LogInformation("🎯 Overall workflow result: {Result}", 
                     overallSuccess ? "SUCCESS" : "PARTIAL SUCCESS");
                 
                 return overallSuccess;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "?? Workflow simulation failed with exception");
+                logger.LogError(ex, "💥 Workflow simulation failed with exception");
                 return false;
             }
         }
@@ -234,7 +255,7 @@ namespace RoboClerk.Server.TestClient.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "?? Exception during project cleanup");
+                logger.LogError(ex, "💥 Exception during project cleanup");
                 return false;
             }
         }

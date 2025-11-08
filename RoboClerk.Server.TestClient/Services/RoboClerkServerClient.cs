@@ -67,13 +67,12 @@ namespace RoboClerk.Server.TestClient.Services
             }
         }
 
-        public async Task<ProjectLoadResult?> LoadProjectAsync(string projectPath)
+        public async Task<ProjectLoadResult?> LoadProjectAsync(LoadProjectRequest request)
         {
             try
             {
-                logger.LogInformation("?? Loading SharePoint project: {ProjectPath}", projectPath);
+                logger.LogInformation("?? Loading SharePoint project: {ProjectPath}", request.ProjectPath);
                 
-                var request = new LoadProjectRequest { ProjectPath = projectPath };
                 var response = await httpClient.PostAsJsonAsync("api/word-addin/project/load", request, jsonOptions);
                 
                 var result = await response.Content.ReadFromJsonAsync<ProjectLoadResult>(jsonOptions);
@@ -98,87 +97,56 @@ namespace RoboClerk.Server.TestClient.Services
             }
         }
 
-        public async Task<DocumentLoadResult?> LoadDocumentAsync(string projectId, string documentId)
+        public async Task<DocumentAnalysisResult?> RefreshProjectAsync(string projectId)
         {
             try
             {
-                logger.LogInformation("?? Loading document: {DocumentId}", documentId);
+                logger.LogInformation("?? Refreshing project: {ProjectId}", projectId);
                 
-                var response = await httpClient.PostAsync($"api/word-addin/project/{projectId}/document/{documentId}/load", null);
-                var result = await response.Content.ReadFromJsonAsync<DocumentLoadResult>(jsonOptions);
-                
-                if (result?.Success == true)
-                {
-                    logger.LogInformation("? Document loaded successfully: {TagCount} content controls found", 
-                        result.Tags?.Count ?? 0);
-                    
-                    if (result.Tags?.Any() == true)
-                    {
-                        foreach (var tag in result.Tags)
-                        {
-                            logger.LogInformation("  ??? {Source}:{ContentCreatorId} (Control: {ContentControlId})", 
-                                tag.Source, tag.ContentCreatorId, tag.ContentControlId);
-                        }
-                    }
-                }
-                else
-                {
-                    logger.LogError("? Document load failed: {Error}", result?.Error);
-                }
-                
-                return result;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "?? Exception loading document");
-                return null;
-            }
-        }
-
-        public async Task<DocumentAnalysisResult?> AnalyzeDocumentAsync(string projectId, string documentId)
-        {
-            try
-            {
-                logger.LogInformation("?? Analyzing document: {DocumentId}", documentId);
-                
-                var response = await httpClient.GetAsync($"api/word-addin/project/{projectId}/document/{documentId}/analyze");
+                var response = await httpClient.GetAsync($"api/word-addin/project/{projectId}/refresh");
                 var result = await response.Content.ReadFromJsonAsync<DocumentAnalysisResult>(jsonOptions);
                 
                 if (result?.Success == true)
                 {
-                    logger.LogInformation("? Document analysis complete: {SupportedCount}/{TotalCount} content controls supported", 
-                        result.SupportedTagCount, result.TotalTagCount);
-                    
-                    if (result.AvailableTags?.Any() == true)
-                    {
-                        foreach (var tag in result.AvailableTags)
-                        {
-                            var status = tag.IsSupported ? "?" : "?";
-                            logger.LogInformation("  {Status} {Source}:{ContentCreatorId} (Control: {ContentControlId})", 
-                                status, tag.Source, tag.ContentCreatorId, tag.ContentControlId);
-                            
-                            if (!string.IsNullOrEmpty(tag.ContentPreview))
-                            {
-                                logger.LogInformation("     Preview: {Preview}", tag.ContentPreview);
-                            }
-                            
-                            if (!tag.IsSupported && !string.IsNullOrEmpty(tag.Error))
-                            {
-                                logger.LogWarning("     Error: {Error}", tag.Error);
-                            }
-                        }
-                    }
+                    logger.LogInformation("? Project refresh complete");
                 }
                 else
                 {
-                    logger.LogError("? Document analysis failed: {Error}", result?.Error);
+                    logger.LogError("? Project refresh failed: {Error}", result?.Error);
                 }
                 
                 return result;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "?? Exception analyzing document");
+                logger.LogError(ex, "?? Exception refreshing project");
+                return null;
+            }
+        }
+
+        public async Task<RefreshResult?> RefreshDataSourcesAsync(string projectId)
+        {
+            try
+            {
+                logger.LogInformation("?? Refreshing project data sources...");
+                
+                var response = await httpClient.PostAsync($"api/word-addin/project/{projectId}/refreshds", null);
+                var result = await response.Content.ReadFromJsonAsync<RefreshResult>(jsonOptions);
+                
+                if (result?.Success == true)
+                {
+                    logger.LogInformation("? Project data sources refreshed successfully");
+                }
+                else
+                {
+                    logger.LogError("? Project data source refresh failed: {Error}", result?.Error);
+                }
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "?? Exception refreshing project data sources");
                 return null;
             }
         }
@@ -228,33 +196,6 @@ namespace RoboClerk.Server.TestClient.Services
             }
         }
 
-        public async Task<RefreshResult?> RefreshProjectAsync(string projectId)
-        {
-            try
-            {
-                logger.LogInformation("?? Refreshing project data sources...");
-                
-                var response = await httpClient.PostAsync($"api/word-addin/project/{projectId}/refresh", null);
-                var result = await response.Content.ReadFromJsonAsync<RefreshResult>(jsonOptions);
-                
-                if (result?.Success == true)
-                {
-                    logger.LogInformation("? Project data sources refreshed successfully");
-                }
-                else
-                {
-                    logger.LogError("? Project refresh failed: {Error}", result?.Error);
-                }
-                
-                return result;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "?? Exception refreshing project");
-                return null;
-            }
-        }
-
         public async Task<List<ConfigurationValue>?> GetProjectConfigurationAsync(string projectId)
         {
             try
@@ -296,7 +237,7 @@ namespace RoboClerk.Server.TestClient.Services
         {
             try
             {
-                logger.LogInformation("?? Unloading project and cleaning up resources...");
+                logger.LogInformation("??? Unloading project and cleaning up resources...");
                 
                 var response = await httpClient.DeleteAsync($"api/word-addin/project/{projectId}");
                 

@@ -1,16 +1,33 @@
 using System.Text.Json;
+using System.ComponentModel.DataAnnotations;
 
 namespace RoboClerk.Server.TestClient.Models
 {
     // Request Models
     public record LoadProjectRequest
     {
+        [Required]
         public string ProjectPath { get; init; } = string.Empty;
+        
+        [Required]
+        public string SPDriveId { get; init; } = string.Empty;
+        
+        // Optional: Allow override for specific project identification
+        public string? ProjectIdentifier { get; init; }
+        
+        // Optional SharePoint overrides
+        public string? SPSiteUrl { get; init; }
+        
+        // Project root directory within the SharePoint drive
+        [Required]
+        public string ProjectRoot { get; init; } = string.Empty;
     }
 
     public record RoboClerkContentControlTagRequest
     {
+        [Required]
         public string DocumentId { get; init; } = string.Empty;
+        [Required]
         public string ContentControlId { get; init; } = string.Empty;
     }
 
@@ -21,11 +38,14 @@ namespace RoboClerk.Server.TestClient.Models
         public string? Error { get; init; }
         public string? ProjectId { get; init; }
         public string? ProjectName { get; init; }
+        public DateTime? LastUpdated { get; init; }
         public List<DocumentInfo>? Documents { get; init; }
     }
 
     public record DocumentInfo(string DocumentId, string Title, string Template);
 
+    // Note: DocumentLoadResult and TagInfo are no longer used by the server API
+    // The server now uses DocumentAnalysisResult instead
     public record DocumentLoadResult
     {
         public bool Success { get; init; }
@@ -49,9 +69,6 @@ namespace RoboClerk.Server.TestClient.Models
         public bool Success { get; init; }
         public string? Error { get; init; }
         public string? DocumentId { get; init; }
-        public List<AvailableTagInfo>? AvailableTags { get; init; }
-        public int TotalTagCount { get; init; }
-        public int SupportedTagCount { get; init; }
     }
 
     public record AvailableTagInfo

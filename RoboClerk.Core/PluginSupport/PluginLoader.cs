@@ -115,9 +115,19 @@ namespace RoboClerk
             var services = new ServiceCollection();
             var implTypes = new List<Type>();
 
-            // 1) globals
-            services.AddSingleton<IFileProviderPlugin>(_pluginFileProvider);
+            // 1) globals - configure first so we can check what's registered
             configureGlobals?.Invoke(services);
+            
+            // Check if IFileProviderPlugin is already registered, if not add the default
+            var existingFileProvider = services.FirstOrDefault(s => s.ServiceType == typeof(IFileProviderPlugin));
+            if (existingFileProvider == null)
+            {
+                services.AddSingleton<IFileProviderPlugin>(_pluginFileProvider);
+            }
+
+            // Build a temporary service provider to get the file provider for plugin instantiation
+            var tempProvider = services.BuildServiceProvider();
+            var fileProviderForPlugins = tempProvider.GetRequiredService<IFileProviderPlugin>();
 
             // 2) per‐assembly scan
             foreach (var asm in _assemblyLoader.LoadFromDirectory(pluginDir))
@@ -138,7 +148,7 @@ namespace RoboClerk
 
                     if (ctor != null)
                     {
-                        args = new object[] { _pluginFileProvider };
+                        args = new object[] { fileProviderForPlugins };
                     }
                     else
                     {
@@ -159,6 +169,9 @@ namespace RoboClerk
                     metadataInstance.ConfigureServices(services);
                 }
             }
+
+            // Dispose the temporary provider
+            tempProvider.Dispose();
 
             return (services, implTypes);
         }

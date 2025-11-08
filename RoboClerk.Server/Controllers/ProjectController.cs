@@ -34,7 +34,7 @@ namespace RoboClerk.Server.Controllers
                 }
                 
                 // Automatically validate the project for Word add-in use
-                var isValid = await projectManager.ValidateProjectForWordAddInAsync(result.ProjectId!);
+                var isValid = projectManager.ValidateProjectForWordAddInAsync(result.ProjectId!,request);
                 if (!isValid)
                 {
                     await projectManager.UnloadProjectAsync(result.ProjectId!);
@@ -210,7 +210,7 @@ namespace RoboClerk.Server.Controllers
             return Ok(new 
             { 
                 status = "healthy", 
-                service = "RoboClerk Word Add-in API",
+                service = "RoboClerk Server API",
                 timestamp = DateTime.UtcNow,
                 version = GetType().Assembly.GetName().Version?.ToString()
             });

@@ -122,7 +122,7 @@ static void RegisterRoboClerkServices(IServiceCollection services, string[] args
                     logger.Warn($"RoboClerk Version: {Assembly.GetExecutingAssembly().GetName().Version}");
 
                     // Core RoboClerk services
-                    //services.AddTransient<IFileProviderPlugin>(x => new LocalFileSystemPlugin(new FileSystem()));
+                    services.AddTransient<IFileProviderPlugin>(x => new LocalFileSystemPlugin(new FileSystem()));
                     services.AddTransient<IFileSystem, FileSystem>();
                     services.AddSingleton<IPluginLoader, PluginLoader>();
                     services.AddSingleton<ITraceabilityAnalysis, TraceabilityAnalysis>();
