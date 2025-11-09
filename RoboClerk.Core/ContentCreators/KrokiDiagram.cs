@@ -61,19 +61,16 @@ namespace RoboClerk.ContentCreators
             byte[] utf8 = Encoding.UTF8.GetBytes(diagramSource);
 
             // 2) Compress with zlib wrapper at best compression
-            using var ms = new MemoryStream();
-            using (var zlib = new ZLibStream(ms, CompressionLevel.Optimal, leaveOpen: true))
+            using (var ms = new MemoryStream())
             {
-                zlib.Write(utf8, 0, utf8.Length);
+                using (ZLibStream zlib = new(ms, CompressionMode.Compress, true))
+                {
+                    zlib.Write(utf8);
+                }
+                var encodedOutput = Convert.ToBase64String(ms.ToArray()).Replace('+', '-').Replace('/', '_');
+
+                return encodedOutput;
             }
-
-            // 3) Base64
-            string base64 = Convert.ToBase64String(ms.ToArray());
-
-            // 4) URL-safe alphabet
-            return base64
-                .Replace('+', '-')
-                .Replace('/', '_');
         }
 
         public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
@@ -92,7 +89,7 @@ namespace RoboClerk.ContentCreators
             try
             {
                 //download the image and save it to the media directory with timeout
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
                 byte[] imagebytes = DownloadImageAsync($"{krokiURL}/{diagramType}/{imageFormat}/{base64}", cts.Token).Result;
 
                 //determine the file path for the output

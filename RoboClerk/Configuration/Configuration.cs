@@ -37,6 +37,7 @@ namespace RoboClerk.Configuration
         private string mediaDir = string.Empty;
         private string projectRoot = string.Empty;
         private string projectName = string.Empty;
+        private string projectID = string.Empty; //assigned by the server to indicate the sharepoint project this config belongs to
 
         //The information supplied on the commandline
         internal Dictionary<string, string> commandLineOptions = new Dictionary<string, string>();
@@ -109,7 +110,12 @@ namespace RoboClerk.Configuration
         public string AIPlugin => aiPlugin;
         public string FileProviderPlugin => fileProviderPlugin;
         public string ProjectName => projectName;
-        
+        public string ProjectID 
+        { 
+            get => projectID; 
+            set => projectID = value;
+        }
+
         public string GetCommandLineOption(string name)
         {
             if (commandLineOptions.ContainsKey(name))

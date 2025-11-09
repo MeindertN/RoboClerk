@@ -143,10 +143,33 @@ namespace RoboClerk.ContentCreators
             else
             {
                 var extension = (configuration.OutputFormat == "ASCIIDOC" ? "adoc" : "html");
-                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_automated.{extension}");
-                var rendererAutomated = new ItemTemplateRenderer(file);
-                file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_manual.{extension}");
-                var rendererManual = new ItemTemplateRenderer(file);
+                
+                // Setup automated test template with caching
+                var automatedFileIdentifier = configuration.ProjectID + $"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_automated.{extension}";
+                ItemTemplateRenderer rendererAutomated;
+                if (ItemTemplateRenderer.ExistsInCache(automatedFileIdentifier))
+                {
+                    rendererAutomated = ItemTemplateRenderer.FromCachedTemplate(automatedFileIdentifier);
+                }
+                else
+                {
+                    var automatedFile = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_automated.{extension}");
+                    rendererAutomated = ItemTemplateRenderer.FromString(automatedFile, automatedFileIdentifier);
+                }
+                
+                // Setup manual test template with caching
+                var manualFileIdentifier = configuration.ProjectID + $"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_manual.{extension}";
+                ItemTemplateRenderer rendererManual;
+                if (ItemTemplateRenderer.ExistsInCache(manualFileIdentifier))
+                {
+                    rendererManual = ItemTemplateRenderer.FromCachedTemplate(manualFileIdentifier);
+                }
+                else
+                {
+                    var manualFile = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_manual.{extension}");
+                    rendererManual = ItemTemplateRenderer.FromString(manualFile, manualFileIdentifier);
+                }
+                
                 foreach (var item in items)
                 {
                     dataShare.Item = item;

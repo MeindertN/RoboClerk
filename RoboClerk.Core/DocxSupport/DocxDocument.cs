@@ -31,6 +31,7 @@ namespace RoboClerk.Core.DocxSupport
 
             wordDocument = WordprocessingDocument.Open(memoryStream, true);
             ParseContentControls();
+            
         }
 
         public MemoryStream SaveToStream()

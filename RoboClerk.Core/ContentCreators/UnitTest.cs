@@ -135,16 +135,34 @@ namespace RoboClerk.ContentCreators
             {
                 //this will print a brief list of all soups and versions that Roboclerk knows about
                 dataShare.Items = items;
-                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/UnitTest_brief.{extension}");
-                var renderer = new ItemTemplateRenderer(file);
+                var briefFileIdentifier = configuration.ProjectID + $"./ItemTemplates/{configuration.OutputFormat}/UnitTest_brief.{extension}";
+                ItemTemplateRenderer renderer;
+                if (ItemTemplateRenderer.ExistsInCache(briefFileIdentifier))
+                {
+                    renderer = ItemTemplateRenderer.FromCachedTemplate(briefFileIdentifier);
+                }
+                else
+                {
+                    var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/UnitTest_brief.{extension}");
+                    renderer = ItemTemplateRenderer.FromString(file, briefFileIdentifier);
+                }
                 var result = renderer.RenderItemTemplate(dataShare);
                 ProcessTraces(docTE, dataShare);
                 return result;
             }
             else
             {
-                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/UnitTest.{extension}");
-                var renderer = new ItemTemplateRenderer(file);
+                var fileIdentifier = configuration.ProjectID + $"./ItemTemplates/{configuration.OutputFormat}/UnitTest.{extension}";
+                ItemTemplateRenderer renderer;
+                if (ItemTemplateRenderer.ExistsInCache(fileIdentifier))
+                {
+                    renderer = ItemTemplateRenderer.FromCachedTemplate(fileIdentifier);
+                }
+                else
+                {
+                    var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/UnitTest.{extension}");
+                    renderer = ItemTemplateRenderer.FromString(file, fileIdentifier);
+                }
                 StringBuilder output = new StringBuilder();
                 foreach (var item in items)
                 {

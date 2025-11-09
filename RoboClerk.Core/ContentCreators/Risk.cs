@@ -17,8 +17,20 @@ namespace RoboClerk.ContentCreators
             var dataShare = new ScriptingBridge(data, analysis, sourceTE, configuration);
             dataShare.Items = items;
             var extension = (configuration.OutputFormat == "ASCIIDOC" ? "adoc" : "html");
-            var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/Risk.{extension}");
-            var renderer = new ItemTemplateRenderer(file);
+            var fileIdentifier = configuration.ProjectID + $"./ItemTemplates/{configuration.OutputFormat}/Risk.{extension}";
+            
+            // Check if compiled template already exists in cache
+            ItemTemplateRenderer renderer;
+            if (ItemTemplateRenderer.ExistsInCache(fileIdentifier))
+            {
+                renderer = ItemTemplateRenderer.FromCachedTemplate(fileIdentifier);
+            }
+            else
+            {
+                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/Risk.{extension}");
+                renderer = ItemTemplateRenderer.FromString(file, fileIdentifier);
+            }
+            
             try
             {
                 var result = renderer.RenderItemTemplate(dataShare);

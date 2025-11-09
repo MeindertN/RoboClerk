@@ -253,3 +253,4 @@ _Pvt_Extensions
 /RoboClerk.Core/ContentCreators/WorkChart.cs
 /RoboClerk.Core/ContentCreators/RiskTable.cs
 /RoboClerk.Server/temp/internal-nlog-AspNetCore.txt
+/RoboClerk.Core/ItemTemplateSupport/ScriptingBridgeGlobalsFix.md

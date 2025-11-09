@@ -94,6 +94,7 @@ namespace RoboClerk.Server.Services
                         .Build();
                     configuration.AddOrUpdateCommandLineOption("SPDriveId", request.SPDriveId);
                     configuration.AddOrUpdateCommandLineOption("SPSiteUrl", request.SPSiteUrl);
+                    configuration.ProjectID = projectId;  //necesary to uniquely identify the project the config belongs to
                 }
                 catch (Exception ex)
                 {

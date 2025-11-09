@@ -17,7 +17,7 @@ namespace RoboClerk.ContentCreators
 
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
-            var dataShare = new ScriptingBridge<EliminatedLinkedItem>(data, analysis, sourceTE, configuration);
+            var dataShare = new ScriptingBridge(data, analysis, sourceTE, configuration);
 
             // Get all eliminated items based on the type requested
             List<EliminatedLinkedItem> eliminatedItems = new List<EliminatedLinkedItem>();
@@ -65,10 +65,24 @@ namespace RoboClerk.ContentCreators
             if (!eliminatedItems.Any())
                 return "No eliminated items found.";
 
-            dataShare.Items = eliminatedItems;
+            // Cast to LinkedItem list since ScriptingBridge extends ScriptingBridge<LinkedItem>
+            // and EliminatedLinkedItem inherits from LinkedItem
+            dataShare.Items = eliminatedItems.Cast<LinkedItem>();
             var extension = (configuration.OutputFormat == "ASCIIDOC" ? "adoc" : "html");
-            var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/Eliminated.{extension}");
-            var renderer = new ItemTemplateRenderer(file);
+            var fileIdentifier = configuration.ProjectID + $"./ItemTemplates/{configuration.OutputFormat}/Eliminated.{extension}";
+            
+            // Check if compiled template already exists in cache
+            ItemTemplateRenderer renderer;
+            if (ItemTemplateRenderer.ExistsInCache(fileIdentifier))
+            {
+                renderer = ItemTemplateRenderer.FromCachedTemplate(fileIdentifier);
+            }
+            else
+            {
+                var file = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/Eliminated.{extension}");
+                renderer = ItemTemplateRenderer.FromString(file, fileIdentifier);
+            }
+            
             var result = renderer.RenderItemTemplate(dataShare);
             return result;
         }

@@ -35,7 +35,7 @@ namespace RoboClerk
         public IEnumerable<T> Items
         {
             get { return items; }
-            set { items = (List<T>)value; }
+            set { items = value.ToList(); }
         }
 
         /// <summary>

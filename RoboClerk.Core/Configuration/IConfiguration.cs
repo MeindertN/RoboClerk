@@ -16,6 +16,7 @@ namespace RoboClerk.Core.Configuration
         string MediaDir { get; }
         bool AICheckTemplateContents { get; }
         string AIPlugin { get; }
+        string ProjectID { get; set; }
         List<TraceEntity> TruthEntities { get; }
         List<TraceEntity> AICheckTraceEntities { get; }
         List<DocumentConfig> Documents { get; }
