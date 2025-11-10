@@ -8,7 +8,7 @@ namespace RoboClerk.Core.DocxSupport
     /// <summary>
     /// Docx-based implementation of IRoboClerkTag using Word content controls
     /// </summary>
-    public sealed class RoboClerkDocxTag : RoboClerkBaseTag
+    public class RoboClerkDocxTag : RoboClerkBaseTag
     {
         private readonly SdtElement contentControl;
         private readonly string contentControlId;

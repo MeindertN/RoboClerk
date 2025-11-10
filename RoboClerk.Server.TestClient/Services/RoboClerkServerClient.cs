@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using RoboClerk.Server.TestClient.Models;
 using System.Net.Http.Json;
 using System.Text;
@@ -101,25 +101,25 @@ namespace RoboClerk.Server.TestClient.Services
         {
             try
             {
-                logger.LogInformation("?? Refreshing project: {ProjectId}", projectId);
+                logger.LogInformation("🔄 Refreshing project: {ProjectId}", projectId);
                 
                 var response = await httpClient.GetAsync($"api/word-addin/project/{projectId}/refresh");
                 var result = await response.Content.ReadFromJsonAsync<DocumentAnalysisResult>(jsonOptions);
                 
                 if (result?.Success == true)
                 {
-                    logger.LogInformation("? Project refresh complete");
+                    logger.LogInformation("✅ Project refresh complete");
                 }
                 else
                 {
-                    logger.LogError("? Project refresh failed: {Error}", result?.Error);
+                    logger.LogError("❌ Project refresh failed: {Error}", result?.Error);
                 }
                 
                 return result;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "?? Exception refreshing project");
+                logger.LogError(ex, "💥 Exception refreshing project");
                 return null;
             }
         }
@@ -151,7 +151,7 @@ namespace RoboClerk.Server.TestClient.Services
             }
         }
 
-        public async Task<TagContentResult?> GenerateContentAsync(string projectId, string documentId, string contentControlId)
+        public async Task<TagContentResult?> GenerateContentAsync(string projectId, string documentId, string contentControlId, string roboclerkTag)
         {
             try
             {
@@ -160,7 +160,8 @@ namespace RoboClerk.Server.TestClient.Services
                 var request = new RoboClerkContentControlTagRequest 
                 { 
                     DocumentId = documentId, 
-                    ContentControlId = contentControlId 
+                    ContentControlId = contentControlId,
+                    RoboClerkTag = roboclerkTag
                 };
                 
                 var response = await httpClient.PostAsJsonAsync($"api/word-addin/project/{projectId}/content", request, jsonOptions);

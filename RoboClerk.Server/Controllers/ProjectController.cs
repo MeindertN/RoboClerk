@@ -88,6 +88,38 @@ namespace RoboClerk.Server.Controllers
         }
 
         /// <summary>
+        /// Refresh a specific document in the project and clear its virtual content controls
+        /// </summary>
+        [HttpPost("project/{projectId}/document/{documentId}/refresh")]
+        public async Task<ActionResult<RefreshResult>> RefreshDocument(string projectId, string documentId)
+        {
+            try
+            {
+                logger.Info($"Refreshing document {documentId} in project {projectId}");
+                
+                var result = await projectManager.RefreshDocumentAsync(projectId, documentId);
+                if (!result.Success)
+                {
+                    logger.Warn($"Failed to refresh document: {result.Error}");
+                    return BadRequest(result);
+                }
+
+                logger.Info($"Document {documentId} refreshed successfully");
+                return Ok(result);
+            }
+            catch (ArgumentException)
+            {
+                logger.Warn($"Project {projectId} not found or not loaded");
+                return NotFound("SharePoint project not loaded. Please load the project first.");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error refreshing document {documentId} in project {projectId}");
+                return StatusCode(500, "Failed to refresh document");
+            }
+        }
+
+        /// <summary>
         /// Generate content for a specific content control in the Word document
         /// </summary>
         [HttpPost("project/{projectId}/content")]
@@ -97,8 +129,8 @@ namespace RoboClerk.Server.Controllers
         {
             try
             {
-                logger.Info($"Generating content for content control {request.ContentControlId} in document {request.DocumentId}");
-                
+                logger.Info($"Generating content for content control {request.ContentControlId} with tag {request.RoboClerkTag} in document {request.DocumentId}");
+
                 var result = await projectManager.GetTagContentWithContentControlAsync(projectId, request);
                 if (!result.Success)
                 {
@@ -176,6 +208,31 @@ namespace RoboClerk.Server.Controllers
             {
                 logger.Error(ex, $"Error getting project configuration for {projectId}");
                 return StatusCode(500, "Failed to get project configuration");
+            }
+        }
+
+        /// <summary>
+        /// Get virtual tag statistics for debugging purposes
+        /// </summary>
+        [HttpGet("project/{projectId}/virtual-tags/stats")]
+        public async Task<ActionResult<Dictionary<string, int>>> GetVirtualTagStatistics(string projectId)
+        {
+            try
+            {
+                logger.Debug($"Getting virtual tag statistics for project {projectId}");
+                
+                var stats = await projectManager.GetVirtualTagStatisticsAsync(projectId);
+                return Ok(stats);
+            }
+            catch (ArgumentException)
+            {
+                logger.Warn($"Project {projectId} not found or not loaded");
+                return NotFound("SharePoint project not loaded. Please load the project first.");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error getting virtual tag statistics for {projectId}");
+                return StatusCode(500, "Failed to get virtual tag statistics");
             }
         }
 

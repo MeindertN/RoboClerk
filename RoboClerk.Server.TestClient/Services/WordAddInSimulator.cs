@@ -102,7 +102,7 @@ namespace RoboClerk.Server.TestClient.Services
                 
                 logger.LogInformation("✅ Project state refreshed successfully");
                 await Task.Delay(1000);
-                throw new NotImplementedException();
+
                 // Step 4: Simulate Word Add-in Document Analysis and Content Generation
                 logger.LogInformation("");
                 logger.LogInformation("📝 Step 4: Simulate Word Add-in Document Analysis & Content Generation");
@@ -110,20 +110,17 @@ namespace RoboClerk.Server.TestClient.Services
                 logger.LogInformation("🔎 [SIMULATED] Word add-in scanning document for RoboClerk content controls...");
                 
                 // Simulate realistic content control IDs that a Word add-in might find
-                var simulatedContentControls = new List<(string id, string description)>
+                var simulatedContentControls = new List<(string id, string tag, string description)>
                 {
-                    ("RoboClerk:RequirementsList:SystemRequirements", "System Requirements List"),
-                    ("RoboClerk:RequirementsList:SoftwareRequirements", "Software Requirements List"), 
-                    ("RoboClerk:TraceabilityMatrix:RequirementsToTests", "Requirements to Tests Traceability"),
-                    ("RoboClerk:TestCases:UnitTests", "Unit Test Cases"),
-                    ("RoboClerk:Configuration:ProjectName", "Project Name"),
-                    ("RoboClerk:DocumentInfo:LastUpdated", "Document Last Updated")
+                    ("12345","Config:SoftwareName()", "Software name"),
+                    ("23455","SLMS:TC(testCaseAutomated=False)", "Manual test cases"), 
+                    ("34567","FILE:UnitTest(brief=true)", "Table with unit tests"),
                 };
 
                 logger.LogInformation("📋 [SIMULATED] Found {Count} RoboClerk content controls in document:", simulatedContentControls.Count);
-                foreach (var (id, description) in simulatedContentControls)
+                foreach (var (id, tag, description) in simulatedContentControls)
                 {
-                    logger.LogInformation("  📎 {Id} - {Description}", id, description);
+                    logger.LogInformation("  📎 {Id} - {Tag}: {Description}", id, tag, description);
                 }
                 
                 await Task.Delay(2000); // Simulate document scanning time
@@ -133,7 +130,7 @@ namespace RoboClerk.Server.TestClient.Services
                 
                 for (int i = 0; i < totalGenerations; i++)
                 {
-                    var (contentControlId, description) = simulatedContentControls[i];
+                    var (contentControlId, tag, description) = simulatedContentControls[i];
                     logger.LogInformation("⚡ Generating content {Index}/{Total} for: {Description}", 
                         i + 1, totalGenerations, description);
                     logger.LogInformation("   Content Control ID: {ContentControlId}", contentControlId);
@@ -141,8 +138,9 @@ namespace RoboClerk.Server.TestClient.Services
                     var contentResult = await serverClient.GenerateContentAsync(
                         projectId, 
                         targetDocument.DocumentId, 
-                        contentControlId);
-                    
+                        contentControlId,
+                        tag);
+
                     if (contentResult?.Success == true)
                     {
                         successfulGenerations++;
@@ -161,7 +159,7 @@ namespace RoboClerk.Server.TestClient.Services
                     
                     await Task.Delay(800); // Simulate user interaction delay
                 }
-                
+                throw new NotImplementedException();
                 // Step 5: Test Data Source Refresh (optional)
                 if (successfulGenerations > 0)
                 {
@@ -180,7 +178,8 @@ namespace RoboClerk.Server.TestClient.Services
                         var retestResult = await serverClient.GenerateContentAsync(
                             projectId, 
                             targetDocument.DocumentId, 
-                            firstControl.id);
+                            firstControl.id,
+                            firstControl.tag);
                         
                         if (retestResult?.Success == true)
                         {

@@ -14,5 +14,6 @@ namespace RoboClerk.Server.Models
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
         public IServiceProvider ProjectServiceProvider { get; init; } = null!; // Project-specific service provider
         public ConcurrentDictionary<string, IDocument> LoadedDocuments { get; init; } = new();
+        public DocumentContentControlManager ContentControlManager { get; init; } = new(); // Virtual content control manager
     }
 }

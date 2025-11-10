@@ -28,6 +28,8 @@ namespace RoboClerk.Server.TestClient.Models
         [Required]
         public string DocumentId { get; init; } = string.Empty;
         [Required]
+        public string RoboClerkTag { get; init; } = string.Empty;
+        [Required]
         public string ContentControlId { get; init; } = string.Empty;
     }
 

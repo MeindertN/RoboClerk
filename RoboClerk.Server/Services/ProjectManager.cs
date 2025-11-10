@@ -314,6 +314,7 @@ namespace RoboClerk.Server.Services
         /// <summary>
         /// Gets tag content using RoboClerkDocxTag for OpenXML conversion.
         /// This method expects the Word add-in to provide content control information.
+        /// Uses virtual content controls to avoid modifying the original document.
         /// </summary>
         public async Task<TagContentResult> GetTagContentWithContentControlAsync(string projectId, RoboClerkContentControlTagRequest tagRequest)
         {
@@ -322,7 +323,7 @@ namespace RoboClerk.Server.Services
 
             try
             {
-                var contentCreatorFactory = serviceProvider.GetRequiredService<IContentCreatorFactory>();
+                var contentCreatorFactory = project.ProjectServiceProvider.GetRequiredService<IContentCreatorFactory>();
                 var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
                 
                 // Find the appropriate document config
@@ -333,8 +334,8 @@ namespace RoboClerk.Server.Services
                 if (docConfig == null)
                     return new TagContentResult { Success = false, Error = "Document not found in SharePoint project" };
 
-                // Load the document to get access to the actual content control
-                if (!project.LoadedDocuments.TryGetValue(tagRequest.DocumentId, out var document) || 
+                // Load the document to get access to the actual content control structure
+                if (!project.LoadedDocuments.TryGetValue(tagRequest.DocumentId, out var document) ||
                     document is not DocxDocument docxDocument)
                 {
                     // Document not loaded, try to load it
@@ -354,13 +355,30 @@ namespace RoboClerk.Server.Services
                     docxDocument = (DocxDocument)document;
                 }
 
-                // Find the specific RoboClerkDocxTag by content control ID
+                // First try to find an existing RoboClerkDocxTag in the document
                 var docxTag = docxDocument.RoboClerkTags
                     .OfType<RoboClerkDocxTag>()
                     .FirstOrDefault(t => t.ContentControlId == tagRequest.ContentControlId);
 
+                // If not found in document, use virtual content control manager
                 if (docxTag == null)
-                    return new TagContentResult { Success = false, Error = $"Content control '{tagRequest.ContentControlId}' not found in document" };
+                {
+                    logger.Info($"Content control {tagRequest.ContentControlId} not found in document, creating virtual tag");
+                    
+                    // Create or get virtual content control - this doesn't modify the original document
+                    var virtualTag = project.ContentControlManager.GetOrCreateContentControl(
+                        tagRequest.DocumentId,
+                        tagRequest.ContentControlId,
+                        tagRequest.RoboClerkTag,
+                        configuration
+                    );
+                    
+                    docxTag = virtualTag;
+                }
+                else
+                {
+                    logger.Info($"Content control {tagRequest.ContentControlId} found in document, using existing tag");
+                }
 
                 // Get content using the content creator
                 var contentCreator = contentCreatorFactory.CreateContentCreator(docxTag.Source, docxTag.ContentCreatorID);
@@ -459,6 +477,10 @@ namespace RoboClerk.Server.Services
                     logger.Info($"Partial refresh: Skipping data source refresh for SharePoint project: {projectId}");
                 }
                 
+                // Clear virtual tags for the project
+                var clearedVirtualTags = project.ContentControlManager.ClearAllVirtualTags();
+                logger.Info($"Cleared {clearedVirtualTags} virtual tags for project {projectId}");
+                
                 // Always rescan and process the project directory (regardless of full flag)
                 logger.Info($"Rescanning and processing project directory for SharePoint project: {projectId}");
                 
@@ -473,6 +495,11 @@ namespace RoboClerk.Server.Services
                 // Clear existing loaded documents if doing a full refresh
                 if (full)
                 {
+                    // Dispose of existing documents before clearing
+                    foreach (var document in project.LoadedDocuments.Values.OfType<IDisposable>())
+                    {
+                        document.Dispose();
+                    }
                     project.LoadedDocuments.Clear();
                 }
 
@@ -485,6 +512,12 @@ namespace RoboClerk.Server.Services
                         if (full || !project.LoadedDocuments.ContainsKey(docxDocument.RoboClerkID))
                         {
                             logger.Info($"Processing document: {docxDocument.RoboClerkID}");
+                            
+                            // Remove old document if it exists (for partial refresh)
+                            if (project.LoadedDocuments.TryRemove(docxDocument.RoboClerkID, out var oldDoc) && oldDoc is IDisposable disposableOldDoc)
+                            {
+                                disposableOldDoc.Dispose();
+                            }
                             
                             // Create new service provider if we have new data sources
                             var serviceProviderToUse = project.ProjectServiceProvider;
@@ -537,6 +570,64 @@ namespace RoboClerk.Server.Services
             {
                 logger.Error(ex, $"Failed to refresh SharePoint project: {projectId}");
                 return new RefreshResult { Success = false, Error = $"Failed to refresh project: {ex.Message}" };
+            }
+        }
+
+        /// <summary>
+        /// Refreshes a specific document and clears its virtual content controls.
+        /// This is useful when only one document needs to be updated without affecting others.
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <param name="documentId">The document ID to refresh</param>
+        /// <returns>RefreshResult indicating success or failure</returns>
+        public async Task<RefreshResult> RefreshDocumentAsync(string projectId, string documentId)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            try
+            {
+                logger.Info($"Refreshing document {documentId} in SharePoint project: {projectId}");
+                
+                var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+                
+                // Find the document config
+                var docxDocuments = configuration.Documents
+                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                var docConfig = docxDocuments.FirstOrDefault(d => d.RoboClerkID == documentId);
+                
+                if (docConfig == null)
+                {
+                    return new RefreshResult { Success = false, Error = $"Document {documentId} not found in project configuration" };
+                }
+
+                // Clear virtual tags for this document before refreshing
+                var clearedVirtualTags = project.ContentControlManager.ClearVirtualTagsForDocument(documentId);
+                logger.Info($"Cleared {clearedVirtualTags} virtual tags for document {documentId}");
+
+                // Remove the existing loaded document
+                project.LoadedDocuments.TryRemove(documentId, out var oldDocument);
+                if (oldDocument is IDisposable disposableDoc)
+                {
+                    disposableDoc.Dispose();
+                }
+
+                // Process the document fresh
+                var processedDocument = ProcessTemplate(project.ProjectServiceProvider, docConfig);
+                project.LoadedDocuments[documentId] = processedDocument;
+                
+                // Update the project's last updated timestamp
+                var updatedProject = project with { LastUpdated = DateTime.UtcNow };
+                loadedProjects[projectId] = updatedProject;
+                
+                logger.Info($"Successfully refreshed document {documentId} in SharePoint project: {projectId}");
+                return new RefreshResult { Success = true };
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to refresh document {documentId} in SharePoint project: {projectId}");
+                return new RefreshResult { Success = false, Error = $"Failed to refresh document: {ex.Message}" };
             }
         }
 
@@ -779,6 +870,20 @@ namespace RoboClerk.Server.Services
                 logger.Error(ex, "Error registering content creators for project");
                 // Don't throw here - let the application continue with what it has
             }
+        }
+
+        /// <summary>
+        /// Gets virtual tag statistics for debugging purposes.
+        /// Returns the count of virtual tags per document in the project.
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <returns>Dictionary with document IDs and their virtual tag counts</returns>
+        public async Task<Dictionary<string, int>> GetVirtualTagStatisticsAsync(string projectId)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            return project.ContentControlManager.GetVirtualTagStatistics();
         }
     }
 

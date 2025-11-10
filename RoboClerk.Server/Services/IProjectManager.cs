@@ -7,6 +7,8 @@ namespace RoboClerk.Server.Services
         Task<ProjectLoadResult> LoadProjectAsync(LoadProjectRequest request);
         Task<List<ConfigurationValue>> GetProjectConfigurationAsync(string projectId);
         Task<RefreshResult> RefreshProjectAsync(string projectId, bool full);
+        Task<RefreshResult> RefreshDocumentAsync(string projectId, string documentId);
+        Task<Dictionary<string, int>> GetVirtualTagStatisticsAsync(string projectId);
         Task UnloadProjectAsync(string projectId);
         
         // Word Add-in specific methods for SharePoint integration
