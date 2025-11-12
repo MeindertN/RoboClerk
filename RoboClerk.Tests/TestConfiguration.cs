@@ -32,6 +32,7 @@ ProjectRoot = ""I:/code/RoboClerk""
 DataSourcePlugin = [ ""RedmineSLMSPlugin"", ""DependenciesFilePlugin"" ]
 AISystemPlugin = ""OpenAIPlugin""
 MediaDirectory = ""I:/temp/Roboclerk_input/media""
+ProjectName = ""RoboClerk Test Project""
 [Truth.SystemRequirement]
 	name = ""Requirement""
 	abbreviation = ""SYS""
@@ -194,6 +195,7 @@ ProjectRoot = ""I:/code/RoboClerk""
 DataSourcePlugin = [ ""RedmineSLMSPlugin"", ""DependenciesFilePlugin"" ]
 AISystemPlugin = ""OpenAIPlugin""
 MediaDirectory = ""I:/temp/Roboclerk_input/media""
+ProjectName = ""RoboClerk Test Project""
 [Truth.SystemRequirement]
 	name = ""Requirement""
 	abbreviation = ""SYS""

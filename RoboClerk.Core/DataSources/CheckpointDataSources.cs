@@ -10,6 +10,7 @@ namespace RoboClerk
     {
         private CheckpointDataStorage dataStorage = new CheckpointDataStorage();
         private IDataSources? pluginDatasource = null;
+        private string checkpointFile = string.Empty;
 
         public CheckpointDataSources(IConfiguration configuration, IPluginLoader pluginLoader, IFileProviderPlugin fileSystem, string checkpointFile)
             : base(configuration, fileSystem)
@@ -22,12 +23,18 @@ namespace RoboClerk
 
         public void SetFileSource(string fileName)
         {
-            string fullFilePath = fileSystem.Combine(new string[] { configuration.TemplateDir, fileName });
-            if (!fileSystem.FileExists(fullFilePath))
+            checkpointFile = fileSystem.Combine(new string[] { configuration.TemplateDir, fileName });
+            if (!fileSystem.FileExists(checkpointFile))
             {
-                throw new Exception($"Could not find checkpoint file \"{fullFilePath}\". Unable to continue.");
+                throw new Exception($"Could not find checkpoint file \"{checkpointFile}\". Unable to continue.");
             }
             dataStorage = JsonSerializer.Deserialize<CheckpointDataStorage>(GetFileStreamFromTemplateDir(fileName));
+        }
+
+        public override void RefreshDataSources()
+        {
+            SetFileSource(checkpointFile);
+            ChangeUpdatedItems();
         }
 
         private void ChangeUpdatedItems()

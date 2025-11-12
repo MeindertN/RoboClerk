@@ -15,6 +15,7 @@ using System.Linq;
 using System.Reflection;
 using System.IO;
 using RoboClerk.Core;
+using AngleSharp.Text;
 
 namespace RoboClerk.Tests
 {
@@ -53,6 +54,7 @@ namespace RoboClerk.Tests
             RegisterContentCreators(serviceCollection);
             var serviceProvider = serviceCollection.BuildServiceProvider();
             contentCreatorFactory = new ContentCreatorFactory(serviceProvider, traceAnalysis);
+            ItemTemplateFactory.ClearCache();  //important so we don't share pre-compiled templates between tests
         }
 
         private static void RegisterContentCreators(IServiceCollection services)
@@ -230,7 +232,7 @@ namespace RoboClerk.Tests
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
-            Assert.That(content == "testvalue");
+            Assert.That(content, Is.EqualTo("testvalue"));
         }
 
         [UnitTestAttribute(
@@ -260,7 +262,7 @@ namespace RoboClerk.Tests
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
-            Assert.That(content == "(89) (http://localhost/[19])");
+            Assert.That(content, Is.EqualTo("(89) (http://localhost/[19])"));
 
             fileSystem.File.WriteAllText(TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), "@@Trace:SWR()@@");
             core = new RoboClerkTextCore(config, dataSources, traceAnalysis, fileProvider, pluginLoader, contentCreatorFactory);
@@ -291,7 +293,7 @@ namespace RoboClerk.Tests
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
-            Assert.That(content == "remainder\n");
+            Assert.That(content, Is.EqualTo("remainder\n"));
         }
 
         [UnitTestAttribute(
@@ -318,7 +320,7 @@ namespace RoboClerk.Tests
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
-            Assert.That(content == "~PAGEBREAK ~REMOVEPARAGRAPH ~TOC UNKNOWN POST PROCESSING TAG: unknown");
+            Assert.That(content, Is.EqualTo("~PAGEBREAK ~REMOVEPARAGRAPH ~TOC UNKNOWN POST PROCESSING TAG: unknown"));
         }
 
         [UnitTestAttribute(
@@ -346,7 +348,7 @@ namespace RoboClerk.Tests
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
-            Assert.That(content == $"{config2.DocumentTitle} {config2.DocumentID} {config2.DocumentTitle} ({config2.DocumentAbbreviation}) {config2.DocumentTemplate}");
+            Assert.That(content, Is.EqualTo($"{config2.DocumentTitle} {config2.DocumentID} {config2.DocumentTitle} ({config2.DocumentAbbreviation}) {config2.DocumentTemplate}"));
 
             fileSystem.File.WriteAllText(TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), "@@Ref:nonexistentID()@@ @@Ref:nonexistentID(abbr=true)@@");
             core = new RoboClerkTextCore(config, dataSources, traceAnalysis, fileProvider, pluginLoader, contentCreatorFactory);
@@ -378,7 +380,7 @@ namespace RoboClerk.Tests
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
-            Assert.That(content == $"{config2.DocumentTitle} {config2.DocumentID} {config2.DocumentTitle} ({config2.DocumentAbbreviation}) {config2.DocumentTemplate}");
+            Assert.That(content, Is.EqualTo($"{config2.DocumentTitle} {config2.DocumentID} {config2.DocumentTitle} ({config2.DocumentAbbreviation}) {config2.DocumentTemplate}"));
 
             fileSystem.File.WriteAllText(TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), "@@Ref:roboclerkID()@@ @@Ref:roboclerkID(doesnotexist=true)@@");
             core = new RoboClerkTextCore(config, dataSources, traceAnalysis, fileProvider, pluginLoader, contentCreatorFactory);
@@ -409,7 +411,7 @@ namespace RoboClerk.Tests
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
-            Assert.That(content == @"documentTitle ABR documentID "+ TestingHelpers.ConvertFilePath(@"c:\in\template.adoc") +" roboclerkID");
+            Assert.That(content, Is.EqualTo(@"documentTitle ABR documentID "+ TestingHelpers.ConvertFilePath(@"c:\in\template.adoc") +" roboclerkID"));
 
             fileSystem.File.WriteAllText(TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), "@@document:nonexistentID()@@");
             core = new RoboClerkTextCore(config, dataSources, traceAnalysis, fileProvider, pluginLoader, contentCreatorFactory);
@@ -470,14 +472,15 @@ AddTrace(item.ItemID);
             core.SaveDocumentsToDisk();
             ClassicAssert.IsTrue(fileSystem.FileExists(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc")));
             string content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
-            Assert.That(content == "\n|====\n| typename ID: | 14\n| typename Revision: | rev1\n| typename Category: | \n| Parent ID: | N/A\n| Title: | title\n| Description: a| description\n|====\n");
+            string expectedContent = "\n|====\n| typename ID: | 14\n| typename Revision: | rev1\n| typename Category: | \n| Parent ID: | N/A\n| Title: | title\n| Description: a| description\n|====\n";
+            Assert.That(content, Is.EqualTo(expectedContent));
 
             fileSystem.File.WriteAllText(TestingHelpers.ConvertFilePath(@"c:\in\template.adoc"), "@@SLMS:unknown(ItemID=33)@@");
             core = new RoboClerkTextCore(config, dataSources, traceAnalysis, fileProvider, pluginLoader, contentCreatorFactory);
             core.GenerateDocs();
             core.SaveDocumentsToDisk();
             content = fileSystem.File.ReadAllText(TestingHelpers.ConvertFilePath(@"c:\out\template.adoc"));
-            Assert.That(content == "UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS 'SLMS:unknown' IS KNOWN TO ROBOCLERK.\n");
+            Assert.That(content, Is.EqualTo("UNABLE TO CREATE CONTENT, ENSURE THAT THE CONTENT CREATOR CLASS 'SLMS:unknown' IS KNOWN TO ROBOCLERK.\n"));
         }
     }
 }

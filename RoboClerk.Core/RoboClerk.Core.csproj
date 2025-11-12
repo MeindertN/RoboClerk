@@ -8,6 +8,19 @@
   </PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
 		<Optimize>True</Optimize>
+		<NoWarn>1701;1702;CS8625;CS8600;CS8601;CS8602;CS8603;CS8604;CS8618</NoWarn>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <NoWarn>1701;1702;CS8625;CS8600;CS8601;CS8602;CS8603;CS8604;CS8618</NoWarn>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <NoWarn>1701;1702;CS8625;CS8600;CS8601;CS8602;CS8603;CS8604;CS8618</NoWarn>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugHTML|AnyCPU'">
+	  <NoWarn>1701;1702;CS8625;CS8600;CS8601;CS8602;CS8603;CS8604;CS8618</NoWarn>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugDOCX|AnyCPU'">
+	  <NoWarn>1701;1702;CS8625;CS8600;CS8601;CS8602;CS8603;CS8604;CS8618</NoWarn>
 	</PropertyGroup>
 
   <ItemGroup>

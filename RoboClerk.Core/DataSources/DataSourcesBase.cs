@@ -20,6 +20,8 @@ namespace RoboClerk
             this.fileSystem = fileSystem;
         }
 
+        public abstract void RefreshDataSources();
+
         public abstract List<SOUPItem> GetAllSOUP();
 
         public abstract List<EliminatedSOUPItem> GetAllEliminatedSOUP();
@@ -62,51 +64,54 @@ namespace RoboClerk
         {
             if (te.ID == "SystemRequirement")
             {
-                return GetAllSystemRequirements().Cast<LinkedItem>().ToList();
+                return [.. GetAllSystemRequirements().Cast<LinkedItem>()];
             }
             else if (te.ID == "SoftwareRequirement")
             {
-                return GetAllSoftwareRequirements().Cast<LinkedItem>().ToList();
+                return [.. GetAllSoftwareRequirements().Cast<LinkedItem>()];
             }
             else if (te.ID == "SoftwareSystemTest")
             {
-                return GetAllSoftwareSystemTests().Cast<LinkedItem>().ToList();
+                return [.. GetAllSoftwareSystemTests().Cast<LinkedItem>()];
             }
             else if (te.ID == "UnitTest")
             {
-                return GetAllUnitTests().Cast<LinkedItem>().ToList();
+                return [.. GetAllUnitTests().Cast<LinkedItem>()];
             }
             else if (te.ID == "Risk")
             {
-                return GetAllRisks().Cast<LinkedItem>().ToList();
+                return [.. GetAllRisks().Cast<LinkedItem>()];
             }
             else if (te.ID == "SOUP")
             {
-                return GetAllSOUP().Cast<LinkedItem>().ToList();
+                return [.. GetAllSOUP().Cast<LinkedItem>()];
             }
             else if (te.ID == "Anomaly")
             {
-                return GetAllAnomalies().Cast<LinkedItem>().ToList();
+                return [.. GetAllAnomalies().Cast<LinkedItem>()];
             }
             else if (te.ID == "DocumentationRequirement")
             {
-                return GetAllDocumentationRequirements().Cast<LinkedItem>().ToList();
+                return [.. GetAllDocumentationRequirements().Cast<LinkedItem>()];
             }
             else if (te.ID == "DocContent")
             {
-                return GetAllDocContents().Cast<LinkedItem>().ToList();
+                return [.. GetAllDocContents().Cast<LinkedItem>()];
             }
             else if (te.ID == "Eliminated")
             {
-                return  GetAllEliminatedRisks().Cast<LinkedItem>()
-                        .Concat(GetAllEliminatedSystemRequirements())
-                        .Concat(GetAllEliminatedSoftwareRequirements())
-                        .Concat(GetAllEliminatedDocumentationRequirements())
-                        .Concat(GetAllEliminatedSoftwareSystemTests())
-                        .Concat(GetAllEliminatedAnomalies())
-                        .Concat(GetAllEliminatedDocContents())
-                        .Concat(GetAllEliminatedSOUP())
-                        .ToList();
+                return
+                [
+                    .. GetAllEliminatedRisks().Cast<LinkedItem>()
+,
+                    .. GetAllEliminatedSystemRequirements(),
+                    .. GetAllEliminatedSoftwareRequirements(),
+                    .. GetAllEliminatedDocumentationRequirements(),
+                    .. GetAllEliminatedSoftwareSystemTests(),
+                    .. GetAllEliminatedAnomalies(),
+                    .. GetAllEliminatedDocContents(),
+                    .. GetAllEliminatedSOUP(),
+                ];
             }
             else
             {
@@ -274,32 +279,34 @@ namespace RoboClerk
 
         public string GetTemplateFile(string fileName)
         {
-            return fileSystem.ReadAllText(fileSystem.Combine(new string[] { configuration.TemplateDir, fileName }));
+            return fileSystem.ReadAllText(fileSystem.Combine([configuration.TemplateDir, fileName]));
         }
 
         public Stream GetFileStreamFromTemplateDir(string fileName)
         {
-            var stream = fileSystem.OpenRead(fileSystem.Combine(new string[] { configuration.TemplateDir, fileName }));
+            var stream = fileSystem.OpenRead(fileSystem.Combine([configuration.TemplateDir, fileName]));
             return stream;
         }
 
         public string ToJSON()
         {
-            CheckpointDataStorage storage = new CheckpointDataStorage();
-            storage.SystemRequirements = GetAllSystemRequirements();
-            storage.SoftwareRequirements = GetAllSoftwareRequirements();
-            storage.DocumentationRequirements = GetAllDocumentationRequirements();
-            storage.DocContents = GetAllDocContents();
-            storage.Risks = GetAllRisks().ToList();
-            storage.UnitTests = GetAllUnitTests();
-            storage.SoftwareSystemTests = GetAllSoftwareSystemTests();
-            storage.SOUPs = GetAllSOUP();
-            storage.Anomalies = GetAllAnomalies();
-            storage.EliminatedSystemRequirements = GetAllEliminatedSystemRequirements();
-            storage.EliminatedSoftwareRequirements = GetAllEliminatedSoftwareRequirements();
-            storage.EliminatedDocumentationRequirements = GetAllEliminatedDocumentationRequirements();
-            storage.EliminatedSoftwareSystemTests = GetAllEliminatedSoftwareSystemTests();
-            storage.EliminatedRisks = GetAllEliminatedRisks();
+            CheckpointDataStorage storage = new()
+            {
+                SystemRequirements = GetAllSystemRequirements(),
+                SoftwareRequirements = GetAllSoftwareRequirements(),
+                DocumentationRequirements = GetAllDocumentationRequirements(),
+                DocContents = GetAllDocContents(),
+                Risks = GetAllRisks(),
+                UnitTests = GetAllUnitTests(),
+                SoftwareSystemTests = GetAllSoftwareSystemTests(),
+                SOUPs = GetAllSOUP(),
+                Anomalies = GetAllAnomalies(),
+                EliminatedSystemRequirements = GetAllEliminatedSystemRequirements(),
+                EliminatedSoftwareRequirements = GetAllEliminatedSoftwareRequirements(),
+                EliminatedDocumentationRequirements = GetAllEliminatedDocumentationRequirements(),
+                EliminatedSoftwareSystemTests = GetAllEliminatedSoftwareSystemTests(),
+                EliminatedRisks = GetAllEliminatedRisks()
+            };
 
             var options = new JsonSerializerOptions { WriteIndented = true };
             return JsonSerializer.Serialize(storage, options);

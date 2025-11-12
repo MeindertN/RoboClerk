@@ -52,31 +52,47 @@ namespace RoboClerk.Server.Models
         public string? Error { get; init; }
         public string? Content { get; init; }
     }
-    
-    public record ConfigurationValue(string Key, string Value);
-    
+        
     public record RefreshResult
     {
         public bool Success { get; init; }
         public string? Error { get; init; }
     }
 
-    public record DocumentAnalysisResult
+    // Configuration management models
+    public record ConfigurationUpdateResult
     {
         public bool Success { get; init; }
         public string? Error { get; init; }
-        public string? DocumentId { get; init; }
+        public List<string> UpdatedKeys { get; init; } = new();
+        public bool RequiresProjectReload { get; init; }
     }
 
-    public record AvailableTagInfo
+    public record ConfigurationValidationResult
     {
-        public string TagId { get; init; } = string.Empty;
-        public string Source { get; init; } = string.Empty;
-        public string? ContentCreatorId { get; init; }
-        public string? ContentControlId { get; init; }
-        public Dictionary<string, string> Parameters { get; init; } = new();
-        public bool IsSupported { get; init; }
+        public bool IsValid { get; init; }
+        public List<string> Errors { get; init; } = new();
+        public List<string> Warnings { get; init; } = new();
+    }
+
+    // Template file management models
+    public record TemplateFileInfo
+    {
+        public string FileName { get; init; } = string.Empty;
+        public string RelativePath { get; init; } = string.Empty;
+        public string FullPath { get; init; } = string.Empty;
+        public long FileSizeBytes { get; init; }
+        public DateTime LastModified { get; init; }
+        public bool IsDocx { get; init; }
+    }
+
+    public record AvailableTemplateFilesResult
+    {
+        public bool Success { get; init; }
         public string? Error { get; init; }
-        public string? ContentPreview { get; init; }
+        public List<TemplateFileInfo> AvailableTemplateFiles { get; init; } = new();
+        public int TotalTemplateFiles { get; init; }
+        public int ConfiguredDocuments { get; init; }
+        public int UnconfiguredTemplateFiles { get; init; }
     }
 }

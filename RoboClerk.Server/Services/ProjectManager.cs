@@ -8,11 +8,14 @@ using RoboClerk.Core.Configuration;
 using RoboClerk.Core.DocxSupport;
 using RoboClerk.Server.Models;
 using RoboClerk.SharePointFileProvider;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.IO.Abstractions;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using Tomlyn;
+using Tomlyn.Model;
 using IConfiguration = RoboClerk.Core.Configuration.IConfiguration;
 
 namespace RoboClerk.Server.Services
@@ -32,6 +35,7 @@ namespace RoboClerk.Server.Services
             this.dataSourcesFactory = dataSourcesFactory;
         }
 
+        //BELOW ARE ALL THE MAIN PROJECT MANAGEMENT METHODS
         public async Task<ProjectLoadResult> LoadProjectAsync(LoadProjectRequest request)
         {
             try
@@ -155,7 +159,749 @@ namespace RoboClerk.Server.Services
             }
         }
 
-        private IDocument ProcessTemplate(IServiceProvider projectServiceProvider, Core.Configuration.DocumentConfig docxDocument)
+        /// <summary>
+        /// Gets tag content using RoboClerkDocxTag for OpenXML conversion.
+        /// This method expects the Word add-in to provide content control information.
+        /// Uses virtual content controls to avoid modifying the original document.
+        /// </summary>
+        public async Task<TagContentResult> GetTagContentWithContentControlAsync(string projectId, RoboClerkContentControlTagRequest tagRequest)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            try
+            {
+                var contentCreatorFactory = project.ProjectServiceProvider.GetRequiredService<IContentCreatorFactory>();
+                var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+
+                // Find the appropriate document config
+                var docxDocuments = configuration.Documents
+                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                var docConfig = docxDocuments.FirstOrDefault(d => d.RoboClerkID == tagRequest.DocumentId);
+                if (docConfig == null)
+                    return new TagContentResult { Success = false, Error = "Document not found in SharePoint project" };
+
+                // Load the document to get access to the actual content control structure
+                if (!project.LoadedDocuments.TryGetValue(tagRequest.DocumentId, out var document) ||
+                    document is not DocxDocument docxDocument)
+                {
+                    // Document not loaded, try to load it
+                    try
+                    {
+                        var processedDocument = ProcessTemplate(project.ProjectServiceProvider, docConfig);
+                        project.LoadedDocuments[tagRequest.DocumentId] = processedDocument;
+                        docxDocument = (DocxDocument)processedDocument;
+                    }
+                    catch (Exception ex)
+                    {
+                        return new TagContentResult { Success = false, Error = $"Failed to load document: {ex.Message}" };
+                    }
+                }
+                else
+                {
+                    docxDocument = (DocxDocument)document;
+                }
+
+                // First try to find an existing RoboClerkDocxTag in the document
+                var docxTag = docxDocument.RoboClerkTags
+                    .OfType<RoboClerkDocxTag>()
+                    .FirstOrDefault(t => t.ContentControlId == tagRequest.ContentControlId);
+
+                // If not found in document, use virtual content control manager
+                if (docxTag == null)
+                {
+                    logger.Info($"Content control {tagRequest.ContentControlId} not found in document, creating virtual tag");
+
+                    // Create or get virtual content control - this doesn't modify the original document
+                    var virtualTag = project.ContentControlManager.GetOrCreateContentControl(
+                        tagRequest.DocumentId,
+                        tagRequest.ContentControlId,
+                        tagRequest.RoboClerkTag,
+                        configuration
+                    );
+
+                    docxTag = virtualTag;
+                }
+                else
+                {
+                    logger.Info($"Content control {tagRequest.ContentControlId} found in document, using existing tag");
+                }
+
+                // Get content using the content creator
+                var contentCreator = contentCreatorFactory.CreateContentCreator(docxTag.Source, docxTag.ContentCreatorID);
+                var content = contentCreator.GetContent(docxTag, docConfig);
+
+                // Update the tag content - the GeneratedOpenXml property will handle conversion on-demand
+                docxTag.Contents = content;
+
+                // Get the raw OpenXML content from the RoboClerkDocxTag
+                var openXmlContent = docxTag.GeneratedOpenXml;
+
+                if (string.IsNullOrEmpty(openXmlContent))
+                {
+                    logger.Warn($"No OpenXML content generated for content control {tagRequest.ContentControlId}");
+                    return new TagContentResult { Success = false, Error = "No content generated" };
+                }
+
+                logger.Info($"Generated {openXmlContent.Length} characters of OpenXML for content control {tagRequest.ContentControlId}");
+                return new TagContentResult
+                {
+                    Success = true,
+                    Content = openXmlContent
+                };
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to get tag content for content control: {tagRequest.ContentControlId}");
+                return new TagContentResult { Success = false, Error = $"Failed to generate content: {ex.Message}" };
+            }
+        }
+
+        /// <summary>
+        /// Updates the project configuration file with new values
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <param name="configUpdates">Dictionary of configuration keys and their new values</param>
+        /// <returns>Result indicating success or failure</returns>
+        public async Task<ConfigurationUpdateResult> UpdateProjectConfigurationAsync(string projectId, Dictionary<string, object> configUpdates)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            try
+            {
+                logger.Info($"Updating project configuration for: {projectId}");
+
+                var fileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
+                var projectConfigPath = fileProvider.Combine(project.ProjectPath, "RoboClerkConfig", "projectConfig.toml");
+
+                // Read current configuration
+                var currentContent = fileProvider.ReadAllText(projectConfigPath);
+                var toml = Tomlyn.Toml.Parse(currentContent).ToModel();
+
+                var updatedKeys = new List<string>();
+                bool requiresReload = false;
+
+                // Apply updates to the TOML structure
+                foreach (var update in configUpdates)
+                {
+                    if (ApplyConfigurationUpdate(toml, update.Key, update.Value))
+                    {
+                        updatedKeys.Add(update.Key);
+                        
+                        // Check if this change requires a project reload
+                        if (IsReloadRequiredForKey(update.Key))
+                        {
+                            requiresReload = true;
+                        }
+                    }
+                }
+
+                if (updatedKeys.Any())
+                {
+                    // Write updated configuration back to SharePoint
+                    var updatedContent = Tomlyn.Toml.FromModel(toml);
+                    fileProvider.WriteAllText(projectConfigPath, updatedContent);
+
+                    logger.Info($"Updated {updatedKeys.Count} configuration keys for project: {projectId}");
+
+                    // If reload is required, refresh the project
+                    if (requiresReload)
+                    {
+                        logger.Info($"Configuration changes require project reload for: {projectId}");
+                        await RefreshProjectDocumentsAsync(projectId, false);
+                    }
+                }
+
+                return new ConfigurationUpdateResult
+                {
+                    Success = true,
+                    UpdatedKeys = updatedKeys,
+                    RequiresProjectReload = requiresReload
+                };
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to update project configuration for: {projectId}");
+                return new ConfigurationUpdateResult 
+                { 
+                    Success = false, 
+                    Error = $"Failed to update configuration: {ex.Message}" 
+                };
+            }
+        }
+
+        /// <summary>
+        /// Gets the raw project configuration content as TOML
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <returns>The raw TOML configuration content</returns>
+        public async Task<string> GetProjectConfigurationContentAsync(string projectId)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            var fileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
+            var projectConfigPath = fileProvider.Combine(project.ProjectPath, "RoboClerkConfig", "projectConfig.toml");
+
+            return fileProvider.ReadAllText(projectConfigPath);
+        }
+
+        /// <summary>
+        /// Validates proposed configuration changes without applying them
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <param name="configUpdates">Dictionary of configuration keys and their new values</param>
+        /// <returns>Validation result with any errors or warnings</returns>
+        public async Task<ConfigurationValidationResult> ValidateConfigurationUpdatesAsync(string projectId, Dictionary<string, object> configUpdates)
+        {
+            var errors = new List<string>();
+            var warnings = new List<string>();
+
+            // Validate each configuration update
+            foreach (var update in configUpdates)
+            {
+                var validation = ValidateConfigurationKey(update.Key, update.Value);
+                errors.AddRange(validation.Errors);
+                warnings.AddRange(validation.Warnings);
+            }
+
+            return new ConfigurationValidationResult
+            {
+                IsValid = !errors.Any(),
+                Errors = errors,
+                Warnings = warnings
+            };
+        }
+
+        /// <summary>
+        /// Gets all DOCX template files in the template directory that are not configured as documents
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <param name="includeConfiguredTemplates">Whether to include templates that are already configured as documents</param>
+        /// <returns>Result containing available template files information</returns>
+        public async Task<AvailableTemplateFilesResult> GetAvailableTemplateFilesAsync(string projectId, bool includeConfiguredTemplates = false)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            try
+            {
+                logger.Info($"Getting available template files for project: {projectId}");
+
+                var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+                var fileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
+
+                // Get all configured document templates (only DOCX)
+                var configuredTemplates = configuration.Documents
+                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+                    .Select(d => d.DocumentTemplate.ToLowerInvariant())
+                    .ToHashSet();
+
+                // Get all template files from the template directory
+                var templateFiles = new List<TemplateFileInfo>();
+                var templateDir = configuration.TemplateDir;
+
+                try
+                {
+                    var allTemplateFiles = GetTemplateFilesRecursively(fileProvider, templateDir, templateDir);
+                    
+                    foreach (var filePath in allTemplateFiles)
+                    {
+                        try
+                        {
+                            var fileName = fileProvider.GetFileName(filePath);
+                            var relativePath = fileProvider.GetRelativePath(templateDir, filePath);
+                            var isDocx = fileName.EndsWith(".docx", StringComparison.OrdinalIgnoreCase);
+                            var isConfigured = configuredTemplates.Contains(fileName.ToLowerInvariant());
+
+                            // Skip if we only want unconfigured templates and this one is configured
+                            if (!includeConfiguredTemplates && isConfigured)
+                                continue;
+
+                            // Only include DOCX files for template section insertion
+                            if (!isDocx)
+                                continue;
+
+                            var templateFileInfo = new TemplateFileInfo
+                            {
+                                FileName = fileName,
+                                RelativePath = relativePath,
+                                FullPath = filePath,
+                                FileSizeBytes = fileProvider.GetFileSize(filePath),
+                                LastModified = fileProvider.GetLastWriteTime(filePath),
+                                IsDocx = isDocx
+                            };
+
+                            templateFiles.Add(templateFileInfo);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Warn(ex, $"Error processing template file {filePath}: {ex.Message}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, $"Error accessing template directory {templateDir}: {ex.Message}");
+                    return new AvailableTemplateFilesResult
+                    {
+                        Success = false,
+                        Error = $"Failed to access template directory: {ex.Message}"
+                    };
+                }
+
+                var totalTemplateFiles = templateFiles.Count + configuredTemplates.Count;
+                var unconfiguredCount = templateFiles.Count(t => !configuredTemplates.Contains(t.FileName.ToLowerInvariant()));
+
+                logger.Info($"Found {templateFiles.Count} available template files for project: {projectId}");
+
+                return new AvailableTemplateFilesResult
+                {
+                    Success = true,
+                    AvailableTemplateFiles = templateFiles.OrderBy(t => t.FileName).ToList(),
+                    TotalTemplateFiles = totalTemplateFiles,
+                    ConfiguredDocuments = configuredTemplates.Count,
+                    UnconfiguredTemplateFiles = unconfiguredCount
+                };
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to get available template files for project: {projectId}");
+                return new AvailableTemplateFilesResult
+                {
+                    Success = false,
+                    Error = $"Failed to get available template files: {ex.Message}"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Refreshes the data sources for a project by getting the existing IDataSources instance 
+        /// from the project's service provider and calling RefreshDataSources on it.
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <returns>RefreshResult indicating success or failure</returns>
+        public async Task<RefreshResult> RefreshProjectDataSourcesAsync(string projectId)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            try
+            {
+                logger.Info($"Refreshing data sources for SharePoint project: {projectId}");
+
+                // Get the data sources from the project's service provider
+                var dataSources = project.ProjectServiceProvider.GetRequiredService<IDataSources>();
+                
+                // Refresh all available data sources
+                dataSources.RefreshDataSources();
+                
+                logger.Info($"Successfully refreshed data sources for SharePoint project: {projectId}");
+                return new RefreshResult { Success = true };
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to refresh data sources for SharePoint project: {projectId}");
+                return new RefreshResult { Success = false, Error = $"Failed to refresh data sources: {ex.Message}" };
+            }
+        }
+
+        /// <summary>
+        /// Refreshes the documents for a project by reloading the project configuration file,
+        /// updating the configuration object, and synchronizing the loaded documents with the
+        /// updated document list from the configuration.
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <param name="processTags">Whether to actually process the tags in the documents</param>"
+        /// <returns>RefreshResult indicating success or failure</returns>
+        public async Task<RefreshResult> RefreshProjectDocumentsAsync(string projectId, bool processTags)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            try
+            {
+                logger.Info($"Refreshing documents for SharePoint project: {projectId}");
+
+                // Get the current configuration and file provider
+                var currentConfig = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+                var fileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
+
+                // Determine the project config path
+                var projectConfigPath = fileProvider.Combine(project.ProjectPath, "RoboClerkConfig", "projectConfig.toml");
+                
+                logger.Info($"Reloading project configuration from: {projectConfigPath}");
+
+                // Create a new configuration by reloading the project config file
+                var baseConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
+                if (baseConfiguration is not RoboClerk.Configuration.Configuration concreteConfig)
+                {
+                    return new RefreshResult { Success = false, Error = "Configuration service is not of expected type" };
+                }
+
+                // Clone the base configuration and reload the project config
+                var updatedConfiguration = RoboClerk.Configuration.ConfigurationBuilder
+                    .FromExisting(concreteConfig.Clone())
+                    .WithProjectConfig(fileProvider, projectConfigPath)
+                    .Build();
+
+                // Preserve command line options and project ID from current config
+                if (currentConfig.HasCommandLineOption("SPDriveId"))
+                {
+                    updatedConfiguration.AddOrUpdateCommandLineOption("SPDriveId", currentConfig.GetCommandLineOption("SPDriveId"));
+                }
+                if (currentConfig.HasCommandLineOption("SPSiteUrl"))
+                {
+                    updatedConfiguration.AddOrUpdateCommandLineOption("SPSiteUrl", currentConfig.GetCommandLineOption("SPSiteUrl"));
+                }
+                updatedConfiguration.ProjectID = currentConfig.ProjectID;
+
+                // Create new service provider with updated configuration
+                var dataSources = project.ProjectServiceProvider.GetRequiredService<IDataSources>();
+                var newServiceProvider = CreateProjectServiceProvider(fileProvider, updatedConfiguration, dataSources);
+
+                // Get current and updated DOCX document lists
+                var currentDocxDocuments = currentConfig.Documents
+                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+                    .ToDictionary(d => d.RoboClerkID, d => d);
+
+                var updatedDocxDocuments = updatedConfiguration.Documents
+                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+                    .ToDictionary(d => d.RoboClerkID, d => d);
+
+                // Remove documents that are no longer in the configuration
+                var documentsToRemove = currentDocxDocuments.Keys.Except(updatedDocxDocuments.Keys).ToList();
+                foreach (var docId in documentsToRemove)
+                {
+                    logger.Info($"Removing document no longer in configuration: {docId}");
+                    
+                    // Clear virtual tags for the document being removed
+                    var clearedVirtualTags = project.ContentControlManager.ClearVirtualTagsForDocument(docId);
+                    if (clearedVirtualTags > 0)
+                    {
+                        logger.Info($"Cleared {clearedVirtualTags} virtual tags for removed document {docId}");
+                    }
+                    
+                    // Remove and dispose the document
+                    if (project.LoadedDocuments.TryRemove(docId, out var removedDoc) && removedDoc is IDisposable disposableDoc)
+                    {
+                        disposableDoc.Dispose();
+                    }
+                }
+
+                // Add or update documents that are new or changed in the configuration
+                var documentsToAddOrUpdate = updatedDocxDocuments.Keys.ToList();
+                foreach (var docId in documentsToAddOrUpdate)
+                {
+                    try
+                    {
+                        var docConfig = updatedDocxDocuments[docId];
+                        
+                        // Clear virtual tags for documents being replaced/updated
+                        var clearedVirtualTags = project.ContentControlManager.ClearVirtualTagsForDocument(docId);
+                        if (clearedVirtualTags > 0)
+                        {
+                            logger.Info($"Cleared {clearedVirtualTags} virtual tags for document {docId} before refresh");
+                        }
+                        
+                        // Check if document already exists and needs to be replaced
+                        if (project.LoadedDocuments.TryRemove(docId, out var existingDoc) && existingDoc is IDisposable disposableExistingDoc)
+                        {
+                            logger.Info($"Replacing existing document with updated configuration: {docId}");
+                            disposableExistingDoc.Dispose();
+                        }
+                        else
+                        {
+                            logger.Info($"Loading new document from configuration: {docId}");
+                        }
+
+                        // Load the document with the new service provider
+                        var processedDocument = ProcessTemplate(newServiceProvider, docConfig, processTags);
+                        project.LoadedDocuments[docId] = processedDocument;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Warn(ex, $"Error loading/updating document {docId}: {ex.Message}");
+                    }
+                }
+
+                // Update the project context with the new service provider and configuration
+                var updatedProject = project with
+                {
+                    ProjectServiceProvider = newServiceProvider,
+                    LastUpdated = DateTime.UtcNow
+                };
+                loadedProjects[projectId] = updatedProject;
+
+                logger.Info($"Successfully refreshed documents for SharePoint project: {projectId}");
+                return new RefreshResult { Success = true };
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to refresh documents for SharePoint project: {projectId}");
+                return new RefreshResult { Success = false, Error = $"Failed to refresh documents: {ex.Message}" };
+            }
+        }
+
+        /// <summary>
+        /// Refreshes a specific document and clears its virtual content controls.
+        /// This is useful when only one document needs to be updated without affecting others.
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <param name="documentId">The document ID to refresh</param>
+        /// <returns>RefreshResult indicating success or failure</returns>
+        public async Task<RefreshResult> RefreshDocumentAsync(string projectId, string documentId)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            try
+            {
+                logger.Info($"Refreshing document {documentId} in SharePoint project: {projectId}");
+
+                var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+
+                // Find the document config
+                var docxDocuments = configuration.Documents
+                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                var docConfig = docxDocuments.FirstOrDefault(d => d.RoboClerkID == documentId);
+
+                if (docConfig == null)
+                {
+                    return new RefreshResult { Success = false, Error = $"Document {documentId} not found in project configuration" };
+                }
+
+                // Clear virtual tags for this document before refreshing
+                var clearedVirtualTags = project.ContentControlManager.ClearVirtualTagsForDocument(documentId);
+                logger.Info($"Cleared {clearedVirtualTags} virtual tags for document {documentId}");
+
+                // Remove the existing loaded document
+                project.LoadedDocuments.TryRemove(documentId, out var oldDocument);
+                if (oldDocument is IDisposable disposableDoc)
+                {
+                    disposableDoc.Dispose();
+                }
+
+                // Process the document fresh
+                var processedDocument = ProcessTemplate(project.ProjectServiceProvider, docConfig);
+                project.LoadedDocuments[documentId] = processedDocument;
+
+                // Update the project's last updated timestamp
+                var updatedProject = project with { LastUpdated = DateTime.UtcNow };
+                loadedProjects[projectId] = updatedProject;
+
+                logger.Info($"Successfully refreshed document {documentId} in SharePoint project: {projectId}");
+                return new RefreshResult { Success = true };
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to refresh document {documentId} in SharePoint project: {projectId}");
+                return new RefreshResult { Success = false, Error = $"Failed to refresh document: {ex.Message}" };
+            }
+        }
+
+        public async Task UnloadProjectAsync(string projectId)
+        {
+            if (loadedProjects.TryRemove(projectId, out var project))
+            {
+                // Dispose of any disposable documents
+                foreach (var document in project.LoadedDocuments.Values.OfType<IDisposable>())
+                {
+                    document.Dispose();
+                }
+
+                logger.Info($"Unloaded SharePoint project: {projectId}");
+            }
+        }
+
+
+        /////////////////////////////////////////////////////////////////////////
+        // BELOW ARE ALL THE SUPPORTING PRIVATE METHODS FOR PROJECT MANAGEMENT //
+        /////////////////////////////////////////////////////////////////////////
+        
+
+        /// <summary>
+        /// Gets virtual tag statistics for debugging purposes.
+        /// Returns the count of virtual tags per document in the project.
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <returns>Dictionary with document IDs and their virtual tag counts</returns>
+        public async Task<Dictionary<string, int>> GetVirtualTagStatisticsAsync(string projectId)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            return project.ContentControlManager.GetVirtualTagStatistics();
+        }
+
+        /// <summary>
+        /// Applies a configuration update to the TOML structure
+        /// </summary>
+        /// <param name="toml">The TOML table to update</param>
+        /// <param name="key">The configuration key (supports nested keys with dot notation)</param>
+        /// <param name="value">The new value to set</param>
+        /// <returns>True if the update was applied successfully</returns>
+        private bool ApplyConfigurationUpdate(TomlTable toml, string key, object value)
+        {
+            try
+            {
+                // Handle nested keys (e.g., "Truth.SystemRequirement.name")
+                var keyParts = key.Split('.');
+                TomlTable currentTable = toml;
+
+                // Navigate to the parent table
+                for (int i = 0; i < keyParts.Length - 1; i++)
+                {
+                    if (!currentTable.ContainsKey(keyParts[i]))
+                    {
+                        currentTable[keyParts[i]] = new TomlTable();
+                    }
+                    currentTable = (TomlTable)currentTable[keyParts[i]];
+                }
+
+                // Set the final value
+                var finalKey = keyParts[keyParts.Length - 1];
+                
+                // Convert value to appropriate TOML type
+                currentTable[finalKey] = ConvertToTomlValue(value);
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.Warn(ex, $"Failed to apply configuration update for key: {key}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Converts a .NET object to an appropriate TOML value
+        /// </summary>
+        /// <param name="value">The value to convert</param>
+        /// <returns>The converted TOML value</returns>
+        private object ConvertToTomlValue(object? value)
+        {
+            if (value is null)
+                return string.Empty;
+
+            return value switch
+            {
+                string s => s,
+                bool b => b,
+
+                int i => i,
+                long l => l,
+                short sh => (int)sh,
+                byte by => (int)by,
+                float f => (double)f,
+                double d => d,
+                decimal m => (double)m,
+
+                IDictionary<string, object?> dict => CreateTomlTable(dict),
+                IEnumerable enumerable => CreateTomlArray(enumerable),
+
+                _ => value.ToString() ?? string.Empty
+            };
+        }
+
+        private TomlArray CreateTomlArray(IEnumerable enumerable)
+        {
+            // Create an empty TomlArray and populate it manually
+            var arr = new TomlArray();
+            foreach (var item in enumerable)
+            {
+                arr.Add(ConvertToTomlValue(item));
+            }
+            return arr;
+        }
+
+        private TomlTable CreateTomlTable(IDictionary<string, object?> dict)
+        {
+            var table = new TomlTable();
+            foreach (var kvp in dict)
+            {
+                table[kvp.Key] = ConvertToTomlValue(kvp.Value);
+            }
+            return table;
+        }
+
+        /// <summary>
+        /// Determines if a configuration key change requires a project reload
+        /// </summary>
+        /// <param name="key">The configuration key</param>
+        /// <returns>True if the key change requires a project reload</returns>
+        private bool IsReloadRequiredForKey(string key)
+        {
+            // Keys that require project reload when changed
+            var reloadRequiredKeys = new[]
+            {
+                "TemplateDirectory",
+                "ProjectRoot",
+                "DataSourcePlugin",
+                "AISystemPlugin",
+                "MediaDirectory"
+            };
+
+            return reloadRequiredKeys.Any(k => key.StartsWith(k, StringComparison.OrdinalIgnoreCase)) ||
+                   key.StartsWith("Document.", StringComparison.OrdinalIgnoreCase) ||
+                   key.StartsWith("Truth.", StringComparison.OrdinalIgnoreCase) ||
+                   key.StartsWith("TraceConfig.", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Validates a configuration key and value
+        /// </summary>
+        /// <param name="key">The configuration key</param>
+        /// <param name="value">The value to validate</param>
+        /// <returns>Validation result with errors and warnings</returns>
+        private ConfigurationValidationResult ValidateConfigurationKey(string key, object value)
+        {
+            var errors = new List<string>();
+            var warnings = new List<string>();
+
+            // Add validation logic for specific keys
+            switch (key.Split('.')[0].ToLowerInvariant())
+            {
+                case "templatedirectory":
+                case "outputdirectory":
+                case "projectroot":
+                case "mediadirectory":
+                    if (string.IsNullOrWhiteSpace(value?.ToString()))
+                    {
+                        errors.Add($"Directory path cannot be empty for {key}");
+                    }
+                    break;
+                    
+                case "datasourceplugin":
+                    if (value is not (string[] or List<string>))
+                    {
+                        errors.Add($"DataSourcePlugin must be an array of strings");
+                    }
+                    break;
+                    
+                case "truth":
+                    // Validate truth entity structure
+                    // Could add more specific validation here based on the expected structure
+                    break;
+                    
+                case "document":
+                    // Validate document configuration structure
+                    // Could add more specific validation here based on the expected structure
+                    break;
+            }
+
+            return new ConfigurationValidationResult
+            {
+                IsValid = !errors.Any(),
+                Errors = errors,
+                Warnings = warnings
+            };
+        }
+
+        private IDocument ProcessTemplate(IServiceProvider projectServiceProvider, DocumentConfig docxDocument, bool processTags=false)
         {
             var configuration = projectServiceProvider.GetRequiredService<IConfiguration>();
             var fileSystem = projectServiceProvider.GetRequiredService<IFileProviderPlugin>();
@@ -163,6 +909,11 @@ namespace RoboClerk.Server.Services
             logger.Info($"Reading document template: {docxDocument.RoboClerkID}");
             byte[] bytes = fileSystem.ReadAllBytes(fileSystem.Combine(configuration.TemplateDir, docxDocument.DocumentTemplate));
             document.FromStream(new MemoryStream(bytes));
+
+            if (!processTags)
+            {
+                return document;
+            }
 
             logger.Info($"Generating document: {docxDocument.RoboClerkID}");
             var contentCreatorFactory = projectServiceProvider.GetRequiredService<IContentCreatorFactory>();
@@ -176,14 +927,11 @@ namespace RoboClerk.Server.Services
         {
             // Get all tags in the document
             var tags = document.RoboClerkTags.ToList(); // Create a snapshot
-            bool anyTagProcessed = false;
 
             foreach (var tag in tags)
             {
                 if (ProcessSingleTag(tag, doc, factory))
                 {
-                    anyTagProcessed = true;
-
                     // Process nested tags recursively - this handles all nested levels internally
                     ProcessNestedTagsRecursively(tag, factory);
                 }
@@ -278,136 +1026,35 @@ namespace RoboClerk.Server.Services
             } while (true);
         }
 
-        public async Task<List<ConfigurationValue>> GetProjectConfigurationAsync(string projectId)
-        {
-            if (!loadedProjects.TryGetValue(projectId, out var project))
-                throw new ArgumentException("SharePoint project not loaded");
-
-            var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
-            var configValues = new List<ConfigurationValue>
-            {
-                new("ProjectType", "SharePoint"),
-                new("OutputDirectory", configuration.OutputDir),
-                new("TemplateDirectory", configuration.TemplateDir),
-                new("ProjectRoot", configuration.ProjectRoot),
-                new("MediaDirectory", configuration.MediaDir),
-                new("LogLevel", configuration.LogLevel),
-                new("OutputFormat", configuration.OutputFormat),
-                new("PluginConfigDir", configuration.PluginConfigDir)
-            };
-
-            // Add data source plugins
-            for (int i = 0; i < configuration.DataSourcePlugins.Count; i++)
-            {
-                configValues.Add(new($"DataSourcePlugin[{i}]", configuration.DataSourcePlugins[i]));
-            }
-
-            // Add plugin directories
-            for (int i = 0; i < configuration.PluginDirs.Count; i++)
-            {
-                configValues.Add(new($"PluginDir[{i}]", configuration.PluginDirs[i]));
-            }
-
-            return configValues;
-        }
-
         /// <summary>
-        /// Gets tag content using RoboClerkDocxTag for OpenXML conversion.
-        /// This method expects the Word add-in to provide content control information.
-        /// Uses virtual content controls to avoid modifying the original document.
+        /// Recursively gets all files from a directory using the file provider
         /// </summary>
-        public async Task<TagContentResult> GetTagContentWithContentControlAsync(string projectId, RoboClerkContentControlTagRequest tagRequest)
+        /// <param name="fileProvider">The file provider to use</param>
+        /// <param name="directoryPath">The directory path to scan</param>
+        /// <param name="rootPath">The root path for calculating relative paths</param>
+        /// <returns>List of file paths</returns>
+        private List<string> GetTemplateFilesRecursively(IFileProviderPlugin fileProvider, string directoryPath, string rootPath)
         {
-            if (!loadedProjects.TryGetValue(projectId, out var project))
-                throw new ArgumentException("SharePoint project not loaded");
-
+            var files = new List<string>();
+            
             try
             {
-                var contentCreatorFactory = project.ProjectServiceProvider.GetRequiredService<IContentCreatorFactory>();
-                var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
-                
-                // Find the appropriate document config
-                var docxDocuments = configuration.Documents
-                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-                var docConfig = docxDocuments.FirstOrDefault(d => d.RoboClerkID == tagRequest.DocumentId);
-                if (docConfig == null)
-                    return new TagContentResult { Success = false, Error = "Document not found in SharePoint project" };
-
-                // Load the document to get access to the actual content control structure
-                if (!project.LoadedDocuments.TryGetValue(tagRequest.DocumentId, out var document) ||
-                    document is not DocxDocument docxDocument)
+                if (!fileProvider.DirectoryExists(directoryPath))
                 {
-                    // Document not loaded, try to load it
-                    try
-                    {
-                        var processedDocument = ProcessTemplate(project.ProjectServiceProvider, docConfig);
-                        project.LoadedDocuments[tagRequest.DocumentId] = processedDocument;
-                        docxDocument = (DocxDocument)processedDocument;
-                    }
-                    catch (Exception ex)
-                    {
-                        return new TagContentResult { Success = false, Error = $"Failed to load document: {ex.Message}" };
-                    }
-                }
-                else
-                {
-                    docxDocument = (DocxDocument)document;
+                    logger.Warn($"Template directory does not exist: {directoryPath}");
+                    return files;
                 }
 
-                // First try to find an existing RoboClerkDocxTag in the document
-                var docxTag = docxDocument.RoboClerkTags
-                    .OfType<RoboClerkDocxTag>()
-                    .FirstOrDefault(t => t.ContentControlId == tagRequest.ContentControlId);
-
-                // If not found in document, use virtual content control manager
-                if (docxTag == null)
-                {
-                    logger.Info($"Content control {tagRequest.ContentControlId} not found in document, creating virtual tag");
-                    
-                    // Create or get virtual content control - this doesn't modify the original document
-                    var virtualTag = project.ContentControlManager.GetOrCreateContentControl(
-                        tagRequest.DocumentId,
-                        tagRequest.ContentControlId,
-                        tagRequest.RoboClerkTag,
-                        configuration
-                    );
-                    
-                    docxTag = virtualTag;
-                }
-                else
-                {
-                    logger.Info($"Content control {tagRequest.ContentControlId} found in document, using existing tag");
-                }
-
-                // Get content using the content creator
-                var contentCreator = contentCreatorFactory.CreateContentCreator(docxTag.Source, docxTag.ContentCreatorID);
-                var content = contentCreator.GetContent(docxTag, docConfig);
-
-                // Update the tag content - the GeneratedOpenXml property will handle conversion on-demand
-                docxTag.Contents = content;
-                
-                // Get the raw OpenXML content from the RoboClerkDocxTag
-                var openXmlContent = docxTag.GeneratedOpenXml;
-
-                if (string.IsNullOrEmpty(openXmlContent))
-                {
-                    logger.Warn($"No OpenXML content generated for content control {tagRequest.ContentControlId}");
-                    return new TagContentResult { Success = false, Error = "No content generated" };
-                }
-
-                logger.Info($"Generated {openXmlContent.Length} characters of OpenXML for content control {tagRequest.ContentControlId}");
-                return new TagContentResult
-                {
-                    Success = true,
-                    Content = openXmlContent
-                };
+                // Get all DOCX files in the template directory
+                var docxFiles = fileProvider.GetFiles(directoryPath, "*.docx", SearchOption.AllDirectories);
+                files.AddRange(docxFiles);
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"Failed to get tag content for content control: {tagRequest.ContentControlId}");
-                return new TagContentResult { Success = false, Error = $"Failed to generate content: {ex.Message}" };
+                logger.Warn(ex, $"Error enumerating directory {directoryPath}: {ex.Message}");
             }
+
+            return files;
         }
 
         /// <summary>
@@ -451,201 +1098,6 @@ namespace RoboClerk.Server.Services
                 return false;
             }
         }
-
-        // if project refresh is full, also refresh data sources, otherwise just re-analyze documents
-        public async Task<RefreshResult> RefreshProjectAsync(string projectId, bool full)
-        {
-            if (!loadedProjects.TryGetValue(projectId, out var project))
-                throw new ArgumentException("SharePoint project not loaded");
-
-            try
-            {
-                IDataSources? newDataSources = null;
-                
-                if (full)
-                {
-                    logger.Info($"Full refresh: Refreshing data sources for SharePoint project: {projectId}");
-                    
-                    // Refresh data sources by recreating them
-                    var config = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
-                    newDataSources = dataSourcesFactory.CreateDataSources(config);
-                    
-                    logger.Info($"Successfully refreshed SharePoint project data sources: {projectId}");
-                }
-                else
-                {
-                    logger.Info($"Partial refresh: Skipping data source refresh for SharePoint project: {projectId}");
-                }
-                
-                // Clear virtual tags for the project
-                var clearedVirtualTags = project.ContentControlManager.ClearAllVirtualTags();
-                logger.Info($"Cleared {clearedVirtualTags} virtual tags for project {projectId}");
-                
-                // Always rescan and process the project directory (regardless of full flag)
-                logger.Info($"Rescanning and processing project directory for SharePoint project: {projectId}");
-                
-                // Get the current configuration
-                var currentConfig = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
-                
-                // Get DOCX documents from configuration
-                var docxDocuments = currentConfig.Documents
-                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
-                // Clear existing loaded documents if doing a full refresh
-                if (full)
-                {
-                    // Dispose of existing documents before clearing
-                    foreach (var document in project.LoadedDocuments.Values.OfType<IDisposable>())
-                    {
-                        document.Dispose();
-                    }
-                    project.LoadedDocuments.Clear();
-                }
-
-                // Process each document
-                foreach (var docxDocument in docxDocuments)
-                {
-                    try
-                    {
-                        // For full refresh or if document not already loaded, process it
-                        if (full || !project.LoadedDocuments.ContainsKey(docxDocument.RoboClerkID))
-                        {
-                            logger.Info($"Processing document: {docxDocument.RoboClerkID}");
-                            
-                            // Remove old document if it exists (for partial refresh)
-                            if (project.LoadedDocuments.TryRemove(docxDocument.RoboClerkID, out var oldDoc) && oldDoc is IDisposable disposableOldDoc)
-                            {
-                                disposableOldDoc.Dispose();
-                            }
-                            
-                            // Create new service provider if we have new data sources
-                            var serviceProviderToUse = project.ProjectServiceProvider;
-                            if (newDataSources != null)
-                            {
-                                // We need to create a new service provider with the updated data sources
-                                var sharePointFileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
-                                serviceProviderToUse = CreateProjectServiceProvider(sharePointFileProvider, currentConfig, newDataSources);
-                            }
-                            
-                            var processedDocument = ProcessTemplate(serviceProviderToUse, docxDocument);
-                            project.LoadedDocuments[docxDocument.RoboClerkID] = processedDocument;
-                        }
-                        else
-                        {
-                            logger.Info($"Document already loaded, skipping: {docxDocument.RoboClerkID}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.Warn(ex, $"Error processing document {docxDocument.RoboClerkID}: {ex.Message}");
-                    }
-                }
-
-                // Update the project context with new service provider if we created one
-                if (newDataSources != null)
-                {
-                    var sharePointFileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
-                    var newServiceProvider = CreateProjectServiceProvider(sharePointFileProvider, currentConfig, newDataSources);
-                    
-                    // Create updated project context
-                    var updatedProject = project with 
-                    { 
-                        ProjectServiceProvider = newServiceProvider,
-                        LastUpdated = DateTime.UtcNow
-                    };
-                    loadedProjects[projectId] = updatedProject;
-                }
-                else
-                {
-                    // Update the LastUpdated timestamp even for partial refresh
-                    var updatedProject = project with { LastUpdated = DateTime.UtcNow };
-                    loadedProjects[projectId] = updatedProject;
-                }
-                
-                logger.Info($"Successfully refreshed SharePoint project: {projectId}");
-                return new RefreshResult { Success = true };
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"Failed to refresh SharePoint project: {projectId}");
-                return new RefreshResult { Success = false, Error = $"Failed to refresh project: {ex.Message}" };
-            }
-        }
-
-        /// <summary>
-        /// Refreshes a specific document and clears its virtual content controls.
-        /// This is useful when only one document needs to be updated without affecting others.
-        /// </summary>
-        /// <param name="projectId">The project ID</param>
-        /// <param name="documentId">The document ID to refresh</param>
-        /// <returns>RefreshResult indicating success or failure</returns>
-        public async Task<RefreshResult> RefreshDocumentAsync(string projectId, string documentId)
-        {
-            if (!loadedProjects.TryGetValue(projectId, out var project))
-                throw new ArgumentException("SharePoint project not loaded");
-
-            try
-            {
-                logger.Info($"Refreshing document {documentId} in SharePoint project: {projectId}");
-                
-                var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
-                
-                // Find the document config
-                var docxDocuments = configuration.Documents
-                    .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-                var docConfig = docxDocuments.FirstOrDefault(d => d.RoboClerkID == documentId);
-                
-                if (docConfig == null)
-                {
-                    return new RefreshResult { Success = false, Error = $"Document {documentId} not found in project configuration" };
-                }
-
-                // Clear virtual tags for this document before refreshing
-                var clearedVirtualTags = project.ContentControlManager.ClearVirtualTagsForDocument(documentId);
-                logger.Info($"Cleared {clearedVirtualTags} virtual tags for document {documentId}");
-
-                // Remove the existing loaded document
-                project.LoadedDocuments.TryRemove(documentId, out var oldDocument);
-                if (oldDocument is IDisposable disposableDoc)
-                {
-                    disposableDoc.Dispose();
-                }
-
-                // Process the document fresh
-                var processedDocument = ProcessTemplate(project.ProjectServiceProvider, docConfig);
-                project.LoadedDocuments[documentId] = processedDocument;
-                
-                // Update the project's last updated timestamp
-                var updatedProject = project with { LastUpdated = DateTime.UtcNow };
-                loadedProjects[projectId] = updatedProject;
-                
-                logger.Info($"Successfully refreshed document {documentId} in SharePoint project: {projectId}");
-                return new RefreshResult { Success = true };
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"Failed to refresh document {documentId} in SharePoint project: {projectId}");
-                return new RefreshResult { Success = false, Error = $"Failed to refresh document: {ex.Message}" };
-            }
-        }
-
-        public async Task UnloadProjectAsync(string projectId)
-        {
-            if (loadedProjects.TryRemove(projectId, out var project))
-            {
-                // Dispose of any disposable documents
-                foreach (var document in project.LoadedDocuments.Values.OfType<IDisposable>())
-                {
-                    document.Dispose();
-                }
-                
-                logger.Info($"Unloaded SharePoint project: {projectId}");
-            }
-        }
-
-
 
         /// <summary>
         /// Determines if the given path is a SharePoint path.
@@ -871,20 +1323,5 @@ namespace RoboClerk.Server.Services
                 // Don't throw here - let the application continue with what it has
             }
         }
-
-        /// <summary>
-        /// Gets virtual tag statistics for debugging purposes.
-        /// Returns the count of virtual tags per document in the project.
-        /// </summary>
-        /// <param name="projectId">The project ID</param>
-        /// <returns>Dictionary with document IDs and their virtual tag counts</returns>
-        public async Task<Dictionary<string, int>> GetVirtualTagStatisticsAsync(string projectId)
-        {
-            if (!loadedProjects.TryGetValue(projectId, out var project))
-                throw new ArgumentException("SharePoint project not loaded");
-
-            return project.ContentControlManager.GetVirtualTagStatistics();
-        }
     }
-
 }

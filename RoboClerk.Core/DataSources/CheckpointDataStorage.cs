@@ -5,23 +5,23 @@ namespace RoboClerk
 {
     public class CheckpointDataStorage
     {
-        private List<RequirementItem> systemRequirements = new List<RequirementItem>();
-        private List<RequirementItem> softwareRequirements = new List<RequirementItem>();
-        private List<RequirementItem> documentationRequirements = new List<RequirementItem>();
-        private List<EliminatedRequirementItem> eliminatedSystemRequirements = new List<EliminatedRequirementItem>();
-        private List<EliminatedRequirementItem> eliminatedSoftwareRequirements = new List<EliminatedRequirementItem>();
-        private List<EliminatedRequirementItem> eliminatedDocumentationRequirements = new List<EliminatedRequirementItem>();
-        private List<RiskItem> risks = new List<RiskItem>();
-        private List<EliminatedRiskItem> eliminatedRisks = new List<EliminatedRiskItem>();
-        private List<SOUPItem> soups = new List<SOUPItem>();
-        private List<EliminatedSOUPItem> eliminatedSOUPs = new List<EliminatedSOUPItem>();
-        private List<SoftwareSystemTestItem> softwareSystemTests = new List<SoftwareSystemTestItem>();
-        private List<EliminatedSoftwareSystemTestItem> eliminatedSoftwareSystemTests = new List<EliminatedSoftwareSystemTestItem>();
-        private List<UnitTestItem> unitTests = new List<UnitTestItem>();
-        private List<AnomalyItem> anomalies = new List<AnomalyItem>();
-        private List<EliminatedAnomalyItem> eliminatedAnomalies = new List<EliminatedAnomalyItem>();
-        private List<DocContentItem> docContents = new List<DocContentItem>();
-        private List<EliminatedDocContentItem> eliminatedDocContents = new List<EliminatedDocContentItem>();
+        private List<RequirementItem> systemRequirements = [];
+        private List<RequirementItem> softwareRequirements = [];
+        private List<RequirementItem> documentationRequirements = [];
+        private List<EliminatedRequirementItem> eliminatedSystemRequirements = [];
+        private List<EliminatedRequirementItem> eliminatedSoftwareRequirements = [];
+        private List<EliminatedRequirementItem> eliminatedDocumentationRequirements = [];
+        private List<RiskItem> risks = [];
+        private List<EliminatedRiskItem> eliminatedRisks = [];
+        private List<SOUPItem> soups = [];
+        private List<EliminatedSOUPItem> eliminatedSOUPs = [];
+        private List<SoftwareSystemTestItem> softwareSystemTests = [];
+        private List<EliminatedSoftwareSystemTestItem> eliminatedSoftwareSystemTests = [];
+        private List<UnitTestItem> unitTests = [];
+        private List<AnomalyItem> anomalies = [];
+        private List<EliminatedAnomalyItem> eliminatedAnomalies = [];
+        private List<DocContentItem> docContents = [];
+        private List<EliminatedDocContentItem> eliminatedDocContents = [];
 
         public List<RequirementItem> SystemRequirements
         {

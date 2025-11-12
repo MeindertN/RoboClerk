@@ -3,6 +3,7 @@ using RoboClerk.Core.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
+using System.Security.Cryptography;
 
 namespace RoboClerk
 {
@@ -53,6 +54,14 @@ namespace RoboClerk
                     //otherwise data could be missing from the project and the user would not know.
                     throw new Exception($"Unable to find plugin {val}, please ensure the name of the plugin and plugin directories in the RoboClerk config file are correct.");
                 }
+            }
+        }
+
+        public override void RefreshDataSources()
+        {
+            foreach (var plugin in plugins)
+            {
+                plugin.RefreshItems();
             }
         }
 

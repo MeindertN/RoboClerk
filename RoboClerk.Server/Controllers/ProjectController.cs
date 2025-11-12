@@ -57,22 +57,23 @@ namespace RoboClerk.Server.Controllers
 
         /// <summary>
         /// Refresh a project to discover all available templates and RoboClerk content controls
+        /// Can take a long time when all content controls are processed
         /// </summary>
         [HttpGet("project/{projectId}/refresh")]
-        public async Task<ActionResult<DocumentAnalysisResult>> RefreshProject(string projectId)
+        public async Task<ActionResult<RefreshResult>> RefreshProject(string projectId, [FromQuery] bool processTags = false)
         {
             try
             {
-                logger.Info($"Refreshing project {projectId}");
+                logger.Info($"Refreshing project {projectId} with processTags={processTags}");
                 
-                var result = await projectManager.RefreshProjectAsync(projectId,false);
+                var result = await projectManager.RefreshProjectDocumentsAsync(projectId, processTags);
                 if (!result.Success)
                 {
-                    logger.Warn($"Failed to refresh document: {result.Error}");
+                    logger.Warn($"Failed to refresh project: {result.Error}");
                     return BadRequest(result);
                 }
 
-                logger.Info($"Project refresh complete");
+                logger.Info($"Project refresh complete for {projectId}");
                 return Ok(result);
             }
             catch (ArgumentException)
@@ -82,8 +83,8 @@ namespace RoboClerk.Server.Controllers
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"Error analyzing project {projectId}");
-                return StatusCode(500, "Failed to analyze project");
+                logger.Error(ex, $"Error refreshing project {projectId}");
+                return StatusCode(500, "Failed to refresh project");
             }
         }
 
@@ -155,7 +156,7 @@ namespace RoboClerk.Server.Controllers
         }
 
         /// <summary>
-        /// Refresh data sources (e.g., when SharePoint data has been updated)
+        /// Refresh data sources (e.g., when Redmine data has been updated)
         /// </summary>
         [HttpPost("project/{projectId}/refreshds")]
         public async Task<ActionResult<RefreshResult>> RefreshDataSources(string projectId)
@@ -164,7 +165,7 @@ namespace RoboClerk.Server.Controllers
             {
                 logger.Info($"Refreshing data sources for project {projectId}");
                 
-                var result = await projectManager.RefreshProjectAsync(projectId,true);
+                var result = await projectManager.RefreshProjectDataSourcesAsync(projectId);
                 if (!result.Success)
                 {
                     logger.Warn($"Failed to refresh data sources: {result.Error}");
@@ -183,31 +184,6 @@ namespace RoboClerk.Server.Controllers
             {
                 logger.Error(ex, $"Error refreshing data sources for project {projectId}");
                 return StatusCode(500, "Failed to refresh data sources");
-            }
-        }
-
-        /// <summary>
-        /// Get project configuration information for diagnostic purposes
-        /// </summary>
-        [HttpGet("project/{projectId}/config")]
-        public async Task<ActionResult<List<ConfigurationValue>>> GetProjectConfiguration(string projectId)
-        {
-            try
-            {
-                logger.Debug($"Getting configuration for project {projectId}");
-                
-                var config = await projectManager.GetProjectConfigurationAsync(projectId);
-                return Ok(config);
-            }
-            catch (ArgumentException)
-            {
-                logger.Warn($"Project {projectId} not found or not loaded");
-                return NotFound("SharePoint project not loaded. Please load the project first.");
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"Error getting project configuration for {projectId}");
-                return StatusCode(500, "Failed to get project configuration");
             }
         }
 
@@ -233,6 +209,134 @@ namespace RoboClerk.Server.Controllers
             {
                 logger.Error(ex, $"Error getting virtual tag statistics for {projectId}");
                 return StatusCode(500, "Failed to get virtual tag statistics");
+            }
+        }
+
+        /// <summary>
+        /// Update project configuration through the Word add-in
+        /// </summary>
+        [HttpPut("project/{projectId}/configuration")]
+        public async Task<ActionResult<ConfigurationUpdateResult>> UpdateProjectConfiguration(
+            string projectId, 
+            [FromBody] Dictionary<string, object> configUpdates)
+        {
+            try
+            {
+                logger.Info($"Updating configuration for project {projectId} with {configUpdates.Count} changes");
+
+                // Validate updates first
+                var validation = await projectManager.ValidateConfigurationUpdatesAsync(projectId, configUpdates);
+                if (!validation.IsValid)
+                {
+                    logger.Warn($"Configuration validation failed: {string.Join(", ", validation.Errors)}");
+                    return BadRequest(new { Errors = validation.Errors, Warnings = validation.Warnings });
+                }
+
+                var result = await projectManager.UpdateProjectConfigurationAsync(projectId, configUpdates);
+                if (!result.Success)
+                {
+                    logger.Warn($"Failed to update configuration: {result.Error}");
+                    return BadRequest(result);
+                }
+
+                logger.Info($"Successfully updated {result.UpdatedKeys.Count} configuration keys. Reload required: {result.RequiresProjectReload}");
+                return Ok(result);
+            }
+            catch (ArgumentException)
+            {
+                logger.Warn($"Project {projectId} not found or not loaded");
+                return NotFound("SharePoint project not loaded. Please load the project first.");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error updating configuration for project {projectId}");
+                return StatusCode(500, "Failed to update configuration");
+            }
+        }
+
+        /// <summary>
+        /// Get raw project configuration content as TOML
+        /// </summary>
+        [HttpGet("project/{projectId}/configuration/raw")]
+        public async Task<ActionResult<string>> GetProjectConfigurationContent(string projectId)
+        {
+            try
+            {
+                logger.Debug($"Getting raw configuration content for project {projectId}");
+                
+                var content = await projectManager.GetProjectConfigurationContentAsync(projectId);
+                return Ok(content);
+            }
+            catch (ArgumentException)
+            {
+                logger.Warn($"Project {projectId} not found or not loaded");
+                return NotFound("SharePoint project not loaded. Please load the project first.");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error getting configuration content for project {projectId}");
+                return StatusCode(500, "Failed to get configuration content");
+            }
+        }
+
+        /// <summary>
+        /// Validate configuration changes without applying them
+        /// </summary>
+        [HttpPost("project/{projectId}/configuration/validate")]
+        public async Task<ActionResult<ConfigurationValidationResult>> ValidateConfigurationUpdates(
+            string projectId, 
+            [FromBody] Dictionary<string, object> configUpdates)
+        {
+            try
+            {
+                logger.Debug($"Validating configuration changes for project {projectId}");
+                
+                var result = await projectManager.ValidateConfigurationUpdatesAsync(projectId, configUpdates);
+                return Ok(result);
+            }
+            catch (ArgumentException)
+            {
+                logger.Warn($"Project {projectId} not found or not loaded");
+                return NotFound("SharePoint project not loaded. Please load the project first.");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error validating configuration for project {projectId}");
+                return StatusCode(500, "Failed to validate configuration");
+            }
+        }
+
+        /// <summary>
+        /// Get available template files for use with TemplateSection content creator
+        /// </summary>
+        [HttpGet("project/{projectId}/template-files")]
+        public async Task<ActionResult<AvailableTemplateFilesResult>> GetAvailableTemplateFiles(
+            string projectId, 
+            [FromQuery] bool includeConfigured = false)
+        {
+            try
+            {
+                logger.Debug($"Getting available template files for project {projectId}, includeConfigured: {includeConfigured}");
+                
+                var result = await projectManager.GetAvailableTemplateFilesAsync(projectId, includeConfigured);
+                if (!result.Success)
+                {
+                    logger.Warn($"Failed to get template files: {result.Error}");
+                    return BadRequest(result);
+                }
+
+                logger.Info($"Found {result.AvailableTemplateFiles.Count} available template files for project {projectId}");
+                return Ok(result);
+            }
+            catch (ArgumentException)
+            {
+                logger.Warn($"Project {projectId} not found or not loaded");
+                return NotFound("SharePoint project not loaded. Please load the project first.");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error getting available template files for project {projectId}");
+                return StatusCode(500, "Failed to get available template files");
             }
         }
 

@@ -5,6 +5,7 @@ namespace RoboClerk
 {
     public interface IDataSources
     {
+        void RefreshDataSources();
         List<LinkedItem> GetItems(TraceEntity te);
         List<AnomalyItem> GetAllAnomalies();
         List<EliminatedAnomalyItem> GetAllEliminatedAnomalies();
