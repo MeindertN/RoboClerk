@@ -3,25 +3,29 @@
     "id": "6",
     "type": "SYSTEM",
     "status": "FAIL",
-    "message": "incorrect password"
+    "message": "incorrect password",
+    "project": "AuthenticationService"
   },
   {
     "id": "7",
     "type": "SYSTEM",
-    "status": "PASS"
+    "status": "PASS",
+    "project": "SecurityModule"
   },
   {
     "id": "8",
     "name": "testPasswordReset",
     "type": "SYSTEM",
     "status": "PASS",
-    "executionTime": "2023-10-02T10:10:00Z"
+    "executionTime": "2023-10-02T10:10:00Z",
+    "project": "SecurityModule"
   },
   {
     "id": "9",
     "type": "SYSTEM",
     "status": "FAIL",
-    "executionTime": "2023-10-02T10:15:00Z"
+    "executionTime": "2023-10-02T10:15:00Z",
+    "project": "DatabaseLayer"
   },
   {
     "id": "13",
@@ -29,6 +33,7 @@
     "type": "SYSTEM",
     "status": "PASS",
     "message": "data exported successfully",
-    "executionTime": "2023-10-02T10:20:00Z"
+    "executionTime": "2023-10-02T10:20:00Z",
+    "project": "DataExportModule"
   }
 ]

@@ -13,7 +13,7 @@ namespace RoboClerk.ContentCreators
 
         protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
-            var dataShare = new ScriptingBridge(data, analysis, sourceTE);
+            var dataShare = CreateScriptingBridge(tag, sourceTE);
             dataShare.Items = items;
             var file = data.GetTemplateFile(@"./ItemTemplates/Risk.adoc");
             var renderer = new ItemTemplateRenderer(file);

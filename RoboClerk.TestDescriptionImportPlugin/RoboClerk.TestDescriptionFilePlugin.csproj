@@ -1,0 +1,68 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+	  <OutputType>Library</OutputType>
+	  <StartupObject />
+	  <EnableDynamicLoading>true</EnableDynamicLoading>
+	  <Authors>Meindert Niemeijer</Authors>
+	  <Company>RoboClerk Project</Company>
+	  <Product>Test Description File Plugin</Product>
+	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+	  <Configurations>Debug;Release;ReleasePublish</Configurations>
+	  <BaseOutputPath>bin</BaseOutputPath>
+  </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleasePublish|AnyCPU'">
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="ExampleDescriptionFiles\ExampleSystemLevelTestDescriptions.json" />
+	  <None Remove="ExampleDescriptionFiles\ExampleUnitLevelTestDescriptions.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\RoboClerk\RoboClerk.csproj">
+			<Private>false</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="ExampleDescriptionFiles\ExampleSystemLevelTestDescriptions.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="ExampleDescriptionFiles\ExampleUnitLevelTestDescriptions.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<Target Name="CopyFiles" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
+		<ItemGroup>
+			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.TestDescriptionFilePlugin.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.TestDescriptionFilePlugin.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/plugins" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)ExampleDescriptionFiles/ExampleSystemLevelTestDescriptions.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/Demo" />
+		<Copy SourceFiles="$(ProjectDir)$(OutDir)ExampleDescriptionFiles/ExampleUnitLevelTestDescriptions.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/publish/Demo" />
+	</Target>
+	<Target Name="CopyPlugin" AfterTargets="Build">
+		<ItemGroup>
+			<PluginFiles Include="$(ProjectDir)$(OutDir)*.dll" />
+		</ItemGroup>
+		<Copy SourceFiles="$(ProjectDir)Configuration/TestDescriptionFilePlugin.toml" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig" />
+		<Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)plugins" />
+	</Target>
+	<Target Name="AdaptConfigFiles" AfterTargets="Build" Condition=" '$(Configuration)' != 'ReleasePublish' ">
+		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/TestDescriptionFilePlugin.toml" MatchExpression="{PROJECTROOT}" ReplacementText="$(ProjectDir)../RoboClerk/$(OutDir)" />
+		<Copy SourceFiles="$(ProjectDir)ExampleDescriptionFiles/ExampleSystemLevelTestDescriptions.json" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input" />
+		<Copy SourceFiles="$(ProjectDir)ExampleDescriptionFiles/ExampleUnitLevelTestDescriptions.json" DestinationFolder="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input" />
+	</Target>
+	<Target Name="AdaptConfigFilesRP" AfterTargets="Build" Condition=" '$(Configuration)' == 'ReleasePublish' ">
+		<ReplaceFileText InputFileName="$(ProjectDir)../RoboClerk/$(OutDir)RoboClerk_input/PluginConfig/TestDescriptionFilePlugin.toml" MatchExpression="{PROJECTROOT}" ReplacementText="/mnt/" />
+	</Target>
+
+</Project>

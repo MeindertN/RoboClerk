@@ -36,6 +36,12 @@ namespace RoboClerk.ContentCreators
                 case "TESTCASE":
                     eliminatedItems.AddRange(data.GetAllEliminatedSoftwareSystemTests());
                     break;
+                case "UNITTEST":
+                    eliminatedItems.AddRange(data.GetAllEliminatedUnitTests());
+                    break;
+                case "TESTRESULT":
+                    eliminatedItems.AddRange(data.GetAllEliminatedTestResults());
+                    break;
                 case "RISK":
                     eliminatedItems.AddRange(data.GetAllEliminatedRisks());
                     break;
@@ -58,6 +64,8 @@ namespace RoboClerk.ContentCreators
                     eliminatedItems.AddRange(data.GetAllEliminatedDocContents());
                     eliminatedItems.AddRange(data.GetAllEliminatedAnomalies());
                     eliminatedItems.AddRange(data.GetAllEliminatedSOUP());
+                    eliminatedItems.AddRange(data.GetAllEliminatedUnitTests());
+                    eliminatedItems.AddRange(data.GetAllEliminatedTestResults());
                     break;
             }
 

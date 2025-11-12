@@ -26,5 +26,8 @@ namespace RoboClerk
         IEnumerable<EliminatedSOUPItem> GetEliminatedSOUP();
         IEnumerable<EliminatedAnomalyItem > GetEliminatedAnomalies();
         IEnumerable<EliminatedDocContentItem> GetEliminatedDocContents();
+        IEnumerable<EliminatedTestResult> GetEliminatedTestResults();
+        IEnumerable<EliminatedUnitTestItem> GetEliminatedUnitTests();
+        void EliminateItem(string itemId, string reason, EliminationReason eliminationType);
     }
 }

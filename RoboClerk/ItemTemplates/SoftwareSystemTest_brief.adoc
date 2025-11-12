@@ -1,0 +1,53 @@
+﻿[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+using RoboClerk;
+using System.Linq;
+
+TraceEntity te = SourceTraceEntity;
+
+bool showResults = GetTagParameter("showResults","no").ToUpper() == "TRUE";
+
+string softwareRequirementName = TraceabilityAnalysis.GetTitleForTraceEntity("SoftwareRequirement");
+
+string CreateTopRow()
+{
+	if (showResults)
+		return $"| *{te.Name} ID* | *{te.Name} Description* | *Linked {softwareRequirementName}s*  | *Actual Result* | *Timestamp* \n";
+	else
+		return $"| *{te.Name} ID* | *{te.Name} Description* | *Linked {softwareRequirementName}s* \n";
+}
+
+string CreateRows()
+{
+	System.Text.StringBuilder sb = new System.Text.StringBuilder();
+	foreach( var item in Items)
+	{
+		SoftwareSystemTestItem st = (SoftwareSystemTestItem)item;
+		AddTrace(st.ItemID);
+
+		//find all requirements traced to this test and get them ready for display
+		System.Text.StringBuilder reqs = new System.Text.StringBuilder();
+		foreach( var req in GetLinkedItems(st, ItemLinkType.Tests) )
+		{
+			if (reqs.Length > 0)
+				reqs.Append(", ");
+			reqs.Append(GetItemLinkString(req));
+		}
+
+		if (showResults)
+		{
+			var resultItems = GetLinkedItems(st, ItemLinkType.Result);
+			var testResult = resultItems.FirstOrDefault() as TestResult;
+			string actualResult = testResult != null ? testResult.ResultStatus.ToString() : "*NO RESULT*";
+			string timestamp = testResult != null ? testResult.ExecutionTime.ToString(@"yyyy-MM-ddTHH:mm:ss") : "N/A";
+			sb.Append($"| {GetItemLinkString(st)} | {st.ItemTitle} | {(reqs.Length==0?"Missing":reqs.ToString())} | {actualResult} | {timestamp} \n\n");
+		}
+		else
+			sb.Append($"| {GetItemLinkString(st)} | {st.ItemTitle} | {(reqs.Length==0?"Missing":reqs.ToString())} \n\n");
+	}
+	return sb.ToString();
+}]|====
+[csx:CreateTopRow()]
+
+[csx:CreateRows()]|====

@@ -1,83 +1,39 @@
-﻿# This is the RoboClerk Annotated Unit Test analysis plugin. Using this plugin,
-# information can be extracted from the unit test source code files. This plugin 
-# assumes that the test plan can be created from information extracted from the
-# function annotation. This plugin is general enough to be configure for use with
-# annotations/attributes/decorations in languages like C#, Java, Python etc.
-# Note that RoboClerk comes with a UnitTestAttribute class that can serve as an
-# example of an annotation that works well with this plugin.
-
-# Directories where RoboClerk should search for unit tests
-
-TestDirectories = ["{PROJECTROOT}RoboClerk.Tests"]
-
-# set to true to include subdirs 
-
-SubDirs = true
-
-# Set the filemasks that will be used to match files
-
-FileMasks = ["Test*.cs"]
-
-# Use git to determine the version and time of last update for a given unit test
-# file. Be careful enabling this because if files are not in a git repository 
-# this will cause errors.
-
+﻿# Use git metadata if available
 UseGit = true
 
-# String that marks the beginning of the annotation (e.g. "[NameOfAttribute" for C#)
+# Multiple test configurations - each can have its own directory, subdirs, filemasks, project, language, and annotation
+[[TestConfigurations]]
+Language = "csharp" # One language per config: csharp | java | python | typescript | javascript
+TestDirectory = "{PROJECTROOT}RoboClerk.Tests" # Directory to scan and file masks (same semantics as your base class)
+SubDirs = true # include subdirectories when scanning for test files
+FileMasks = ["Test*.cs"] # File masks to identify test files
+AnnotationName = "UnitTestAttribute" # Which annotation/decorator names should count as unit tests
+Project = "RoboClerk" # The name of the project to associate the tests with. Can be empty.
 
-DecorationMarker = "[UnitTestAttribute"
+# you can have as many of these as you like, for different languages/projects
 
-# String that marks the beginning of the parameter section of the annotation (e.g. "(" for C#)
-# Note that parameter here means one or more of: parameterName = "string value of the parameter" 
+# Example configuration for a different language
+# [[TestConfigurations]]
+# Language = "python"
+# TestDirectory = "c:\temp\pythontests" 
+# SubDirs = true 
+# FileMasks = ["*_test.py", "test_*.py"]
+# AnnotationName = "pytest.mark.unit" 
+# Project = "PythonProject" 
 
-ParameterStartDelimiter = "("
-
-# String that marks the end of the parameter section of the annotation (e.g. ")" for C#)
-
-ParameterEndDelimiter = ")"
-
-# String that seperates parameters from each other (e.g. "," for C#)
-
-ParameterSeparator = ","
-
-# This plugin supports extracting the following information:
-# Purpose		= the setup for the test, usually a short description
-# PostCondition = the successful (expected) postcondition for the test
-# Identifier	= a unique identifier for the unit test, if no unique identifier
-#                 is supplied, Roboclerk will generate one based on the filename
-#                 and line number of the test.
-# TraceID		= a traceable link from this test to a trace entity, for example
-#				  a requirement. The trace would be to the trace entity's ItemID.
-
+# Map annotation/decorator named args to RoboClerk fields
 [Purpose]
-	Keyword = "Purpose"
-	Optional = false
+  Keyword  = "Purpose"
+  Optional = false
 
 [PostCondition]
-	Keyword = "PostCondition"
-	Optional = false
+  Keyword  = "PostCondition"
+  Optional = false
 
 [Identifier]
-	Keyword = "Identifier"
-	Optional = true
+  Keyword  = "Identifier"
+  Optional = true
 
 [TraceID]
-	Keyword = "TraceID"
-	Optional = true
-
-# RoboClerk assumes that after the annotation, the test function name is specified.
-# In order for RoboClerk to be able to extract the function name, you need to specify
-# the starting and ending elements of the function name. RoboClerk will match the first
-# instance with the appropriate startstring and endstring within three lines after 
-# the annotation end.
-# It is assumed that whatever is between the StartString and EndString is the unit
-# test function name. Note that the StartString, the function name
-# and the EndString are all on a single line. Otherwise, no function name will be 
-# detected.
-
-[FunctionName]
-	StartString = "public void "
-	EndString = "("
-
-
+  Keyword  = "TraceID"
+  Optional = true

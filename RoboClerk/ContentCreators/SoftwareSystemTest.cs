@@ -29,14 +29,14 @@ namespace RoboClerk.ContentCreators
                 bool found = false;
                 foreach (var result in results)
                 {
-                    if ( (result.Type == TestResultType.SYSTEM && result.ID == item.ItemID) || 
-                         (item.TestCaseToUnitTest && result.Type == TestResultType.UNIT && 
-                          item.LinkedItems.Any(o => o.LinkType == ItemLinkType.UnitTest && o.TargetID == result.ID)) )
+                    if ( (result.ResultType == TestType.SYSTEM && result.TestID == item.ItemID) || 
+                         (item.TestCaseToUnitTest && result.ResultType == TestType.UNIT && 
+                          item.LinkedItems.Any(o => o.LinkType == ItemLinkType.UnitTest && o.TargetID == result.TestID)) )
                     {
                         found = true;
-                        if (result.Status == TestResultStatus.FAIL)
+                        if (result.ResultStatus == TestResultStatus.FAIL)
                         {
-                            errors.AppendLine($"* Test with ID \"{result.ID}\" has failed.");
+                            errors.AppendLine($"* Test with ID \"{result.TestID}\" has failed.");
                             errorsFound = true;
                         }
                         break;
@@ -51,12 +51,12 @@ namespace RoboClerk.ContentCreators
             }
             foreach (var result in results)
             {
-                if (result.Type != TestResultType.SYSTEM)
+                if (result.ResultType != TestType.SYSTEM)
                     continue;
                 bool found = false;
                 foreach (var item in items)
                 {
-                    if (((SoftwareSystemTestItem)item).TestCaseAutomated && result.ID == item.ItemID)
+                    if (((SoftwareSystemTestItem)item).TestCaseAutomated && result.TestID == item.ItemID)
                     {
                         found = true;
                         break;
@@ -65,7 +65,7 @@ namespace RoboClerk.ContentCreators
                 if (!found)
                 {
                     errorsFound = true;
-                    errors.AppendLine($"* Result for test with ID \"{result.ID}\" found, but test plan does not contain such an automated test.");
+                    errors.AppendLine($"* Result for test with ID \"{result.TestID}\" found, but test plan does not contain such an automated test.");
                 }
             }
             if (errorsFound)
@@ -83,7 +83,8 @@ namespace RoboClerk.ContentCreators
         protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             StringBuilder output = new StringBuilder();
-            var dataShare = new ScriptingBridge(data, analysis, sourceTE);
+            var dataShare = CreateScriptingBridge(tag, sourceTE);
+
             if (tag.HasParameter("CHECKRESULTS") && tag.GetParameterOrDefault("CHECKRESULTS").ToUpper() == "TRUE")
             {
                 //this will go over all SYSTEM test results (if available) and prints a summary statement or a list of found issues.
@@ -91,6 +92,25 @@ namespace RoboClerk.ContentCreators
             }
             else
             {
+                if (tag.HasParameter("BRIEF") && tag.GetParameterOrDefault("BRIEF").ToUpper() == "TRUE")
+                {
+                    //this will print a brief list of all software system tests that Roboclerk knows about
+                    dataShare.Items = items;
+                    var fileBrief = data.GetTemplateFile(@"./ItemTemplates/SoftwareSystemTest_brief.adoc");
+                    var rendererBrief = new ItemTemplateRenderer(fileBrief);
+                    try
+                    {
+                        var result = rendererBrief.RenderItemTemplate(dataShare);
+                        output.Append(result);
+                    }
+                    catch (CompilationErrorException e)
+                    {
+                        logger.Error($"A compilation error occurred while compiling SoftwareSystemTest_brief.adoc script: {e.Message}");
+                        throw;
+                    }
+                    ProcessTraces(docTE, dataShare);
+                    return output.ToString();
+                }
                 var file = data.GetTemplateFile(@"./ItemTemplates/SoftwareSystemTest_automated.adoc");
                 var rendererAutomated = new ItemTemplateRenderer(file);
                 file = data.GetTemplateFile(@"./ItemTemplates/SoftwareSystemTest_manual.adoc");

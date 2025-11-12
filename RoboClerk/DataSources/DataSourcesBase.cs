@@ -32,7 +32,11 @@ namespace RoboClerk
 
         public abstract List<TestResult> GetAllTestResults();
 
+        public abstract List<EliminatedTestResult> GetAllEliminatedTestResults();
+
         public abstract List<UnitTestItem> GetAllUnitTests();
+
+        public abstract List<EliminatedUnitTestItem> GetAllEliminatedUnitTests();
 
         public abstract List<RequirementItem> GetAllSoftwareRequirements();
 
@@ -76,6 +80,10 @@ namespace RoboClerk
             {
                 return GetAllUnitTests().Cast<LinkedItem>().ToList();
             }
+            else if (te.ID == "TestResult")
+            {
+                return GetAllTestResults().Cast<LinkedItem>().ToList();
+            }
             else if (te.ID == "Risk")
             {
                 return GetAllRisks().Cast<LinkedItem>().ToList();
@@ -106,6 +114,8 @@ namespace RoboClerk
                         .Concat(GetAllEliminatedAnomalies())
                         .Concat(GetAllEliminatedDocContents())
                         .Concat(GetAllEliminatedSOUP())
+                        .Concat(GetAllEliminatedUnitTests())
+                        .Concat(GetAllEliminatedTestResults())
                         .ToList();
             }
             else
@@ -141,6 +151,12 @@ namespace RoboClerk
         public UnitTestItem GetUnitTest(string id)
         {
             var items = GetAllUnitTests();
+            return items.Find(f => (f.ItemID == id));
+        }
+
+        public EliminatedUnitTestItem GetEliminatedUnitTest(string id)
+        {
+            var items = GetAllEliminatedUnitTests();
             return items.Find(f => (f.ItemID == id));
         }
 
@@ -248,6 +264,11 @@ namespace RoboClerk
             if ((idx = utest.FindIndex(o => o.ItemID == id)) >= 0)
             {
                 return utest[idx];
+            }
+            var testResults = GetAllTestResults();
+            if ((idx = testResults.FindIndex(o => o.ItemID == id)) >= 0)
+            {
+                return testResults[idx];
             }
             var anomalies = GetAllAnomalies();
             if ((idx = anomalies.FindIndex(o => o.ItemID == id)) >= 0)

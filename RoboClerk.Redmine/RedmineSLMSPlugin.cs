@@ -322,7 +322,7 @@ namespace RoboClerk.Redmine
                     EliminationReason.IgnoredLinkTarget));
             }
 
-            var(keptTCs, eliminatedTCs) = CheckForLinkedItem(retrievedIDs, testCases, new List<ItemLinkType> { ItemLinkType.Parent, ItemLinkType.Related });
+            var(keptTCs, eliminatedTCs) = CheckForLinkedItem(retrievedIDs, testCases, new List<ItemLinkType> { ItemLinkType.Tests });
             testCases = keptTCs;
             foreach (var item in eliminatedTCs)
             {
@@ -359,52 +359,12 @@ namespace RoboClerk.Redmine
             TrimLinkedItems(soup, retrievedIDs);
             TrimLinkedItems(docContents, retrievedIDs);
         }
-
-        private List<TestStep> GetTestSteps(string testDescription)
-        {
-            string[] lines = testDescription.Split('\n');
-            List<TestStep> output = new List<TestStep>();
-            bool thenFound = false;
-            foreach (var line in lines)
-            {
-                if (string.IsNullOrWhiteSpace(line))
-                {
-                    continue; //skip empty lines
-                }
-                if (!line.ToUpper().Contains("THEN:") && !thenFound)
-                {
-                    output.Add(new TestStep((output.Count + 1).ToString(), line, string.Empty));
-                }
-                else
-                {
-                    if (!thenFound)
-                    {
-                        thenFound = true;
-                        output[output.Count - 1].ExpectedResult = line;
-                    }
-                    else if (line.ToUpper().Contains("WHEN:"))
-                    {
-                        output.Add(new TestStep((output.Count + 1).ToString(), line, string.Empty));
-                        thenFound = false;
-                    }
-                    else if (!line.ToUpper().Contains("AND:"))
-                    {
-                        output[output.Count - 1].ExpectedResult = output[output.Count - 1].ExpectedResult + '\n' + line;
-                    }
-                    else
-                    {
-                        output.Add(new TestStep((output.Count + 1).ToString(), string.Empty, line));
-                    }
-                }
-            }
-            return output;
-        }
-
         protected SoftwareSystemTestItem CreateTestCase(List<RedmineIssue> issues, RedmineIssue redmineItem)
         {
             logger.Debug($"Creating test case item: {redmineItem.Id}");
             SoftwareSystemTestItem resultItem = new SoftwareSystemTestItem();
 
+            resultItem.ItemProject = redmineItem.Project.Name ?? string.Empty;
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
@@ -421,7 +381,7 @@ namespace RoboClerk.Redmine
             }
             logger.Debug($"Getting test steps for item: {redmineItem.Id}");
             string itemDescription = redmineItem.Description ?? string.Empty;
-            var testCaseSteps = GetTestSteps(convertTextile ? converter.ConvertTextile2AsciiDoc(itemDescription) : itemDescription);
+            var testCaseSteps = SoftwareSystemTestItem.GetTestSteps(convertTextile ? converter.ConvertTextile2AsciiDoc(itemDescription) : itemDescription);
             foreach (var testCaseStep in testCaseSteps)
             {
                 resultItem.AddTestCaseStep(testCaseStep);
@@ -453,14 +413,15 @@ namespace RoboClerk.Redmine
             }
 
             AddLinksToItem(redmineItem, resultItem);
-            //any software requirements are treated as parents, regardless of the link type
+            //ensure that the relationships to requirements are of type "Tests"
             foreach (var link in resultItem.LinkedItems)
             {
                 foreach (var issue in issues)
                 {
                     if (issue.Id.ToString() == link.TargetID && issue.Tracker.Name == SrsConfig.Name)
                     {
-                        link.LinkType = ItemLinkType.Parent;
+                        link.LinkType = ItemLinkType.Tests;
+                        break;
                     }
                 }
             }
@@ -473,6 +434,7 @@ namespace RoboClerk.Redmine
             logger.Debug($"Creating DocContent item: {redmineItem.Id}");
             DocContentItem resultItem = new DocContentItem();
 
+            resultItem.ItemProject = redmineItem.Project.Name ?? string.Empty;
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
@@ -507,6 +469,7 @@ namespace RoboClerk.Redmine
             logger.Debug($"Creating SOUP item: {redmineItem.Id}");
             SOUPItem resultItem = new SOUPItem();
 
+            resultItem.ItemProject = redmineItem.Project.Name ?? string.Empty;
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.ItemRevision = redmineItem.UpdatedOn.ToString();
             resultItem.ItemLastUpdated = (DateTime)redmineItem.UpdatedOn;
@@ -593,6 +556,7 @@ namespace RoboClerk.Redmine
                 resultItem.AnomalyAssignee = string.Empty;
             }
 
+            resultItem.ItemProject = redmineItem.Project.Name ?? string.Empty;
             resultItem.ItemID = redmineItem.Id.ToString();
             resultItem.AnomalyJustification = string.Empty;
             resultItem.AnomalySeverity = string.Empty;
@@ -636,6 +600,8 @@ namespace RoboClerk.Redmine
         {
             logger.Debug($"Creating risk item: {redmineItem.Id}");
             RiskItem resultItem = new RiskItem();
+
+            resultItem.ItemProject = redmineItem.Project.Name ?? string.Empty;
             resultItem.ItemCategory = "Unknown";
             resultItem.ItemStatus = redmineItem.Status.Name ?? string.Empty;
             resultItem.ItemID = redmineItem.Id.ToString();
@@ -843,6 +809,8 @@ namespace RoboClerk.Redmine
         {
             logger.Debug($"Creating requirement item: {redmineItem.Id}");
             RequirementItem resultItem = new RequirementItem(requirementType);
+
+            resultItem.ItemProject = redmineItem.Project.Name ?? string.Empty;
             resultItem.ItemCategory = "Unknown";
             if (redmineItem.CustomFields.Count != 0)
             {
@@ -890,6 +858,18 @@ namespace RoboClerk.Redmine
             }
 
             AddLinksToItem(redmineItem, resultItem);
+
+            //ensure that the relationships to SoftwareSystemTests are of type "TestedBy"
+            foreach (var link in resultItem.LinkedItems)
+            {
+                foreach (var issue in issues)
+                {
+                    if (issue.Id.ToString() == link.TargetID && issue.Tracker.Name == TcConfig.Name)
+                    {
+                        link.LinkType = ItemLinkType.TestedBy;
+                    }
+                }
+            }
             return resultItem;
         }
 

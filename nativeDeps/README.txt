@@ -1,0 +1,1 @@
+These are native libraries used for the treesitter library. The original nuget package, TreeSitter.DotNet, did not come with MUSL based Linux binaries that the RoboClerk docker container needs. These are packaged separately after being built in the RoboClerk docker container.

@@ -16,7 +16,7 @@ namespace RoboClerk.ContentCreators
         protected override string GenerateADocContent(RoboClerkTag tag, List<LinkedItem> items, TraceEntity te, TraceEntity docTE)
         {
             StringBuilder output = new StringBuilder();
-            var dataShare = new ScriptingBridge(data, analysis, te);
+            var dataShare = CreateScriptingBridge(tag, te);
             var file = data.GetTemplateFile(@"./ItemTemplates/Anomaly.adoc");
             var renderer = new ItemTemplateRenderer(file);
             bool anomalyRendered = false;

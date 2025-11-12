@@ -24,10 +24,8 @@ namespace RoboClerk.Tests
         }
 
         public List<UnitTestItem> UnitTests => unitTests;
-        public List<string> Directories => directories;
-        public List<string> FileMasks => fileMasks;
+        public IReadOnlyList<RoboClerk.TestConfiguration> Configurations => TestConfigurations;
         public GitRepository GitInfo => gitRepo;
-        public bool SubDir => subDir;
         public List<string> SourceFiles => sourceFiles;
 
         public override void RefreshItems()
@@ -52,17 +50,39 @@ namespace RoboClerk.Tests
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 tomlFile = @"
-TestDirectories = [""/C/RoboClerkTest"",""/C/RoboClerkTest2""]
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""/C/RoboClerkTest""
 SubDirs = true
 FileMasks = [""Test*.cs""]
+Project = ""TestProject1""
+
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""/C/RoboClerkTest2""
+SubDirs = true
+FileMasks = [""Test*.cs""]
+Project = ""TestProject2""
+
 UseGit = false";
             }
             else
             {
                 tomlFile = @"
-TestDirectories = [""C:\\RoboClerkTest"",""C:\\RoboClerkTest2""]
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""C:\\RoboClerkTest""
 SubDirs = true
 FileMasks = [""Test*.cs""]
+Project = ""TestProject1""
+
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""C:\\RoboClerkTest2""
+SubDirs = true
+FileMasks = [""Test*.cs""]
+Project = ""TestProject2""
+
 UseGit = false";
             }
 
@@ -83,20 +103,10 @@ UseGit = false";
 
         [UnitTestAttribute(
         Identifier = "FEDA10DA-717C-47C2-9933-9F304C935B93",
-        Purpose = "SourceCodeAnalysisPlugin is \"created\"",
+        Purpose = "SourceCodeAnalysisPlugin is created",
         PostCondition = "No exception is thrown")]
         [Test]
         public void CreateSourceCodeAnalysisPlugin()
-        {
-            var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
-        }
-
-        [UnitTestAttribute(
-        Identifier = "C4FC7062-B3F4-4EDE-A902-3CC936E0E088",
-        Purpose = "",
-        PostCondition = "")]
-        [Test]
-        public void TestEmptyAnnotationFields()
         {
             var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
         }
@@ -111,12 +121,18 @@ UseGit = false";
             var testPlugin = new TestSourceCodeAnalysisPlugin(fs);
             testPlugin.InitializePlugin(config);
 
-            Assert.That(testPlugin.FileMasks.Count, Is.EqualTo(1));
-            Assert.That(testPlugin.FileMasks[0], Is.EqualTo("Test*.cs"));
-            Assert.That(testPlugin.Directories.Count, Is.EqualTo(2));
-            Assert.That(testPlugin.Directories[0], Is.EqualTo(TestingHelpers.ConvertFileName("C:\\RoboClerkTest")));
-            Assert.That(testPlugin.Directories[1], Is.EqualTo(TestingHelpers.ConvertFileName("C:\\RoboClerkTest2")));
-            Assert.That(testPlugin.SubDir);
+            Assert.That(testPlugin.Configurations.Count, Is.EqualTo(2));
+            
+            var config1 = testPlugin.Configurations[0];
+            Assert.That(config1.FileMasks.Count, Is.EqualTo(1));
+            Assert.That(config1.FileMasks[0], Is.EqualTo("Test*.cs"));
+            Assert.That(config1.TestDirectory, Is.EqualTo(TestingHelpers.ConvertFileName("C:\\RoboClerkTest")));
+            Assert.That(config1.SubDirs);
+            Assert.That(config1.Project, Is.EqualTo("TestProject1"));
+            
+            var config2 = testPlugin.Configurations[1];
+            Assert.That(config2.TestDirectory, Is.EqualTo(TestingHelpers.ConvertFileName("C:\\RoboClerkTest2")));
+            Assert.That(config2.Project, Is.EqualTo("TestProject2"));
         }
 
         [UnitTestAttribute(
@@ -130,17 +146,39 @@ UseGit = false";
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 tomlFile = @"
-TestDirectories = [""/C/RoboClerkTest"",""/C/RoboClerkTest2""]
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""/C/RoboClerkTest""
 SubDirs = false
 FileMasks = [""Test*.cs""]
+Project = ""TestProject1""
+
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""/C/RoboClerkTest2""
+SubDirs = false
+FileMasks = [""Test*.cs""]
+Project = ""TestProject2""
+
 UseGit = false";
             }
             else
             {
                 tomlFile = @"
-TestDirectories = [""C:\\RoboClerkTest"",""C:\\RoboClerkTest2""]
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""C:\\RoboClerkTest""
 SubDirs = false
 FileMasks = [""Test*.cs""]
+Project = ""TestProject1""
+
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""C:\\RoboClerkTest2""
+SubDirs = false
+FileMasks = [""Test*.cs""]
+Project = ""TestProject2""
+
 UseGit = false";
             }
 
@@ -166,17 +204,39 @@ UseGit = false";
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 tomlFile = @"
-TestDirectories = [""/C/RoboClerkTest"",""/C/RoboClerkTest2""]
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""/C/RoboClerkTest""
 SubDirs = true
 FileMasks = [""Test*.cs""]
+Project = ""TestProject1""
+
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""/C/RoboClerkTest2""
+SubDirs = true
+FileMasks = [""Test*.cs""]
+Project = ""TestProject2""
+
 UseGit = false";
             }
             else
             {
                 tomlFile = @"
-TestDirectories = [""C:\\RoboClerkTest"",""C:\\RoboClerkTest2""]
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""C:\\RoboClerkTest""
 SubDirs = true
 FileMasks = [""Test*.cs""]
+Project = ""TestProject1""
+
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""C:\\RoboClerkTest2""
+SubDirs = true
+FileMasks = [""Test*.cs""]
+Project = ""TestProject2""
+
 UseGit = false";
             }
 
@@ -203,17 +263,39 @@ UseGit = false";
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 tomlFile = @"
-TestDirectories = [""/C/RoboClerkTest"",""/C/RoboClerkTest2""]
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""/C/RoboClerkTest""
 SubDirs = false
 FileMasks = [""Test*.cs"",""Test*.txt""]
+Project = ""TestProject1""
+
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""/C/RoboClerkTest2""
+SubDirs = false
+FileMasks = [""Test*.cs""]
+Project = ""TestProject2""
+
 UseGit = false";
             }
             else
             {
                 tomlFile = @"
-TestDirectories = [""C:\\RoboClerkTest"",""C:\\RoboClerkTest2""]
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""C:\\RoboClerkTest""
 SubDirs = false
 FileMasks = [""Test*.cs"",""Test*.txt""]
+Project = ""TestProject1""
+
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""C:\\RoboClerkTest2""
+SubDirs = false
+FileMasks = [""Test*.cs""]
+Project = ""TestProject2""
+
 UseGit = false";
             }
 
@@ -240,17 +322,39 @@ UseGit = false";
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 tomlFile = @"
-TestDirectories = [""/C/RoboClerkTest"",""/C/RoboClerkTest3""]
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""/C/RoboClerkTest""
 SubDirs = false
 FileMasks = [""Test*.cs"",""Test*.txt""]
+Project = ""TestProject1""
+
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""/C/RoboClerkTest3""
+SubDirs = false
+FileMasks = [""Test*.cs""]
+Project = ""TestProject2""
+
 UseGit = false";
             }
             else
             {
                 tomlFile = @"
-TestDirectories = [""C:\\RoboClerkTest"",""C:\\RoboClerkTest3""]
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""C:\\RoboClerkTest""
 SubDirs = false
 FileMasks = [""Test*.cs"",""Test*.txt""]
+Project = ""TestProject1""
+
+[[TestConfigurations]]
+Language = ""csharp""
+TestDirectory = ""C:\\RoboClerkTest3""
+SubDirs = false
+FileMasks = [""Test*.cs""]
+Project = ""TestProject2""
+
 UseGit = false";
             }
 

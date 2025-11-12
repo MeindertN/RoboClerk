@@ -12,6 +12,7 @@ namespace RoboClerk
         private ITraceabilityAnalysis analysis = null;
         private List<string> traces = new List<string>();
         private List<T> items = new List<T>();
+        private RoboClerkTag currentTag = null;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public ScriptingBridge(IDataSources data, ITraceabilityAnalysis trace, TraceEntity sourceTraceEntity)
@@ -33,6 +34,15 @@ namespace RoboClerk
         {
             get { return items; }
             set { items = (List<T>)value; }
+        }
+
+        /// <summary>
+        /// The RoboClerk tag that triggered the template rendering. Provides access to tag parameters.
+        /// </summary>
+        public RoboClerkTag Tag
+        {
+            get { return currentTag; }
+            set { currentTag = value; }
         }
 
         /// <summary>
@@ -68,6 +78,51 @@ namespace RoboClerk
         /// information in RoboClerk.
         /// </summary>
         public ITraceabilityAnalysis TraceabilityAnalysis { get { return analysis; } }
+
+        /// <summary>
+        /// Gets a parameter value from the current tag, returning the default value if the parameter doesn't exist.
+        /// </summary>
+        /// <param name="parameterName">The name of the parameter to retrieve</param>
+        /// <param name="defaultValue">The default value to return if parameter doesn't exist</param>
+        /// <returns>The parameter value or default value</returns>
+        public string GetTagParameter(string parameterName, string defaultValue = "")
+        {
+            if (currentTag == null)
+            {
+                logger.Warn($"Attempted to get tag parameter '{parameterName}' but no tag is set in ScriptingBridge");
+                return defaultValue;
+            }
+            return currentTag.GetParameterOrDefault(parameterName, defaultValue);
+        }
+
+        /// <summary>
+        /// Checks if the current tag has a specific parameter.
+        /// </summary>
+        /// <param name="parameterName">The name of the parameter to check for</param>
+        /// <returns>True if the parameter exists, false otherwise</returns>
+        public bool HasTagParameter(string parameterName)
+        {
+            if (currentTag == null)
+            {
+                logger.Warn($"Attempted to check for tag parameter '{parameterName}' but no tag is set in ScriptingBridge");
+                return false;
+            }
+            return currentTag.HasParameter(parameterName);
+        }
+
+        /// <summary>
+        /// Gets all parameter names from the current tag.
+        /// </summary>
+        /// <returns>Collection of all parameter names, or empty collection if no tag is set</returns>
+        public IEnumerable<string> GetAllTagParameterNames()
+        {
+            if (currentTag == null)
+            {
+                logger.Warn("Attempted to get all tag parameter names but no tag is set in ScriptingBridge");
+                return Enumerable.Empty<string>();
+            }
+            return currentTag.Parameters;
+        }
 
         /// <summary>
         /// Returns all linked items attached to li with a link type of linkType

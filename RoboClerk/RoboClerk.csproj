@@ -21,7 +21,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
     <PackageReference Include="NLog" Version="5.3.4" />
-    <PackageReference Include="System.IO.Abstractions" Version="21.0.29" />
+    <PackageReference Include="System.IO.Abstractions" Version="22.0.16" />
     <PackageReference Include="Tomlyn" Version="0.17.0" />
   </ItemGroup>
   <ItemGroup>
@@ -69,12 +69,14 @@
 			<ScaffoldDir Include="$(ProjectDir)$(OutDir)RoboClerk_input" />
 			<BashScripts Include="$(ProjectDir)../BashScripts/*" />
 			<DemoDir Include="$(ProjectDir)../Demo" />
+			<LinuxRuntimeDir Include="$(ProjectDir)$(OutDir)runtimes/linux-musl-x64" />
 		</ItemGroup>
 		<MakeDir Directories="$(ProjectDir)../RoboClerkDocker/Publish/scaffolding" />
 		<MakeDir Directories="$(ProjectDir)../RoboClerkDocker/Publish/scaffolding/RoboClerk_output" />
 		<MakeDir Directories="$(ProjectDir)../RoboClerkDocker/Publish/scaffolding/RoboClerk_input" />
 		<RecCopyDir InputDir="@(ScaffoldDir)" OutputDir="$(ProjectDir)../RoboClerkDocker/Publish/scaffolding/RoboClerk_input" />
 		<RecCopyDir InputDir="@(DemoDir)" OutputDir="$(ProjectDir)../RoboClerkDocker/Publish/Demo" />
+		<RecCopyDir InputDir="@(LinuxRuntimeDir)" OutputDir="$(ProjectDir)../RoboClerkDocker/Publish/runtimes/linux-musl-x64" Condition="Exists('$(ProjectDir)$(OutDir)runtimes/linux-musl-x64')" />
 		<Copy SourceFiles="@(RoboClerkFiles)" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish/" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.runtimeconfig.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish" />
 		<Copy SourceFiles="$(ProjectDir)$(OutDir)RoboClerk.deps.json" DestinationFolder="$(ProjectDir)../RoboClerkDocker/Publish" />

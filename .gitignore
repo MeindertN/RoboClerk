@@ -249,3 +249,6 @@ _Pvt_Extensions
 /coverage.info
 /dependencies.txt
 /Documentation/html
+/RoboClerk.Core/ContentCreators/RiskTable.cs
+/RoboClerk.Core/ContentCreators/TraceabilityMatrix.cs
+/RoboClerk.Core/ContentCreators/WorkChart.cs
