@@ -17,7 +17,7 @@ namespace RoboClerk.ContentCreators
 
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
-            var dataShare = new ScriptingBridge(data, analysis, sourceTE, configuration);
+            var dataShare = CreateScriptingBridge(tag, sourceTE);
 
             // Get all eliminated items based on the type requested
             List<EliminatedLinkedItem> eliminatedItems = new List<EliminatedLinkedItem>();
@@ -36,6 +36,12 @@ namespace RoboClerk.ContentCreators
                     break;
                 case "TESTCASE":
                     eliminatedItems.AddRange(data.GetAllEliminatedSoftwareSystemTests());
+                    break;
+                case "UNITTEST":
+                    eliminatedItems.AddRange(data.GetAllEliminatedUnitTests());
+                    break;
+                case "TESTRESULT":
+                    eliminatedItems.AddRange(data.GetAllEliminatedTestResults());
                     break;
                 case "RISK":
                     eliminatedItems.AddRange(data.GetAllEliminatedRisks());
@@ -59,6 +65,8 @@ namespace RoboClerk.ContentCreators
                     eliminatedItems.AddRange(data.GetAllEliminatedDocContents());
                     eliminatedItems.AddRange(data.GetAllEliminatedAnomalies());
                     eliminatedItems.AddRange(data.GetAllEliminatedSOUP());
+                    eliminatedItems.AddRange(data.GetAllEliminatedUnitTests());
+                    eliminatedItems.AddRange(data.GetAllEliminatedTestResults());
                     break;
             }
 

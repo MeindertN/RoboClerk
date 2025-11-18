@@ -106,6 +106,8 @@ namespace RoboClerk.Tests
             // Assert
             ClassicAssert.IsTrue(content.Contains("| RISK-001 | Risk | Eliminated Risk | Risk elimination reason"));
             ClassicAssert.IsTrue(content.Contains("| SWR-001 | SoftwareRequirement | Eliminated Software Requirement | Software requirement elimination reason"));
+            ClassicAssert.IsTrue(content.Contains("| UT-001 | UnitTest | Eliminated Unit Test | Unit test elimination reason"));
+            ClassicAssert.IsTrue(content.Contains("| TestResult | Eliminated Test Result | Test result elimination reason"));
         }
 
         [Test]
@@ -182,6 +184,46 @@ namespace RoboClerk.Tests
             // Assert
             ClassicAssert.IsTrue(content.Contains("| TEST-001 | SoftwareSystemTest | Eliminated Test Case | Test case elimination reason"));
             ClassicAssert.IsFalse(content.Contains("SWR-001"));
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "91fac4a3-eefc-4de5-a75e-57a842337e78",
+            Purpose = "Test that GetContent handles UNITTEST type parameter",
+            PostCondition = "Content is generated based only on eliminated unit tests")]
+        public void TestEliminatedContentCreator_UnitTestType()
+        {
+            // Arrange
+            SetupUnitTestEliminatedItemsMock();
+            tag = new RoboClerkTextTag(0, 33, "@@SLMS:Eliminated(TYPE=UNITTEST)@@", true);
+
+            // Act
+            string content = eliminatedContentCreator.GetContent(tag, documentConfig);
+
+            // Assert
+            ClassicAssert.IsTrue(content.Contains("| UT-001 | UnitTest | Eliminated Unit Test | Unit test elimination reason"));
+            ClassicAssert.IsFalse(content.Contains("SWR-001"));
+            ClassicAssert.IsFalse(content.Contains("TR-001"));
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "583e5aac-aa09-4f56-ad4a-8a977502dd0b",
+            Purpose = "Test that GetContent handles TESTRESULT type parameter",
+            PostCondition = "Content is generated based only on eliminated test results")]
+        public void TestEliminatedContentCreator_TestResultType()
+        {
+            // Arrange
+            SetupTestResultEliminatedItemsMock();
+            tag = new RoboClerkTextTag(0, 36, "@@SLMS:Eliminated(TYPE=TESTRESULT)@@", true);
+
+            // Act
+            string content = eliminatedContentCreator.GetContent(tag, documentConfig);
+
+            // Assert
+            ClassicAssert.IsTrue(content.Contains("| TestResult | Eliminated Test Result | Test result elimination reason"));
+            ClassicAssert.IsFalse(content.Contains("SWR-001"));
+            ClassicAssert.IsFalse(content.Contains("UT-001"));
         }
 
         [Test]
@@ -277,6 +319,106 @@ namespace RoboClerk.Tests
             // Assert
             ClassicAssert.IsTrue(content.Contains("| RISK-001 | Risk | Eliminated Risk | Risk elimination reason"));
             ClassicAssert.IsTrue(content.Contains("| SWR-001 | SoftwareRequirement | Eliminated Software Requirement | Software requirement elimination reason"));
+            ClassicAssert.IsTrue(content.Contains("| UT-001 | UnitTest | Eliminated Unit Test | Unit test elimination reason"));
+            ClassicAssert.IsTrue(content.Contains("| TestResult | Eliminated Test Result | Test result elimination reason"));
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "A15BBB15-5678-9012-3456-IJKLMNOPQRST",
+            Purpose = "Test that GetContent handles mixed elimination reasons for unit tests",
+            PostCondition = "Unit tests with different elimination reasons are properly displayed")]
+        public void TestEliminatedContentCreator_UnitTestMixedReasons()
+        {
+            // Arrange
+            var unitTest1 = new UnitTestItem
+            {
+                ItemID = "UT-FILTERED",
+                ItemTitle = "Filtered Unit Test",
+                UnitTestPurpose = "Test purpose",
+                UnitTestFileName = "TestFile.cs",
+                UnitTestFunctionName = "TestMethod"
+            };
+
+            var unitTest2 = new UnitTestItem
+            {
+                ItemID = "UT-MISSING-LINK",
+                ItemTitle = "Unit Test with Missing Link",
+                UnitTestPurpose = "Another test purpose",
+                UnitTestFileName = "AnotherTest.cs",
+                UnitTestFunctionName = "AnotherMethod"
+            };
+
+            var eliminatedUT1 = new EliminatedUnitTestItem(
+                unitTest1,
+                "Filtered by test category",
+                EliminationReason.FilteredOut
+            );
+
+            var eliminatedUT2 = new EliminatedUnitTestItem(
+                unitTest2,
+                "Parent requirement was eliminated",
+                EliminationReason.LinkedItemMissing
+            );
+
+            var unitTestList = new List<EliminatedUnitTestItem> { eliminatedUT1, eliminatedUT2 };
+            
+            SetupNoEliminatedItemsMock();
+            dataSources.GetAllEliminatedUnitTests().Returns(unitTestList);
+            // Mock GetItems to return the correct list for Eliminated trace entity
+            dataSources.GetItems(Arg.Is<TraceEntity>(te => te.ID == "Eliminated")).Returns(unitTestList.Cast<LinkedItem>().ToList());
+            
+            tag = new RoboClerkTextTag(0, 33, "@@SLMS:Eliminated(TYPE=UNITTEST)@@", true);
+
+            // Act
+            string content = eliminatedContentCreator.GetContent(tag, documentConfig);
+
+            // Assert
+            ClassicAssert.IsTrue(content.Contains("| UT-FILTERED | UnitTest | Filtered Unit Test | Filtered by test category"));
+            ClassicAssert.IsTrue(content.Contains("| UT-MISSING-LINK | UnitTest | Unit Test with Missing Link | Parent requirement was eliminated"));
+        }
+
+        [Test]
+        [UnitTestAttribute(
+            Identifier = "d6682fe8-bdc8-49ed-9605-6e004cdefe87",
+            Purpose = "Test that GetContent handles mixed elimination reasons for test results",
+            PostCondition = "Test results with different elimination reasons are properly displayed")]
+        public void TestEliminatedContentCreator_TestResultMixedReasons()
+        {
+            // Arrange
+            var testResult1 = new TestResult("TR-OUTDATED", TestType.UNIT, TestResultStatus.PASS, "Outdated Test", "All good", DateTime.Now);
+            testResult1.ItemTitle = "Outdated Test Result";
+
+            var testResult2 = new TestResult("TR-IGNORED", TestType.SYSTEM, TestResultStatus.FAIL, "Ignored Test", "Failed", DateTime.Now);
+            testResult2.ItemTitle = "Ignored Test Result";
+
+            var eliminatedTR1 = new EliminatedTestResult(
+                testResult1,
+                "Test result from previous version",
+                EliminationReason.FilteredOut
+            );
+
+            var eliminatedTR2 = new EliminatedTestResult(
+                testResult2,
+                "Test case was eliminated",
+                EliminationReason.IgnoredLinkTarget
+            );
+
+            var testResultList = new List<EliminatedTestResult> { eliminatedTR1, eliminatedTR2 };
+            
+            SetupNoEliminatedItemsMock();
+            dataSources.GetAllEliminatedTestResults().Returns(testResultList);
+            // Mock GetItems to return the correct list for Eliminated trace entity
+            dataSources.GetItems(Arg.Is<TraceEntity>(te => te.ID == "Eliminated")).Returns(testResultList.Cast<LinkedItem>().ToList());
+            
+            tag = new RoboClerkTextTag(0, 36, "@@SLMS:Eliminated(TYPE=TESTRESULT)@@", true);
+
+            // Act
+            string content = eliminatedContentCreator.GetContent(tag, documentConfig);
+
+            // Assert
+            ClassicAssert.IsTrue(content.Contains("| TestResult | Outdated Test Result | Test result from previous version"));
+            ClassicAssert.IsTrue(content.Contains("| TestResult | Ignored Test Result | Test case was eliminated"));
         }
 
         // Helper methods to set up different mocks
@@ -293,9 +435,57 @@ namespace RoboClerk.Tests
             dataSources.GetAllEliminatedDocContents().Returns(new List<EliminatedDocContentItem>());
             dataSources.GetAllEliminatedAnomalies().Returns(new List<EliminatedAnomalyItem>());
             dataSources.GetAllEliminatedSOUP().Returns(new List<EliminatedSOUPItem>());
+            dataSources.GetAllEliminatedUnitTests().Returns(new List<EliminatedUnitTestItem>());
+            dataSources.GetAllEliminatedTestResults().Returns(new List<EliminatedTestResult>());
 
             // Mock the critical GetItems method for empty lists
             dataSources.GetItems(Arg.Any<TraceEntity>()).Returns(emptyList);
+        }
+
+        private void SetupUnitTestEliminatedItemsMock()
+        {
+            SetupNoEliminatedItemsMock();
+
+            var unitTest = new UnitTestItem
+            {
+                ItemID = "UT-001",
+                ItemTitle = "Eliminated Unit Test",
+                UnitTestPurpose = "Test purpose that was eliminated",
+                UnitTestFileName = "EliminatedTest.cs",
+                UnitTestFunctionName = "EliminatedTestMethod"
+            };
+
+            var eliminatedUnitTest = new EliminatedUnitTestItem(
+                unitTest,
+                "Unit test elimination reason",
+                EliminationReason.FilteredOut
+            );
+
+            var unitTestList = new List<EliminatedUnitTestItem> { eliminatedUnitTest };
+            dataSources.GetAllEliminatedUnitTests().Returns(unitTestList);
+
+            // Mock GetItems to return the correct list
+            dataSources.GetItems(Arg.Is<TraceEntity>(te => te.ID == "Eliminated")).Returns(unitTestList.Cast<LinkedItem>().ToList());
+        }
+
+        private void SetupTestResultEliminatedItemsMock()
+        {
+            SetupNoEliminatedItemsMock();
+
+            var testResult = new TestResult("TR-001", TestType.UNIT, TestResultStatus.PASS, "Eliminated Test Result", "Test passed", DateTime.Now);
+            testResult.ItemTitle = "Eliminated Test Result";
+
+            var eliminatedTestResult = new EliminatedTestResult(
+                testResult,
+                "Test result elimination reason",
+                EliminationReason.FilteredOut
+            );
+
+            var testResultList = new List<EliminatedTestResult> { eliminatedTestResult };
+            dataSources.GetAllEliminatedTestResults().Returns(testResultList);
+
+            // Mock GetItems to return the correct list
+            dataSources.GetItems(Arg.Is<TraceEntity>(te => te.ID == "Eliminated")).Returns(testResultList.Cast<LinkedItem>().ToList());
         }
 
         private void SetupSystemRequirementEliminatedItemsMock()
@@ -510,16 +700,44 @@ namespace RoboClerk.Tests
                 EliminationReason.FilteredOut
             );
 
+            var unitTest = new UnitTestItem
+            {
+                ItemID = "UT-001",
+                ItemTitle = "Eliminated Unit Test",
+                UnitTestPurpose = "Eliminated test purpose"
+            };
+
+            var eliminatedUnitTest = new EliminatedUnitTestItem(
+                unitTest,
+                "Unit test elimination reason",
+                EliminationReason.FilteredOut
+            );
+
+            var testResult = new TestResult("TR-001", TestType.UNIT, TestResultStatus.PASS, "Eliminated Test Result", "Test passed", DateTime.Now);
+            testResult.ItemTitle = "Eliminated Test Result";
+
+            var eliminatedTestResult = new EliminatedTestResult(
+                testResult,
+                "Test result elimination reason",
+                EliminationReason.FilteredOut
+            );
+
             var riskList = new List<EliminatedRiskItem> { eliminatedRisk };
             var swReqList = new List<EliminatedRequirementItem> { eliminatedSwReq };
+            var unitTestList = new List<EliminatedUnitTestItem> { eliminatedUnitTest };
+            var testResultList = new List<EliminatedTestResult> { eliminatedTestResult };
 
             dataSources.GetAllEliminatedRisks().Returns(riskList);
             dataSources.GetAllEliminatedSoftwareRequirements().Returns(swReqList);
+            dataSources.GetAllEliminatedUnitTests().Returns(unitTestList);
+            dataSources.GetAllEliminatedTestResults().Returns(testResultList);
 
             // Mock GetItems to return the combined list
             var combinedList = new List<LinkedItem>();
             combinedList.AddRange(riskList);
             combinedList.AddRange(swReqList);
+            combinedList.AddRange(unitTestList);
+            combinedList.AddRange(testResultList);
 
             dataSources.GetItems(Arg.Is<TraceEntity>(te => te.ID == "Eliminated")).Returns(combinedList);
         }

@@ -20,6 +20,14 @@ namespace RoboClerk.ContentCreators
             this.configuration = configuration;
         }
 
+        protected virtual bool ShouldIncludeItem(Item item, string projectFilter)
+        {
+            if (string.IsNullOrEmpty(projectFilter))
+                return true;
+
+            return string.Equals(item?.ItemProject, projectFilter, StringComparison.OrdinalIgnoreCase);
+        }
+
         private string GetLinkString(Item item)
         {
             string format = configuration.OutputFormat.ToUpper();
@@ -44,6 +52,11 @@ namespace RoboClerk.ContentCreators
             {
                 throw new Exception("Truth source is null, unclear where to start tracing.");
             }
+
+            // Extract project filter parameter
+            string projectFilter = string.Empty;
+            if (tag.HasParameter("ItemProject"))
+                projectFilter = tag.GetParameterOrDefault("ItemProject");
 
             var traceMatrix = analysis.PerformAnalysis(data, truthSource);
 
@@ -71,6 +84,12 @@ namespace RoboClerk.ContentCreators
             for (int index = 0; index < traceMatrix[truthSource].Count; ++index)
             {
                 var row = new List<string>();
+                // Check if the truth source item should be included based on project filter
+                var truthItem = traceMatrix[truthSource][index].FirstOrDefault();
+                if (!ShouldIncludeItem(truthItem, projectFilter))
+                {
+                    continue; // Skip this entire row if the truth item doesn't match the project filter
+                }
                 foreach (var entry in traceMatrix)
                 {
                     if (entry.Value[index].Count == 0)
@@ -80,27 +99,36 @@ namespace RoboClerk.ContentCreators
                     else
                     {
                         StringBuilder combinedString = new StringBuilder();
-                        foreach (Item item in entry.Value[index])
+                        var filteredItems = entry.Value[index].Where(item => ShouldIncludeItem(item, projectFilter)).ToList();
+
+                        if (filteredItems.Count == 0 && !string.IsNullOrEmpty(projectFilter))
                         {
-                            if (item == null)
+                            row.Add("N/A");
+                        }
+                        else
+                        {
+                            foreach (Item item in filteredItems.Count > 0 ? filteredItems : entry.Value[index])
                             {
-                                combinedString.Append("MISSING");
-                            }
-                            else
-                            {
-                                if(entry.Key.EntityType == TraceEntityType.Document)
+                                if (item == null)
                                 {
-                                    combinedString.Append("Trace Present");
+                                    combinedString.Append("MISSING");
                                 }
                                 else
                                 {
-                                    combinedString.Append(GetLinkString(item));
-                                }                                
+                                    if (entry.Key.EntityType == TraceEntityType.Document)
+                                    {
+                                        combinedString.Append("Trace Present");
+                                    }
+                                    else
+                                    {
+                                        combinedString.Append(GetLinkString(item));
+                                    }
+                                }
+                                combinedString.Append(", ");
                             }
-                            combinedString.Append(", ");
+                            combinedString.Remove(combinedString.Length - 2, 2); //remove extra comma and space
+                            row.Add(combinedString.ToString());
                         }
-                        combinedString.Remove(combinedString.Length - 2, 2); //remove extra comma and space
-                        row.Add(combinedString.ToString());
                     }
                 }
                 matrixData.Add(row);
@@ -114,9 +142,13 @@ namespace RoboClerk.ContentCreators
             var truthTraceIssues = analysis.GetTraceIssuesForTruth(truthSource);
             foreach (var issue in truthTraceIssues)
             {
-                traceIssuesFound = true;
                 Item item = data.GetItem(issue.SourceID);
-                traceIssues.Add($"{truthSource.Name} {GetLinkString(item)} is potentially missing a corresponding {issue.Target.Name}.");
+                // Only include trace issues for items that match the project filter
+                if (ShouldIncludeItem(item, projectFilter))
+                {
+                    traceIssuesFound = true;
+                    traceIssues.Add($"{truthSource.Name} {GetLinkString(item)} is potentially missing a corresponding {issue.Target.Name}.");
+                }
             }
 
             foreach (var tet in traceMatrix)
@@ -133,47 +165,51 @@ namespace RoboClerk.ContentCreators
                 var documentTraceIssues = analysis.GetTraceIssuesForDocument(tet.Key);
                 foreach (var issue in documentTraceIssues)
                 {
-                    traceIssuesFound = true;
-                    string sourceTitle = issue.Source.Name;
-                    string targetTitle = issue.Target.Name;
                     Item item = data.GetItem(issue.SourceID);
-                    string sourceID = issue.SourceID;
-                    string targetID = issue.TargetID;
-                    if (item != null)
+                    // Only include trace issues for items that match the project filter
+                    if (ShouldIncludeItem(item, projectFilter))
                     {
-                        sourceID = GetLinkString(item);
-                    }
-                    if (issue.IssueType == TraceIssueType.Extra)
-                    {
-                        traceIssues.Add($"An item with identifier {sourceID} appeared in {sourceTitle} without tracing to {targetTitle}.");
-                    }
-                    else if (issue.IssueType == TraceIssueType.Missing)
-                    {
-                        traceIssues.Add($"An expected trace from {sourceID} in {sourceTitle} to {targetTitle} is missing.");
-                    }
-                    else if (issue.IssueType == TraceIssueType.PossiblyExtra)
-                    {
-                        traceIssues.Add($"A possibly extra item with identifier {sourceID} appeared in {sourceTitle} without appearing in {targetTitle}.");
-                    }
-                    else if (issue.IssueType == TraceIssueType.PossiblyMissing)
-                    {
-                        traceIssues.Add($"A possibly expected trace from {sourceID} in {sourceTitle} to {targetTitle} is missing.");
-                    }
-                    else if (issue.IssueType == TraceIssueType.Incorrect)
-                    {
-                        var targetItem = data.GetItem(targetID);
-                        if (targetItem != null)
+                        traceIssuesFound = true;
+                        string sourceTitle = issue.Source.Name;
+                        string targetTitle = issue.Target.Name;
+                        string sourceID = issue.SourceID;
+                        string targetID = issue.TargetID;
+                        if (item != null)
                         {
-                            targetID = GetLinkString(targetItem);
-                            traceIssues.Add($"An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not found.");
+                            sourceID = GetLinkString(item);
                         }
-                        else if (targetID != null)
+                        if (issue.IssueType == TraceIssueType.Extra)
                         {
-                            traceIssues.Add($"An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not a valid identifier.");
+                            traceIssues.Add($"An item with identifier {sourceID} appeared in {sourceTitle} without tracing to {targetTitle}.");
                         }
-                        else
+                        else if (issue.IssueType == TraceIssueType.Missing)
                         {
-                            traceIssues.Add($"A missing trace was detected in {sourceTitle}. The item with ID {sourceID} does not have a parent while it was expected to trace to {targetTitle}.");
+                            traceIssues.Add($"An expected trace from {sourceID} in {sourceTitle} to {targetTitle} is missing.");
+                        }
+                        else if (issue.IssueType == TraceIssueType.PossiblyExtra)
+                        {
+                            traceIssues.Add($"A possibly extra item with identifier {sourceID} appeared in {sourceTitle} without appearing in {targetTitle}.");
+                        }
+                        else if (issue.IssueType == TraceIssueType.PossiblyMissing)
+                        {
+                            traceIssues.Add($"A possibly expected trace from {sourceID} in {sourceTitle} to {targetTitle} is missing.");
+                        }
+                        else if (issue.IssueType == TraceIssueType.Incorrect)
+                        {
+                            var targetItem = data.GetItem(targetID);
+                            if (targetItem != null)
+                            {
+                                targetID = GetLinkString(targetItem);
+                                traceIssues.Add($"An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not found.");
+                            }
+                            else if (targetID != null)
+                            {
+                                traceIssues.Add($"An incorrect trace was found in {sourceTitle} from {sourceID} to {targetID} where {targetID} was expected in {targetTitle} but was not a valid identifier.");
+                            }
+                            else
+                            {
+                                traceIssues.Add($"A missing trace was detected in {sourceTitle}. The item with ID {sourceID} does not have a parent while it was expected to trace to {targetTitle}.");
+                            }
                         }
                     }
                 }

@@ -23,7 +23,6 @@ namespace RoboClerk.AzureDevOps
         public AzureDevOpsSLMSPlugin(IFileProviderPlugin fileSystem)
             : base(fileSystem)
         {
-            logger.Debug("Azure DevOps SLMS plugin created");
             SetBaseParam();
         }
 

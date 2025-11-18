@@ -37,3 +37,5 @@ RUN chmod +x /home/RoboClerk/generate
 
 # Activate the virtual environment and set it as default for subsequent commands
 ENV PATH="/opt/venv/bin:$PATH"
+# Ensure the native libraries for the treesitter library can be found 
+ENV LD_LIBRARY_PATH="/home/RoboClerk/runtimes/linux-musl-x64/native"

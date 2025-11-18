@@ -76,7 +76,7 @@ namespace RoboClerk.DependenciesFile
         {
             if (!fileProvider.FileExists(filename))
             {
-                logger.Warn($"Cannot find Gradle file \"{filename}\" no dependencies will be loaded from this file.");
+                logger.Warn($"Cannot find dotnet dependencies file \"{filename}\" no dependencies will be loaded from this file.");
                 return;
             }
             foreach (string line in fileProvider.ReadLines(filename))

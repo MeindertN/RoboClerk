@@ -2,8 +2,34 @@
 // this first scripting block can be used to set up any prerequisites
 // pre-calculate fields for later use etc.
 using RoboClerk;
+using System.Linq;
 
 TraceEntity te = SourceTraceEntity;
+
+bool showResults = GetTagParameter("showResults","no").ToUpper() == "TRUE";
+
+string softwareRequirementName = TraceabilityAnalysis.GetTitleForTraceEntity("SoftwareRequirement");
+string softwareSystemTestName = TraceabilityAnalysis.GetTitleForTraceEntity("SoftwareSystemTest");
+
+string CreateHeaderRow()
+{
+	System.Text.StringBuilder header = new System.Text.StringBuilder();
+	header.Append("<tr>");
+	header.Append("<th>File Name</th>");
+	header.Append("<th>Function Name</th>");
+	header.Append($"<th>{te.Name} ID</th>");
+	header.Append($"<th>{te.Name} Purpose</th>");
+	header.Append("<th>Acceptance Criteria</th>");
+	header.Append($"<th>Linked {softwareRequirementName}s</th>");
+	header.Append($"<th>Linked {softwareSystemTestName}s</th>");
+	if (showResults)
+	{
+		header.Append("<th>Result</th>");
+		header.Append("<th>Timestamp</th>");
+	}
+	header.Append("</tr>");
+	return header.ToString();
+}
 
 string CreateRows()
 {
@@ -12,7 +38,60 @@ string CreateRows()
 	{
 		UnitTestItem ut = (UnitTestItem)item;
 		AddTrace(ut.ItemID);
-		sb.Append("<tr><td>" + GetItemLinkString(ut) + "</td><td>" + ut.UnitTestFunctionName + " / " + ut.UnitTestFileName + "</td><td>" + ut.UnitTestPurpose + "</td><td>" + ut.UnitTestAcceptanceCriteria + "</td></tr>");
+
+		//find all requirements and test cases traced to this test and get them ready for display
+		System.Text.StringBuilder reqs = new System.Text.StringBuilder();
+		System.Text.StringBuilder tests = new System.Text.StringBuilder();
+		foreach( var it in GetLinkedItems(ut, ItemLinkType.UnitTests) )
+		{
+			if(it is SoftwareSystemTestItem sst)
+			{
+				if (tests.Length > 0)
+					tests.Append(", ");
+				tests.Append(GetItemLinkString(sst));
+				foreach( var reqit in GetLinkedItems(sst, ItemLinkType.Tests) )
+				{
+					if( reqit is RequirementItem lsri && lsri.TypeOfRequirement==RequirementType.SoftwareRequirement )
+					{
+						if (reqs.Length > 0)
+							reqs.Append(", ");
+						reqs.Append(GetItemLinkString(lsri));
+					}
+				}
+				continue;
+			}
+			if(it is RequirementItem sri && sri.TypeOfRequirement==RequirementType.SoftwareRequirement)
+			{
+				if (reqs.Length > 0)
+					reqs.Append(", ");
+				reqs.Append(GetItemLinkString(sri));
+			}
+		}
+		if (reqs.Length == 0)
+			reqs.Append("N/A");
+		if (tests.Length == 0)
+			tests.Append("N/A");
+
+		sb.Append("<tr>");
+		sb.Append($"<td>{ut.UnitTestFileName}</td>");
+		sb.Append($"<td>{ut.UnitTestFunctionName}</td>");
+		sb.Append($"<td>{GetItemLinkString(ut)}</td>");
+		sb.Append($"<td>{ut.UnitTestPurpose}</td>");
+		sb.Append($"<td>{ut.UnitTestAcceptanceCriteria}</td>");
+		sb.Append($"<td>{reqs.ToString()}</td>");
+		sb.Append($"<td>{tests.ToString()}</td>");
+
+		if (showResults)
+		{
+			var resultItems = GetLinkedItems(ut, ItemLinkType.Result);
+			var testResult = resultItems.FirstOrDefault() as TestResult;
+			string actualResult = testResult != null ? testResult.ResultStatus.ToString() : "<strong>NO RESULT</strong>";
+			string timestamp = testResult != null ? testResult.ExecutionTime.ToString(@"yyyy-MM-ddTHH:mm:ss") : "N/A";
+			sb.Append($"<td>{actualResult}</td>");
+			sb.Append($"<td>{timestamp}</td>");
+		}
+
+		sb.Append("</tr>");
 	}
 	return sb.ToString();
 }
@@ -20,12 +99,7 @@ string CreateRows()
 
 <table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse; margin-bottom: 20px;">
 	<thead>
-		<tr>
-			<th>[csx:te.Name] ID</th>
-			<th>Function / File Name</th>
-			<th>[csx:te.Name] Purpose</th>
-			<th>Acceptance Criteria</th>
-		</tr>
+		[csx:CreateHeaderRow()]
 	</thead>
 	<tbody>
 		[csx:CreateRows()]

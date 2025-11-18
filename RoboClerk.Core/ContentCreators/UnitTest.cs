@@ -26,12 +26,12 @@ namespace RoboClerk.ContentCreators
                 bool found = false;
                 foreach (var result in results)
                 {
-                    if (result.Type == TestResultType.UNIT && result.ID == item.ItemID)
+                    if (result.ResultType == TestType.UNIT && result.TestID == item.ItemID)
                     {
                         found = true;
-                        if (result.Status == TestResultStatus.FAIL)
+                        if (result.ResultStatus == TestResultStatus.FAIL)
                         {
-                            errorItems.Add($"Unit test with ID \"{result.ID}\" has failed.");
+                            errorItems.Add($"Unit test with ID \"{result.TestID}\" has failed.");
                             errorsFound = true;
                         }
                         break;
@@ -46,12 +46,12 @@ namespace RoboClerk.ContentCreators
             
             foreach (var result in results)
             {
-                if (result.Type != TestResultType.UNIT)
+                if (result.ResultType != TestType.UNIT)
                     continue;
                 bool found = false;
                 foreach (var item in items)
                 {
-                    if (result.ID == item.ItemID)
+                    if (result.TestID == item.ItemID)
                     {
                         found = true;
                         break;
@@ -60,7 +60,7 @@ namespace RoboClerk.ContentCreators
                 if (!found)
                 {
                     errorsFound = true;
-                    errorItems.Add($"Result for unit test with ID \"{result.ID}\" found, but test plan does not contain such a unit test.");
+                    errorItems.Add($"Result for unit test with ID \"{result.TestID}\" found, but test plan does not contain such a unit test.");
                 }
             }
 
@@ -124,7 +124,7 @@ namespace RoboClerk.ContentCreators
 
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
-            var dataShare = new ScriptingBridge(data, analysis, sourceTE, configuration);
+            var dataShare = CreateScriptingBridge(tag, sourceTE);
             var extension = (configuration.OutputFormat == "ASCIIDOC" ? "adoc" : "html");
             if (tag.HasParameter("CHECKRESULTS") && tag.GetParameterOrDefault("CHECKRESULTS").ToUpper() == "TRUE")
             {

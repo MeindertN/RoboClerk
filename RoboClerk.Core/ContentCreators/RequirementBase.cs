@@ -21,7 +21,7 @@ namespace RoboClerk.ContentCreators
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity te, TraceEntity docTE)
         {
             StringBuilder output = new StringBuilder();
-            var dataShare = new ScriptingBridge(data, analysis, te,configuration);
+            var dataShare = CreateScriptingBridge(tag, te);
             var extension = (configuration.OutputFormat == "ASCIIDOC" ? "adoc" : "html");
             //configuration.ProjectID will be empty when not running in server mode,
             //otherwise it will contain the unique project identifier

@@ -1,0 +1,28 @@
+# This is the RoboClerk test description file plugin configuration. Using this plugin,
+# test descriptions, both system and unit test descriptions can be read from files. 
+# The plugin is intended to support different file formats.
+
+# Dependencies file locations array, supports multiple files
+
+FileLocations = ["{PROJECTROOT}RoboClerk_input/ExampleSystemLevelTestDescriptions.json","{PROJECTROOT}RoboClerk_input/ExampleUnitLevelTestDescriptions.json"]
+
+# The following formats are supported:
+# JSON - assumes the following format for the contents of the file:
+# [
+#  {
+#    "id": "12264",    <--- REQUIRED unique identifier for the test case
+#    "name": "testLoginSuccess",    <--- REQUIRED name of the test case
+#    "type": "UNIT",    <--- REQUIRED can be either "UNIT" or "SYSTEM"
+#    "description": "Test that verifies successful login functionality",    <--- REQUIRED description of the test case
+#    "trace": ["REQ-001", "REQ-002"],    <--- REQUIRED array of specification ticket numbers
+#    "filename": "LoginTests.cs",    <--- OPTIONAL filename associated with the test case
+#    "purpose": "Verify that valid credentials allow user access",    <--- REQUIRED for UNIT tests, OPTIONAL for SYSTEM tests
+#    "acceptance": "User should be redirected to dashboard after successful login"    <--- REQUIRED for UNIT tests, OPTIONAL for SYSTEM tests
+#    "project": "AuthenticationService"
+#  }
+# ]
+
+# Field Requirements by Test Type:
+# UNIT tests require: id, name, type, description, trace, purpose, acceptance
+# SYSTEM tests require: id, name, type, description, trace
+# Both types optionally support: filename, project

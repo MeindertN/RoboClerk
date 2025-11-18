@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -29,6 +30,8 @@ namespace RoboClerk
         protected List<EliminatedDocContentItem> eliminatedDocContents = new List<EliminatedDocContentItem>();
         protected List<EliminatedSOUPItem> eliminatedSOUP = new List<EliminatedSOUPItem>();
         protected List<EliminatedAnomalyItem> eliminatedAnomalies = new List<EliminatedAnomalyItem>();
+        protected List<EliminatedTestResult> eliminatedTestResults = new List<EliminatedTestResult>();
+        protected List<EliminatedUnitTestItem> eliminatedUnitTests = new List<EliminatedUnitTestItem>();
 
         public DataSourcePluginBase(IFileProviderPlugin fileSystem)
             :base(fileSystem)
@@ -133,6 +136,16 @@ namespace RoboClerk
             return eliminatedSOUP;
         }
 
+        public IEnumerable<EliminatedTestResult> GetEliminatedTestResults()
+        {
+            return eliminatedTestResults;
+        }
+
+        public IEnumerable<EliminatedUnitTestItem> GetEliminatedUnitTests()
+        {
+            return eliminatedUnitTests;
+        }
+
         protected void ClearAllItems()
         {
             systemRequirements.Clear();
@@ -154,6 +167,104 @@ namespace RoboClerk
             eliminatedRisks.Clear();
             eliminatedDocContents.Clear();
             eliminatedAnomalies.Clear();
+            eliminatedTestResults.Clear();
+            eliminatedUnitTests.Clear();
+        }
+
+        public void EliminateItem(string itemID, string reason, EliminationReason eliminationReason)
+        {
+            // Check system requirements
+            var systemReq = systemRequirements.FirstOrDefault(item => item.ItemID == itemID);
+            if (systemReq != null)
+            {
+                systemRequirements.Remove(systemReq);
+                eliminatedSystemRequirements.Add(new EliminatedRequirementItem(systemReq, reason, eliminationReason));
+                return;
+            }
+
+            // Check software requirements
+            var softwareReq = softwareRequirements.FirstOrDefault(item => item.ItemID == itemID);
+            if (softwareReq != null)
+            {
+                softwareRequirements.Remove(softwareReq);
+                eliminatedSoftwareRequirements.Add(new EliminatedRequirementItem(softwareReq, reason, eliminationReason));
+                return;
+            }
+
+            // Check documentation requirements
+            var docReq = documentationRequirements.FirstOrDefault(item => item.ItemID == itemID);
+            if (docReq != null)
+            {
+                documentationRequirements.Remove(docReq);
+                eliminatedDocumentationRequirements.Add(new EliminatedRequirementItem(docReq, reason, eliminationReason));
+                return;
+            }
+
+            // Check software system tests
+            var testCase = testCases.FirstOrDefault(item => item.ItemID == itemID);
+            if (testCase != null)
+            {
+                testCases.Remove(testCase);
+                eliminatedSoftwareSystemTests.Add(new EliminatedSoftwareSystemTestItem(testCase, reason, eliminationReason));
+                return;
+            }
+
+            // Check unit tests
+            var unitTest = unitTests.FirstOrDefault(item => item.ItemID == itemID);
+            if (unitTest != null)
+            {
+                unitTests.Remove(unitTest);
+                eliminatedUnitTests.Add(new EliminatedUnitTestItem(unitTest, reason, eliminationReason));
+                return;
+            }
+
+            // Check risks
+            var risk = risks.FirstOrDefault(item => item.ItemID == itemID);
+            if (risk != null)
+            {
+                risks.Remove(risk);
+                eliminatedRisks.Add(new EliminatedRiskItem(risk, reason, eliminationReason));
+                return;
+            }
+
+            // Check anomalies
+            var anomaly = anomalies.FirstOrDefault(item => item.ItemID == itemID);
+            if (anomaly != null)
+            {
+                anomalies.Remove(anomaly);
+                eliminatedAnomalies.Add(new EliminatedAnomalyItem(anomaly, reason, eliminationReason));
+                return;
+            }
+
+            // Check SOUP items
+            var soupItem = soup.FirstOrDefault(item => item.ItemID == itemID);
+            if (soupItem != null)
+            {
+                soup.Remove(soupItem);
+                eliminatedSOUP.Add(new EliminatedSOUPItem(soupItem, reason, eliminationReason));
+                return;
+            }
+
+            // Check doc content items
+            var docContent = docContents.FirstOrDefault(item => item.ItemID == itemID);
+            if (docContent != null)
+            {
+                docContents.Remove(docContent);
+                eliminatedDocContents.Add(new EliminatedDocContentItem(docContent, reason, eliminationReason));
+                return;
+            }
+
+            // Check test results
+            var testResult = testResults.FirstOrDefault(item => item.ItemID == itemID);
+            if (testResult != null)
+            {
+                testResults.Remove(testResult);
+                eliminatedTestResults.Add(new EliminatedTestResult(testResult, reason, eliminationReason));
+                return;
+            }
+
+            // If we reach here, the item was not found
+            throw new ArgumentException($"Item with ID '{itemID}' not found in any item collection for plugin '{Name}'.");
         }
 
         protected string EscapeNonTablePipes(string text)

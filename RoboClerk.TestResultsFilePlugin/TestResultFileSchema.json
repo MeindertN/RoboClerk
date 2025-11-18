@@ -33,6 +33,11 @@
         "type": "string",
         "format": "date-time",
         "description": "Optional timestamp of when the test was executed"
+      },
+      "project": {
+        "type": "string",
+        "description": "Optional project name",
+        "minLength": 1
       }
     },
     "required": [ "id", "type", "status" ],

@@ -55,6 +55,15 @@ namespace RoboClerk
                     throw new Exception($"Unable to find plugin {val}, please ensure the name of the plugin and plugin directories in the RoboClerk config file are correct.");
                 }
             }
+            //Since items from multiple plugins may reference each other, we need to update all links now.
+            UpdateAllItemLinks();
+        }
+
+        private void UpdateAllItemLinks()
+        {
+            var itemLinkUpdater = new ItemLinkUpdater(this);
+            itemLinkUpdater.UpdateAllItemLinks(plugins);
+
         }
 
         public override void RefreshDataSources()
@@ -125,12 +134,32 @@ namespace RoboClerk
             return results;
         }
 
+        public override List<EliminatedTestResult> GetAllEliminatedTestResults()
+        {
+            var results = new List<EliminatedTestResult>();
+            foreach (var plugin in plugins)
+            {
+                results.AddRange(plugin.GetEliminatedTestResults());
+            }
+            return results;
+        }
+
         public override List<UnitTestItem> GetAllUnitTests()
         {
             var unitTests = new List<UnitTestItem>();
             foreach (var plugin in plugins)
             {
                 unitTests.AddRange(plugin.GetUnitTests());
+            }
+            return unitTests;
+        }
+
+        public override List<EliminatedUnitTestItem> GetAllEliminatedUnitTests()
+        {
+            var unitTests = new List<EliminatedUnitTestItem>();
+            foreach (var plugin in plugins)
+            {
+                unitTests.AddRange(plugin.GetEliminatedUnitTests());
             }
             return unitTests;
         }

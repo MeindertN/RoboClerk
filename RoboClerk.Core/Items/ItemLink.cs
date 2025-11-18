@@ -17,7 +17,11 @@ namespace RoboClerk
         RiskControl, //links from a risk to a risk control
         Risk, //links from a risk control to a risk
         DOC,   //a special link type for linking to a document
+        DocumentedBy, //links from a document back to items it documents
         UnitTest, //special link type for linking to a unit test
+        UnitTests, //special link type for linking from a unit test back to items it tests
+        ResultOf, //links from a test result to the test it is a result of
+        Result, //links from a test to its test result
         None
     };
 

@@ -7,6 +7,7 @@ using RoboClerk.Core.ASCIIDOCSupport;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace RoboClerk.Tests
 {
@@ -213,7 +214,297 @@ namespace RoboClerk.Tests
             Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedValue));
         }
 
+        [UnitTestAttribute(
+        Identifier = "A1B2C3D4-E5F6-7UD0-ABCD-EF1234567890",
+        Purpose = "Test project filtering functionality with matching project",
+        PostCondition = "Only items matching the specified project are included")]
+        [Test]
+        public void TestTraceMatrixWithProjectFilter_MatchingProject()
+        {
+            var trace = new TraceMatrix(dataSources, traceAnalysis, config);
+            
+            // Set up items with different projects
+            var te = traceAnalysis.GetTraceEntityForID("SystemRequirement");
+            var teSWR = traceAnalysis.GetTraceEntityForID("SoftwareRequirement");
+            var teDoc = traceAnalysis.GetTraceEntityForID("SystemRequirementsSpec");
 
+            var sysItem1 = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "SYS1", ItemProject = "ProjectA" };
+            var sysItem2 = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "SYS2", ItemProject = "ProjectB" };
+            var swrItem1 = new RequirementItem(RequirementType.SoftwareRequirement) { ItemID = "SYS1_SWR1", ItemProject = "ProjectA" };
+            var swrItem2 = new RequirementItem(RequirementType.SoftwareRequirement) { ItemID = "SYS1_SWR2", ItemProject = "ProjectA" };
+            var swrItem3 = new RequirementItem(RequirementType.SoftwareRequirement) { ItemID = "SYS2_SWR3", ItemProject = "ProjectB" };
+            var docItem1 = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "SYS1", ItemProject = "ProjectA" };
+            var docItem2 = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "SYS2", ItemProject = "ProjectB" };
+            
+            // Update matrix with project information
+            matrix[te][0][0] = sysItem1;
+            matrix[te][1][0] = sysItem2;
+            matrix[teSWR][0][0] = swrItem1;
+            matrix[teSWR][0][1] = swrItem2;
+            matrix[teSWR][1][0] = swrItem3;
+            matrix[teDoc][0][0] = docItem1;
+            matrix[teDoc][1][0] = docItem2;
+            
+            string tagString = "@@SLMS:TraceMatrix(source=SystemRequirement,ItemProject=ProjectA)@@";
+            var tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
+            string result = trace.GetContent(tag, documentConfig);
+            
+            // Should only contain ProjectA items (SYS1 row only)
+            Assert.That(result.Contains("SYS1"), Is.True);
+            Assert.That(result.Contains("SYS1_SWR1"), Is.True);
+            Assert.That(result.Contains("SYS1_SWR2"), Is.True);
+            Assert.That(result.Contains("SYS2"), Is.False);
+            Assert.That(result.Contains("SYS2_SWR3"), Is.False);
+        }
 
+        [UnitTestAttribute(
+        Identifier = "1F6CB998-7C78-4E8F-8877-EB3D8E918D19",
+        Purpose = "Test project filtering with no matching items",
+        PostCondition = "Empty matrix is generated when no items match the project filter")]
+        [Test]
+        public void TestTraceMatrixWithProjectFilter_NoMatchingItems()
+        {
+            var trace = new TraceMatrix(dataSources, traceAnalysis, config);
+            
+            // Set up items with different projects (none matching filter)
+            var te = traceAnalysis.GetTraceEntityForID("SystemRequirement");
+            matrix[te][0][0].ItemProject = "ProjectB";
+            matrix[te][1][0].ItemProject = "ProjectB";
+            
+            string tagString = "@@SLMS:TraceMatrix(source=SystemRequirement,ItemProject=ProjectA)@@";
+            var tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
+            string result = trace.GetContent(tag, documentConfig);
+            
+            // Should show empty matrix since no items match ProjectA
+            var lines = result.Split('\n');
+            var dataLines = lines.Where(line => line.StartsWith("|") && !line.Contains("====") && !line.Contains("Requirements")).ToArray();
+            Assert.That(dataLines.Length, Is.EqualTo(0), "No data rows should be present when no items match the project filter");
+        }
+
+        [UnitTestAttribute(
+        Identifier = "EF99D0A2-7A0A-4F95-A55C-AC88D56C3DA2",
+        Purpose = "Test project filtering with mixed matching items",
+        PostCondition = "N/A entries are shown for filtered out items within included rows")]
+        [Test]
+        public void TestTraceMatrixWithProjectFilter_MixedMatching()
+        {
+            var trace = new TraceMatrix(dataSources, traceAnalysis, config);
+            
+            // Set up mixed project scenario
+            var te = traceAnalysis.GetTraceEntityForID("SystemRequirement");
+            var teSWR = traceAnalysis.GetTraceEntityForID("SoftwareRequirement");
+
+            // SYS1 is ProjectA (included), but its SWR items are ProjectB (filtered out)
+            matrix[te][0][0].ItemProject = "ProjectA";
+            matrix[teSWR][0][0].ItemProject = "ProjectB";
+            matrix[teSWR][0][1].ItemProject = "ProjectB";
+            
+            string tagString = "@@SLMS:TraceMatrix(source=SystemRequirement,ItemProject=ProjectA)@@";
+            var tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
+            string result = trace.GetContent(tag, documentConfig);
+            
+            // Should contain SYS1 row but with N/A for software requirements
+            Assert.That(result.Contains("SYS1"), Is.True);
+            Assert.That(result.Contains("N/A"), Is.True);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "67F591CA-FB1F-4676-AAA5-E3350A4C1B4B",
+        Purpose = "Test project filtering with trace issues",
+        PostCondition = "Only trace issues for matching projects are shown")]
+        [Test]
+        public void TestTraceMatrixWithProjectFilter_TraceIssues()
+        {
+            var trace = new TraceMatrix(dataSources, traceAnalysis, config);
+            
+            // Set up items with projects
+            var te = traceAnalysis.GetTraceEntityForID("SystemRequirement");
+            var teSWR = traceAnalysis.GetTraceEntityForID("SoftwareRequirement");
+            
+            var sysItem1 = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "SYS1", ItemProject = "ProjectA" };
+            var sysItem2 = new RequirementItem(RequirementType.SystemRequirement) { ItemID = "SYS2", ItemProject = "ProjectB" };
+            
+            matrix[te][0][0] = sysItem1;
+            matrix[te][1][0] = sysItem2;
+            
+            dataSources.GetItem("SYS1").Returns(sysItem1);
+            dataSources.GetItem("SYS2").Returns(sysItem2);
+            
+            // Create trace issues for both projects
+            TraceIssue issue1 = new TraceIssue(te, "SYS1", teSWR, "SWR1", TraceIssueType.Missing);
+            TraceIssue issue2 = new TraceIssue(te, "SYS2", teSWR, "SWR2", TraceIssueType.Missing);
+            
+            traceAnalysis.GetTraceIssuesForTruth(te).Returns(new List<TraceIssue>() { issue1, issue2 });
+            
+            string tagString = "@@SLMS:TraceMatrix(source=SystemRequirement,ItemProject=ProjectA)@@";
+            var tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
+            string result = trace.GetContent(tag, documentConfig);
+            
+            // Should only show trace issue for ProjectA
+            Assert.That(result.Contains("SYS1 is potentially missing"), Is.True);
+            Assert.That(result.Contains("SYS2 is potentially missing"), Is.False);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "C640410B-C340-40FF-A467-524985B191F5",
+        Purpose = "Test project filtering is case insensitive",
+        PostCondition = "Project filtering works regardless of case")]
+        [Test]
+        public void TestTraceMatrixWithProjectFilter_CaseInsensitive()
+        {
+            var trace = new TraceMatrix(dataSources, traceAnalysis, config);
+            
+            // Set up items with mixed case projects
+            var te = traceAnalysis.GetTraceEntityForID("SystemRequirement");
+            matrix[te][0][0].ItemProject = "projecta";  // lowercase
+            matrix[te][1][0].ItemProject = "ProjectB";
+            
+            string tagString = "@@SLMS:TraceMatrix(source=SystemRequirement,ItemProject=PROJECTA)@@";
+            var tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);  // uppercase filter
+            string result = trace.GetContent(tag, documentConfig);
+            
+            // Should match despite case difference
+            Assert.That(result.Contains("SYS1"), Is.True);
+            Assert.That(result.Contains("SYS2"), Is.False);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "C42B0EE8-7E84-4B69-803B-BD0D8D6D20C6",
+        Purpose = "Test backward compatibility - no project filter specified",
+        PostCondition = "All items are included when no project filter is specified")]
+        [Test]
+        public void TestTraceMatrixWithoutProjectFilter_BackwardCompatibility()
+        {
+            var trace = new TraceMatrix(dataSources, traceAnalysis, config);
+            
+            // Set up items with various projects
+            var te = traceAnalysis.GetTraceEntityForID("SystemRequirement");
+            matrix[te][0][0].ItemProject = "ProjectA";
+            matrix[te][1][0].ItemProject = "ProjectB";
+            
+            // No project filter specified
+            var tag = new RoboClerkTextTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
+            string result = trace.GetContent(tag, documentConfig);
+            
+            // Should include all items regardless of project
+            Assert.That(result.Contains("SYS1"), Is.True);
+            Assert.That(result.Contains("SYS2"), Is.True);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "3AF42910-6C1C-4B32-A6A9-5F4A3E7F5223",
+        Purpose = "Test project filtering with null ItemProject values",
+        PostCondition = "Items with null ItemProject are filtered out when project filter is specified")]
+        [Test]
+        public void TestTraceMatrixWithProjectFilter_NullItemProject()
+        {
+            var trace = new TraceMatrix(dataSources, traceAnalysis, config);
+            
+            // Set up items - one with project, one with null project
+            var te = traceAnalysis.GetTraceEntityForID("SystemRequirement");
+            matrix[te][0][0].ItemProject = "ProjectA";
+            matrix[te][1][0].ItemProject = null;  // null project
+            
+            string tagString = "@@SLMS:TraceMatrix(source=SystemRequirement,ItemProject=ProjectA)@@";
+            var tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
+            string result = trace.GetContent(tag, documentConfig);
+            
+            // Should only include item with matching project, not null project item
+            Assert.That(result.Contains("SYS1"), Is.True);
+            Assert.That(result.Contains("SYS2"), Is.False);
+        }
+    }
+
+    // Test helper class to test custom ShouldIncludeItem override
+    internal class TestableTraceMatrix : TraceabilityMatrixBase
+    {
+        public TestableTraceMatrix(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration configuration)
+            : base(data, analysis, configuration)
+        {
+            truthSource = analysis.GetTraceEntityForID("SystemRequirement");
+        }
+
+        protected override bool ShouldIncludeItem(Item item, string projectFilter)
+        {
+            // Custom filtering: include base filter AND exclude cancelled items
+            if (!base.ShouldIncludeItem(item, projectFilter))
+                return false;
+                
+            return item?.ItemStatus != "Cancelled";
+        }
+    }
+
+    [TestFixture]
+    [Description("These tests test the extensibility of TraceabilityMatrixBase ShouldIncludeItem method")]
+    internal class TestCustomTraceMatrixFiltering
+    {
+        private IConfiguration config = null;
+        private IDataSources dataSources = null;
+        private ITraceabilityAnalysis traceAnalysis = null;
+        private DocumentConfig documentConfig = null;
+        private RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>> matrix = null;
+
+        [SetUp]
+        public void TestSetup()
+        {
+            config = Substitute.For<IConfiguration>();
+            dataSources = Substitute.For<IDataSources>();
+            traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
+            var te = new TraceEntity("SystemRequirement", "Requirement", "SYS", TraceEntityType.Truth);
+            var teSWR = new TraceEntity("SoftwareRequirement", "Specification", "SWR", TraceEntityType.Truth);
+            traceAnalysis.GetTraceEntityForID("SystemRequirement").Returns(te);
+            traceAnalysis.GetTraceEntityForID("SoftwareRequirement").Returns(teSWR);
+            documentConfig = new DocumentConfig("SoftwareRequirementsSpecification", "docID", "docTitle", "docAbbr", @"c:\in\template.adoc");
+
+            matrix = new RoboClerkOrderedDictionary<TraceEntity, List<List<Item>>>();
+            matrix[te] = new List<List<Item>>()
+            {
+                new List<Item>() { new RequirementItem(RequirementType.SystemRequirement) { ItemID = "SYS1", ItemProject = "ProjectA", ItemStatus = "Active" } },
+                new List<Item>() { new RequirementItem(RequirementType.SystemRequirement) { ItemID = "SYS2", ItemProject = "ProjectA", ItemStatus = "Cancelled" } }
+            };
+            matrix[teSWR] = new List<List<Item>>()
+            {
+                new List<Item>() { new RequirementItem(RequirementType.SoftwareRequirement) { ItemID = "SWR1", ItemProject = "ProjectA", ItemStatus = "Active" } },
+                new List<Item>() { new RequirementItem(RequirementType.SoftwareRequirement) { ItemID = "SWR2", ItemProject = "ProjectA", ItemStatus = "Cancelled" } }
+            };
+
+            traceAnalysis.PerformAnalysis(dataSources, te).Returns(matrix);
+            traceAnalysis.GetTraceIssuesForTruth(te).Returns(new List<TraceIssue>());
+        }
+
+        [UnitTestAttribute(
+        Identifier = "76D26330-D423-416B-9752-E6FB66DFE7C5",
+        Purpose = "Test custom ShouldIncludeItem override filters by both project and status",
+        PostCondition = "Only items matching project AND not cancelled are included")]
+        [Test]
+        public void TestCustomShouldIncludeItemOverride()
+        {
+            var customTrace = new TestableTraceMatrix(dataSources, traceAnalysis, config);
+            
+            string tagString = "@@SLMS:TraceMatrix(source=SystemRequirement,ItemProject=ProjectA)@@";
+            var tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
+            string result = customTrace.GetContent(tag, documentConfig);
+            
+            // Should include SYS1 (Active) but exclude SYS2 (Cancelled) even though both match project
+            Assert.That(result.Contains("SYS1"), Is.True);
+            Assert.That(result.Contains("SYS2"), Is.False);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "8F285EDC-EA3F-408F-9A70-870FEA65ECC9",
+        Purpose = "Test custom filtering without project filter still applies custom logic",
+        PostCondition = "Custom status filtering is applied even without project filter")]
+        [Test]
+        public void TestCustomFilteringWithoutProjectFilter()
+        {
+            var customTrace = new TestableTraceMatrix(dataSources, traceAnalysis, config);
+            
+            var tag = new RoboClerkTextTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
+            string result = customTrace.GetContent(tag, documentConfig);
+            
+            // Should include SYS1 (Active) but exclude SYS2 (Cancelled)
+            Assert.That(result.Contains("SYS1"), Is.True);
+            Assert.That(result.Contains("SYS2"), Is.False);
+        }
     }
 }

@@ -32,14 +32,14 @@ namespace RoboClerk.ContentCreators
                 bool found = false;
                 foreach (var result in results)
                 {
-                    if ((result.Type == TestResultType.SYSTEM && result.ID == item.ItemID) ||
-                         (item.TestCaseToUnitTest && result.Type == TestResultType.UNIT &&
-                          item.LinkedItems.Any(o => o.LinkType == ItemLinkType.UnitTest && o.TargetID == result.ID)))
+                    if ( (result.ResultType == TestType.SYSTEM && result.TestID == item.ItemID) || 
+                         (item.TestCaseToUnitTest && result.ResultType == TestType.UNIT && 
+                          item.LinkedItems.Any(o => o.LinkType == ItemLinkType.UnitTest && o.TargetID == result.TestID)) )
                     {
                         found = true;
-                        if (result.Status == TestResultStatus.FAIL)
+                        if (result.ResultStatus == TestResultStatus.FAIL)
                         {
-                            errorItems.Add($"Test with ID \"{result.ID}\" has failed.");
+                            errorItems.Add($"Test with ID \"{result.TestID}\" has failed.");
                             errorsFound = true;
                         }
                         break;
@@ -55,12 +55,12 @@ namespace RoboClerk.ContentCreators
             
             foreach (var result in results)
             {
-                if (result.Type != TestResultType.SYSTEM)
+                if (result.ResultType != TestType.SYSTEM)
                     continue;
                 bool found = false;
                 foreach (var item in items)
                 {
-                    if (((SoftwareSystemTestItem)item).TestCaseAutomated && result.ID == item.ItemID)
+                    if (((SoftwareSystemTestItem)item).TestCaseAutomated && result.TestID == item.ItemID)
                     {
                         found = true;
                         break;
@@ -69,7 +69,7 @@ namespace RoboClerk.ContentCreators
                 if (!found)
                 {
                     errorsFound = true;
-                    errorItems.Add($"Result for test with ID \"{result.ID}\" found, but test plan does not contain such an automated test.");
+                    errorItems.Add($"Result for test with ID \"{result.TestID}\" found, but test plan does not contain such an automated test.");
                 }
             }
 
@@ -134,7 +134,7 @@ namespace RoboClerk.ContentCreators
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             StringBuilder output = new StringBuilder();
-            var dataShare = new ScriptingBridge(data, analysis, sourceTE, configuration);
+            var dataShare = CreateScriptingBridge(tag, sourceTE);
             if (tag.HasParameter("CHECKRESULTS") && tag.GetParameterOrDefault("CHECKRESULTS").ToUpper() == "TRUE")
             {
                 //this will go over all SYSTEM test results (if available) and prints a summary statement or a list of found issues.
@@ -143,7 +143,26 @@ namespace RoboClerk.ContentCreators
             else
             {
                 var extension = (configuration.OutputFormat == "ASCIIDOC" ? "adoc" : "html");
-                
+                if (tag.HasParameter("BRIEF") && tag.GetParameterOrDefault("BRIEF").ToUpper() == "TRUE")
+                {
+                    var briefFileIdentifier = configuration.ProjectID + $"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_brief.{extension}";
+                    //this will print a brief list of all software system tests that Roboclerk knows about
+                    dataShare.Items = items;
+                    ItemTemplateRenderer briefRenderer;
+                    if (ItemTemplateRenderer.ExistsInCache(briefFileIdentifier))
+                    {
+                        briefRenderer = ItemTemplateRenderer.FromCachedTemplate(briefFileIdentifier);
+                    }
+                    else
+                    {
+                        var briefFile = data.GetTemplateFile($"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_brief.{extension}");
+                        briefRenderer = ItemTemplateRenderer.FromString(briefFile, briefFileIdentifier);
+                    }
+                     
+                    var result = briefRenderer.RenderItemTemplate(dataShare);
+                    ProcessTraces(docTE, dataShare);
+                    return result;
+                }               
                 // Setup automated test template with caching
                 var automatedFileIdentifier = configuration.ProjectID + $"./ItemTemplates/{configuration.OutputFormat}/SoftwareSystemTest_automated.{extension}";
                 ItemTemplateRenderer rendererAutomated;

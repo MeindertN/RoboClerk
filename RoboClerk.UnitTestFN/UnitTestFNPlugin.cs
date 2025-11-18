@@ -6,14 +6,13 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
+using TreeSitter;
 
 namespace RoboClerk
 {
     public class UnitTestFNPlugin : SourceCodeAnalysisPluginBase
     {
-        private string testFunctionDecoration = string.Empty;
-        private List<string> functionMaskElements = new List<string>();
-        private string sectionSeparator = string.Empty;
+        private string selectedLanguage = "csharp";
 
         public UnitTestFNPlugin(IFileProviderPlugin fileSystem)
             : base(fileSystem)
@@ -24,7 +23,7 @@ namespace RoboClerk
         private void SetBaseParam()
         {
             name = "UnitTestFNPlugin";
-            description = "A plugin that analyzes a project's source code to extract unit test information for RoboClerk.";
+            description = "A plugin that analyzes a project's source code to extract unit test information for RoboClerk using TreeSitter.";
         }
 
         public override void InitializePlugin(IConfiguration configuration)
@@ -32,22 +31,50 @@ namespace RoboClerk
             logger.Info("Initializing the Unit Test Function Name Plugin");
             try
             {
+                // Base class handles both TestConfigurations and legacy format
                 base.InitializePlugin(configuration);
-                var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
 
-                testFunctionDecoration = configuration.CommandLineOptionOrDefault("TestFunctionDecoration", GetObjectForKey<string>(config, "TestFunctionDecoration", false));
-                var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", GetObjectForKey<string>(config, "FunctionMask", true));
-                functionMaskElements = ParseFunctionMask(functionMask);
-                ValidateFunctionMaskElements(functionMaskElements);
-                sectionSeparator = configuration.CommandLineOptionOrDefault("SectionSeparator", GetObjectForKey<string>(config, "SectionSeparator", true));
+                // For backward compatibility, check if we have configurations or legacy format
+                if (TestConfigurations.Count == 0)
+                {
+                    throw new Exception("No test configurations found. At least one TestConfiguration is required for UnitTestFN plugin.");
+                }
+
+                // Validate that all configurations have required parameters
+                foreach (var testConfig in TestConfigurations)
+                {
+                    var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", testConfig.GetValue<string>("FunctionMask"));
+                    if (string.IsNullOrEmpty(functionMask))
+                    {
+                        throw new Exception($"FunctionMask is required for test configuration '{testConfig.Project}'. Please ensure FunctionMask is specified in the TestConfiguration.");
+                    }
+                    
+                    var functionMaskElements = ParseFunctionMask(functionMask);
+                    ValidateFunctionMaskElements(functionMaskElements);
+                    
+                    var sectionSeparator = configuration.CommandLineOptionOrDefault("SectionSeparator", testConfig.GetValue<string>("SectionSeparator"));
+                    if (string.IsNullOrEmpty(sectionSeparator))
+                    {
+                        throw new Exception($"SectionSeparator is required for test configuration '{testConfig.Project}'. Please ensure SectionSeparator is specified in the TestConfiguration.");
+                    }
+                }
+
+                // Get the primary configuration (first one for single-config scenarios)
+                var primaryConfig = TestConfigurations[0];
+                
+                // Try to get plugin-specific fields from command line first, then from configuration
+                selectedLanguage = configuration.CommandLineOptionOrDefault("Language", primaryConfig.GetValue<string>("Language", "csharp"));
+
+                ScanDirectoriesForSourceFiles();
+
+                logger.Debug($"Initialized UnitTestFN plugin with {TestConfigurations.Count} test configurations, primary language: {selectedLanguage}");
             }
             catch (Exception e)
             {
-                logger.Error("Error reading configuration file for Unit Test FN plugin.");
+                logger.Error($"Error reading configuration file for Unit Test FN plugin: {e.Message}");
                 logger.Error(e);
                 throw new Exception("The Unit Test FN plugin could not read its configuration. Aborting...");
             }
-            ScanDirectoriesForSourceFiles();
         }
 
         private List<string> ParseFunctionMask(string functionMask)
@@ -81,6 +108,12 @@ namespace RoboClerk
                     sb.Append(c);
                 }
             }
+            // Add any remaining content
+            if (sb.Length > 0)
+            {
+                elements.Add(sb.ToString());
+                sb.Clear();
+            }
             return elements;
         }
 
@@ -113,7 +146,7 @@ namespace RoboClerk
             }
         }
 
-        private string SeparateSection(string section)
+        private string SeparateSection(string section, string sectionSeparator)
         {
             if (sectionSeparator.ToUpper() == "CAMELCASE")
             {
@@ -148,56 +181,71 @@ namespace RoboClerk
             }
         }
 
-        private List<(string, string)> ApplyFunctionNameMask(string line)
+        private List<(string, string)> ApplyFunctionNameMask(string functionName, List<string> functionMaskElements)
         {
             List<(string, string)> resultingElements = new List<(string, string)>();
-            var strings = line.Trim().Split(' ');
-            var longestString = strings.OrderByDescending(s => s.Length).First(); //we assume that the function name is the longest element
+            
+            // Check if the function name matches the non-element parts of the mask
             bool foundMatch = true;
             foreach (var functionMaskElement in functionMaskElements)
             {
                 if (!functionMaskElement.StartsWith('<'))
                 {
-                    foundMatch = foundMatch && longestString.Contains(functionMaskElement);
-                }
-            }
-            StringBuilder functionName = new StringBuilder();
-            if (foundMatch)
-            {
-                string remainingLine = longestString;
-                for (int i = 1; i < functionMaskElements.Count; i += 2)
-                {
-                    if (remainingLine == string.Empty)
+                    if (!functionName.Contains(functionMaskElement))
                     {
                         foundMatch = false;
                         break;
                     }
+                }
+            }
+            
+            if (foundMatch)
+            {
+                string remainingFunctionName = functionName;
+                
+                // Process pairs: identifier, separator, identifier, separator, etc.
+                for (int i = 0; i < functionMaskElements.Count; i++)
+                {
                     if (functionMaskElements[i].StartsWith('<'))
                     {
-                        throw new Exception("Error in UnitTestFNPlugin element identifier in unexpected position. Check FunctionMask.");
-                    }
-                    var items = remainingLine.Split(functionMaskElements[i]);
-                    resultingElements.Add((functionMaskElements[i - 1], items[0]));
-                    functionName.Append(items[0]);
-                    functionName.Append(functionMaskElements[i]);
-                    if (items.Length - 1 != 0)
-                    {
-                        remainingLine = String.Join(functionMaskElements[i], items, 1, items.Length - 1);
-                    }
-                    else
-                    {
-                        remainingLine = string.Empty;
+                        // This is an element identifier
+                        if (i + 1 < functionMaskElements.Count && !functionMaskElements[i + 1].StartsWith('<'))
+                        {
+                            // Next element is a separator
+                            var separator = functionMaskElements[i + 1];
+                            var separatorIndex = remainingFunctionName.IndexOf(separator);
+                            
+                            if (separatorIndex >= 0)
+                            {
+                                var extractedContent = remainingFunctionName.Substring(0, separatorIndex);
+                                resultingElements.Add((functionMaskElements[i], extractedContent));
+                                remainingFunctionName = remainingFunctionName.Substring(separatorIndex + separator.Length);
+                            }
+                            else
+                            {
+                                foundMatch = false;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            // This is the last element - take all remaining content
+                            resultingElements.Add((functionMaskElements[i], remainingFunctionName));
+                            break;
+                        }
                     }
                 }
             }
+            
             if (!foundMatch)
             {
                 resultingElements.Clear();
             }
+            
             return resultingElements;
         }
 
-        private void AddUnitTest(List<(string, string)> els, string fileName, int lineNumber, string functionName)
+        private void AddUnitTest(List<(string, string)> els, string fileName, int lineNumber, string functionName, string sectionSeparator)
         {
             var unitTest = new UnitTestItem();
             bool identified = false;
@@ -206,10 +254,10 @@ namespace RoboClerk
             {
                 switch (el.Item1.ToUpper())
                 {
-                    case "<PURPOSE>": unitTest.UnitTestPurpose = SeparateSection(el.Item2); break;
-                    case "<POSTCONDITION>": unitTest.UnitTestAcceptanceCriteria = SeparateSection(el.Item2); break;
-                    case "<IDENTIFIER>": unitTest.ItemID = SeparateSection(el.Item2); identified = true; break;
-                    case "<TRACEID>": unitTest.AddLinkedItem(new ItemLink(el.Item2, ItemLinkType.Related)); break;
+                    case "<PURPOSE>": unitTest.UnitTestPurpose = SeparateSection(el.Item2, sectionSeparator); break;
+                    case "<POSTCONDITION>": unitTest.UnitTestAcceptanceCriteria = SeparateSection(el.Item2, sectionSeparator); break;
+                    case "<IDENTIFIER>": unitTest.ItemID = SeparateSection(el.Item2, sectionSeparator); identified = true; break;
+                    case "<TRACEID>": unitTest.AddLinkedItem(new ItemLink(el.Item2, ItemLinkType.UnitTests)); break;
                     case "<IGNORE>": break;
                     default: throw new Exception($"Unknown element identifier in FunctionMask: {el.Item1.ToUpper()}");
                 }
@@ -239,53 +287,141 @@ namespace RoboClerk
             unitTests.Add(unitTest);
         }
 
-        private string GetFunctionName(string line)
-        {
-            var strings = line.Trim().Split(' ');
-            var longestString = strings.OrderByDescending(s => s.Length).First(); //we assume that the function name is the longest element
-            //we also assume the function parameters start with (
-            int index = longestString.IndexOf('(');
-            return longestString.Substring(0, index);
-        }
-
-        private void FindAndProcessFunctions(List<string> lines, string fileName)
-        {
-            bool nextLineIsFunction = testFunctionDecoration == string.Empty;
-            int currentLineNumber = 0;
-            foreach (var line in lines)
-            {
-                currentLineNumber++;
-                if (nextLineIsFunction)
-                {
-                    if (line.Trim().Length > 3)
-                    {
-                        var els = ApplyFunctionNameMask(line);
-                        if (els.Count > 0)
-                        {
-
-                            //Create unit test
-                            AddUnitTest(els, fileName, currentLineNumber, GetFunctionName(line));
-                        }
-                        nextLineIsFunction = false || testFunctionDecoration == string.Empty;
-                    }
-                }
-                else
-                {
-                    if (line.Contains(testFunctionDecoration))
-                    {
-                        nextLineIsFunction = true;
-                    }
-                }
-            }
-        }
-
         public override void RefreshItems()
         {
-            foreach (var sourceFile in sourceFiles)
+            // Use the optimized approach: iterate through configurations and their associated files
+            foreach (var testConfig in TestConfigurations)
             {
-                var lines = fileProvider.ReadLines(sourceFile);
-                FindAndProcessFunctions(lines, sourceFile);
+                if (testConfig.SourceFiles.Count == 0)
+                {
+                    logger.Warn($"No source files found for configuration '{testConfig.Project}' (Language: {testConfig.Language})");
+                    continue;
+                }
+                
+                logger.Debug($"Processing {testConfig.SourceFiles.Count} files for configuration '{testConfig.Project}' (Language: {testConfig.Language})");
+                
+                // Get configuration-specific parameters for this test configuration
+                var configLanguage = testConfig.GetValue<string>("Language", selectedLanguage);
+                var functionMask = testConfig.GetValue<string>("FunctionMask");
+                var sectionSeparator = testConfig.GetValue<string>("SectionSeparator");
+                
+                // Parse function mask for this configuration
+                var functionMaskElements = ParseFunctionMask(functionMask);
+                
+                var languageId = GetTreeSitterLanguageId(configLanguage);
+                
+                // Load language resources once per configuration
+                using var language = new Language(languageId);
+                using var parser = new Parser(language);
+                
+                var queryString = GetQueryForLanguage(configLanguage);
+                using var query = new Query(language, queryString);
+                
+                // Process all files for this configuration with the same language resources
+                foreach (var sourceFile in testConfig.SourceFiles)
+                {
+                    try
+                    {
+                        var text = fileProvider.ReadAllText(sourceFile);
+                        FindAndProcessFunctions(text, sourceFile, parser, query, functionMaskElements, sectionSeparator);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.Error($"Error processing file {sourceFile}: {e.Message}");
+                        throw;
+                    }
+                }
             }
+        }
+
+        private void FindAndProcessFunctions(string sourceText, string filename, Parser parser, Query query, List<string> functionMaskElements, string sectionSeparator)
+        {
+            using var tree = parser.Parse(sourceText);
+            var exec = query.Execute(tree.RootNode);
+
+            // Process all methods found by TreeSitter
+            var processedMethods = new HashSet<(string methodName, int line)>();
+
+            foreach (var match in exec.Matches)
+            {
+                string methodName = string.Empty;
+                int methodLine = 0;
+
+                foreach (var cap in match.Captures)
+                {
+                    if (cap.Name == "method_name")
+                    {
+                        methodName = cap.Node.Text;
+                        methodLine = (int)cap.Node.StartPosition.Row + 1;
+                        break;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(methodName))
+                {
+                    var methodKey = (methodName, methodLine);
+                    if (processedMethods.Contains(methodKey))
+                        continue;
+                    processedMethods.Add(methodKey);
+                                        
+                    // Try to apply the function name mask
+                    var els = ApplyFunctionNameMask(methodName, functionMaskElements);
+                    if (els.Count > 0)
+                    {
+                        AddUnitTest(els, filename, methodLine, methodName, sectionSeparator);
+                    }
+                }
+            }
+        }
+
+        private string GetTreeSitterLanguageId(string lang) => lang.ToLowerInvariant() switch
+        {
+            "c#" or "csharp" or "cs" => "C_SHARP",
+            "java" => "JAVA",
+            "python" or "py" => "PYTHON",
+            "typescript" or "ts" => "TYPESCRIPT",
+            "javascript" or "js" => "TYPESCRIPT", // use TS grammar to parse JS
+            _ => "C_SHARP"
+        };
+
+        private string GetQueryForLanguage(string lang)
+        {
+            return lang.ToLowerInvariant() switch
+            {
+                "c#" or "csharp" or "cs" => @"
+(method_declaration
+  name: (identifier) @method_name
+)",
+
+                "java" => @"
+(method_declaration
+  name: (identifier) @method_name
+)",
+
+                "python" or "py" => @"
+(function_definition 
+  name: (identifier) @method_name
+)",
+
+                "typescript" or "ts" or "javascript" or "js" => @"
+; One pattern that matches class methods and standalone functions
+(
+  [
+    (method_definition
+      name: (_) @method_name      ; property_identifier, string, number, computed — all OK
+    )
+    (function_declaration
+      name: (identifier) @method_name
+    )
+  ]
+)
+",
+
+                _ => @"
+(method_declaration
+  name: (identifier) @method_name
+)"
+            };
         }
     }
 }

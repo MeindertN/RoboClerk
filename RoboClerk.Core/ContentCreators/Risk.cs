@@ -14,7 +14,7 @@ namespace RoboClerk.ContentCreators
 
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
-            var dataShare = new ScriptingBridge(data, analysis, sourceTE, configuration);
+            var dataShare = CreateScriptingBridge(tag, sourceTE);
             dataShare.Items = items;
             var extension = (configuration.OutputFormat == "ASCIIDOC" ? "adoc" : "html");
             var fileIdentifier = configuration.ProjectID + $"./ItemTemplates/{configuration.OutputFormat}/Risk.{extension}";

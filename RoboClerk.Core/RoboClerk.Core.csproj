@@ -38,10 +38,6 @@
     <PackageReference Include="Tomlyn" Version="0.17.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ItemTemplates\DOCX\" />
-  </ItemGroup>
-
 	<Target Name="CopyResources" BeforeTargets="Start" AfterTargets="Build">
 		<ItemGroup>
 			<ItemTemplateFiles Include="$(ProjectDir)/ItemTemplates/**\*" />

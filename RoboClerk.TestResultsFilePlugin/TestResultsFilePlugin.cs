@@ -4,7 +4,6 @@ using System.IO.Abstractions;
 using System.Text.Json;
 using Tomlyn.Model;
 using System;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace RoboClerk.TestResultsFilePlugin
 {
@@ -63,8 +62,9 @@ namespace RoboClerk.TestResultsFilePlugin
                     {
                         if (string.IsNullOrEmpty(result.ID))
                             throw new JsonException("The 'id' field is required.");
-
-                        testResults.Add(new TestResult(result.ID,result.Type,result.Status,result.Name,result.Message,result.ExecutionTime ?? DateTime.MinValue));
+                        var res = new TestResult(result.ID, result.Type, result.Status, result.Name, result.Message, result.ExecutionTime ?? DateTime.MinValue);
+                        res.ItemProject = result.Project ?? string.Empty;
+                        testResults.Add(res);
                     }
                 }
                 catch (JsonException)

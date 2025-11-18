@@ -64,6 +64,46 @@ namespace RoboClerk
                 linkedItems.Add(new ItemLink(id, ItemLinkType.UnitTest));
             }
         }
+
+        static public List<TestStep> GetTestSteps(string testDescription)
+        {
+            string[] lines = testDescription.Split('\n');
+            List<TestStep> output = new List<TestStep>();
+            bool thenFound = false;
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue; //skip empty lines
+                }
+                if (!line.ToUpper().Contains("THEN:") && !thenFound)
+                {
+                    output.Add(new TestStep((output.Count + 1).ToString(), line, string.Empty));
+                }
+                else
+                {
+                    if (!thenFound)
+                    {
+                        thenFound = true;
+                        output[output.Count - 1].ExpectedResult = line;
+                    }
+                    else if (line.ToUpper().Contains("WHEN:"))
+                    {
+                        output.Add(new TestStep((output.Count + 1).ToString(), line, string.Empty));
+                        thenFound = false;
+                    }
+                    else if (!line.ToUpper().Contains("AND:"))
+                    {
+                        output[output.Count - 1].ExpectedResult = output[output.Count - 1].ExpectedResult + '\n' + line;
+                    }
+                    else
+                    {
+                        output.Add(new TestStep((output.Count + 1).ToString(), string.Empty, line));
+                    }
+                }
+            }
+            return output;
+        }
     }
 }
 

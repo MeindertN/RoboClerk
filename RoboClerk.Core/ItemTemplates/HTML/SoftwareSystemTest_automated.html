@@ -6,7 +6,7 @@ using System.Linq;
 
 TraceEntity te = SourceTraceEntity;
 SoftwareSystemTestItem item = (SoftwareSystemTestItem)Item;
-string pl = GetLinkedField(item, ItemLinkType.Parent);
+string pl = GetLinkedField(item, ItemLinkType.Tests);
 AddTrace(item.ItemID);
 
 string RenderTestStepRows()
@@ -47,11 +47,11 @@ string RenderTestStepRows()
 
 <table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse; margin-bottom: 20px;">
     <tr>
-        <th style="text-align:left;"><strong>Test Case ID:</strong></th>
+        <th style="text-align:left;"><strong>[csx:te.Name] ID:</strong></th>
         <td colspan="4">[csx:GetItemLinkString(item)]</td>
     </tr>
     <tr>
-        <th style="text-align:left;"><strong>Test Case Revision:</strong></th>
+        <th style="text-align:left;"><strong>[csx:te.Name] Revision:</strong></th>
         <td colspan="4">[csx:item.ItemRevision]</td>
     </tr>
     <tr>

@@ -128,7 +128,7 @@ namespace RoboClerk.ContentCreators
 
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
-            var dataShare = new ScriptingBridge(data, analysis, sourceTE, configuration);
+            var dataShare = CreateScriptingBridge(tag, sourceTE);
             var extension = (configuration.OutputFormat == "ASCIIDOC" ? "adoc" : "html");
             if (tag.HasParameter("BRIEF") && tag.GetParameterOrDefault("BRIEF").ToUpper() == "TRUE")
             {

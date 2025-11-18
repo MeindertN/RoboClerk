@@ -188,6 +188,11 @@ namespace RoboClerk
             return pluginDatasource.GetAllTestResults(); 
         }
 
+        public override List<EliminatedTestResult> GetAllEliminatedTestResults()
+        {
+            return pluginDatasource.GetAllEliminatedTestResults();
+        }
+
         public override List<RiskItem> GetAllRisks()
         {
             return dataStorage.Risks;
@@ -221,6 +226,11 @@ namespace RoboClerk
         public override List<UnitTestItem> GetAllUnitTests()
         {
             return dataStorage.UnitTests;
+        }
+
+        public override List<EliminatedUnitTestItem> GetAllEliminatedUnitTests()
+        {
+            return pluginDatasource.GetAllEliminatedUnitTests();
         }
 
         public override List<SOUPItem> GetAllSOUP()

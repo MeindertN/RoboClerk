@@ -1237,7 +1237,7 @@ namespace RoboClerk.Redmine.Tests
             ClassicAssert.AreEqual(2, testCase.LinkedItems.Count());
             ClassicAssert.AreEqual("1", testCase.LinkedItems.Last().TargetID);
             ClassicAssert.AreEqual("UnitTestIdentifier", testCase.LinkedItems.First().TargetID);
-            ClassicAssert.AreEqual(ItemLinkType.Parent, testCase.LinkedItems.Last().LinkType);
+            ClassicAssert.AreEqual(ItemLinkType.Tests, testCase.LinkedItems.Last().LinkType);
             ClassicAssert.AreEqual(ItemLinkType.UnitTest, testCase.LinkedItems.First().LinkType);
             ClassicAssert.AreEqual("New", testCase.ItemStatus);
             ClassicAssert.AreEqual(true, testCase.TestCaseAutomated);

@@ -86,8 +86,8 @@ This document contains @@Document:CountEntities(entity=TC)@@ automated test case
 
 This is a table containing an overview of all unit tests of RoboClerk. The different formats of the identifier is because two different approaches were used to document the unit tests. In the first approach we used the unit test function name to document it and in the second approach unit tests are annotated. The annotated approach is the superior approach. 
 
-@@@FILE:UnitTest(brief=true)
-A brief summary table of unit tests
+@@@FILE:UnitTest(brief=true,showResults=true)
+A brief summary table of unit tests, includes results if available.
 @@@
 
 @@POST:PAGEBREAK()@@
@@ -111,5 +111,11 @@ Note that the following example uses example For example here is information abo
 And here is information about the unit tests:
 
 @@FILE:UnitTest(CheckResults=true)@@
+
+=== System Level Testing Summary Table
+
+@@@SLMS:TC(showResults=true,brief=true)
+
+@@@
 
 

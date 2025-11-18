@@ -1,0 +1,74 @@
+﻿[csx:
+// this first scripting block can be used to set up any prerequisites
+// pre-calculate fields for later use etc.
+using RoboClerk;
+using System.Linq;
+
+TraceEntity te = SourceTraceEntity;
+
+bool showResults = GetTagParameter("showResults","no").ToUpper() == "TRUE";
+
+string softwareRequirementName = TraceabilityAnalysis.GetTitleForTraceEntity("SoftwareRequirement");
+
+string CreateHeaderRow()
+{
+	System.Text.StringBuilder header = new System.Text.StringBuilder();
+	header.Append("<tr>");
+	header.Append($"<th>{te.Name} ID</th>");
+	header.Append($"<th>{te.Name} Description</th>");
+	header.Append($"<th>Linked {softwareRequirementName}s</th>");
+	if (showResults)
+	{
+		header.Append("<th>Actual Result</th>");
+		header.Append("<th>Timestamp</th>");
+	}
+	header.Append("</tr>");
+	return header.ToString();
+}
+
+string CreateRows()
+{
+	System.Text.StringBuilder sb = new System.Text.StringBuilder();
+	foreach( var item in Items)
+	{
+		SoftwareSystemTestItem st = (SoftwareSystemTestItem)item;
+		AddTrace(st.ItemID);
+
+		//find all requirements traced to this test and get them ready for display
+		System.Text.StringBuilder reqs = new System.Text.StringBuilder();
+		foreach( var req in GetLinkedItems(st, ItemLinkType.Tests) )
+		{
+			if (reqs.Length > 0)
+				reqs.Append(", ");
+			reqs.Append(GetItemLinkString(req));
+		}
+
+		sb.Append("<tr>");
+		sb.Append($"<td>{GetItemLinkString(st)}</td>");
+		sb.Append($"<td>{st.ItemTitle}</td>");
+		sb.Append($"<td>{(reqs.Length==0?"Missing":reqs.ToString())}</td>");
+		
+		if (showResults)
+		{
+			var resultItems = GetLinkedItems(st, ItemLinkType.Result);
+			var testResult = resultItems.FirstOrDefault() as TestResult;
+			string actualResult = testResult != null ? testResult.ResultStatus.ToString() : "<strong>NO RESULT</strong>";
+			string timestamp = testResult != null ? testResult.ExecutionTime.ToString(@"yyyy-MM-ddTHH:mm:ss") : "N/A";
+			sb.Append($"<td>{actualResult}</td>");
+			sb.Append($"<td>{timestamp}</td>");
+		}
+		
+		sb.Append("</tr>");
+	}
+	return sb.ToString();
+}
+]
+
+<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse; margin-bottom: 20px;">
+	<thead>
+		[csx:CreateHeaderRow()]
+	</thead>
+	<tbody>
+		[csx:CreateRows()]
+	</tbody>
+</table>

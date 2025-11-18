@@ -7,6 +7,7 @@ using NSubstitute;
 using RoboClerk;
 using NUnit.Framework.Legacy;
 using RoboClerk.Core.Configuration;
+using RoboClerk.Core.ASCIIDOCSupport;
 
 namespace RoboClerk.Tests
 {
@@ -32,6 +33,110 @@ namespace RoboClerk.Tests
             mockSourceTraceEntity = new TraceEntity("TEST", "Test Entity", "TE", TraceEntityType.Truth);
             scriptingBridge = new ScriptingBridge(mockDataSources, mockTraceAnalysis, mockSourceTraceEntity, mockConfiguration);
         }
+
+        #region Tag Parameter Tests
+
+        [UnitTestAttribute(
+            Identifier = "d45ba7dd-e954-4238-95ea-c7eb565485fa",
+            Purpose = "ScriptingBridge correctly exposes tag parameters through helper methods",
+            PostCondition = "Tag parameters can be retrieved using GetTagParameter and HasTagParameter methods")]
+        [Test]
+        public void ScriptingBridge_TagParameterAccess_VERIFIES_ParametersAccessible()
+        {
+            // Arrange
+            var bridge = new ScriptingBridge(mockDataSources, mockTraceAnalysis, mockSourceTraceEntity, mockConfiguration);
+            var tag = new RoboClerkTextTag(0, 40, "@@SLMS:ID(param1=value1,param2=value2)@@", true);
+            bridge.Tag = tag;
+
+            // Act & Assert
+            Assert.That(bridge.GetTagParameter("param1"), Is.EqualTo("value1"));
+            Assert.That(bridge.GetTagParameter("param2"), Is.EqualTo("value2"));
+            Assert.That(bridge.GetTagParameter("nonexistent", "default"), Is.EqualTo("default"));
+            
+            Assert.That(bridge.HasTagParameter("param1"), Is.True);
+            Assert.That(bridge.HasTagParameter("param2"), Is.True);
+            Assert.That(bridge.HasTagParameter("nonexistent"), Is.False);
+        }
+
+        [UnitTestAttribute(
+            Identifier = "59eec9b5-aae0-4a31-ab01-703b3e42ea39",
+            Purpose = "ScriptingBridge handles null tag gracefully without throwing exceptions",
+            PostCondition = "Methods return appropriate defaults when no tag is set")]
+        [Test]
+        public void ScriptingBridge_NullTag_VERIFIES_GracefulHandling()
+        {
+            // Arrange
+            var bridge = new ScriptingBridge(mockDataSources, mockTraceAnalysis, mockSourceTraceEntity, mockConfiguration);
+            // Tag is null by default
+
+            // Act & Assert
+            Assert.That(bridge.GetTagParameter("param1"), Is.EqualTo(""));
+            Assert.That(bridge.GetTagParameter("param1", "default"), Is.EqualTo("default"));
+            Assert.That(bridge.HasTagParameter("param1"), Is.False);
+            Assert.That(bridge.GetAllTagParameterNames(), Is.Empty);
+        }
+
+        [UnitTestAttribute(
+            Identifier = "7c52e570-dc6d-4fff-b754-f5415a31e2fe",
+            Purpose = "ScriptingBridge exposes the Tag property for direct access",
+            PostCondition = "Tag property can be set and retrieved correctly")]
+        [Test]
+        public void ScriptingBridge_TagProperty_VERIFIES_DirectAccess()
+        {
+            // Arrange
+            var bridge = new ScriptingBridge(mockDataSources, mockTraceAnalysis, mockSourceTraceEntity, mockConfiguration);
+            var tag = new RoboClerkTextTag(0, 20, "@@SLMS:ID(test=true)@@", true);
+
+            // Act
+            bridge.Tag = tag;
+
+            // Assert
+            Assert.That(bridge.Tag, Is.EqualTo(tag));
+            Assert.That(bridge.Tag.HasParameter("test"), Is.True);
+            Assert.That(bridge.Tag.GetParameterOrDefault("test"), Is.EqualTo("true"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "291cddda-281c-4a15-ad82-c965092906ff",
+            Purpose = "GetAllTagParameterNames returns all parameter names from the current tag",
+            PostCondition = "All parameter names are correctly returned")]
+        [Test]
+        public void ScriptingBridge_GetAllTagParameterNames_VERIFIES_AllParametersReturned()
+        {
+            // Arrange
+            var bridge = new ScriptingBridge(mockDataSources, mockTraceAnalysis, mockSourceTraceEntity, mockConfiguration);
+            var tag = new RoboClerkTextTag(0, 35, "@@SLMS:ID(alpha=1,beta=2,gamma=3)@@", true);
+            bridge.Tag = tag;
+
+            // Act
+            var parameterNames = bridge.GetAllTagParameterNames();
+
+            // Assert
+            Assert.That(parameterNames, Contains.Item("ALPHA"));
+            Assert.That(parameterNames, Contains.Item("BETA"));
+            Assert.That(parameterNames, Contains.Item("GAMMA"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "d3573677-c17d-4623-9172-daaaff2abe9b",
+            Purpose = "Typed ScriptingBridge also supports tag parameter functionality",
+            PostCondition = "Typed bridge provides same tag parameter access as base bridge")]
+        [Test]
+        public void TypedScriptingBridge_TagParameters_VERIFIES_SameAccess()
+        {
+            // Arrange
+            var bridge = new ScriptingBridge<RequirementItem>(mockDataSources, mockTraceAnalysis, mockSourceTraceEntity, mockConfiguration);
+            var tag = new RoboClerkTextTag(0, 40, "@@SLMS:ID(priority=high,status=active)@@", true);
+            bridge.Tag = tag;
+
+            // Act & Assert
+            Assert.That(bridge.GetTagParameter("priority"), Is.EqualTo("high"));
+            Assert.That(bridge.GetTagParameter("status"), Is.EqualTo("active"));
+            Assert.That(bridge.HasTagParameter("priority"), Is.True);
+            Assert.That(bridge.HasTagParameter("nonexistent"), Is.False);
+        }
+
+        #endregion
 
         #region EmbedAsciidocTables Tests
 

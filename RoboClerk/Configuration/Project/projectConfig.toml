@@ -186,8 +186,8 @@ PluginConfigurationDir="{DOCUMENTATIONROOT}/RoboClerk_input/PluginConfig"
 
 		SoftwareSystemTest.forward = ["ALL"]
 		SoftwareSystemTest.backward = ["ALL"]
-		SoftwareSystemTest.forwardLink = "Child"
-		SoftwareSystemTest.backwardLink = "Parent"
+		SoftwareSystemTest.forwardLink = "TestedBy"
+		SoftwareSystemTest.backwardLink = "Tests"
 
 		SoftwareSystemLevelTestPlan.forward = ["ALL"]
 		SoftwareSystemLevelTestPlan.backward = ["OPTIONAL"]
