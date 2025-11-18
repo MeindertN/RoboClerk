@@ -108,8 +108,8 @@ namespace RoboClerk
         {
             if (currentTag == null)
             {
-                logger.Warn($"Attempted to check for tag parameter '{parameterName}' but no tag is set in ScriptingBridge");
-                return false;
+                logger.Error($"Attempted to check for tag parameter '{parameterName}' but no tag is set in ScriptingBridge");
+                throw new InvalidOperationException("No tag is set in ScriptingBridge.");
             }
             return currentTag.HasParameter(parameterName);
         }
@@ -122,8 +122,8 @@ namespace RoboClerk
         {
             if (currentTag == null)
             {
-                logger.Warn("Attempted to get all tag parameter names but no tag is set in ScriptingBridge");
-                return Enumerable.Empty<string>();
+                logger.Error("Attempted to get all tag parameter names but no tag is set in ScriptingBridge");
+                throw new InvalidOperationException("No tag is set in ScriptingBridge.");
             }
             return currentTag.Parameters;
         }

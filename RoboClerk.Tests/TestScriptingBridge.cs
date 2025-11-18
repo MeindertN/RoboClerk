@@ -60,8 +60,8 @@ namespace RoboClerk.Tests
 
         [UnitTestAttribute(
             Identifier = "59eec9b5-aae0-4a31-ab01-703b3e42ea39",
-            Purpose = "ScriptingBridge handles null tag gracefully without throwing exceptions",
-            PostCondition = "Methods return appropriate defaults when no tag is set")]
+            Purpose = "ScriptingBridge throws InvalidOperationException when no tag is set, as a tag should always be present",
+            PostCondition = "InvalidOperationException is thrown for all tag-related methods when no tag is set")]
         [Test]
         public void ScriptingBridge_NullTag_VERIFIES_GracefulHandling()
         {
@@ -69,11 +69,11 @@ namespace RoboClerk.Tests
             var bridge = new ScriptingBridge(mockDataSources, mockTraceAnalysis, mockSourceTraceEntity, mockConfiguration);
             // Tag is null by default
 
-            // Act & Assert
-            Assert.That(bridge.GetTagParameter("param1"), Is.EqualTo(""));
-            Assert.That(bridge.GetTagParameter("param1", "default"), Is.EqualTo("default"));
-            Assert.That(bridge.HasTagParameter("param1"), Is.False);
-            Assert.That(bridge.GetAllTagParameterNames(), Is.Empty);
+            // Act & Assert - All tag-related methods should throw InvalidOperationException
+            Assert.Throws<InvalidOperationException>(() => bridge.GetTagParameter("param1"));
+            Assert.Throws<InvalidOperationException>(() => bridge.GetTagParameter("param1", "default"));
+            Assert.Throws<InvalidOperationException>(() => bridge.HasTagParameter("param1"));
+            Assert.Throws<InvalidOperationException>(() => bridge.GetAllTagParameterNames().ToList());
         }
 
         [UnitTestAttribute(
