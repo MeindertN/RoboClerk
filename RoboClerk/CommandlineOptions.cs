@@ -1,6 +1,4 @@
-﻿
-
-using CommandLine;
+﻿using CommandLine;
 using System.Collections.Generic;
 
 namespace RoboClerk

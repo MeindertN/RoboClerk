@@ -1150,7 +1150,7 @@ namespace RoboClerk.Server.Services
                 var pluginLoader = serviceProvider.GetRequiredService<IPluginLoader>();
 
                 // Create a temporary configuration with the SharePoint parameters
-                var tempConfig = serviceProvider.GetRequiredService<IConfiguration>() as Configuration.Configuration;
+                var tempConfig = serviceProvider.GetRequiredService<IConfiguration>() as RoboClerk.Configuration.Configuration;
                 if (tempConfig == null)
                 {
                     logger.Error("Base configuration is not of expected type");

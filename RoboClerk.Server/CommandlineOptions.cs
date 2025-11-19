@@ -1,6 +1,4 @@
-﻿
-
-using CommandLine;
+﻿using CommandLine;
 
 namespace RoboClerk.Server
 {
@@ -8,6 +6,9 @@ namespace RoboClerk.Server
     {
         [Option('c', "configurationFile", Required = false, HelpText = "Indicate the location of the RoboClerk configuration file.")]
         public string ConfigurationFile { get; set; }
+
+        [Option('s', "serverConfigurationFile", Required = false, HelpText = "Indicate the location of the RoboClerk Server configuration file.")]
+        public string ServerConfigurationFile { get; set; }
 
         [Option('o', "options", Required = false, HelpText = "Various space seperated options, can be used to substitute configuration file values to plugins and RoboClerk. E.g. -o APIKey=1234fdsa magicWords=\"one two three\"")]
         public IEnumerable<string> ConfigurationOptions { get; set; }

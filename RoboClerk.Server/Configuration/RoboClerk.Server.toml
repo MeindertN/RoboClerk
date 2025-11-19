@@ -1,0 +1,202 @@
+# RoboClerk Server Configuration File
+# This file contains server-specific configuration settings for RoboClerk.Server
+
+# Server hosting configuration
+[Server]
+# The port number the server should listen on
+# Default: 51046 (HTTP) and 51045 (HTTPS)
+HttpPort = 8000
+HttpsPort = 8443
+
+# The host address to bind to (use "0.0.0.0" to bind to all interfaces)
+# Default: "localhost" for development, "0.0.0.0" for production
+HostAddress = "localhost"
+
+# Enable or disable HTTPS redirection
+# Default: true
+UseHttpsRedirection = true
+
+# Environment setting (Development, Production, Staging)
+# Default: "Production"
+Environment = "Development"
+
+# API configuration
+[API]
+# API base path prefix (e.g., "/api/v1", "/roboclerk")
+# Default: "" (empty, uses root)
+BasePath = ""
+
+# Enable Swagger UI in production environments
+# Default: false (only enabled in Development by default)
+EnableSwaggerInProduction = false
+
+# Swagger UI route prefix (empty string means root)
+# Default: "" (serves Swagger at root when enabled)
+SwaggerRoutePrefix = ""
+
+# Maximum request body size in bytes (for large document uploads)
+# Default: 30MB (31457280 bytes)
+MaxRequestBodySize = 31457280
+
+# Request timeout in seconds
+# Default: 300 (5 minutes)
+RequestTimeoutSeconds = 300
+
+# CORS (Cross-Origin Resource Sharing) configuration
+[CORS]
+# Enable CORS for Word Add-in and other clients
+# Default: true
+EnableCORS = true
+
+# Allowed origins (comma-separated list of URLs)
+# Default: "*" (allow all origins - use specific URLs in production)
+AllowedOrigins = "*"
+
+# Allowed HTTP methods
+# Default: "*" (all methods)
+AllowedMethods = "*"
+
+# Allowed headers
+# Default: "*" (all headers)
+AllowedHeaders = "*"
+
+# Allow credentials in CORS requests
+# Default: false
+AllowCredentials = false
+
+# Logging configuration
+[Logging]
+# Override the default log level for RoboClerk Server components
+# Options: DEBUG, INFO, WARN, ERROR, FATAL
+# Default: "INFO"
+ServerLogLevel = "INFO"
+
+# Log request/response details for API calls (NOT IMPLEMENTED YET)
+# Default: false (enable for debugging)
+# LogApiRequests = false
+
+# Log performance metrics for API endpoints (NOT IMPLEMENTED YET)
+# Default: false
+# LogPerformanceMetrics = false
+
+# SharePoint integration settings
+[SharePoint]
+# Default timeout for SharePoint operations in seconds
+# Default: 120 seconds
+OperationTimeoutSeconds = 120
+
+# Retry count for failed SharePoint operations
+# Default: 3
+RetryCount = 3
+
+# Retry delay in milliseconds between attempts
+# Default: 1000 (1 second)
+RetryDelayMilliseconds = 1000
+
+# Cache SharePoint authentication tokens
+# Default: true
+CacheAuthTokens = true
+
+# ============================================================================
+# THE FOLLOWING SECTIONS ARE NOT IMPLEMENTED YET AND ARE COMMENTED OUT
+# ============================================================================
+
+# Session management (NOT IMPLEMENTED YET)
+# [Session]
+# # Project session timeout in minutes (how long a loaded project stays in memory)
+# # Default: 60 minutes
+# ProjectSessionTimeoutMinutes = 60
+
+# # Maximum number of concurrent projects that can be loaded
+# # Default: 10
+# MaxConcurrentProjects = 10
+
+# # Cleanup interval for expired sessions in minutes
+# # Default: 15 minutes
+# SessionCleanupIntervalMinutes = 15
+
+# Performance and caching (NOT IMPLEMENTED YET)
+# [Performance]
+# # Enable response caching for API endpoints
+# # Default: true
+# EnableResponseCaching = true
+
+# # Cache duration for project metadata in seconds
+# # Default: 300 (5 minutes)
+# ProjectMetadataCacheDurationSeconds = 300
+
+# # Cache duration for template file lists in seconds
+# # Default: 600 (10 minutes)
+# TemplateFilesCacheDurationSeconds = 600
+
+# # Maximum memory usage per project in MB
+# # Default: 500MB
+# MaxProjectMemoryMB = 500
+
+# Security settings (NOT IMPLEMENTED YET)
+# [Security]
+# # Enable API key authentication (if implemented)
+# # Default: false
+# EnableApiKeyAuth = false
+
+# # API key header name
+# # Default: "X-API-Key"
+# ApiKeyHeaderName = "X-API-Key"
+
+# # Enable rate limiting
+# # Default: false
+# EnableRateLimiting = false
+
+# # Rate limit: requests per minute per IP
+# # Default: 100
+# RateLimitRequestsPerMinute = 100
+
+# File system access settings (NOT IMPLEMENTED YET)
+# [FileSystem]
+# # Enable file system access validation for security
+# # Default: true
+# EnableFileSystemValidation = true
+
+# # Allowed file extensions for template files (comma-separated)
+# # Default: ".docx,.dotx,.html,.adoc"
+# AllowedTemplateExtensions = ".docx,.dotx,.html,.adoc"
+
+# # Maximum file size for uploads in bytes
+# # Default: 50MB (52428800 bytes)
+# MaxUploadFileSizeBytes = 52428800
+
+# # Temporary file cleanup interval in minutes
+# # Default: 30 minutes
+# TempFileCleanupIntervalMinutes = 30
+
+# Health check settings (NOT IMPLEMENTED YET)
+# [HealthCheck]
+# # Enable health check endpoints
+# # Default: true
+# EnableHealthChecks = true
+
+# # Health check endpoint path
+# # Default: "/health"
+# HealthCheckPath = "/health"
+
+# # Detailed health check (includes dependency status)
+# # Default: false
+# EnableDetailedHealthCheck = false
+
+# Monitoring and diagnostics (NOT IMPLEMENTED YET)
+# [Monitoring]
+# # Enable application insights or similar monitoring
+# # Default: false
+# EnableApplicationInsights = false
+
+# # Enable detailed exception logging
+# # Default: true
+# LogDetailedExceptions = true
+
+# # Enable memory usage monitoring
+# # Default: false
+# MonitorMemoryUsage = false
+
+# # Memory usage check interval in minutes
+# # Default: 5
+# MemoryCheckIntervalMinutes = 5

@@ -40,6 +40,18 @@
     <ProjectReference Include="..\RoboClerk\RoboClerk.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Configuration\RoboClerk.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Configuration\RoboClerk.Server.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Configuration\README.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 	<Target Name="CreateDirectory" BeforeTargets="Start" AfterTargets="Build">
 		<MakeDir Directories="$(ProjectDir)$(OutDir)RoboClerk_input\RoboClerkConfig" />
 		<MakeDir Directories="$(ProjectDir)$(OutDir)RoboClerk_input\PluginConfig" />
@@ -52,6 +64,7 @@
 			<PluginConfigs Include="$(ProjectDir)..\RoboClerk\$(OutDir)RoboClerk_input\PluginConfig\*.toml" />
 		</ItemGroup>
 		<Copy SourceFiles="$(ProjectDir)Configuration/RoboClerk.toml" DestinationFolder="$(ProjectDir)$(OutDir)RoboClerk_input\RoboClerkConfig" />
+		<Copy SourceFiles="$(ProjectDir)Configuration/RoboClerk.Server.toml" DestinationFolder="$(ProjectDir)$(OutDir)" />
 		<Copy SourceFiles="@(Plugins)" DestinationFolder="$(ProjectDir)$(OutDir)plugins" />
 		<Copy SourceFiles="@(PluginConfigs)" DestinationFolder="$(ProjectDir)$(OutDir)RoboClerk_input\PluginConfig" />
 	</Target>
@@ -59,6 +72,7 @@
 	<Target Name="SetupConfigFilesForDebug" BeforeTargets="Start" AfterTargets="CopyConfigFiles">
 		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{PLUGINROOT}" ReplacementText="$(ProjectDir)$(OutDir)" />
 		<ReplaceFileText InputFilename="$(OutputPath)RoboClerk_input\RoboClerkConfig\RoboClerk.toml" MatchExpression="{DOCUMENTATIONROOT}" ReplacementText="$(ProjectDir)$(OutDir)" />
+		<!-- No replacement needed for server config file as it uses relative paths -->
 	</Target>
 	
 </Project>
