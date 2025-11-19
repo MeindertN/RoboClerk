@@ -2019,5 +2019,126 @@ namespace RoboClerk.Redmine.Tests
 
         #endregion
 
+        [UnitTestAttribute(
+        Identifier = "5393cf01-681c-4aa8-b700-107d25719701",
+        Purpose = "RefreshItems() clears all items from previous calls before loading new ones",
+        PostCondition = "Previous items are removed and only current items remain after subsequent RefreshItems() calls")]
+        [Test]
+        public void TestRefreshItemsClearsOldItems()
+        {
+            // Arrange
+            var configTable = CreateBaseConfiguration();
+            var trackerNames = new Dictionary<string, string>
+            {
+                ["SystemRequirement"] = "SystemRequirement",
+                ["SoftwareRequirement"] = "SoftwareRequirement",
+                ["DocumentationRequirement"] = "Documentation",
+                ["DocContent"] = "DocContent",
+                ["SoftwareSystemTest"] = "SoftwareSystemTest",
+                ["Anomaly"] = "Bug",
+                ["Risk"] = "Risk",
+                ["SOUP"] = "SOUP"
+            };
+            SetupTruthItemConfigurations(configTable, trackerNames);
+            SetupMockFileSystem();
+            SetupMockConfiguration();
+            SetupMockRedmineResponses();
+
+            // First batch of issues
+            var firstBatchIssues = new RedmineIssues
+            {
+                Issues = new List<RedmineIssue>
+                {
+                    new RedmineIssue
+                    {
+                        Id = 1,
+                        Subject = "First Software Requirement",
+                        Description = "First batch requirement",
+                        Status = new Status { Id = 1, Name = "New" },
+                        Tracker = new RedmineTracker { Id = 2, Name = "SoftwareRequirement" },
+                        Relations = new List<Relation>(),
+                        UpdatedOn = DateTime.UtcNow,
+                        CustomFields = new List<CustomField>(),
+                        Project = new RedmineProject { Id = 1, Name = "TestProject" }
+                    },
+                    new RedmineIssue
+                    {
+                        Id = 2,
+                        Subject = "First Test Case",
+                        Description = "First batch test case",
+                        Status = new Status { Id = 1, Name = "New" },
+                        Tracker = new RedmineTracker { Id = 4, Name = "SoftwareSystemTest" },
+                        Relations = new List<Relation>(),
+                        UpdatedOn = DateTime.UtcNow,
+                        CustomFields = new List<CustomField>(),
+                        Project = new RedmineProject { Id = 1, Name = "TestProject" }
+                    }
+                },
+                TotalCount = 2,
+                Offset = 0,
+                Limit = 100
+            };
+
+            // Second batch of issues (different items)
+            var secondBatchIssues = new RedmineIssues
+            {
+                Issues = new List<RedmineIssue>
+                {
+                    new RedmineIssue
+                    {
+                        Id = 3,
+                        Subject = "Second Software Requirement",
+                        Description = "Second batch requirement",
+                        Status = new Status { Id = 1, Name = "New" },
+                        Tracker = new RedmineTracker { Id = 2, Name = "SoftwareRequirement" },
+                        Relations = new List<Relation>(),
+                        UpdatedOn = DateTime.UtcNow,
+                        CustomFields = new List<CustomField>(),
+                        Project = new RedmineProject { Id = 1, Name = "TestProject" }
+                    }
+                },
+                TotalCount = 1,
+                Offset = 0,
+                Limit = 100
+            };
+
+            InitializePluginWithConfiguration(configTable);
+
+            // Set up the first call to return first batch of issues
+            redmineClient.GetAsync<RedmineIssues>(Arg.Any<RestRequest>())
+                .Returns(firstBatchIssues);
+
+            // Act - First refresh
+            plugin.RefreshItems();
+
+            // Assert - Verify first batch is loaded
+            var firstBatchSoftwareRequirements = plugin.GetSoftwareRequirements().ToList();
+            var firstBatchTestCases = plugin.GetSoftwareSystemTests().ToList();
+
+            ClassicAssert.AreEqual(8, firstBatchSoftwareRequirements.Count, "Should have 8 software requirement from first batch");
+            ClassicAssert.AreEqual(8, firstBatchTestCases.Count, "Should have 8 test case from first batch");
+            ClassicAssert.AreEqual("1", firstBatchSoftwareRequirements[0].ItemID, "First software requirement should have ID 1");
+            ClassicAssert.AreEqual("2", firstBatchTestCases[0].ItemID, "First test case should have ID 2");
+
+            // Set up the second call to return second batch of issues
+            redmineClient.GetAsync<RedmineIssues>(Arg.Any<RestRequest>())
+                .Returns(secondBatchIssues);
+
+            // Act - Second refresh
+            plugin.RefreshItems();
+
+            // Assert - Verify only second batch remains, first batch is cleared
+            var secondBatchSoftwareRequirements = plugin.GetSoftwareRequirements().ToList();
+            var secondBatchTestCases = plugin.GetSoftwareSystemTests().ToList();
+
+            ClassicAssert.AreEqual(8, secondBatchSoftwareRequirements.Count, "Should have 8 software requirement from second batch");
+            ClassicAssert.AreEqual(0, secondBatchTestCases.Count, "Should have 0 test cases from second batch");
+            ClassicAssert.AreEqual("3", secondBatchSoftwareRequirements[0].ItemID, "Second software requirement should have ID 3");
+
+            // Verify that items from first batch are no longer present
+            ClassicAssert.IsFalse(secondBatchSoftwareRequirements.Any(r => r.ItemID == "1"), "Item with ID 1 should be cleared");
+            ClassicAssert.IsFalse(secondBatchTestCases.Any(t => t.ItemID == "2"), "Item with ID 2 should be cleared");
+        }
+
     }
 }

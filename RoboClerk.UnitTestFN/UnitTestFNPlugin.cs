@@ -289,6 +289,7 @@ namespace RoboClerk
 
         public override void RefreshItems()
         {
+            ClearAllItems();
             // Use the optimized approach: iterate through configurations and their associated files
             foreach (var testConfig in TestConfigurations)
             {

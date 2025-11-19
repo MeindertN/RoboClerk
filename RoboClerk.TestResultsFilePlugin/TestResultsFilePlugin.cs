@@ -50,7 +50,7 @@ namespace RoboClerk.TestResultsFilePlugin
         public override void RefreshItems()
         {
             logger.Info("Refreshing the test results from file.");
-            testResults.Clear();
+            ClearAllItems();
             for (int i = 0; i < fileLocations.Count; i++)
             {
                 string json = fileProvider.ReadAllText(fileLocations[i]);

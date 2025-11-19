@@ -50,7 +50,7 @@ namespace RoboClerk.TestDescriptionFilePlugin
         public override void RefreshItems()
         {
             logger.Info("Refreshing the test descriptions from file.");
-            
+            ClearAllItems();
             for (int i = 0; i < fileLocations.Count; i++)
             {
                 string json = fileProvider.ReadAllText(fileLocations[i]);
