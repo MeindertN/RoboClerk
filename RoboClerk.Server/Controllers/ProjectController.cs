@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using RoboClerk.Server.Models;
 using RoboClerk.Server.Services;
+using RoboClerk.ContentCreators;
 
 namespace RoboClerk.Server.Controllers
 {
@@ -9,11 +10,35 @@ namespace RoboClerk.Server.Controllers
     public class WordAddInController : ControllerBase
     {
         private readonly IProjectManager projectManager;
+        private readonly IContentCreatorMetadataService metadataService;
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public WordAddInController(IProjectManager projectManager)
+        public WordAddInController(IProjectManager projectManager, IContentCreatorMetadataService metadataService)
         {
             this.projectManager = projectManager;
+            this.metadataService = metadataService;
+        }
+
+        /// <summary>
+        /// Get metadata for all available content creators
+        /// </summary>
+        [HttpGet("content-creators/metadata")]
+        public ActionResult<List<ContentCreatorMetadata>> GetContentCreatorMetadata()
+        {
+            try
+            {
+                logger.Debug("Getting metadata for all content creators");
+                
+                var metadata = metadataService.GetAllContentCreatorMetadata();
+                
+                logger.Info($"Returning metadata for {metadata.Count} content creators");
+                return Ok(metadata);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error getting content creator metadata");
+                return StatusCode(500, "Failed to get content creator metadata");
+            }
         }
 
         /// <summary>

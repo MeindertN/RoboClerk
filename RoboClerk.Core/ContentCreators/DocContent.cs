@@ -15,6 +15,22 @@ namespace RoboClerk.ContentCreators
 
         }
 
+        protected override ContentCreatorMetadata GetContentCreatorMetadata()
+        {
+            var metadata = new ContentCreatorMetadata("SLMS", "Documentation Content", 
+                "Manages and displays documentation content items");
+            
+            metadata.Category = "Requirements & Traceability";
+
+            var docContentTag = new ContentCreatorTag("DocContent", "Displays documentation content items");
+            docContentTag.Category = "Documentation Management";
+            // Common parameters will be automatically added
+            docContentTag.ExampleUsage = "@@SLMS:DocContent()@@";
+            metadata.Tags.Add(docContentTag);
+
+            return metadata;
+        }
+
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             StringBuilder output = new StringBuilder();

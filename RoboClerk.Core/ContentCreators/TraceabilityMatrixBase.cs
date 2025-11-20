@@ -20,6 +20,28 @@ namespace RoboClerk.ContentCreators
             this.configuration = configuration;
         }
 
+        public virtual ContentCreatorMetadata GetMetadata()
+        {
+            var matrixName = truthSource?.Name ?? "Traceability";
+            var metadata = new ContentCreatorMetadata("SLMS", $"{matrixName} Traceability Matrix", 
+                $"Generates a traceability matrix showing relationships between {matrixName.ToLower()} items and other entities");
+            
+            metadata.Category = "Requirements & Traceability";
+
+            var matrixTag = new ContentCreatorTag("TraceMatrix", $"Displays {matrixName.ToLower()} level traceability matrix and trace issues");
+            matrixTag.Category = "Traceability Analysis";
+            matrixTag.Parameters.Add(new ContentCreatorParameter("ItemProject", 
+                "Filter items by project identifier", 
+                ParameterValueType.String, required: false)
+            {
+                ExampleValue = "MyProject"
+            });
+            matrixTag.ExampleUsage = "@@SLMS:TraceMatrix()@@";
+            metadata.Tags.Add(matrixTag);
+
+            return metadata;
+        }
+
         protected virtual bool ShouldIncludeItem(Item item, string projectFilter)
         {
             if (string.IsNullOrEmpty(projectFilter))

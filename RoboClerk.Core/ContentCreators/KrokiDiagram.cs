@@ -27,6 +27,48 @@ namespace RoboClerk.ContentCreators
             fileSystem = fs;
         }
 
+        public override ContentCreatorMetadata GetMetadata()
+        {
+            var metadata = new ContentCreatorMetadata("Web", "Kroki Diagram", 
+                "Generates diagrams using the Kroki web service (PlantUML, GraphViz, Mermaid, etc.)");
+            
+            metadata.Category = "Diagrams";
+
+            var krokiTag = new ContentCreatorTag("KrokiDiagram", "Generates a diagram from embedded diagram source code");
+            krokiTag.Category = "Diagram Generation";
+            krokiTag.Description = "Sends diagram source code to the Kroki web service and embeds the resulting image. " +
+                "The diagram source should be placed between the opening and closing tags. " +
+                "Supports PlantUML, GraphViz, Mermaid, and many other diagram types.";
+            
+            krokiTag.Parameters.Add(new ContentCreatorParameter("type", 
+                "Type of diagram (e.g., plantuml, graphviz, mermaid, ditaa, etc.)", 
+                ParameterValueType.String, required: false, defaultValue: "plantuml")
+            {
+                AllowedValues = new List<string> { "plantuml", "graphviz", "mermaid", "ditaa", "blockdiag", "seqdiag", "actdiag", "nwdiag", "c4plantuml" },
+                ExampleValue = "plantuml"
+            });
+            
+            krokiTag.Parameters.Add(new ContentCreatorParameter("format", 
+                "Output image format", 
+                ParameterValueType.String, required: false, defaultValue: "png")
+            {
+                AllowedValues = new List<string> { "png", "svg", "base64", "text", "utext", "pdf" },
+                ExampleValue = "png"
+            });
+            
+            krokiTag.Parameters.Add(new ContentCreatorParameter("caption", 
+                "Caption text to display with the diagram", 
+                ParameterValueType.String, required: false)
+            {
+                ExampleValue = "System Architecture Diagram"
+            });
+            
+            krokiTag.ExampleUsage = "@@Web:KrokiDiagram(type=plantuml,format=png,caption=Example Diagram)\n@startuml\nAlice -> Bob: Hello\n@enduml\n@@";
+            metadata.Tags.Add(krokiTag);
+
+            return metadata;
+        }
+
         public static async Task<byte[]> DownloadImageAsync(string url, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(url))

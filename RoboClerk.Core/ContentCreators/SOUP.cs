@@ -15,6 +15,49 @@ namespace RoboClerk.ContentCreators
 
         }
 
+        protected override ContentCreatorMetadata GetContentCreatorMetadata()
+        {
+            var metadata = new ContentCreatorMetadata("SLMS", "SOUP (Software of Unknown Provenance)", 
+                "Manages and displays SOUP items including version checking and brief lists");
+            
+            metadata.Category = "Requirements & Traceability";
+
+            // Main SOUP tag
+            var soupTag = new ContentCreatorTag("SOUP", "Displays detailed SOUP item information");
+            soupTag.Category = "SOUP Management";
+            // Common parameters will be automatically added
+            soupTag.ExampleUsage = "@@SLMS:SOUP()@@";
+            metadata.Tags.Add(soupTag);
+
+            // SOUP with brief parameter
+            var soupBriefTag = new ContentCreatorTag("SOUP", "Displays a brief list of all SOUP items with names and versions");
+            soupBriefTag.Category = "SOUP Management";
+            soupBriefTag.Parameters.Add(new ContentCreatorParameter("brief", 
+                "Set to 'true' to display brief SOUP list", 
+                ParameterValueType.Boolean, required: false)
+            {
+                AllowedValues = new List<string> { "true", "false" },
+                ExampleValue = "true"
+            });
+            soupBriefTag.ExampleUsage = "@@SLMS:SOUP(brief=true)@@";
+            metadata.Tags.Add(soupBriefTag);
+
+            // SOUP check tag
+            var soupCheckTag = new ContentCreatorTag("SOUP", "Validates SOUP items against external dependencies");
+            soupCheckTag.Category = "SOUP Validation";
+            soupCheckTag.Parameters.Add(new ContentCreatorParameter("checkSOUP", 
+                "Set to 'true' to validate SOUP items against external dependencies. Requires dependencies to be loaded into RoboClerk.", 
+                ParameterValueType.Boolean, required: false)
+            {
+                AllowedValues = new List<string> { "true", "false" },
+                ExampleValue = "true"
+            });
+            soupCheckTag.ExampleUsage = "@@SLMS:SOUP(checkSOUP=true)@@";
+            metadata.Tags.Add(soupCheckTag);
+
+            return metadata;
+        }
+
         private string GenerateSoupCheck(string soupName)
         {
             var extDeps = data.GetAllExternalDependencies();

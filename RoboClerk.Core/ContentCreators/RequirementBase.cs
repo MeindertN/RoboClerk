@@ -18,6 +18,37 @@ namespace RoboClerk.ContentCreators
         {
         }
 
+        protected override ContentCreatorMetadata GetContentCreatorMetadata()
+        {
+            var metadata = new ContentCreatorMetadata("SLMS", $"{requirementName} Requirement", 
+                $"Manages and displays {requirementName.ToLower()} requirements");
+            
+            metadata.Category = "Requirements & Traceability";
+
+            var requirementTag = new ContentCreatorTag(requirementName, $"Displays detailed {requirementName.ToLower()} requirement information");
+            requirementTag.Category = "Requirement Management";
+            // Common multi-item parameters will be automatically added by the base class
+            
+            // Add requirement-specific filtering parameters
+            requirementTag.Parameters.Add(new ContentCreatorParameter("RequirementState", 
+                "Filter requirements by state", 
+                ParameterValueType.String, required: false)
+            {
+                ExampleValue = "Approved"
+            });
+            requirementTag.Parameters.Add(new ContentCreatorParameter("RequirementAssignee", 
+                "Filter requirements by assignee", 
+                ParameterValueType.String, required: false)
+            {
+                ExampleValue = "John.Doe"
+            });
+            
+            requirementTag.ExampleUsage = $"@@SLMS:{requirementName}()@@";
+            metadata.Tags.Add(requirementTag);
+
+            return metadata;
+        }
+
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity te, TraceEntity docTE)
         {
             StringBuilder output = new StringBuilder();

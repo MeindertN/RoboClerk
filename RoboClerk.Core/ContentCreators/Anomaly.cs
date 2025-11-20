@@ -14,6 +14,29 @@ namespace RoboClerk.ContentCreators
 
         }
 
+        protected override ContentCreatorMetadata GetContentCreatorMetadata()
+        {
+            var metadata = new ContentCreatorMetadata("SLMS", "Anomaly (Bug/Issue)", 
+                "Manages and displays anomalies (bugs, defects, issues)");
+            
+            metadata.Category = "Testing";
+
+            var anomalyTag = new ContentCreatorTag("Anomaly", "Displays detailed anomaly/bug information");
+            anomalyTag.Category = "Anomaly Management";
+            // Common parameters will be automatically added
+            anomalyTag.Parameters.Add(new ContentCreatorParameter("IncludeClosed", 
+                "Set to 'true' to include closed/resolved anomalies in the output", 
+                ParameterValueType.Boolean, required: false, defaultValue: "false")
+            {
+                AllowedValues = new List<string> { "true", "false" },
+                ExampleValue = "true"
+            });
+            anomalyTag.ExampleUsage = "@@SLMS:Anomaly()@@";
+            metadata.Tags.Add(anomalyTag);
+
+            return metadata;
+        }
+
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity te, TraceEntity docTE)
         {
             StringBuilder output = new StringBuilder();

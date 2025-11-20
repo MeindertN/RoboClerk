@@ -13,6 +13,39 @@ namespace RoboClerk.ContentCreators
 
         }
 
+        public override ContentCreatorMetadata GetMetadata()
+        {
+            var metadata = new ContentCreatorMetadata("FILE", "Excel Table", 
+                "Extracts and displays tables from Excel files in the template directory");
+            
+            metadata.Category = "File Import";
+
+            var excelTableTag = new ContentCreatorTag("ExcelTable", "Imports a table from an Excel spreadsheet");
+            excelTableTag.Category = "Excel Import";
+            excelTableTag.Parameters.Add(new ContentCreatorParameter("fileName", 
+                "Name of the Excel file in the template directory", 
+                ParameterValueType.FilePath, required: true)
+            {
+                ExampleValue = "requirements_table.xlsx"
+            });
+            excelTableTag.Parameters.Add(new ContentCreatorParameter("workSheet", 
+                "Name of the worksheet to read from", 
+                ParameterValueType.String, required: false, defaultValue: "Sheet1")
+            {
+                ExampleValue = "Sheet1"
+            });
+            excelTableTag.Parameters.Add(new ContentCreatorParameter("range", 
+                "Excel range to import (e.g., A1:D10)", 
+                ParameterValueType.Range, required: true)
+            {
+                ExampleValue = "A1:D10"
+            });
+            excelTableTag.ExampleUsage = "@@FILE:ExcelTable(fileName=data.xlsx,range=B2:C4,workSheet=Sheet1)@@";
+            metadata.Tags.Add(excelTableTag);
+
+            return metadata;
+        }
+
         public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             string excelFilename = tag.GetParameterOrDefault("FILENAME", string.Empty);

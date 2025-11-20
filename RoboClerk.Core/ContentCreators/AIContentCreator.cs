@@ -34,6 +34,38 @@ namespace RoboClerk.ContentCreators
             this.fileSystem = fileSystem;
         }
 
+        public ContentCreatorMetadata GetMetadata()
+        {
+            var metadata = new ContentCreatorMetadata("AI", "AI Feedback", 
+                "Generates AI-based feedback on documentation items using configured AI plugin");
+            
+            metadata.Category = "AI Integration";
+
+            var aiTag = new ContentCreatorTag("AIFeedback", "Generates AI feedback for a specific item");
+            aiTag.Category = "AI Analysis";
+            aiTag.Description = "Uses the configured AI plugin to analyze an item and provide feedback. " +
+                "The feedback is saved to a JSON file and can be used for review and improvement of documentation.";
+            
+            aiTag.Parameters.Add(new ContentCreatorParameter("entity", 
+                "The entity type of the item to analyze", 
+                ParameterValueType.EntityType, required: true)
+            {
+                ExampleValue = "SystemRequirement"
+            });
+            
+            aiTag.Parameters.Add(new ContentCreatorParameter("itemID", 
+                "The ID of the specific item to analyze", 
+                ParameterValueType.ItemID, required: true)
+            {
+                ExampleValue = "REQ-001"
+            });
+            
+            aiTag.ExampleUsage = "@@AI:AIFeedback(entity=SystemRequirement,itemID=REQ-001)@@";
+            metadata.Tags.Add(aiTag);
+
+            return metadata;
+        }
+
         public string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             //look up item

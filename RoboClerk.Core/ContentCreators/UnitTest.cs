@@ -14,6 +14,49 @@ namespace RoboClerk.ContentCreators
 
         }
 
+        protected override ContentCreatorMetadata GetContentCreatorMetadata()
+        {
+            var metadata = new ContentCreatorMetadata("SLMS", "Unit Test", 
+                "Manages and displays unit test information including test results");
+            
+            metadata.Category = "Testing";
+
+            // Main unit test tag
+            var testTag = new ContentCreatorTag("UnitTest", "Displays detailed unit test information");
+            testTag.Category = "Unit Test Management";
+            // Common parameters will be automatically added
+            testTag.ExampleUsage = "@@SLMS:UnitTest()@@";
+            metadata.Tags.Add(testTag);
+
+            // Brief list tag
+            var briefTag = new ContentCreatorTag("UnitTest", "Displays a brief list of all unit tests");
+            briefTag.Category = "Unit Test Management";
+            briefTag.Parameters.Add(new ContentCreatorParameter("brief", 
+                "Set to 'true' to display brief unit test list", 
+                ParameterValueType.Boolean, required: false)
+            {
+                AllowedValues = new List<string> { "true", "false" },
+                ExampleValue = "true"
+            });
+            briefTag.ExampleUsage = "@@SLMS:UnitTest(brief=true)@@";
+            metadata.Tags.Add(briefTag);
+
+            // Check results tag
+            var checkResultsTag = new ContentCreatorTag("UnitTest", "Validates unit test results");
+            checkResultsTag.Category = "Test Validation";
+            checkResultsTag.Parameters.Add(new ContentCreatorParameter("checkResults", 
+                "Set to 'true' to validate unit test results against test plan. Test results must be loaded into RoboClerk.", 
+                ParameterValueType.Boolean, required: false)
+            {
+                AllowedValues = new List<string> { "true", "false" },
+                ExampleValue = "true"
+            });
+            checkResultsTag.ExampleUsage = "@@SLMS:UnitTest(checkResults=true)@@";
+            metadata.Tags.Add(checkResultsTag);
+
+            return metadata;
+        }
+
         private string CheckResults(List<LinkedItem> items, TraceEntity docTE)
         {
             var results = data.GetAllTestResults();

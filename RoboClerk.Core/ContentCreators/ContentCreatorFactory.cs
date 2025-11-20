@@ -94,9 +94,26 @@ namespace RoboClerk.ContentCreators
     /// </summary>
     internal class CommentContentCreator : IContentCreator
     {
+        public ContentCreatorMetadata GetMetadata()
+        {
+            var metadata = new ContentCreatorMetadata("Comment", "Comment", 
+                "Allows adding comments to templates that will be removed during processing. Only relevant for text based formats like ASCIIDOC or HTML");
+            
+            metadata.Category = "Utility";
+
+            var commentTag = new ContentCreatorTag("[Any]", "Adds a comment that will be removed");
+            commentTag.Category = "Comments";
+            commentTag.Description = "Content within comment tags is ignored and removed during document generation. " +
+                "Useful for adding notes or temporarily disabling content.";
+            commentTag.ExampleUsage = "@@@Comment:Note()A comment that will be removed@@@";
+            metadata.Tags.Add(commentTag);
+
+            return metadata;
+        }
+
         public string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             return string.Empty;
         }
     }
-} 
+}

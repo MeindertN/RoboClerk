@@ -15,6 +15,49 @@ namespace RoboClerk.ContentCreators
 
         }
 
+        protected override ContentCreatorMetadata GetContentCreatorMetadata()
+        {
+            var metadata = new ContentCreatorMetadata("SLMS", "Software System Test", 
+                "Manages and displays software system test cases, both automated and manual");
+            
+            metadata.Category = "Testing";
+
+            // Main test case tag
+            var testTag = new ContentCreatorTag("SoftwareSystemTest", "Displays detailed software system test case information");
+            testTag.Category = "Test Management";
+            // Common parameters will be automatically added
+            testTag.ExampleUsage = "@@SLMS:SoftwareSystemTest()@@";
+            metadata.Tags.Add(testTag);
+
+            // Brief test list tag
+            var testBriefTag = new ContentCreatorTag("SoftwareSystemTest", "Displays a brief list of all software system test cases");
+            testBriefTag.Category = "Test Management";
+            testBriefTag.Parameters.Add(new ContentCreatorParameter("brief", 
+                "Set to 'true' to display brief test case list", 
+                ParameterValueType.Boolean, required: false)
+            {
+                AllowedValues = new List<string> { "true", "false" },
+                ExampleValue = "true"
+            });
+            testBriefTag.ExampleUsage = "@@SLMS:SoftwareSystemTest(brief=true)@@";
+            metadata.Tags.Add(testBriefTag);
+
+            // Check results tag
+            var checkResultsTag = new ContentCreatorTag("SoftwareSystemTest", "Validates automated test results");
+            checkResultsTag.Category = "Test Validation";
+            checkResultsTag.Parameters.Add(new ContentCreatorParameter("checkResults", 
+                "Set to 'true' to validate automated test results against test plan. This requires the results to be loaded into RoboClerk.", 
+                ParameterValueType.Boolean, required: false)
+            {
+                AllowedValues = new List<string> { "true", "false" },
+                ExampleValue = "true"
+            });
+            checkResultsTag.ExampleUsage = "@@SLMS:SoftwareSystemTest(checkResults=true)@@";
+            metadata.Tags.Add(checkResultsTag);
+
+            return metadata;
+        }
+
         private string CheckResults(List<LinkedItem> items, TraceEntity docTE)
         {
             var results = data.GetAllTestResults();

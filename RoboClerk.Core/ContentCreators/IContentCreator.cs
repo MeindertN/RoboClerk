@@ -14,5 +14,11 @@ namespace RoboClerk.ContentCreators
         /// <param name="doc">Document configuration</param>
         /// <returns>Content to replace the tag with</returns>
         public string GetContent(IRoboClerkTag tag, DocumentConfig doc);
+
+        /// <summary>
+        /// Gets metadata describing this content creator's capabilities, tags, and parameters
+        /// </summary>
+        /// <returns>Metadata describing the content creator</returns>
+        public ContentCreatorMetadata GetMetadata();
     }
 }

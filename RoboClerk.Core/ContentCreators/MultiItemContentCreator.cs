@@ -19,6 +19,65 @@ namespace RoboClerk.ContentCreators
         protected abstract string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE);
 
         /// <summary>
+        /// Gets metadata for this content creator, including common multi-item parameters.
+        /// Override GetContentCreatorMetadata() in derived classes to customize.
+        /// </summary>
+        public override ContentCreatorMetadata GetMetadata()
+        {
+            // Get the derived class metadata
+            var metadata = GetContentCreatorMetadata();
+            
+            // Automatically add common multi-item parameters to all tags
+            foreach (var tag in metadata.Tags)
+            {
+                // Insert common parameters at the beginning of the parameter list
+                var commonParams = GetCommonMultiItemParameters();
+                tag.Parameters.InsertRange(0, commonParams);
+            }
+            
+            return metadata;
+        }
+
+        /// <summary>
+        /// Derived classes should override this method to provide their specific metadata.
+        /// Common multi-item parameters will be automatically added to all tags.
+        /// </summary>
+        protected virtual ContentCreatorMetadata GetContentCreatorMetadata()
+        {
+            // Default implementation returns basic metadata
+            return new ContentCreatorMetadata
+            {
+                Source = GetType().Name,
+                Name = GetType().Name,
+                Description = "No description available"
+            };
+        }
+
+        /// <summary>
+        /// Gets common parameters supported by multi-item content creators.
+        /// These parameters are automatically added to all tags.
+        /// </summary>
+        protected virtual List<ContentCreatorParameter> GetCommonMultiItemParameters()
+        {
+            return new List<ContentCreatorParameter>
+            {
+                new ContentCreatorParameter("ItemID", "Specific item identifier to filter", ParameterValueType.ItemID, required: false),
+                new ContentCreatorParameter("ItemCategory","Filter items by category", ParameterValueType.String, required: false) { ExampleValue = "Safety" },
+                new ContentCreatorParameter("ItemStatus", "Filter items by status", ParameterValueType.String, required: false) { ExampleValue = "Approved" },
+                new ContentCreatorParameter("ItemTitle", "Filter items by title (exact match)", ParameterValueType.String, required: false) { ExampleValue = "Login Authentication"  },
+                new ContentCreatorParameter("ItemProject", "Filter items by project", ParameterValueType.String, required: false) { ExampleValue = "ProjectAlpha" },
+                new ContentCreatorParameter("OlderThan", "Filter items older than specified date", ParameterValueType.DateTime, required: false),
+                new ContentCreatorParameter("NewerThan", "Filter items newer than specified date", ParameterValueType.DateTime, required: false),
+                new ContentCreatorParameter("SortBy", "Property name to sort items by", ParameterValueType.String, required: false) { ExampleValue = "ItemID" },
+                new ContentCreatorParameter("SortOrder", "Sort direction (ASC or DESC)", ParameterValueType.String, required: false, defaultValue: "ASC") 
+                { 
+                    AllowedValues = new List<string> { "ASC", "DESC" },
+                    ExampleValue = "ASC"
+                }
+            };
+        }
+
+        /// <summary>
         /// Creates a ScriptingBridge with the current tag set for parameter access.
         /// </summary>
         /// <param name="tag">The RoboClerk tag to associate with the bridge</param>

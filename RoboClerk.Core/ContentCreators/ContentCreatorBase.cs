@@ -23,6 +23,22 @@ namespace RoboClerk.ContentCreators
 
         public abstract string GetContent(IRoboClerkTag tag, DocumentConfig doc);
 
+        /// <summary>
+        /// Gets metadata describing this content creator's capabilities.
+        /// Derived classes should override this to provide specific metadata.
+        /// </summary>
+        public virtual ContentCreatorMetadata GetMetadata()
+        {
+            // Default implementation returns basic metadata
+            // Derived classes should override to provide specific details
+            return new ContentCreatorMetadata
+            {
+                Source = GetType().Name,
+                Name = GetType().Name,
+                Description = "No description available"
+            };
+        }
+
         protected static bool ShouldBeIncluded<T>(IRoboClerkTag tag, T item, PropertyInfo[] properties)
         {
             foreach (var param in tag.Parameters)

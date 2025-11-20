@@ -12,6 +12,22 @@ namespace RoboClerk.ContentCreators
         {
         }
 
+        protected override ContentCreatorMetadata GetContentCreatorMetadata()
+        {
+            var metadata = new ContentCreatorMetadata("SLMS", "Risk", 
+                "Manages and displays risk items including risk assessments and control measures");
+            
+            metadata.Category = "Requirements & Traceability";
+
+            var riskTag = new ContentCreatorTag("Risk", "Displays detailed risk information including severity, control measures, and mitigation");
+            riskTag.Category = "Risk Management";
+            // Common parameters will be automatically added
+            riskTag.ExampleUsage = "@@SLMS:Risk()@@";
+            metadata.Tags.Add(riskTag);
+
+            return metadata;
+        }
+
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             var dataShare = CreateScriptingBridge(tag, sourceTE);

@@ -14,6 +14,30 @@ namespace RoboClerk.ContentCreators
 
         }
 
+        public override ContentCreatorMetadata GetMetadata()
+        {
+            var metadata = new ContentCreatorMetadata("FILE", "Template Section", 
+                "Inserts content from template files into the document");
+            
+            metadata.Category = "File Import";
+
+            var templateTag = new ContentCreatorTag("TemplateSection", "Inserts the contents of a template file");
+            templateTag.Category = "Template Import";
+            templateTag.Description = "Inserts content from a file in the template directory. " +
+                "Supports text files (.txt, .adoc, .html) for text output and DOCX files when output format is DOCX. " +
+                "DOCX files will have their body content extracted and inserted.";
+            templateTag.Parameters.Add(new ContentCreatorParameter("fileName", 
+                "Name of the template file to insert", 
+                ParameterValueType.FilePath, required: true)
+            {
+                ExampleValue = "section_template.adoc"
+            });
+            templateTag.ExampleUsage = "@@FILE:TemplateSection(fileName=introduction.adoc)@@";
+            metadata.Tags.Add(templateTag);
+
+            return metadata;
+        }
+
         public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
             string filename = tag.GetParameterOrDefault("FILENAME", string.Empty);
