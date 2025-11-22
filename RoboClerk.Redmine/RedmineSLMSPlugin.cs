@@ -776,17 +776,37 @@ namespace RoboClerk.Redmine
                     {
                         bool versionField = redmineVersionFields.Contains(field.Name);
                         HashSet<string> values = new HashSet<string>();
-                        if (field.Multiple)
+                        
+                        if (field.Value is System.Text.Json.JsonElement jsonElement)
                         {
-                            foreach (var value in (System.Text.Json.JsonElement.ArrayEnumerator)field.Value)
+                            if (field.Multiple && jsonElement.ValueKind == System.Text.Json.JsonValueKind.Array)
                             {
-                                values.Add(ConvertValue(versionField, value.ToString()));
+                                foreach (var value in jsonElement.EnumerateArray())
+                                {
+                                    values.Add(ConvertValue(versionField, value.ToString()));
+                                }
+                            }
+                            else if (jsonElement.ValueKind != System.Text.Json.JsonValueKind.Null &&
+                                jsonElement.ValueKind != System.Text.Json.JsonValueKind.Undefined)
+                            {
+                                values.Add(ConvertValue(versionField, jsonElement.ToString()));
                             }
                         }
                         else
                         {
-                            values.Add(ConvertValue(versionField, ((System.Text.Json.JsonElement)field.Value).GetString()));
+                            if (field.Multiple && field.Value is System.Collections.IEnumerable enumerable && !(field.Value is string))
+                            {
+                                foreach (var value in enumerable)
+                                {
+                                    values.Add(ConvertValue(versionField, value?.ToString() ?? string.Empty));
+                                }
+                            }
+                            else
+                            {
+                                values.Add(ConvertValue(versionField, field.Value?.ToString() ?? string.Empty));
+                            }
                         }
+                        
                         if (!IncludeItem(field.Name, values))
                         {
                             reason = $"Item does not match inclusion filter for custom field \"{field.Name}\" with value \"{String.Join(", ", values)}\"";
