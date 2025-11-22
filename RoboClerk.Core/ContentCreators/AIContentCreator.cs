@@ -34,37 +34,47 @@ namespace RoboClerk.ContentCreators
             this.fileSystem = fileSystem;
         }
 
-        public ContentCreatorMetadata GetMetadata()
+        /// <summary>
+        /// Static metadata for the AIContentCreator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
+            "AI",
+            "AI Content Generator",
+            "Generates AI-based feedback and analysis on documentation items using configured AI plugins")
         {
-            var metadata = new ContentCreatorMetadata("AI", "AI Feedback", 
-                "Generates AI-based feedback on documentation items using configured AI plugin");
-            
-            metadata.Category = "AI Integration";
-
-            var aiTag = new ContentCreatorTag("AIFeedback", "Generates AI feedback for a specific item");
-            aiTag.Category = "AI Analysis";
-            aiTag.Description = "Uses the configured AI plugin to analyze an item and provide feedback. " +
-                "The feedback is saved to a JSON file and can be used for review and improvement of documentation.";
-            
-            aiTag.Parameters.Add(new ContentCreatorParameter("entity", 
-                "The entity type of the item to analyze", 
-                ParameterValueType.EntityType, required: true)
+            Category = "AI & Automation",
+            Tags = new List<ContentCreatorTag>
             {
-                ExampleValue = "SystemRequirement"
-            });
-            
-            aiTag.Parameters.Add(new ContentCreatorParameter("itemID", 
-                "The ID of the specific item to analyze", 
-                ParameterValueType.ItemID, required: true)
-            {
-                ExampleValue = "REQ-001"
-            });
-            
-            aiTag.ExampleUsage = "@@AI:AIFeedback(entity=SystemRequirement,itemID=REQ-001)@@";
-            metadata.Tags.Add(aiTag);
+                new ContentCreatorTag("AIFeedback", "Generates AI feedback for a specific item")
+                {
+                    Category = "AI Analysis",
+                    Description = "Uses the configured AI plugin (e.g., OpenAI, Azure OpenAI) to analyze a documentation item and provide intelligent feedback. " +
+                        "The AI reviews the item's content, identifies potential issues, suggests improvements, and provides quality assessments. " +
+                        "Feedback is automatically saved to a JSON file in the output directory for review and tracking. " +
+                        "Requires an AI plugin to be configured in the RoboClerk configuration file.",
+                    Parameters = new List<ContentCreatorParameter>
+                    {
+                        new ContentCreatorParameter("entity", 
+                            "The entity type of the item to analyze", 
+                            ParameterValueType.EntityType, required: true)
+                        {
+                            ExampleValue = "SystemRequirement",
+                            Description = "Entity type such as SystemRequirement, SoftwareRequirement, Risk, etc."
+                        },
+                        new ContentCreatorParameter("itemID", 
+                            "The ID of the specific item to analyze", 
+                            ParameterValueType.ItemID, required: true)
+                        {
+                            ExampleValue = "REQ-001",
+                            Description = "Unique identifier of the item to get AI feedback for"
+                        }
+                    },
+                    ExampleUsage = "@@AI:AIFeedback(entity=SystemRequirement,itemID=REQ-001)@@"
+                }
+            }
+        };
 
-            return metadata;
-        }
+        public ContentCreatorMetadata GetMetadata() => StaticMetadata;
 
         public string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {

@@ -15,21 +15,29 @@ namespace RoboClerk.ContentCreators
 
         }
 
-        protected override ContentCreatorMetadata GetContentCreatorMetadata()
+        /// <summary>
+        /// Static metadata for the DocContent content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
+            "SLMS",
+            "Documentation Content",
+            "Manages and displays documentation content items")
         {
-            var metadata = new ContentCreatorMetadata("SLMS", "Documentation Content", 
-                "Manages and displays documentation content items");
-            
-            metadata.Category = "Requirements & Traceability";
+            Category = "Requirements & Traceability",
+            Tags = new List<ContentCreatorTag>
+            {
+                new ContentCreatorTag("DocContent", "Displays documentation content items")
+                {
+                    Category = "Documentation Management",
+                    Description = "Displays documentation content items with all details including content description, revision history, and traceability. " +
+                        "Documentation content items are typically used for sections, procedures, or reference material that needs to be tracked and traced. " +
+                        "Common filtering parameters (ItemID, ItemCategory, ItemStatus, ItemTitle, ItemProject, OlderThan, NewerThan, SortBy, SortOrder) are automatically available.",
+                    ExampleUsage = "@@SLMS:DocContent()@@"
+                }
+            }
+        };
 
-            var docContentTag = new ContentCreatorTag("DocContent", "Displays documentation content items");
-            docContentTag.Category = "Documentation Management";
-            // Common parameters will be automatically added
-            docContentTag.ExampleUsage = "@@SLMS:DocContent()@@";
-            metadata.Tags.Add(docContentTag);
-
-            return metadata;
-        }
+        protected override ContentCreatorMetadata GetContentCreatorMetadata() => StaticMetadata;
 
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {

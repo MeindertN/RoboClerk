@@ -11,32 +11,44 @@ namespace RoboClerk.ContentCreators
         public TemplateSection(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf)
             : base(data, analysis, conf)
         {
-
         }
 
-        public override ContentCreatorMetadata GetMetadata()
+        /// <summary>
+        /// Static metadata for the TemplateSection content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
+            "FILE",
+            "Template Section",
+            "Inserts content from template files into the document")
         {
-            var metadata = new ContentCreatorMetadata("FILE", "Template Section", 
-                "Inserts content from template files into the document");
-            
-            metadata.Category = "File Import";
-
-            var templateTag = new ContentCreatorTag("TemplateSection", "Inserts the contents of a template file");
-            templateTag.Category = "Template Import";
-            templateTag.Description = "Inserts content from a file in the template directory. " +
-                "Supports text files (.txt, .adoc, .html) for text output and DOCX files when output format is DOCX. " +
-                "DOCX files will have their body content extracted and inserted.";
-            templateTag.Parameters.Add(new ContentCreatorParameter("fileName", 
-                "Name of the template file to insert", 
-                ParameterValueType.FilePath, required: true)
+            Category = "File Import",
+            Tags = new List<ContentCreatorTag>
             {
-                ExampleValue = "section_template.adoc"
-            });
-            templateTag.ExampleUsage = "@@FILE:TemplateSection(fileName=introduction.adoc)@@";
-            metadata.Tags.Add(templateTag);
+                new ContentCreatorTag("TemplateSection", "Inserts the contents of a template file")
+                {
+                    Category = "Template Import",
+                    Description = "Inserts content from a file in the template directory. " +
+                        "Supports text files (.txt, .adoc, .html) for text-based output formats and DOCX files when output format is DOCX. " +
+                        "For DOCX files, the body content is extracted and inserted as OpenXML, preserving formatting, styles, and structure. " +
+                        "This is useful for including standard sections, boilerplate text, or reusable content across multiple documents.",
+                    Parameters = new List<ContentCreatorParameter>
+                    {
+                        new ContentCreatorParameter("fileName", 
+                            "Name of the template file to insert", 
+                            ParameterValueType.FilePath, required: true)
+                        {
+                            ExampleValue = "section_template.adoc",
+                            Description = "Template file name located in the template directory. " +
+                                "File extension must match the output format (.adoc for AsciiDoc, .html for HTML, .docx for DOCX output). " +
+                                "DOCX files can only be inserted when the output format is DOCX."
+                        }
+                    },
+                    ExampleUsage = "@@FILE:TemplateSection(fileName=introduction.adoc)@@"
+                }
+            }
+        };
 
-            return metadata;
-        }
+        public override ContentCreatorMetadata GetMetadata() => StaticMetadata;
 
         public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {

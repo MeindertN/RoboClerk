@@ -10,41 +10,55 @@ namespace RoboClerk.ContentCreators
         public ExcelTable(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf)
             : base(data, analysis, conf)
         {
-
         }
 
-        public override ContentCreatorMetadata GetMetadata()
+        /// <summary>
+        /// Static metadata for the ExcelTable content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
+            "FILE",
+            "Excel Table Import",
+            "Extracts and displays tables from Excel files in the template directory")
         {
-            var metadata = new ContentCreatorMetadata("FILE", "Excel Table", 
-                "Extracts and displays tables from Excel files in the template directory");
-            
-            metadata.Category = "File Import";
+            Category = "File Import",
+            Tags = new List<ContentCreatorTag>
+            {
+                new ContentCreatorTag("ExcelTable", "Imports a table from an Excel spreadsheet")
+                {
+                    Category = "Excel Import",
+                    Description = "Imports a specified range from an Excel file and renders it as a table in the document. " +
+                        "Supports cell formatting (bold, italic), hyperlinks, and automatic format conversion to AsciiDoc or HTML. " +
+                        "The Excel file must be located in the template directory.",
+                    Parameters = new List<ContentCreatorParameter>
+                    {
+                        new ContentCreatorParameter("fileName", 
+                            "Name of the Excel file in the template directory", 
+                            ParameterValueType.FilePath, required: true)
+                        {
+                            ExampleValue = "requirements_table.xlsx",
+                            Description = "Excel file name (with .xlsx extension) located in the template directory"
+                        },
+                        new ContentCreatorParameter("range", 
+                            "Excel range to import (e.g., A1:D10)", 
+                            ParameterValueType.Range, required: true)
+                        {
+                            ExampleValue = "A1:D10",
+                            Description = "Excel range in A1 notation specifying which cells to import"
+                        },
+                        new ContentCreatorParameter("workSheet", 
+                            "Name of the worksheet to read from", 
+                            ParameterValueType.String, required: false, defaultValue: "Sheet1")
+                        {
+                            ExampleValue = "Sheet1",
+                            Description = "Worksheet name within the Excel file. Defaults to 'Sheet1' if not specified"
+                        }
+                    },
+                    ExampleUsage = "@@FILE:ExcelTable(fileName=data.xlsx,range=B2:C4,workSheet=Sheet1)@@"
+                }
+            }
+        };
 
-            var excelTableTag = new ContentCreatorTag("ExcelTable", "Imports a table from an Excel spreadsheet");
-            excelTableTag.Category = "Excel Import";
-            excelTableTag.Parameters.Add(new ContentCreatorParameter("fileName", 
-                "Name of the Excel file in the template directory", 
-                ParameterValueType.FilePath, required: true)
-            {
-                ExampleValue = "requirements_table.xlsx"
-            });
-            excelTableTag.Parameters.Add(new ContentCreatorParameter("workSheet", 
-                "Name of the worksheet to read from", 
-                ParameterValueType.String, required: false, defaultValue: "Sheet1")
-            {
-                ExampleValue = "Sheet1"
-            });
-            excelTableTag.Parameters.Add(new ContentCreatorParameter("range", 
-                "Excel range to import (e.g., A1:D10)", 
-                ParameterValueType.Range, required: true)
-            {
-                ExampleValue = "A1:D10"
-            });
-            excelTableTag.ExampleUsage = "@@FILE:ExcelTable(fileName=data.xlsx,range=B2:C4,workSheet=Sheet1)@@";
-            metadata.Tags.Add(excelTableTag);
-
-            return metadata;
-        }
+        public override ContentCreatorMetadata GetMetadata() => StaticMetadata;
 
         public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {

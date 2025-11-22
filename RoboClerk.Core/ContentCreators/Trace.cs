@@ -16,31 +16,36 @@ namespace RoboClerk.ContentCreators
             this.config = config;
         }
 
-        public ContentCreatorMetadata GetMetadata()
+        /// <summary>
+        /// Static metadata for the Trace content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata("Trace", "Traceability Link", 
+            "Creates a traceability link to a specific item and tracks the relationship")
         {
-            var metadata = new ContentCreatorMetadata("Trace", "Traceability Link", 
-                "Creates a traceability link to a specific item and tracks the relationship");
-            
-            metadata.Category = "Requirements & Traceability";
-
-            var traceTag = new ContentCreatorTag("Trace", "Creates a clickable link to an item and records the trace relationship");
-            traceTag.Category = "Traceability Management";
-            traceTag.Description = "Creates a link to a specific item by ID and records the traceability relationship. " +
-                "The link will be clickable if the item has an associated URL. " +
-                "This tag is used to establish and track traceability between documents and items.";
-            
-            traceTag.Parameters.Add(new ContentCreatorParameter("ID", 
-                "The identifier of the item to trace to", 
-                ParameterValueType.ItemID, required: true)
+            Category = "Requirements & Traceability",
+            Tags = new List<ContentCreatorTag>
             {
-                ExampleValue = "REQ-001"
-            });
-            
-            traceTag.ExampleUsage = "@@Trace:Trace(ID=REQ-001)@@";
-            metadata.Tags.Add(traceTag);
+                new ContentCreatorTag("Trace", "Creates a clickable link to an item and records the trace relationship")
+                {
+                    Category = "Traceability Management",
+                    Description = "Creates a link to a specific item by ID and records the traceability relationship. " +
+                        "The link will be clickable if the item has an associated URL. " +
+                        "This tag is used to establish and track traceability between documents and items.",
+                    Parameters = new List<ContentCreatorParameter>
+                    {
+                        new ContentCreatorParameter("ID", 
+                            "The identifier of the item to trace to", 
+                            ParameterValueType.ItemID, required: true)
+                        {
+                            ExampleValue = "REQ-001"
+                        }
+                    },
+                    ExampleUsage = "@@Trace:Trace(ID=REQ-001)@@"
+                }
+            }
+        };
 
-            return metadata;
-        }
+        public ContentCreatorMetadata GetMetadata() => StaticMetadata;
 
         public string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {

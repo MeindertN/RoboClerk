@@ -12,21 +12,29 @@ namespace RoboClerk.ContentCreators
         {
         }
 
-        protected override ContentCreatorMetadata GetContentCreatorMetadata()
+        /// <summary>
+        /// Static metadata for the Risk content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
+            "SLMS",
+            "Risk",
+            "Manages and displays risk items including risk assessments and control measures")
         {
-            var metadata = new ContentCreatorMetadata("SLMS", "Risk", 
-                "Manages and displays risk items including risk assessments and control measures");
-            
-            metadata.Category = "Requirements & Traceability";
+            Category = "Requirements & Traceability",
+            Tags = new List<ContentCreatorTag>
+            {
+                new ContentCreatorTag("Risk", "Displays detailed risk information including severity, control measures, and mitigation")
+                {
+                    Category = "Risk Management",
+                    Description = "Displays risk items with all details including risk description, severity assessment, probability, impact, " +
+                        "control measures, mitigation strategies, and residual risk. " +
+                        "Common filtering parameters (ItemID, ItemCategory, ItemStatus, ItemTitle, ItemProject, OlderThan, NewerThan, SortBy, SortOrder) are automatically available.",
+                    ExampleUsage = "@@SLMS:Risk()@@"
+                }
+            }
+        };
 
-            var riskTag = new ContentCreatorTag("Risk", "Displays detailed risk information including severity, control measures, and mitigation");
-            riskTag.Category = "Risk Management";
-            // Common parameters will be automatically added
-            riskTag.ExampleUsage = "@@SLMS:Risk()@@";
-            metadata.Tags.Add(riskTag);
-
-            return metadata;
-        }
+        protected override ContentCreatorMetadata GetContentCreatorMetadata() => StaticMetadata;
 
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {

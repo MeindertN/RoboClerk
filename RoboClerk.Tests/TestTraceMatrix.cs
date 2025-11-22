@@ -418,6 +418,8 @@ namespace RoboClerk.Tests
     // Test helper class to test custom ShouldIncludeItem override
     internal class TestableTraceMatrix : TraceabilityMatrixBase
     {
+        protected override string MatrixTypeName => "System";
+
         public TestableTraceMatrix(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration configuration)
             : base(data, analysis, configuration)
         {

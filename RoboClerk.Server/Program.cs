@@ -296,6 +296,9 @@ static void RegisterRoboClerkServices(IServiceCollection services, string[] args
                     services.AddSingleton<IContentCreatorFactory>(serviceProvider =>
                         new ContentCreatorFactory(serviceProvider, serviceProvider.GetRequiredService<ITraceabilityAnalysis>()));
 
+                    // Register content creator metadata service (no dependencies needed!)
+                    services.AddSingleton<IContentCreatorMetadataService, ContentCreatorMetadataService>();
+
                     // Register project manager service
                     services.AddSingleton<IProjectManager, ProjectManager>();
 

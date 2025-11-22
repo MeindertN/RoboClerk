@@ -15,6 +15,57 @@ namespace RoboClerk.ContentCreators
         {
         }
 
+        /// <summary>
+        /// Static metadata for the Eliminated content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
+            "SLMS",
+            "Eliminated Items",
+            "Displays items that have been eliminated or removed from the project scope")
+        {
+            Category = "Requirements & Traceability",
+            Tags = new List<ContentCreatorTag>
+            {
+                new ContentCreatorTag("Eliminated", "Displays eliminated items with rationale for their removal")
+                {
+                    Category = "Eliminated Items Management",
+                    Description = "Displays items that have been eliminated from the project scope, including the rationale for their elimination. " +
+                        "Eliminated items maintain traceability and provide audit trail for why items were removed. " +
+                        "Can filter by specific item types or show all eliminated items across all categories. " +
+                        "Common filtering parameters (ItemID, ItemCategory, ItemStatus, ItemTitle, ItemProject, OlderThan, NewerThan, SortBy, SortOrder) are automatically available.",
+                    Parameters = new List<ContentCreatorParameter>
+                    {
+                        new ContentCreatorParameter("type", 
+                            "Type of eliminated items to display", 
+                            ParameterValueType.String, required: false, defaultValue: "ALL")
+                        {
+                            AllowedValues = new List<string> 
+                            { 
+                                "ALL", 
+                                "SYSTEM", 
+                                "SOFTWARE", 
+                                "DOCUMENTATION", 
+                                "TESTCASE", 
+                                "UNITTEST", 
+                                "TESTRESULT", 
+                                "RISK", 
+                                "DOCCONTENT", 
+                                "ANOMALY", 
+                                "SOUP" 
+                            },
+                            ExampleValue = "SYSTEM",
+                            Description = "Filters eliminated items by type. Use 'ALL' to show all eliminated items, " +
+                                "or specify a specific type like 'SYSTEM' for system requirements, 'SOFTWARE' for software requirements, " +
+                                "'TESTCASE' for test cases, 'UNITTEST' for unit tests, 'RISK' for risks, etc."
+                        }
+                    },
+                    ExampleUsage = "@@SLMS:Eliminated(type=SYSTEM)@@"
+                }
+            }
+        };
+
+        protected override ContentCreatorMetadata GetContentCreatorMetadata() => StaticMetadata;
+
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity sourceTE, TraceEntity docTE)
         {
             var dataShare = CreateScriptingBridge(tag, sourceTE);

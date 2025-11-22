@@ -8,27 +8,28 @@ namespace RoboClerk.ContentCreators
         public ConfigurationValue(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration config) 
             : base(data, analysis, config)
         {
-
         }
 
-        public override ContentCreatorMetadata GetMetadata()
+        /// <summary>
+        /// Static metadata for the ConfigurationValue content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata("Config", "Configuration Value", 
+            "Retrieves configuration values from the RoboClerk configuration")
         {
-            var metadata = new ContentCreatorMetadata("Config", "Configuration Value", 
-                "Retrieves configuration values from the RoboClerk configuration");
-            
-            metadata.Category = "Configuration";
+            Category = "Configuration",
+            Tags = new List<ContentCreatorTag>
+            {
+                new ContentCreatorTag("[ConfigKey]", "Retrieves the value of a configuration key")
+                {
+                    Category = "Configuration Access",
+                    Description = "Replace [ConfigKey] with the actual configuration key name. " +
+                        "Returns the value of the specified configuration key from the RoboClerk configuration file.",
+                    ExampleUsage = "@@Config:ProjectName@@"
+                }
+            }
+        };
 
-            // Since Config content creator is dynamic based on configuration values,
-            // we provide a general tag description
-            var configTag = new ContentCreatorTag("[ConfigKey]", "Retrieves the value of a configuration key");
-            configTag.Category = "Configuration Access";
-            configTag.Description = "Replace [ConfigKey] with the actual configuration key name. " +
-                "Returns the value of the specified configuration key from the RoboClerk configuration file.";
-            configTag.ExampleUsage = "@@Config:ProjectName@@";
-            metadata.Tags.Add(configTag);
-
-            return metadata;
-        }
+        public override ContentCreatorMetadata GetMetadata() => StaticMetadata;
 
         public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {

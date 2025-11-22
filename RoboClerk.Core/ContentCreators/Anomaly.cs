@@ -11,31 +11,59 @@ namespace RoboClerk.ContentCreators
         public Anomaly(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration config)
             : base(data, analysis, config)
         {
-
         }
 
-        protected override ContentCreatorMetadata GetContentCreatorMetadata()
+        /// <summary>
+        /// Static metadata for the Anomaly content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
+            "SLMS",
+            "Anomaly (Bug/Issue)",
+            "Manages and displays anomalies (bugs, defects, issues)")
         {
-            var metadata = new ContentCreatorMetadata("SLMS", "Anomaly (Bug/Issue)", 
-                "Manages and displays anomalies (bugs, defects, issues)");
-            
-            metadata.Category = "Testing";
-
-            var anomalyTag = new ContentCreatorTag("Anomaly", "Displays detailed anomaly/bug information");
-            anomalyTag.Category = "Anomaly Management";
-            // Common parameters will be automatically added
-            anomalyTag.Parameters.Add(new ContentCreatorParameter("IncludeClosed", 
-                "Set to 'true' to include closed/resolved anomalies in the output", 
-                ParameterValueType.Boolean, required: false, defaultValue: "false")
+            Category = "Testing",
+            Tags = new List<ContentCreatorTag>
             {
-                AllowedValues = new List<string> { "true", "false" },
-                ExampleValue = "true"
-            });
-            anomalyTag.ExampleUsage = "@@SLMS:Anomaly()@@";
-            metadata.Tags.Add(anomalyTag);
+                new ContentCreatorTag("Anomaly", "Displays detailed anomaly/bug information")
+                {
+                    Category = "Anomaly Management",
+                    Description = "Displays anomalies with all details including state, severity, assignee, justification, and detailed description. " +
+                        "By default, only open/active anomalies are shown unless IncludeClosed is set to true. " +
+                        "Common filtering parameters (ItemID, ItemCategory, ItemStatus, ItemTitle, ItemProject, OlderThan, NewerThan, SortBy, SortOrder) are automatically available.",
+                    Parameters = new List<ContentCreatorParameter>
+                    {
+                        new ContentCreatorParameter("IncludeClosed", 
+                            "Set to 'true' to include closed/resolved anomalies in the output", 
+                            ParameterValueType.Boolean, required: false, defaultValue: "false")
+                        {
+                            AllowedValues = new List<string> { "true", "false" },
+                            ExampleValue = "true"
+                        },
+                        new ContentCreatorParameter("AnomalyState", 
+                            "Filter anomalies by state (e.g., 'Open', 'Closed', 'In Progress')", 
+                            ParameterValueType.String, required: false)
+                        {
+                            ExampleValue = "Open"
+                        },
+                        new ContentCreatorParameter("AnomalyAssignee", 
+                            "Filter anomalies by assignee", 
+                            ParameterValueType.String, required: false)
+                        {
+                            ExampleValue = "John.Doe"
+                        },
+                        new ContentCreatorParameter("AnomalySeverity", 
+                            "Filter anomalies by severity level", 
+                            ParameterValueType.String, required: false)
+                        {
+                            ExampleValue = "Critical"
+                        }
+                    },
+                    ExampleUsage = "@@SLMS:Anomaly()@@"
+                }
+            }
+        };
 
-            return metadata;
-        }
+        protected override ContentCreatorMetadata GetContentCreatorMetadata() => StaticMetadata;
 
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity te, TraceEntity docTE)
         {

@@ -13,6 +13,11 @@ namespace RoboClerk.ContentCreators
         protected readonly ITraceabilityAnalysis analysis;
         protected readonly IConfiguration configuration;
 
+        /// <summary>
+        /// Gets the matrix type name for this specific traceability matrix (e.g., "System Level", "Software Level", "Risk")
+        /// </summary>
+        protected abstract string MatrixTypeName { get; }
+
         public TraceabilityMatrixBase(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration configuration)
         {
             this.data = data;
@@ -20,26 +25,45 @@ namespace RoboClerk.ContentCreators
             this.configuration = configuration;
         }
 
+        /// <summary>
+        /// Creates static metadata for a traceability matrix content creator
+        /// </summary>
+        protected static ContentCreatorMetadata CreateMatrixMetadata(string matrixType)
+        {
+            var metadata = new ContentCreatorMetadata("SLMS", $"{matrixType} Traceability Matrix", 
+                $"Generates a traceability matrix showing relationships between {matrixType.ToLower()} items and other entities")
+            {
+                Category = "Requirements & Traceability",
+                Tags = new List<ContentCreatorTag>
+                {
+                    new ContentCreatorTag($"{matrixType.Replace(" ", "")}TraceabilityMatrix", $"Displays {matrixType.ToLower()} traceability matrix and trace issues")
+                    {
+                        Category = "Traceability Analysis",
+                        Description = $"Creates a comprehensive traceability matrix for {matrixType.ToLower()} showing all relationships and traces. " +
+                            "The matrix displays trace relationships between different entity types and identifies any trace issues such as missing, extra, or incorrect traces. " +
+                            "Can be filtered by project to focus on specific project items.",
+                        Parameters = new List<ContentCreatorParameter>
+                        {
+                            new ContentCreatorParameter("ItemProject", 
+                                "Filter items by project identifier", 
+                                ParameterValueType.String, required: false)
+                            {
+                                ExampleValue = "MyProject",
+                                Description = "Only include items from the specified project in the matrix. " +
+                                    "Filtering is case-insensitive and applies to both rows and trace relationships."
+                            }
+                        },
+                        ExampleUsage = $"@@SLMS:{matrixType.Replace(" ", "")}TraceabilityMatrix()@@"
+                    }
+                }
+            };
+            return metadata;
+        }
+
         public virtual ContentCreatorMetadata GetMetadata()
         {
-            var matrixName = truthSource?.Name ?? "Traceability";
-            var metadata = new ContentCreatorMetadata("SLMS", $"{matrixName} Traceability Matrix", 
-                $"Generates a traceability matrix showing relationships between {matrixName.ToLower()} items and other entities");
-            
-            metadata.Category = "Requirements & Traceability";
-
-            var matrixTag = new ContentCreatorTag("TraceMatrix", $"Displays {matrixName.ToLower()} level traceability matrix and trace issues");
-            matrixTag.Category = "Traceability Analysis";
-            matrixTag.Parameters.Add(new ContentCreatorParameter("ItemProject", 
-                "Filter items by project identifier", 
-                ParameterValueType.String, required: false)
-            {
-                ExampleValue = "MyProject"
-            });
-            matrixTag.ExampleUsage = "@@SLMS:TraceMatrix()@@";
-            metadata.Tags.Add(matrixTag);
-
-            return metadata;
+            // Use the matrix type name from the derived class
+            return CreateMatrixMetadata(MatrixTypeName);
         }
 
         protected virtual bool ShouldIncludeItem(Item item, string projectFilter)

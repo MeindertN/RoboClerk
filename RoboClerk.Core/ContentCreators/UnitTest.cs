@@ -11,51 +11,63 @@ namespace RoboClerk.ContentCreators
         public UnitTest(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf)
             : base(data, analysis, conf)
         {
-
         }
 
-        protected override ContentCreatorMetadata GetContentCreatorMetadata()
+        /// <summary>
+        /// Static metadata for the UnitTest content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
+            "SLMS",
+            "Unit Test",
+            "Manages and displays unit test information including test results")
         {
-            var metadata = new ContentCreatorMetadata("SLMS", "Unit Test", 
-                "Manages and displays unit test information including test results");
-            
-            metadata.Category = "Testing";
-
-            // Main unit test tag
-            var testTag = new ContentCreatorTag("UnitTest", "Displays detailed unit test information");
-            testTag.Category = "Unit Test Management";
-            // Common parameters will be automatically added
-            testTag.ExampleUsage = "@@SLMS:UnitTest()@@";
-            metadata.Tags.Add(testTag);
-
-            // Brief list tag
-            var briefTag = new ContentCreatorTag("UnitTest", "Displays a brief list of all unit tests");
-            briefTag.Category = "Unit Test Management";
-            briefTag.Parameters.Add(new ContentCreatorParameter("brief", 
-                "Set to 'true' to display brief unit test list", 
-                ParameterValueType.Boolean, required: false)
+            Category = "Testing",
+            Tags = new List<ContentCreatorTag>
             {
-                AllowedValues = new List<string> { "true", "false" },
-                ExampleValue = "true"
-            });
-            briefTag.ExampleUsage = "@@SLMS:UnitTest(brief=true)@@";
-            metadata.Tags.Add(briefTag);
+                new ContentCreatorTag("UnitTest", "Displays detailed unit test information")
+                {
+                    Category = "Unit Test Management",
+                    Description = "Displays unit tests with all details including purpose, acceptance criteria, file name, function name, and traceability. " +
+                        "Common filtering parameters (ItemID, ItemCategory, ItemStatus, ItemTitle, ItemProject, OlderThan, NewerThan, SortBy, SortOrder) are automatically available.",
+                    ExampleUsage = "@@SLMS:UnitTest()@@"
+                },
+                new ContentCreatorTag("UnitTest", "Displays a brief list of all unit tests")
+                {
+                    Category = "Unit Test Management",
+                    Description = "Displays a compact table view of all unit tests with summary information including file name, function name, and linked requirements.",
+                    Parameters = new List<ContentCreatorParameter>
+                    {
+                        new ContentCreatorParameter("brief", 
+                            "Set to 'true' to display brief unit test list", 
+                            ParameterValueType.Boolean, required: false)
+                        {
+                            AllowedValues = new List<string> { "true", "false" },
+                            ExampleValue = "true"
+                        }
+                    },
+                    ExampleUsage = "@@SLMS:UnitTest(brief=true)@@"
+                },
+                new ContentCreatorTag("UnitTest", "Validates unit test results")
+                {
+                    Category = "Test Validation",
+                    Description = "Compares unit test results against the test plan and reports any discrepancies, missing results, or failures. " +
+                        "This requires test results to be loaded into RoboClerk through a test results plugin.",
+                    Parameters = new List<ContentCreatorParameter>
+                    {
+                        new ContentCreatorParameter("checkResults", 
+                            "Set to 'true' to validate unit test results against test plan. Test results must be loaded into RoboClerk.", 
+                            ParameterValueType.Boolean, required: false)
+                        {
+                            AllowedValues = new List<string> { "true", "false" },
+                            ExampleValue = "true"
+                        }
+                    },
+                    ExampleUsage = "@@SLMS:UnitTest(checkResults=true)@@"
+                }
+            }
+        };
 
-            // Check results tag
-            var checkResultsTag = new ContentCreatorTag("UnitTest", "Validates unit test results");
-            checkResultsTag.Category = "Test Validation";
-            checkResultsTag.Parameters.Add(new ContentCreatorParameter("checkResults", 
-                "Set to 'true' to validate unit test results against test plan. Test results must be loaded into RoboClerk.", 
-                ParameterValueType.Boolean, required: false)
-            {
-                AllowedValues = new List<string> { "true", "false" },
-                ExampleValue = "true"
-            });
-            checkResultsTag.ExampleUsage = "@@SLMS:UnitTest(checkResults=true)@@";
-            metadata.Tags.Add(checkResultsTag);
-
-            return metadata;
-        }
+        protected override ContentCreatorMetadata GetContentCreatorMetadata() => StaticMetadata;
 
         private string CheckResults(List<LinkedItem> items, TraceEntity docTE)
         {

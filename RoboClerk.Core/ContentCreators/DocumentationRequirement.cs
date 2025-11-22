@@ -6,11 +6,17 @@ namespace RoboClerk.ContentCreators
 {
     public class DocumentationRequirement : RequirementBase
     {
+        protected override string RequirementTypeName => "Documentation";
+
         public DocumentationRequirement(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf)
             : base(data, analysis, conf)
         {
-
         }
+
+        /// <summary>
+        /// Static metadata for the DocumentationRequirement content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = CreateRequirementMetadata("Documentation");
 
         public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {

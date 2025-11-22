@@ -42,6 +42,33 @@ namespace RoboClerk.Server.Controllers
         }
 
         /// <summary>
+        /// Get metadata for a specific content creator by source
+        /// </summary>
+        [HttpGet("content-creators/metadata/{source}")]
+        public ActionResult<ContentCreatorMetadata> GetContentCreatorMetadataBySource(string source)
+        {
+            try
+            {
+                logger.Debug($"Getting metadata for content creator source: {source}");
+                
+                var metadata = metadataService.GetContentCreatorMetadata(source);
+                if (metadata == null)
+                {
+                    logger.Warn($"Content creator metadata not found for source: {source}");
+                    return NotFound($"Content creator with source '{source}' not found");
+                }
+                
+                logger.Info($"Returning metadata for content creator: {source}");
+                return Ok(metadata);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error getting content creator metadata for source: {source}");
+                return StatusCode(500, "Failed to get content creator metadata");
+            }
+        }
+
+        /// <summary>
         /// Load a SharePoint project for the Word add-in session
         /// </summary>
         [HttpPost("project/load")]

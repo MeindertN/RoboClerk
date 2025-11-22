@@ -20,54 +20,63 @@ namespace RoboClerk.ContentCreators
         };
         private readonly IFileProviderPlugin fileSystem;
 
-
         public KrokiDiagram(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf, IFileProviderPlugin fs)
             : base(data, analysis, conf)
         {
             fileSystem = fs;
         }
 
-        public override ContentCreatorMetadata GetMetadata()
+        /// <summary>
+        /// Static metadata for the KrokiDiagram content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
+            "Web",
+            "Kroki Diagram",
+            "Generates diagrams using the Kroki web service (PlantUML, GraphViz, Mermaid, and many more)")
         {
-            var metadata = new ContentCreatorMetadata("Web", "Kroki Diagram", 
-                "Generates diagrams using the Kroki web service (PlantUML, GraphViz, Mermaid, etc.)");
-            
-            metadata.Category = "Diagrams";
+            Category = "Diagrams & Visualization",
+            Tags = new List<ContentCreatorTag>
+            {
+                new ContentCreatorTag("KrokiDiagram", "Generates a diagram from embedded diagram source code")
+                {
+                    Category = "Diagram Generation",
+                    Description = "Sends diagram source code to the Kroki web service (https://kroki.io) and embeds the resulting image in the document. " +
+                        "The diagram source code should be placed between the opening and closing tags. " +
+                        "Supports PlantUML, GraphViz, Mermaid, Ditaa, BlockDiag, SeqDiag, ActDiag, NwDiag, C4-PlantUML, and many other diagram types. " +
+                        "The generated image is automatically saved to the media directory and referenced in the document. " +
+                        "If the Kroki service is unavailable, an error message is displayed instead of breaking the document generation.",
+                    Parameters = new List<ContentCreatorParameter>
+                    {
+                        new ContentCreatorParameter("type", 
+                            "Type of diagram (e.g., plantuml, graphviz, mermaid, ditaa, etc.)", 
+                            ParameterValueType.String, required: false, defaultValue: "plantuml")
+                        {
+                            AllowedValues = new List<string> { "plantuml", "graphviz", "mermaid", "ditaa", "blockdiag", "seqdiag", "actdiag", "nwdiag", "c4plantuml" },
+                            ExampleValue = "plantuml",
+                            Description = "Specifies the diagram syntax/format. Defaults to 'plantuml' if not specified."
+                        },
+                        new ContentCreatorParameter("format", 
+                            "Output image format", 
+                            ParameterValueType.String, required: false, defaultValue: "png")
+                        {
+                            AllowedValues = new List<string> { "png", "svg", "base64", "text", "utext", "pdf" },
+                            ExampleValue = "png",
+                            Description = "Image format for the generated diagram. PNG is recommended for compatibility."
+                        },
+                        new ContentCreatorParameter("caption", 
+                            "Caption text to display with the diagram", 
+                            ParameterValueType.String, required: false)
+                        {
+                            ExampleValue = "System Architecture Diagram",
+                            Description = "Optional caption displayed below/alongside the diagram"
+                        }
+                    },
+                    ExampleUsage = "@@Web:KrokiDiagram(type=plantuml,format=png,caption=Example Diagram)\n@startuml\nAlice -> Bob: Hello\n@enduml\n@@"
+                }
+            }
+        };
 
-            var krokiTag = new ContentCreatorTag("KrokiDiagram", "Generates a diagram from embedded diagram source code");
-            krokiTag.Category = "Diagram Generation";
-            krokiTag.Description = "Sends diagram source code to the Kroki web service and embeds the resulting image. " +
-                "The diagram source should be placed between the opening and closing tags. " +
-                "Supports PlantUML, GraphViz, Mermaid, and many other diagram types.";
-            
-            krokiTag.Parameters.Add(new ContentCreatorParameter("type", 
-                "Type of diagram (e.g., plantuml, graphviz, mermaid, ditaa, etc.)", 
-                ParameterValueType.String, required: false, defaultValue: "plantuml")
-            {
-                AllowedValues = new List<string> { "plantuml", "graphviz", "mermaid", "ditaa", "blockdiag", "seqdiag", "actdiag", "nwdiag", "c4plantuml" },
-                ExampleValue = "plantuml"
-            });
-            
-            krokiTag.Parameters.Add(new ContentCreatorParameter("format", 
-                "Output image format", 
-                ParameterValueType.String, required: false, defaultValue: "png")
-            {
-                AllowedValues = new List<string> { "png", "svg", "base64", "text", "utext", "pdf" },
-                ExampleValue = "png"
-            });
-            
-            krokiTag.Parameters.Add(new ContentCreatorParameter("caption", 
-                "Caption text to display with the diagram", 
-                ParameterValueType.String, required: false)
-            {
-                ExampleValue = "System Architecture Diagram"
-            });
-            
-            krokiTag.ExampleUsage = "@@Web:KrokiDiagram(type=plantuml,format=png,caption=Example Diagram)\n@startuml\nAlice -> Bob: Hello\n@enduml\n@@";
-            metadata.Tags.Add(krokiTag);
-
-            return metadata;
-        }
+        public override ContentCreatorMetadata GetMetadata() => StaticMetadata;
 
         public static async Task<byte[]> DownloadImageAsync(string url, CancellationToken cancellationToken = default)
         {

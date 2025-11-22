@@ -8,55 +8,59 @@ namespace RoboClerk.ContentCreators
 {
     public class SOUP : MultiItemContentCreator
     {
-
         public SOUP(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf)
             : base(data, analysis, conf)
         {
-
         }
 
-        protected override ContentCreatorMetadata GetContentCreatorMetadata()
+        /// <summary>
+        /// Static metadata for the SOUP content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata("SLMS", "SOUP (Software of Unknown Provenance)", 
+            "Manages and displays SOUP items including version checking and brief lists")
         {
-            var metadata = new ContentCreatorMetadata("SLMS", "SOUP (Software of Unknown Provenance)", 
-                "Manages and displays SOUP items including version checking and brief lists");
-            
-            metadata.Category = "Requirements & Traceability";
-
-            // Main SOUP tag
-            var soupTag = new ContentCreatorTag("SOUP", "Displays detailed SOUP item information");
-            soupTag.Category = "SOUP Management";
-            // Common parameters will be automatically added
-            soupTag.ExampleUsage = "@@SLMS:SOUP()@@";
-            metadata.Tags.Add(soupTag);
-
-            // SOUP with brief parameter
-            var soupBriefTag = new ContentCreatorTag("SOUP", "Displays a brief list of all SOUP items with names and versions");
-            soupBriefTag.Category = "SOUP Management";
-            soupBriefTag.Parameters.Add(new ContentCreatorParameter("brief", 
-                "Set to 'true' to display brief SOUP list", 
-                ParameterValueType.Boolean, required: false)
+            Category = "Requirements & Traceability",
+            Tags = new List<ContentCreatorTag>
             {
-                AllowedValues = new List<string> { "true", "false" },
-                ExampleValue = "true"
-            });
-            soupBriefTag.ExampleUsage = "@@SLMS:SOUP(brief=true)@@";
-            metadata.Tags.Add(soupBriefTag);
+                new ContentCreatorTag("SOUP", "Displays detailed SOUP item information")
+                {
+                    Category = "SOUP Management",
+                    ExampleUsage = "@@SLMS:SOUP()@@"
+                },
+                new ContentCreatorTag("SOUP", "Displays a brief list of all SOUP items with names and versions")
+                {
+                    Category = "SOUP Management",
+                    Parameters = new List<ContentCreatorParameter>
+                    {
+                        new ContentCreatorParameter("brief", 
+                            "Set to 'true' to display brief SOUP list", 
+                            ParameterValueType.Boolean, required: false)
+                        {
+                            AllowedValues = new List<string> { "true", "false" },
+                            ExampleValue = "true"
+                        }
+                    },
+                    ExampleUsage = "@@SLMS:SOUP(brief=true)@@"
+                },
+                new ContentCreatorTag("SOUP", "Validates SOUP items against external dependencies")
+                {
+                    Category = "SOUP Validation",
+                    Parameters = new List<ContentCreatorParameter>
+                    {
+                        new ContentCreatorParameter("checkSOUP", 
+                            "Set to 'true' to validate SOUP items against external dependencies", 
+                            ParameterValueType.Boolean, required: false)
+                        {
+                            AllowedValues = new List<string> { "true", "false" },
+                            ExampleValue = "true"
+                        }
+                    },
+                    ExampleUsage = "@@SLMS:SOUP(checkSOUP=true)@@"
+                }
+            }
+        };
 
-            // SOUP check tag
-            var soupCheckTag = new ContentCreatorTag("SOUP", "Validates SOUP items against external dependencies");
-            soupCheckTag.Category = "SOUP Validation";
-            soupCheckTag.Parameters.Add(new ContentCreatorParameter("checkSOUP", 
-                "Set to 'true' to validate SOUP items against external dependencies. Requires dependencies to be loaded into RoboClerk.", 
-                ParameterValueType.Boolean, required: false)
-            {
-                AllowedValues = new List<string> { "true", "false" },
-                ExampleValue = "true"
-            });
-            soupCheckTag.ExampleUsage = "@@SLMS:SOUP(checkSOUP=true)@@";
-            metadata.Tags.Add(soupCheckTag);
-
-            return metadata;
-        }
+        protected override ContentCreatorMetadata GetContentCreatorMetadata() => StaticMetadata;
 
         private string GenerateSoupCheck(string soupName)
         {

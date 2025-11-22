@@ -8,59 +8,63 @@ namespace RoboClerk.ContentCreators
 {
     internal class Reference : ContentCreatorBase
     {
- 
         public Reference(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf) 
             : base(data,analysis, conf)
         {
         }
 
-        public override ContentCreatorMetadata GetMetadata()
+        /// <summary>
+        /// Static metadata for the Reference content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata("Reference", "Document Reference", 
+            "Creates references to other RoboClerk documents")
         {
-            var metadata = new ContentCreatorMetadata("Reference", "Document Reference", 
-                "Creates references to other RoboClerk documents");
-            
-            metadata.Category = "Document Information";
+            Category = "Document Information",
+            Tags = new List<ContentCreatorTag>
+            {
+                new ContentCreatorTag("[DocumentID]", "Creates a reference to another RoboClerk document that is included in the trace information")
+                {
+                    Category = "Cross-References",
+                    Description = "Replace [DocumentID] with the actual RoboClerk document ID. " +
+                        "Returns document properties based on specified parameters. " +
+                        "If no parameters are specified, returns the document title.",
+                    Parameters = new List<ContentCreatorParameter>
+                    {
+                        new ContentCreatorParameter("ID", 
+                            "Include the document identifier in the reference", 
+                            ParameterValueType.Boolean, required: false)
+                        {
+                            AllowedValues = new List<string> { "true", "false" },
+                            ExampleValue = "true"
+                        },
+                        new ContentCreatorParameter("Title", 
+                            "Include the document title in the reference", 
+                            ParameterValueType.Boolean, required: false)
+                        {
+                            AllowedValues = new List<string> { "true", "false" },
+                            ExampleValue = "true"
+                        },
+                        new ContentCreatorParameter("Abbr", 
+                            "Include the document abbreviation in the reference", 
+                            ParameterValueType.Boolean, required: false)
+                        {
+                            AllowedValues = new List<string> { "true", "false" },
+                            ExampleValue = "true"
+                        },
+                        new ContentCreatorParameter("Template", 
+                            "Include the document template path in the reference", 
+                            ParameterValueType.Boolean, required: false)
+                        {
+                            AllowedValues = new List<string> { "true", "false" },
+                            ExampleValue = "false"
+                        }
+                    },
+                    ExampleUsage = "@@Reference:SystemRequirementsSpec(ID=true,Title=true,Abbr=true)@@"
+                }
+            }
+        };
 
-            var refTag = new ContentCreatorTag("[DocumentID]", "Creates a reference to another RoboClerk document that is included in the trace information.");
-            refTag.Category = "Cross-References";
-            refTag.Description = "Replace [DocumentID] with the actual RoboClerk document ID. " +
-                "Returns document properties based on specified parameters. " +
-                "If no parameters are specified, returns the document title.";
-            
-            refTag.Parameters.Add(new ContentCreatorParameter("ID", 
-                "Include the document identifier in the reference", 
-                ParameterValueType.Boolean, required: false)
-            {
-                AllowedValues = new List<string> { "true", "false" },
-                ExampleValue = "true"
-            });
-            refTag.Parameters.Add(new ContentCreatorParameter("Title", 
-                "Include the document title in the reference", 
-                ParameterValueType.Boolean, required: false)
-            {
-                AllowedValues = new List<string> { "true", "false" },
-                ExampleValue = "true"
-            });
-            refTag.Parameters.Add(new ContentCreatorParameter("Abbr", 
-                "Include the document abbreviation in the reference", 
-                ParameterValueType.Boolean, required: false)
-            {
-                AllowedValues = new List<string> { "true", "false" },
-                ExampleValue = "true"
-            });
-            refTag.Parameters.Add(new ContentCreatorParameter("Template", 
-                "Include the document template path in the reference", 
-                ParameterValueType.Boolean, required: false)
-            {
-                AllowedValues = new List<string> { "true", "false" },
-                ExampleValue = "false"
-            });
-            
-            refTag.ExampleUsage = "@@Reference:SystemRequirementsSpec(ID=true,Title=true,Abbr=true)@@";
-            metadata.Tags.Add(refTag);
-
-            return metadata;
-        }
+        public override ContentCreatorMetadata GetMetadata() => StaticMetadata;
 
         public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {

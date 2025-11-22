@@ -16,9 +16,21 @@ namespace RoboClerk.ContentCreators
         public string GetContent(IRoboClerkTag tag, DocumentConfig doc);
 
         /// <summary>
-        /// Gets metadata describing this content creator's capabilities, tags, and parameters
+        /// Gets metadata describing this content creator's capabilities, tags, and parameters.
+        /// Note: Implementations should delegate to a static property for efficiency.
         /// </summary>
         /// <returns>Metadata describing the content creator</returns>
         public ContentCreatorMetadata GetMetadata();
+    }
+
+    /// <summary>
+    /// Interface for content creators that provide static metadata without requiring instantiation
+    /// </summary>
+    public interface IStaticMetadataProvider
+    {
+        /// <summary>
+        /// Gets the static metadata for this content creator type
+        /// </summary>
+        static abstract ContentCreatorMetadata StaticMetadata { get; }
     }
 }

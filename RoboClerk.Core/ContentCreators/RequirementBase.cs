@@ -13,40 +13,58 @@ namespace RoboClerk.ContentCreators
         protected string requirementName = string.Empty;
         protected TraceEntity sourceType = null;
 
+        /// <summary>
+        /// Gets the requirement type name for this specific requirement class (e.g., "System", "Software", "Documentation")
+        /// </summary>
+        protected abstract string RequirementTypeName { get; }
+
         public RequirementBase(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration config)
             : base(data, analysis, config)
         {
         }
 
+        /// <summary>
+        /// Creates static metadata for a requirement content creator
+        /// </summary>
+        protected static ContentCreatorMetadata CreateRequirementMetadata(string requirementType)
+        {
+            var metadata = new ContentCreatorMetadata("SLMS", $"{requirementType} Requirement", 
+                $"Manages and displays {requirementType.ToLower()} requirements")
+            {
+                Category = "Requirements & Traceability",
+                Tags = new List<ContentCreatorTag>
+                {
+                    new ContentCreatorTag($"{requirementType}Requirement", $"Displays detailed {requirementType.ToLower()} requirement information")
+                    {
+                        Category = "Requirement Management",
+                        Description = $"Displays {requirementType.ToLower()} requirements with all details including description, status, and traceability. " +
+                            "Common filtering parameters (ItemID, ItemCategory, ItemStatus, ItemTitle, ItemProject, OlderThan, NewerThan, SortBy, SortOrder) are automatically available.",
+                        Parameters = new List<ContentCreatorParameter>
+                        {
+                            new ContentCreatorParameter("RequirementState", 
+                                "Filter requirements by state", 
+                                ParameterValueType.String, required: false)
+                            {
+                                ExampleValue = "Approved"
+                            },
+                            new ContentCreatorParameter("RequirementAssignee", 
+                                "Filter requirements by assignee", 
+                                ParameterValueType.String, required: false)
+                            {
+                                ExampleValue = "John.Doe"
+                            }
+                        },
+                        ExampleUsage = $"@@SLMS:{requirementType}Requirement()@@"
+                    }
+                }
+            };
+            return metadata;
+        }
+
         protected override ContentCreatorMetadata GetContentCreatorMetadata()
         {
-            var metadata = new ContentCreatorMetadata("SLMS", $"{requirementName} Requirement", 
-                $"Manages and displays {requirementName.ToLower()} requirements");
-            
-            metadata.Category = "Requirements & Traceability";
-
-            var requirementTag = new ContentCreatorTag(requirementName, $"Displays detailed {requirementName.ToLower()} requirement information");
-            requirementTag.Category = "Requirement Management";
-            // Common multi-item parameters will be automatically added by the base class
-            
-            // Add requirement-specific filtering parameters
-            requirementTag.Parameters.Add(new ContentCreatorParameter("RequirementState", 
-                "Filter requirements by state", 
-                ParameterValueType.String, required: false)
-            {
-                ExampleValue = "Approved"
-            });
-            requirementTag.Parameters.Add(new ContentCreatorParameter("RequirementAssignee", 
-                "Filter requirements by assignee", 
-                ParameterValueType.String, required: false)
-            {
-                ExampleValue = "John.Doe"
-            });
-            
-            requirementTag.ExampleUsage = $"@@SLMS:{requirementName}()@@";
-            metadata.Tags.Add(requirementTag);
-
-            return metadata;
+            // Use the requirement type name from the derived class
+            return CreateRequirementMetadata(RequirementTypeName);
         }
 
         protected override string GenerateContent(IRoboClerkTag tag, List<LinkedItem> items, TraceEntity te, TraceEntity docTE)
