@@ -17,18 +17,19 @@ namespace RoboClerk.Server.Services
         {
             try
             {
+                var pluginLoader = serviceProvider.GetRequiredService<IPluginLoader>();
+                var fileProvider = serviceProvider.GetRequiredService<IFileProviderPlugin>();
+                
                 if (configuration.CheckpointConfig.CheckpointFile == string.Empty)
                 {
-                    // Use plugin data sources
-                    var pluginLoader = serviceProvider.GetRequiredService<IPluginLoader>();
-                    var fileProvider = serviceProvider.GetRequiredService<IFileProviderPlugin>();
+                    // Use plugin data sources with the smart file provider
+                    // The smart provider handles routing to local or other file provider automatically
+                    logger.Info("Creating plugin data sources with smart file provider routing");
                     return new PluginDataSources(configuration, pluginLoader, fileProvider);
                 }
                 else
                 {
                     // Use checkpoint data sources
-                    var pluginLoader = serviceProvider.GetRequiredService<IPluginLoader>();
-                    var fileProvider = serviceProvider.GetRequiredService<IFileProviderPlugin>();
                     return new CheckpointDataSources(configuration, pluginLoader, fileProvider, configuration.CheckpointConfig.CheckpointFile);
                 }
             }

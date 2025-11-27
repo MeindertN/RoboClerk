@@ -2,7 +2,7 @@
 using NSubstitute;
 using NUnit.Framework;
 using RoboClerk.Core.Configuration;
-using System;
+using RoboClerk.Core.FileProviders;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;

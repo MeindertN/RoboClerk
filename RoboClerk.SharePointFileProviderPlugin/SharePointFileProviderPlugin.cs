@@ -32,6 +32,15 @@ namespace RoboClerk.SharePointFileProvider
             description = "Provides access to SharePoint Online document libraries using Microsoft Graph SDK.";
         }
 
+        /// <summary>
+        /// Gets the URI-style prefix for SharePoint paths.
+        /// All SharePoint paths should start with "sp://" (case-insensitive).
+        /// </summary>
+        public override string GetPathPrefix()
+        {
+            return "sp://";
+        }
+
         public override void InitializePlugin(IConfiguration configuration)
         {
             try

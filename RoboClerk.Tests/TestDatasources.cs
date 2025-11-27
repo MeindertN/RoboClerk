@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using NSubstitute;
 using RoboClerk.Core.Configuration;
+using RoboClerk.Core.FileProviders;
 using System.Collections.Generic;
 using NSubstitute.Extensions;
 using Tomlyn.Model;

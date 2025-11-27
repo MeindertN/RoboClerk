@@ -7,7 +7,7 @@ using RoboClerk.Core.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace RoboClerk
+namespace RoboClerk.Core.FileProviders
 {
     /// <summary>
     /// Local filesystem implementation of the file provider plugin.
@@ -22,6 +22,15 @@ namespace RoboClerk
             _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             name = "LocalFileSystemPlugin";
             description = "Provides access to the local file system using standard .NET IO operations.";
+        }
+
+        /// <summary>
+        /// Local file system plugin does not use a prefix (it's the default provider).
+        /// Returns null to indicate paths without prefixes should use this provider.
+        /// </summary>
+        public override string GetPathPrefix()
+        {
+            return null; // No prefix - this is the default provider
         }
 
         public override void InitializePlugin(IConfiguration configuration)
@@ -304,4 +313,4 @@ namespace RoboClerk
             return _fileSystem.Path.GetRelativePath(relativeTo, path);
         }
     }
-} 
+}

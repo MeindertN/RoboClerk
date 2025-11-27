@@ -6,6 +6,7 @@ using RoboClerk.Core;
 using RoboClerk.Core.ASCIIDOCSupport;
 using RoboClerk.Core.Configuration;
 using RoboClerk.Core.DocxSupport;
+using RoboClerk.Core.FileProviders;
 using RoboClerk.Server.Models;
 using RoboClerk.SharePointFileProvider;
 using System.Collections;
@@ -41,7 +42,7 @@ namespace RoboClerk.Server.Services
             try
             {
                 // Generate deterministic project ID from driveId and config path
-                var projectConfigPath = fileSystem.Path.Combine(request.ProjectPath, "RoboClerkConfig", "projectConfig.toml");
+                var projectConfigPath = $"{request.ProjectPath}/RoboClerkConfig/projectConfig.toml";
                 var projectId = request.ProjectIdentifier ?? GenerateProjectIdentifier(request.SPDriveId, projectConfigPath);
 
                 // Check if this project is already loaded
@@ -1211,42 +1212,52 @@ namespace RoboClerk.Server.Services
         }
 
         /// <summary>
-        /// Creates a project-specific service provider that uses the SharePoint file provider
+        /// Creates a project-specific service provider that uses the SharePoint file provider for configuration/templates
+        /// and a smart file provider that routes based on path prefixes
         /// </summary>
         private IServiceProvider CreateProjectServiceProvider(IFileProviderPlugin sharePointFileProvider, IConfiguration configuration, IDataSources? dataSources = null)
         {
             var services = new ServiceCollection();
 
-            // Project-specific file provider
-            services.AddSingleton(sharePointFileProvider);
+            // Create the smart file provider with local as default
+            var localFileProvider = new LocalFileSystemPlugin(fileSystem);
+            var smartProvider = new RoboClerk.Core.FileProviders.SmartFileProviderPlugin(localFileProvider);
+            
+            // Register SharePoint provider for sp:// prefixed paths
+            smartProvider.RegisterProvider(sharePointFileProvider);
+            
+            logger.Info($"Smart file provider initialized: local (default), SharePoint ({sharePointFileProvider.GetPathPrefix()})");
+
+            // Register ONLY the smart provider - it handles all routing
+            services.AddSingleton<IFileProviderPlugin>(smartProvider);
 
             // Project-specific configuration
             services.AddSingleton(configuration);
 
-            // Data sources factory (using project-specific file provider)
+            // Data sources factory
             services.AddSingleton<IDataSourcesFactory>(provider =>
             {
                 return new DataSourcesFactory(provider);
             });
 
-            // Get plugin loader from main service provider (doesn't depend on project config)
+            // Get plugin loader from main service provider
             services.AddSingleton(serviceProvider.GetRequiredService<IPluginLoader>());
 
-            // Create project-specific ITraceabilityAnalysis with project-specific configuration
+            // Create project-specific ITraceabilityAnalysis
             services.AddSingleton<ITraceabilityAnalysis>(provider =>
             {
                 var projectConfig = provider.GetRequiredService<IConfiguration>();
                 return new RoboClerk.TraceabilityAnalysis(projectConfig);
             });
 
-            // Register all content creators dynamically - same pattern as main application
+            // Register all content creators dynamically
             RegisterContentCreators(services);
 
-            // Create project-specific IContentCreatorFactory with project-specific configuration
+            // Create project-specific IContentCreatorFactory
             services.AddSingleton<IContentCreatorFactory>(provider =>
                 new ContentCreatorFactory(provider, provider.GetRequiredService<ITraceabilityAnalysis>()));
 
-            // Add data sources - either provided ones or create new ones
+            // Add data sources - either provided ones or create new ones via factory
             if (dataSources != null)
             {
                 services.AddSingleton(dataSources);
@@ -1255,11 +1266,11 @@ namespace RoboClerk.Server.Services
             {
                 services.AddSingleton<IDataSources>(provider =>
                 {
+                    // Use factory to create data sources - it handles routing automatically via smart provider
                     var factory = provider.GetRequiredService<IDataSourcesFactory>();
                     var config = provider.GetRequiredService<IConfiguration>();
                     return factory.CreateDataSources(config);
                 });
-
             }
 
             return services.BuildServiceProvider();

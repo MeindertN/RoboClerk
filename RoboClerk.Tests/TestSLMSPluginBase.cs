@@ -1,21 +1,13 @@
-﻿using Castle.Core.Smtp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
+﻿using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using NSubstitute.Routing.Handlers;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using RoboClerk.Core.Configuration;
-using RoboClerk.ContentCreators;
+using RoboClerk.Core.FileProviders;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
-using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Tomlyn.Model;
 
 namespace RoboClerk.Tests

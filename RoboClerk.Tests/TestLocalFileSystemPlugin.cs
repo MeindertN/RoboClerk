@@ -5,7 +5,7 @@ using System.IO.Abstractions.TestingHelpers;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using NUnit.Framework;
-using RoboClerk.Core.Configuration;
+using RoboClerk.Core.FileProviders;
 
 namespace RoboClerk.Tests
 {

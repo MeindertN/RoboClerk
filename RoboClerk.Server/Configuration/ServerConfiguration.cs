@@ -112,6 +112,18 @@ namespace RoboClerk.Server.Configuration
 
     public class SharePointSettings
     {
+        /// <summary>
+        /// SharePoint App Client ID for authentication
+        /// This is the Application (client) ID from Azure AD app registration
+        /// </summary>
+        public string ClientId { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Azure AD Tenant ID for SharePoint authentication
+        /// This is the Directory (tenant) ID from Azure AD
+        /// </summary>
+        public string TenantId { get; set; } = string.Empty;
+        
         [Range(1, 600)]
         public int OperationTimeoutSeconds { get; set; } = 120;
         

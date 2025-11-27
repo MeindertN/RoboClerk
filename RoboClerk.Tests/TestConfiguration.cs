@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
+using RoboClerk.Core.FileProviders;
 
 namespace RoboClerk.Tests
 {

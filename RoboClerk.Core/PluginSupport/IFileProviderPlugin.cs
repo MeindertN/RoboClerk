@@ -14,6 +14,14 @@ namespace RoboClerk
     public interface IFileProviderPlugin : IPlugin
     {
         /// <summary>
+        /// Gets the URI-style prefix that identifies paths handled by this provider.
+        /// For example: "sp://" for SharePoint, "file://" for explicit local paths.
+        /// Return null or empty string for providers that don't use a prefix (default/local).
+        /// </summary>
+        /// <returns>The path prefix (including ://) or null/empty for default provider.</returns>
+        string GetPathPrefix();
+
+        /// <summary>
         /// Checks if a file exists at the specified path.
         /// </summary>
         /// <param name="path">The file path to check.</param>

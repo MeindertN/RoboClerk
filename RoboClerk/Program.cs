@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using RoboClerk.AISystem;
 using RoboClerk.Core.Configuration;
+using RoboClerk.Core.FileProviders;
 using RoboClerk.ContentCreators;
 using System;
 using System.Collections.Generic;

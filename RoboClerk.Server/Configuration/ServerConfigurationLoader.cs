@@ -156,6 +156,8 @@ namespace RoboClerk.Server.Configuration
         {
             if (tomlModel.TryGetValue("SharePoint", out var spObj) && spObj is TomlTable spTable)
             {
+                settings.ClientId = GetValue(spTable, "ClientId", settings.ClientId);
+                settings.TenantId = GetValue(spTable, "TenantId", settings.TenantId);
                 settings.OperationTimeoutSeconds = GetValue(spTable, "OperationTimeoutSeconds", settings.OperationTimeoutSeconds);
                 settings.RetryCount = GetValue(spTable, "RetryCount", settings.RetryCount);
                 settings.RetryDelayMilliseconds = GetValue(spTable, "RetryDelayMilliseconds", settings.RetryDelayMilliseconds);

@@ -22,6 +22,16 @@ namespace RoboClerk
         }
 
         /// <summary>
+        /// Gets the URI-style prefix that identifies paths handled by this provider.
+        /// Default implementation returns null (no prefix - default provider).
+        /// Override this in derived classes for specialized providers (e.g., "sp://" for SharePoint).
+        /// </summary>
+        public virtual string GetPathPrefix()
+        {
+            return null; // Default: no prefix (local file system)
+        }
+
+        /// <summary>
         /// Checks if a file exists at the specified path.
         /// </summary>
         /// <param name="path">The file path to check.</param>

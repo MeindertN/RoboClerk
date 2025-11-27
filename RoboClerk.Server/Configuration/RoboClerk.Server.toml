@@ -81,6 +81,16 @@ ServerLogLevel = "INFO"
 
 # SharePoint integration settings
 [SharePoint]
+# SharePoint App Client ID for authentication
+# This is the Application (client) ID from Azure AD app registration
+# Default: "" (empty, must be configured)
+ClientId = "7b6369f2-7960-47bf-9a4d-b7d9664ec3f7"
+
+# Azure AD Tenant ID for SharePoint authentication
+# This is the Directory (tenant) ID from Azure AD
+# Default: "" (empty, must be configured)
+TenantId = "04dbedd8-24b5-4bff-81fe-69667db68d7f"
+
 # Default timeout for SharePoint operations in seconds
 # Default: 120 seconds
 OperationTimeoutSeconds = 120

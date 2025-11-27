@@ -11,12 +11,17 @@ namespace RoboClerk.Server.Controllers
     {
         private readonly IProjectManager projectManager;
         private readonly IContentCreatorMetadataService metadataService;
+        private readonly ISharePointService sharePointService;
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public WordAddInController(IProjectManager projectManager, IContentCreatorMetadataService metadataService)
+        public WordAddInController(
+            IProjectManager projectManager, 
+            IContentCreatorMetadataService metadataService,
+            ISharePointService sharePointService)
         {
             this.projectManager = projectManager;
             this.metadataService = metadataService;
+            this.sharePointService = sharePointService;
         }
 
         /// <summary>
@@ -70,15 +75,86 @@ namespace RoboClerk.Server.Controllers
 
         /// <summary>
         /// Load a SharePoint project for the Word add-in session
+        /// Supports two modes:
+        /// 1. Document URL mode: Provide DocumentUrl, server extracts all necessary information
+        /// 2. Legacy mode: Provide ProjectPath, SPDriveId, ProjectRoot, etc. directly
         /// </summary>
         [HttpPost("project/load")]
         public async Task<ActionResult<ProjectLoadResult>> LoadSharePointProject([FromBody] LoadProjectRequest request)
         {
             try
             {
-                logger.Info($"Loading SharePoint project: {request.ProjectPath}");
+                logger.Info($"Loading SharePoint project");
                 
-                var result = await projectManager.LoadProjectAsync(request);
+                LoadProjectRequest effectiveRequest = request;
+                
+                // If document URL is provided, extract project information
+                if (!string.IsNullOrEmpty(request.DocumentUrl))
+                {
+                    logger.Info($"Extracting project information from document URL");
+                    
+                    // Get SPClientSecret from configuration options (passed via -o SPClientSecret=xxx)
+                    var configuration = HttpContext.RequestServices.GetRequiredService<RoboClerk.Core.Configuration.IConfiguration>();
+                    string? clientSecret = null;
+                    
+                    if (configuration.HasCommandLineOption("SPClientSecret"))
+                    {
+                        clientSecret = configuration.GetCommandLineOption("SPClientSecret");
+                    }
+                    
+                    if (string.IsNullOrEmpty(clientSecret))
+                    {
+                        logger.Error("SPClientSecret not provided in command line options");
+                        return BadRequest(new ProjectLoadResult
+                        {
+                            Success = false,
+                            Error = "SharePoint client secret (SPClientSecret) must be provided via command line option -o SPClientSecret=<value>"
+                        });
+                    }
+                    
+                    var spInfo = await sharePointService.ExtractProjectInfoFromDocumentUrlAsync(
+                        request.DocumentUrl, 
+                        clientSecret);
+                        
+                    if (!spInfo.Success)
+                    {
+                        logger.Warn($"Failed to extract project information: {spInfo.Error}");
+                        return BadRequest(new ProjectLoadResult
+                        {
+                            Success = false,
+                            Error = spInfo.Error
+                        });
+                    }
+                    
+                    // Create effective request with extracted information
+                    effectiveRequest = request with
+                    {
+                        ProjectPath = request.ProjectPath ?? spInfo.ProjectPath,
+                        SPDriveId = request.SPDriveId ?? spInfo.DriveId,
+                        SPSiteUrl = request.SPSiteUrl ?? spInfo.SiteUrl,
+                        ProjectRoot = request.ProjectRoot ?? spInfo.ProjectRoot
+                    };
+                    
+                    logger.Info($"Extracted project info - Site: {effectiveRequest.SPSiteUrl}, Drive: {effectiveRequest.SPDriveId}, ProjectPath: {effectiveRequest.ProjectPath}, Root: {effectiveRequest.ProjectRoot}");
+                }
+                else
+                {
+                    // Legacy mode - validate required fields
+                    if (string.IsNullOrEmpty(request.ProjectPath) || 
+                        string.IsNullOrEmpty(request.SPDriveId) || 
+                        string.IsNullOrEmpty(request.ProjectRoot))
+                    {
+                        return BadRequest(new ProjectLoadResult
+                        {
+                            Success = false,
+                            Error = "Either DocumentUrl or all of (ProjectPath, SPDriveId, ProjectRoot) must be provided"
+                        });
+                    }
+                    
+                    logger.Info($"Loading project using legacy mode: {request.ProjectPath}");
+                }
+                
+                var result = await projectManager.LoadProjectAsync(effectiveRequest);
                 if (!result.Success)
                 {
                     logger.Warn($"Failed to load project: {result.Error}");
@@ -86,7 +162,7 @@ namespace RoboClerk.Server.Controllers
                 }
                 
                 // Automatically validate the project for Word add-in use
-                var isValid = projectManager.ValidateProjectForWordAddInAsync(result.ProjectId!,request);
+                var isValid = projectManager.ValidateProjectForWordAddInAsync(result.ProjectId!, effectiveRequest);
                 if (!isValid)
                 {
                     await projectManager.UnloadProjectAsync(result.ProjectId!);

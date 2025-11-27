@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using NSubstitute;
 using RoboClerk.Core.Configuration;
+using RoboClerk.Core.FileProviders;
 using RoboClerk.AISystem;
 using RoboClerk.ContentCreators;
 using Microsoft.Extensions.DependencyInjection;

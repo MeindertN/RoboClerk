@@ -1,6 +1,7 @@
 using NSubstitute;
 using NUnit.Framework;
 using RoboClerk.Core.Configuration;
+using RoboClerk.Core.FileProviders;
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;

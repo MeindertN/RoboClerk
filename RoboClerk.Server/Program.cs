@@ -1,16 +1,10 @@
 ﻿using CommandLine;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using NLog;
 using NLog.Web;
 using RoboClerk;
-using RoboClerk.AISystem;
 using RoboClerk.ContentCreators;
-using RoboClerk.Core;
-using RoboClerk.Core.Configuration;
-using RoboClerk.Server;
+using RoboClerk.Core.FileProviders;
 using RoboClerk.Server.Configuration;
 using RoboClerk.Server.Services;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -47,11 +41,12 @@ try
     // Configure CORS based on settings
     ConfigureCors(builder, serverConfig);
 
+    // Register server configuration for dependency injection FIRST
+    // This must be done before RegisterRoboClerkServices because SharePointService depends on it
+    builder.Services.AddSingleton(serverConfig);
+
     // Register RoboClerk dependencies
     RegisterRoboClerkServices(builder.Services, args);
-
-    // Register server configuration for dependency injection
-    builder.Services.AddSingleton(serverConfig);
 
     var app = builder.Build();
 
@@ -278,6 +273,23 @@ static void RegisterRoboClerkServices(IServiceCollection services, string[] args
                 }
 
                 var commandlineOptions = GetConfigOptionsForRoboClerk(options.ConfigurationOptions);
+                
+                // Get server configuration to inject SharePoint settings into RoboClerk configuration
+                // Note: ServerConfiguration has already been registered as a singleton before this method is called
+                var serviceProvider = services.BuildServiceProvider();
+                var serverConfig = serviceProvider.GetRequiredService<ServerConfiguration>();
+                
+                // Add SharePoint ClientID and TenantID from server config to RoboClerk command-line options
+                // These can be overridden by actual command-line options if provided
+                if (!commandlineOptions.ContainsKey("SPClientId") && !string.IsNullOrEmpty(serverConfig.SharePoint.ClientId))
+                {
+                    commandlineOptions["SPClientId"] = serverConfig.SharePoint.ClientId;
+                }
+                if (!commandlineOptions.ContainsKey("SPTenantId") && !string.IsNullOrEmpty(serverConfig.SharePoint.TenantId))
+                {
+                    commandlineOptions["SPTenantId"] = serverConfig.SharePoint.TenantId;
+                }
+                
                 try
                 {
                     var roboclerkConfig = RoboClerk.Configuration.Configuration.CreateBuilder()
@@ -285,6 +297,7 @@ static void RegisterRoboClerkServices(IServiceCollection services, string[] args
                             .Build();
                     var logger = NLog.LogManager.GetCurrentClassLogger();
                     logger.Warn($"RoboClerk Version: {Assembly.GetExecutingAssembly().GetName().Version}");
+                    logger.Info($"RoboClerk configuration loaded with SPClientID and SPTenantID from server configuration");
 
                     // Core RoboClerk services
                     services.AddTransient<IFileProviderPlugin>(x => new LocalFileSystemPlugin(new FileSystem()));
@@ -298,6 +311,9 @@ static void RegisterRoboClerkServices(IServiceCollection services, string[] args
 
                     // Register content creator metadata service (no dependencies needed!)
                     services.AddSingleton<IContentCreatorMetadataService, ContentCreatorMetadataService>();
+
+                    // Register SharePoint service
+                    services.AddSingleton<ISharePointService, SharePointService>();
 
                     // Register project manager service
                     services.AddSingleton<IProjectManager, ProjectManager>();

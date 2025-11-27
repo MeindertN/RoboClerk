@@ -1,19 +1,16 @@
 ﻿using NUnit.Framework;
 using NUnit.Framework.Legacy;
-using RoboClerk.Redmine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using NSubstitute;
 using RoboClerk.Core.Configuration;
+using RoboClerk.Core.FileProviders;
 using System.IO.Abstractions;
 using Tomlyn.Model;
 using Microsoft.Extensions.DependencyInjection;
 using RestSharp;
-using RoboClerk;
-using System.Threading.Tasks;
 
 namespace RoboClerk.Redmine.Tests
 {

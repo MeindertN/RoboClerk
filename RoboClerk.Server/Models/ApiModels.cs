@@ -7,21 +7,37 @@ namespace RoboClerk.Server.Models
     
     public record LoadProjectRequest
     {
-        [Required]
-        public string ProjectPath { get; init; } = string.Empty;
+        // Either provide a document URL (new approach) or all the required fields (legacy approach)
         
-        [Required]
-        public string SPDriveId { get; init; } = string.Empty;
+        /// <summary>
+        /// SharePoint document URL - when provided, server extracts all necessary information
+        /// </summary>
+        public string? DocumentUrl { get; init; }
         
-        // Optional: Allow override for specific project identification
+        /// <summary>
+        /// Optional: Explicit project identifier/path (can be derived from document URL)
+        /// </summary>
+        public string? ProjectPath { get; init; }
+        
+        /// <summary>
+        /// Optional: SharePoint Drive ID (extracted from document URL if not provided)
+        /// </summary>
+        public string? SPDriveId { get; init; }
+        
+        /// <summary>
+        /// Optional: Specific project identification override
+        /// </summary>
         public string? ProjectIdentifier { get; init; }
         
-        // Optional SharePoint overrides
+        /// <summary>
+        /// Optional: SharePoint Site URL override (extracted from document URL if not provided)
+        /// </summary>
         public string? SPSiteUrl { get; init; }
         
-        // Project root directory within the SharePoint drive
-        [Required]
-        public string ProjectRoot { get; init; } = string.Empty;
+        /// <summary>
+        /// Optional: Project root directory within SharePoint (extracted from document URL if not provided)
+        /// </summary>
+        public string? ProjectRoot { get; init; }
     }
     
     public record ProjectLoadResult
