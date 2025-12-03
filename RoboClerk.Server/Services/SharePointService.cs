@@ -65,21 +65,19 @@ namespace RoboClerk.Server.Services
                 }
 
                 // Extract project root from document path (parent directory of the document)
-                // This is just the folder name, e.g., "RoboClerk_input"
                 var projectRoot = ExtractProjectRoot(urlInfo.DocumentPath!);
                 
-                // ProjectPath is the relative path starting with /
-                // e.g., "/RoboClerk_input"
-                var projectPath = $"/{projectRoot}";
+                // ProjectPath includes the sp:// prefix and the relative path starting with //
+                // e.g., "sp://RoboClerk_input"
+                var projectPath = $"sp://{projectRoot}";
 
-                logger.Info($"Successfully extracted SharePoint project info - Site: {urlInfo.SiteUrl}, Drive: {driveInfo.Value.DriveId}, ProjectPath: {projectPath}, ProjectRoot: {projectRoot}");
+                logger.Info($"Successfully extracted SharePoint project info - Site: {urlInfo.SiteUrl}, Drive: {driveInfo.Value.DriveId}, ProjectPath: {projectPath}");
 
                 return new SharePointProjectInfo
                 {
                     Success = true,
                     SiteUrl = urlInfo.SiteUrl,
                     DriveId = driveInfo.Value.DriveId,
-                    ProjectRoot = projectRoot,
                     ProjectPath = projectPath,
                     DocumentPath = urlInfo.DocumentPath
                 };

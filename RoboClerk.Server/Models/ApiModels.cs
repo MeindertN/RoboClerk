@@ -15,7 +15,7 @@ namespace RoboClerk.Server.Models
         public string? DocumentUrl { get; init; }
         
         /// <summary>
-        /// Optional: Explicit project identifier/path (can be derived from document URL)
+        /// Optional: Explicit project identifier/path with sp:// prefix (can be derived from document URL)
         /// </summary>
         public string? ProjectPath { get; init; }
         
@@ -33,11 +33,6 @@ namespace RoboClerk.Server.Models
         /// Optional: SharePoint Site URL override (extracted from document URL if not provided)
         /// </summary>
         public string? SPSiteUrl { get; init; }
-        
-        /// <summary>
-        /// Optional: Project root directory within SharePoint (extracted from document URL if not provided)
-        /// </summary>
-        public string? ProjectRoot { get; init; }
     }
     
     public record ProjectLoadResult

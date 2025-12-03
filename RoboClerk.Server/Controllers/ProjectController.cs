@@ -127,27 +127,26 @@ namespace RoboClerk.Server.Controllers
                     }
                     
                     // Create effective request with extracted information
+                    // ProjectPath from SharePoint service already includes sp:// prefix
                     effectiveRequest = request with
                     {
                         ProjectPath = request.ProjectPath ?? spInfo.ProjectPath,
                         SPDriveId = request.SPDriveId ?? spInfo.DriveId,
-                        SPSiteUrl = request.SPSiteUrl ?? spInfo.SiteUrl,
-                        ProjectRoot = request.ProjectRoot ?? spInfo.ProjectRoot
+                        SPSiteUrl = request.SPSiteUrl ?? spInfo.SiteUrl
                     };
                     
-                    logger.Info($"Extracted project info - Site: {effectiveRequest.SPSiteUrl}, Drive: {effectiveRequest.SPDriveId}, ProjectPath: {effectiveRequest.ProjectPath}, Root: {effectiveRequest.ProjectRoot}");
+                    logger.Info($"Extracted project info - Site: {effectiveRequest.SPSiteUrl}, Drive: {effectiveRequest.SPDriveId}, ProjectPath: {effectiveRequest.ProjectPath}");
                 }
                 else
                 {
                     // Legacy mode - validate required fields
                     if (string.IsNullOrEmpty(request.ProjectPath) || 
-                        string.IsNullOrEmpty(request.SPDriveId) || 
-                        string.IsNullOrEmpty(request.ProjectRoot))
+                        string.IsNullOrEmpty(request.SPDriveId))
                     {
                         return BadRequest(new ProjectLoadResult
                         {
                             Success = false,
-                            Error = "Either DocumentUrl or all of (ProjectPath, SPDriveId, ProjectRoot) must be provided"
+                            Error = "Either DocumentUrl or all of (ProjectPath, SPDriveId) must be provided"
                         });
                     }
                     

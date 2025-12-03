@@ -266,12 +266,12 @@ namespace RoboClerk.AnnotatedUnitTests
 
         private static string GetTreeSitterLanguageId(Lang lang) => lang switch
         {
-            Lang.CSharp => "C_SHARP",
+            Lang.CSharp => "C-SHARP",
             Lang.Java => "JAVA",
             Lang.Python => "PYTHON",
             Lang.TypeScript => "TYPESCRIPT",
             Lang.JavaScript => "TYPESCRIPT", // use TS grammar to parse JS with decorators
-            _ => "C_SHARP"
+            _ => "C-SHARP"
         };
 
         private static string AttrNodeType(Lang lang) => lang switch

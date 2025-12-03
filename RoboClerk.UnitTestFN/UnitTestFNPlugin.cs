@@ -377,12 +377,12 @@ namespace RoboClerk
 
         private string GetTreeSitterLanguageId(string lang) => lang.ToLowerInvariant() switch
         {
-            "c#" or "csharp" or "cs" => "C_SHARP",
+            "c#" or "csharp" or "cs" => "C-SHARP",
             "java" => "JAVA",
             "python" or "py" => "PYTHON",
             "typescript" or "ts" => "TYPESCRIPT",
             "javascript" or "js" => "TYPESCRIPT", // use TS grammar to parse JS
-            _ => "C_SHARP"
+            _ => "C-SHARP"
         };
 
         private string GetQueryForLanguage(string lang)

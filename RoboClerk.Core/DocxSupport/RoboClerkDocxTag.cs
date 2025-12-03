@@ -27,48 +27,6 @@ namespace RoboClerk.Core.DocxSupport
         public override bool Inline => false; 
         public string ContentControlId => contentControlId;
 
-        /// <summary>
-        /// Gets the current content converted to raw OpenXML format.
-        /// This performs the conversion on-demand to ensure the latest content is returned.
-        /// </summary>
-        public string GeneratedOpenXml
-        {
-            get
-            {
-                try
-                {
-                    // Create a temporary content element to perform the conversion
-                    var tempContentElement = CreateTemporaryContentElement();
-                    if (tempContentElement == null)
-                        return string.Empty;
-
-                    var fmt = CaptureOriginalFormatting(GetContentElement() ?? tempContentElement);
-
-                    // Perform the same conversion logic as ConvertContentToOpenXml but on temp element
-                    if (IsOpenXmlContent(contents))
-                    {
-                        ConvertEmbeddedOpenXmlToOpenXml(contents, tempContentElement);
-                    }
-                    else if (IsHtmlContent(contents))
-                    {
-                        ConvertHtmlToOpenXml(contents, tempContentElement);
-                    }
-                    else
-                    {
-                        ConvertTextToOpenXml(contents, tempContentElement, fmt);
-                    }
-
-                    // Extract the raw OpenXML from the temporary element
-                    return ExtractRawOpenXml(tempContentElement);
-                }
-                catch (Exception ex)
-                {
-                    logger.Warn($"Failed to generate OpenXML for content control {contentControlId}: {ex.Message}");
-                    return string.Empty;
-                }
-            }
-        }
-
         public override string Contents 
         { 
             get => contents; 
@@ -112,14 +70,22 @@ namespace RoboClerk.Core.DocxSupport
             if (actualContentElement == null)
                 return null;
 
-            // Create a temporary element of the same type as the actual content element
-            return actualContentElement switch
-            {
-                SdtContentBlock => new SdtContentBlock(),
-                SdtContentRun => new SdtContentRun(),
-                SdtContentCell => new SdtContentCell(),
-                _ => new SdtContentBlock() // Default fallback
-            };
+            // Clone the entire content control structure to preserve formatting and properties
+            // Use deep clone (true) to copy all child elements and their structure
+            var clonedContentControl = (SdtElement)contentControl.CloneNode(true);
+            
+            // Get the content element from the cloned structure
+            var clonedContentElement = clonedContentControl.GetFirstChild<SdtContentBlock>()
+                ?? clonedContentControl.GetFirstChild<SdtContentRun>()
+                ?? (OpenXmlElement?)clonedContentControl.GetFirstChild<SdtContentCell>();
+            
+            if (clonedContentElement == null)
+                return null;
+                
+            // Clear any existing content but keep the structure/formatting
+            clonedContentElement.RemoveAllChildren();
+            
+            return clonedContentElement;
         }
 
         /// <summary>

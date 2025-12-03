@@ -65,7 +65,7 @@ namespace RoboClerk.Server.Services
                 }
 
                 // Validate SharePoint path
-                if (!IsSharePointPath(request.ProjectPath, request))
+                if (!IsSharePointPath(request.ProjectPath))
                 {
                     logger.Warn($"Non-SharePoint path provided: {request.ProjectPath}");
                     return new ProjectLoadResult { Success = false, Error = "Only SharePoint project paths are supported for Word add-in use" };
@@ -174,24 +174,63 @@ namespace RoboClerk.Server.Services
             {
                 var contentCreatorFactory = project.ProjectServiceProvider.GetRequiredService<IContentCreatorFactory>();
                 var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+                var fileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
 
-                // Find the appropriate document config
+                // Extract the filename from the DocumentId (e.g., "sp://RoboClerk_input/SoftwareDesignSpecification.docx")
+                var documentFileName = fileProvider.GetFileName(tagRequest.DocumentId);
+                if (string.IsNullOrEmpty(documentFileName))
+                {
+                    return new TagContentResult { Success = false, Error = "Invalid document path: could not extract filename" };
+                }
+
+                // Validate that the document is directly in the template directory (not in a subdirectory)
+                var templateDir = configuration.TemplateDir;
+                var documentDirName = fileProvider.GetDirectoryName(tagRequest.DocumentId);
+                
+                // Normalize paths to handle various slash combinations and ensure consistent comparison
+                var normalizedTemplateDir = NormalizePath(templateDir);
+                var normalizedDocumentDir = NormalizePath(documentDirName);
+                
+                if (!string.Equals(normalizedTemplateDir, normalizedDocumentDir, StringComparison.OrdinalIgnoreCase))
+                {
+                    return new TagContentResult 
+                    { 
+                        Success = false, 
+                        Error = $"Document '{documentFileName}' is not in the template directory. Expected: '{normalizedTemplateDir}', Found: '{normalizedDocumentDir}'" 
+                    };
+                }
+
+                // Find the appropriate document config by matching the filename with DocumentTemplate
                 var docxDocuments = configuration.Documents
                     .Where(d => d.DocumentTemplate.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
                     .ToList();
-                var docConfig = docxDocuments.FirstOrDefault(d => d.RoboClerkID == tagRequest.DocumentId);
+                
+                var docConfig = docxDocuments.FirstOrDefault(d => 
+                {
+                    var templateFileName = fileProvider.GetFileName(d.DocumentTemplate);
+                    return templateFileName.Equals(documentFileName, StringComparison.OrdinalIgnoreCase);
+                });
+                
                 if (docConfig == null)
-                    return new TagContentResult { Success = false, Error = "Document not found in SharePoint project" };
+                {
+                    return new TagContentResult 
+                    { 
+                        Success = false, 
+                        Error = $"Document '{documentFileName}' not found in project configuration" 
+                    };
+                }
+
+                logger.Info($"Matched document '{documentFileName}' to configuration '{docConfig.RoboClerkID}'");
 
                 // Load the document to get access to the actual content control structure
-                if (!project.LoadedDocuments.TryGetValue(tagRequest.DocumentId, out var document) ||
+                if (!project.LoadedDocuments.TryGetValue(docConfig.RoboClerkID, out var document) ||
                     document is not DocxDocument docxDocument)
                 {
                     // Document not loaded, try to load it
                     try
                     {
                         var processedDocument = ProcessTemplate(project.ProjectServiceProvider, docConfig);
-                        project.LoadedDocuments[tagRequest.DocumentId] = processedDocument;
+                        project.LoadedDocuments[docConfig.RoboClerkID] = processedDocument;
                         docxDocument = (DocxDocument)processedDocument;
                     }
                     catch (Exception ex)
@@ -216,7 +255,7 @@ namespace RoboClerk.Server.Services
 
                     // Create or get virtual content control - this doesn't modify the original document
                     var virtualTag = project.ContentControlManager.GetOrCreateContentControl(
-                        tagRequest.DocumentId,
+                        docConfig.RoboClerkID,
                         tagRequest.ContentControlId,
                         tagRequest.RoboClerkTag,
                         configuration
@@ -236,20 +275,17 @@ namespace RoboClerk.Server.Services
                 // Update the tag content - the GeneratedOpenXml property will handle conversion on-demand
                 docxTag.Contents = content;
 
-                // Get the raw OpenXML content from the RoboClerkDocxTag
-                var openXmlContent = docxTag.GeneratedOpenXml;
-
-                if (string.IsNullOrEmpty(openXmlContent))
+                if (string.IsNullOrEmpty(content))
                 {
-                    logger.Warn($"No OpenXML content generated for content control {tagRequest.ContentControlId}");
+                    logger.Warn($"No content generated for content control {tagRequest.ContentControlId}");
                     return new TagContentResult { Success = false, Error = "No content generated" };
                 }
 
-                logger.Info($"Generated {openXmlContent.Length} characters of OpenXML for content control {tagRequest.ContentControlId}");
+                logger.Info($"Generated {content.Length} characters for content control {tagRequest.ContentControlId}");
                 return new TagContentResult
                 {
                     Success = true,
-                    Content = openXmlContent
+                    Content = content
                 };
             }
             catch (Exception ex)
@@ -257,6 +293,46 @@ namespace RoboClerk.Server.Services
                 logger.Error(ex, $"Failed to get tag content for content control: {tagRequest.ContentControlId}");
                 return new TagContentResult { Success = false, Error = $"Failed to generate content: {ex.Message}" };
             }
+        }
+
+        /// <summary>
+        /// Normalizes a path by:
+        /// - Converting all backslashes to forward slashes
+        /// - Removing duplicate slashes (except after protocol like sp://)
+        /// - Trimming trailing slashes
+        /// </summary>
+        /// <param name="path">The path to normalize</param>
+        /// <returns>Normalized path or empty string if null/empty</returns>
+        private static string NormalizePath(string? path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return string.Empty;
+
+            // Convert all backslashes to forward slashes
+            var normalized = path.Replace('\\', '/');
+
+            // Handle protocol prefix (e.g., sp://)
+            var protocolMatch = System.Text.RegularExpressions.Regex.Match(normalized, @"^([a-zA-Z]+):(//+)");
+            if (protocolMatch.Success)
+            {
+                // Preserve protocol with exactly two slashes, then process the rest
+                var protocol = protocolMatch.Groups[1].Value;
+                var remainingPath = normalized.Substring(protocolMatch.Length);
+                
+                // Remove duplicate slashes from the path portion
+                remainingPath = System.Text.RegularExpressions.Regex.Replace(remainingPath, @"/+", "/");
+                
+                // Trim trailing slashes
+                remainingPath = remainingPath.TrimEnd('/');
+                
+                return $"{protocol}://{remainingPath}";
+            }
+            
+            // For paths without protocol, just remove duplicate slashes and trim
+            normalized = System.Text.RegularExpressions.Regex.Replace(normalized, @"/+", "/");
+            normalized = normalized.TrimEnd('/');
+            
+            return normalized;
         }
 
         /// <summary>
@@ -1069,7 +1145,7 @@ namespace RoboClerk.Server.Services
             try
             {
                 // Verify SharePoint path
-                if (!IsSharePointPath(project.ProjectPath,request))
+                if (!IsSharePointPath(project.ProjectPath))
                 {
                     logger.Warn($"Project path is not a SharePoint URL: {project.ProjectPath}");
                     return false;
@@ -1082,11 +1158,11 @@ namespace RoboClerk.Server.Services
                     return false;
                 }
 
-                // Check if SharePoint file provider is available and working
+                // Verify that we can access the file provider
                 var fileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
-                if (!fileProvider.GetType().Name.Contains("SharePoint"))
+                if (fileProvider == null)
                 {
-                    logger.Warn($"SharePoint file provider not available for project: {projectId}");
+                    logger.Warn($"File provider not available for project: {projectId}");
                     return false;
                 }                
 
@@ -1102,24 +1178,15 @@ namespace RoboClerk.Server.Services
 
         /// <summary>
         /// Determines if the given path is a SharePoint path.
-        /// Validates based on either full SharePoint URLs or drive-relative paths with SharePoint context.
+        /// With the smart file provider, SharePoint paths use the sp:// prefix.
         /// </summary>
-        private bool IsSharePointPath(string path, LoadProjectRequest? request = null)
+        private bool IsSharePointPath(string path)
         {
             if (string.IsNullOrEmpty(path))
                 return false;
 
-            // Check if we have SharePoint context (drive ID provided)
-            if (request != null && !string.IsNullOrEmpty(request.SPDriveId))
-            {
-                // For SharePoint drive operations, paths are relative to the drive root
-                return path.StartsWith("/");
-            }
-
-            // Fallback to checking for full SharePoint URLs
-            return path.StartsWith("https://", StringComparison.OrdinalIgnoreCase) &&
-                   (path.Contains(".sharepoint.com", StringComparison.OrdinalIgnoreCase) ||
-                    path.Contains("sharepoint", StringComparison.OrdinalIgnoreCase));
+            // SharePoint paths now use the sp:// prefix
+            return path.StartsWith("sp://", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -1215,18 +1282,31 @@ namespace RoboClerk.Server.Services
         /// Creates a project-specific service provider that uses the SharePoint file provider for configuration/templates
         /// and a smart file provider that routes based on path prefixes
         /// </summary>
-        private IServiceProvider CreateProjectServiceProvider(IFileProviderPlugin sharePointFileProvider, IConfiguration configuration, IDataSources? dataSources = null)
+        private IServiceProvider CreateProjectServiceProvider(IFileProviderPlugin fileProvider, IConfiguration configuration, IDataSources? dataSources = null)
         {
             var services = new ServiceCollection();
 
-            // Create the smart file provider with local as default
-            var localFileProvider = new LocalFileSystemPlugin(fileSystem);
-            var smartProvider = new RoboClerk.Core.FileProviders.SmartFileProviderPlugin(localFileProvider);
+            IFileProviderPlugin smartProvider;
             
-            // Register SharePoint provider for sp:// prefixed paths
-            smartProvider.RegisterProvider(sharePointFileProvider);
-            
-            logger.Info($"Smart file provider initialized: local (default), SharePoint ({sharePointFileProvider.GetPathPrefix()})");
+            // Check if we're already receiving a SmartFileProviderPlugin (e.g., during refresh)
+            if (fileProvider is RoboClerk.Core.FileProviders.SmartFileProviderPlugin existingSmartProvider)
+            {
+                // Reuse the existing smart provider - it already has all providers registered
+                smartProvider = existingSmartProvider;
+                logger.Info("Reusing existing smart file provider from project context");
+            }
+            else
+            {
+                // Create a new smart file provider with local as default
+                var localFileProvider = new LocalFileSystemPlugin(fileSystem);
+                var newSmartProvider = new RoboClerk.Core.FileProviders.SmartFileProviderPlugin(localFileProvider);
+                
+                // Register SharePoint provider for sp:// prefixed paths
+                newSmartProvider.RegisterProvider(fileProvider);
+                
+                smartProvider = newSmartProvider;
+                logger.Info($"Smart file provider initialized: local (default), SharePoint ({fileProvider.GetPathPrefix()})");
+            }
 
             // Register ONLY the smart provider - it handles all routing
             services.AddSingleton<IFileProviderPlugin>(smartProvider);

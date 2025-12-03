@@ -34,6 +34,7 @@
     <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.11" />
     <PackageReference Include="System.IO.Abstractions" Version="22.0.16" />
     <PackageReference Include="Tomlyn" Version="0.17.0" />
+    <PackageReference Include="TreeSitter.DotNet" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup>
