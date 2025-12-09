@@ -85,16 +85,10 @@ namespace RoboClerk.ContentCreators
             Register("Document", () => Document.StaticMetadata);
             Register("Reference", () => Reference.StaticMetadata);
             Register("ConfigurationValue", () => ConfigurationValue.StaticMetadata);
-            Register("Config", () => ConfigurationValue.StaticMetadata);
             
             // Trace and layout
             Register("Trace", () => Trace.StaticMetadata);
-            Register("PostLayout", () => PostLayout.StaticMetadata);
-            Register("Post", () => PostLayout.StaticMetadata);
-            
-            // Comment
-            Register("Comment", () => CommentMetadata);
-            
+                                  
             // Requirements
             Register("SystemRequirement", () => SystemRequirement.StaticMetadata);
             Register("SoftwareRequirement", () => SoftwareRequirement.StaticMetadata);
@@ -120,14 +114,11 @@ namespace RoboClerk.ContentCreators
             // File operations
             Register("ExcelTable", () => ExcelTable.StaticMetadata);
             Register("TemplateSection", () => TemplateSection.StaticMetadata);
-            Register("FILE", () => ExcelTable.StaticMetadata); // Also register by source
             
             // Web services
             Register("KrokiDiagram", () => KrokiDiagram.StaticMetadata);
-            Register("Web", () => KrokiDiagram.StaticMetadata);
             
             // AI
-            Register("AIContentCreator", () => AIContentCreator.StaticMetadata);
             Register("AI", () => AIContentCreator.StaticMetadata);
         }
 

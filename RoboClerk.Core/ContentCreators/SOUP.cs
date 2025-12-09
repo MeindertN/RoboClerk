@@ -16,49 +16,66 @@ namespace RoboClerk.ContentCreators
         /// <summary>
         /// Static metadata for the SOUP content creator
         /// </summary>
-        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata("SLMS", "SOUP (Software of Unknown Provenance)", 
-            "Manages and displays SOUP items including version checking and brief lists")
+        public static ContentCreatorMetadata StaticMetadata { get; } = CreateSOUPMetadata();
+
+        private static ContentCreatorMetadata CreateSOUPMetadata()
         {
-            Category = "Requirements & Traceability",
-            Tags = new List<ContentCreatorTag>
+            var commonParams = GetCommonMultiItemParametersStatic();
+            
+            var metadata = new ContentCreatorMetadata("SLMS", "SOUP (Software of Unknown Provenance)", 
+                "Manages and displays SOUP items including version checking and brief lists")
             {
-                new ContentCreatorTag("SOUP", "Displays detailed SOUP item information")
+                Category = "Requirements & Traceability",
+                Tags = new List<ContentCreatorTag>
                 {
-                    Category = "SOUP Management",
-                    ExampleUsage = "@@SLMS:SOUP()@@"
-                },
-                new ContentCreatorTag("SOUP", "Displays a brief list of all SOUP items with names and versions")
-                {
-                    Category = "SOUP Management",
-                    Parameters = new List<ContentCreatorParameter>
+                    new ContentCreatorTag("SOUP", "Displays detailed SOUP item information")
                     {
-                        new ContentCreatorParameter("brief", 
-                            "Set to 'true' to display brief SOUP list", 
-                            ParameterValueType.Boolean, required: false)
-                        {
-                            AllowedValues = new List<string> { "true", "false" },
-                            ExampleValue = "true"
-                        }
+                        Category = "SOUP Management",
+                        Parameters = new List<ContentCreatorParameter>(commonParams),
+                        ExampleUsage = "@@SLMS:SOUP()@@"
                     },
-                    ExampleUsage = "@@SLMS:SOUP(brief=true)@@"
-                },
-                new ContentCreatorTag("SOUP", "Validates SOUP items against external dependencies")
-                {
-                    Category = "SOUP Validation",
-                    Parameters = new List<ContentCreatorParameter>
+                    new ContentCreatorTag("SOUP", "Displays a brief list of all SOUP items with names and versions")
                     {
-                        new ContentCreatorParameter("checkSOUP", 
-                            "Set to 'true' to validate SOUP items against external dependencies", 
-                            ParameterValueType.Boolean, required: false)
+                        Category = "SOUP Management",
+                        Parameters = new List<ContentCreatorParameter>(commonParams)
                         {
-                            AllowedValues = new List<string> { "true", "false" },
-                            ExampleValue = "true"
-                        }
+                            new ContentCreatorParameter("brief", 
+                                "Set to 'true' to display brief SOUP list", 
+                                ParameterValueType.Boolean, required: false)
+                            {
+                                AllowedValues = new List<string> { "true", "false" },
+                                ExampleValue = "true"
+                            }
+                        },
+                        ExampleUsage = "@@SLMS:SOUP(brief=true)@@"
                     },
-                    ExampleUsage = "@@SLMS:SOUP(checkSOUP=true)@@"
+                    new ContentCreatorTag("SOUP", "Validates SOUP items against external dependencies")
+                    {
+                        Category = "SOUP Validation",
+                        Parameters = new List<ContentCreatorParameter>(commonParams)
+                        {
+                            new ContentCreatorParameter("checkSOUP", 
+                                "Set to 'true' to validate SOUP items against external dependencies", 
+                                ParameterValueType.Boolean, required: false)
+                            {
+                                AllowedValues = new List<string> { "true", "false" },
+                                ExampleValue = "true"
+                            }
+                        },
+                        ExampleUsage = "@@SLMS:SOUP(checkSOUP=true)@@"
+                    }
                 }
-            }
-        };
+            };
+            return metadata;
+        }
+
+        /// <summary>
+        /// Override GetMetadata to prevent base class from adding common parameters twice.
+        /// </summary>
+        public override ContentCreatorMetadata GetMetadata()
+        {
+            return GetContentCreatorMetadata();
+        }
 
         protected override ContentCreatorMetadata GetContentCreatorMetadata() => StaticMetadata;
 

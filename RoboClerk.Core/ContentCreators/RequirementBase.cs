@@ -24,10 +24,31 @@ namespace RoboClerk.ContentCreators
         }
 
         /// <summary>
-        /// Creates static metadata for a requirement content creator
+        /// Creates static metadata for a requirement content creator.
+        /// Includes both common multi-item parameters and requirement-specific parameters.
         /// </summary>
         protected static ContentCreatorMetadata CreateRequirementMetadata(string requirementType)
         {
+            // Create the list of all parameters (common + specific)
+            var parameters = new List<ContentCreatorParameter>();
+            
+            // Add common multi-item parameters from base class
+            parameters.AddRange(GetCommonMultiItemParametersStatic());
+            
+            // Add requirement-specific parameters
+            parameters.Add(new ContentCreatorParameter("RequirementState", 
+                "Filter requirements by state", 
+                ParameterValueType.String, required: false)
+            {
+                ExampleValue = "Approved"
+            });
+            parameters.Add(new ContentCreatorParameter("RequirementAssignee", 
+                "Filter requirements by assignee", 
+                ParameterValueType.String, required: false)
+            {
+                ExampleValue = "John.Doe"
+            });
+            
             var metadata = new ContentCreatorMetadata("SLMS", $"{requirementType} Requirement", 
                 $"Manages and displays {requirementType.ToLower()} requirements")
             {
@@ -37,28 +58,24 @@ namespace RoboClerk.ContentCreators
                     new ContentCreatorTag($"{requirementType}Requirement", $"Displays detailed {requirementType.ToLower()} requirement information")
                     {
                         Category = "Requirement Management",
-                        Description = $"Displays {requirementType.ToLower()} requirements with all details including description, status, and traceability. " +
-                            "Common filtering parameters (ItemID, ItemCategory, ItemStatus, ItemTitle, ItemProject, OlderThan, NewerThan, SortBy, SortOrder) are automatically available.",
-                        Parameters = new List<ContentCreatorParameter>
-                        {
-                            new ContentCreatorParameter("RequirementState", 
-                                "Filter requirements by state", 
-                                ParameterValueType.String, required: false)
-                            {
-                                ExampleValue = "Approved"
-                            },
-                            new ContentCreatorParameter("RequirementAssignee", 
-                                "Filter requirements by assignee", 
-                                ParameterValueType.String, required: false)
-                            {
-                                ExampleValue = "John.Doe"
-                            }
-                        },
+                        Description = $"Displays {requirementType.ToLower()} requirements with all details including description, status, and traceability.",
+                        Parameters = parameters,
                         ExampleUsage = $"@@SLMS:{requirementType}Requirement()@@"
                     }
                 }
             };
             return metadata;
+        }
+
+        /// <summary>
+        /// Override GetMetadata to prevent base class from adding common parameters twice.
+        /// Since CreateRequirementMetadata already includes all parameters, we return it directly.
+        /// </summary>
+        public override ContentCreatorMetadata GetMetadata()
+        {
+            // Return the metadata directly without calling base.GetMetadata()
+            // because CreateRequirementMetadata already includes common parameters
+            return GetContentCreatorMetadata();
         }
 
         protected override ContentCreatorMetadata GetContentCreatorMetadata()

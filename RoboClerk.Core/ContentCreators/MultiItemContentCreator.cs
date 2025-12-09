@@ -56,8 +56,18 @@ namespace RoboClerk.ContentCreators
         /// <summary>
         /// Gets common parameters supported by multi-item content creators.
         /// These parameters are automatically added to all tags.
+        /// This is an instance method for backward compatibility.
         /// </summary>
         protected virtual List<ContentCreatorParameter> GetCommonMultiItemParameters()
+        {
+            return GetCommonMultiItemParametersStatic();
+        }
+
+        /// <summary>
+        /// Static helper method that returns common multi-item parameters.
+        /// Can be called from static metadata creation methods in derived classes.
+        /// </summary>
+        protected static List<ContentCreatorParameter> GetCommonMultiItemParametersStatic()
         {
             return new List<ContentCreatorParameter>
             {

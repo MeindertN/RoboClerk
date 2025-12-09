@@ -17,55 +17,64 @@ namespace RoboClerk.ContentCreators
         /// <summary>
         /// Static metadata for the SoftwareSystemTest content creator
         /// </summary>
-        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
-            "SLMS",
-            "Software System Test",
-            "Manages and displays software system test cases, both automated and manual")
+        public static ContentCreatorMetadata StaticMetadata { get; } = CreateSoftwareSystemTestMetadata();
+
+        private static ContentCreatorMetadata CreateSoftwareSystemTestMetadata()
         {
-            Category = "Testing",
-            Tags = new List<ContentCreatorTag>
+            var commonParams = GetCommonMultiItemParametersStatic();
+            
+            var metadata = new ContentCreatorMetadata(
+                "SLMS",
+                "Software System Test",
+                "Manages and displays software system test cases, both automated and manual")
             {
-                new ContentCreatorTag("SoftwareSystemTest", "Displays detailed software system test case information")
+                Category = "Testing",
+                Tags = new List<ContentCreatorTag>
                 {
-                    Category = "Test Management",
-                    Description = "Displays software system test cases with all details including test steps, automation status, and traceability. " +
-                        "Common filtering parameters (ItemID, ItemCategory, ItemStatus, ItemTitle, ItemProject, OlderThan, NewerThan, SortBy, SortOrder) are automatically available.",
-                    ExampleUsage = "@@SLMS:SoftwareSystemTest()@@"
-                },
-                new ContentCreatorTag("SoftwareSystemTest", "Displays a brief list of all software system test cases")
-                {
-                    Category = "Test Management",
-                    Description = "Displays a compact table view of all software system test cases with summary information.",
-                    Parameters = new List<ContentCreatorParameter>
+                    new ContentCreatorTag("SoftwareSystemTest Detail", "Displays detailed software system test case information")
                     {
-                        new ContentCreatorParameter("brief", 
-                            "Set to 'true' to display brief test case list", 
-                            ParameterValueType.Boolean, required: false)
-                        {
-                            AllowedValues = new List<string> { "true", "false" },
-                            ExampleValue = "true"
-                        }
+                        Category = "Test Management",
+                        Description = "Displays software system test cases with all details including test steps, automation status, and traceability.",
+                        Parameters = new List<ContentCreatorParameter>(commonParams),
+                        ExampleUsage = "@@SLMS:SoftwareSystemTest()@@"
                     },
-                    ExampleUsage = "@@SLMS:SoftwareSystemTest(brief=true)@@"
-                },
-                new ContentCreatorTag("SoftwareSystemTest", "Validates automated test results")
-                {
-                    Category = "Test Validation",
-                    Description = "Compares automated test results against the test plan and reports any discrepancies, missing results, or failures.",
-                    Parameters = new List<ContentCreatorParameter>
+                    new ContentCreatorTag("SoftwareSystemTest Summary", "Displays a list of all software system test cases in a single table, optionally with results")
                     {
-                        new ContentCreatorParameter("checkResults", 
-                            "Set to 'true' to validate automated test results against test plan. This requires the results to be loaded into RoboClerk.", 
-                            ParameterValueType.Boolean, required: false)
+                        Category = "Test Management",
+                        Description = "Displays a compact table view of all software system test cases with summary information. Can include results if configured",
+                        Parameters = new List<ContentCreatorParameter>(commonParams)
                         {
-                            AllowedValues = new List<string> { "true", "false" },
-                            ExampleValue = "true"
-                        }
-                    },
-                    ExampleUsage = "@@SLMS:SoftwareSystemTest(checkResults=true)@@"
+                            new ContentCreatorParameter("checkResults",
+                                "Set to 'true' to validate automated test results against test plan. This requires the results to be loaded into RoboClerk.",
+                                ParameterValueType.Boolean, required: true)
+                            {
+                                AllowedValues = new List<string> { "true", "false" },
+                                ExampleValue = "false",
+                                DefaultValue = "false"
+                            },
+                            new ContentCreatorParameter("brief",
+                                "Always should be true for this tag.",
+                                ParameterValueType.Boolean, required: true)
+                            {
+                                AllowedValues = new List<string> { "true" },
+                                ExampleValue = "true",
+                                DefaultValue = "true"
+                            }
+                        },
+                        ExampleUsage = "@@SLMS:SoftwareSystemTest(brief=true)@@"
+                    }
                 }
-            }
-        };
+            };
+            return metadata;
+        }
+
+        /// <summary>
+        /// Override GetMetadata to prevent base class from adding common parameters twice.
+        /// </summary>
+        public override ContentCreatorMetadata GetMetadata()
+        {
+            return GetContentCreatorMetadata();
+        }
 
         protected override ContentCreatorMetadata GetContentCreatorMetadata() => StaticMetadata;
 

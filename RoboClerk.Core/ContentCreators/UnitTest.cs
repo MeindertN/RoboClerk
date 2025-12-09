@@ -16,56 +16,63 @@ namespace RoboClerk.ContentCreators
         /// <summary>
         /// Static metadata for the UnitTest content creator
         /// </summary>
-        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
-            "SLMS",
-            "Unit Test",
-            "Manages and displays unit test information including test results")
+        public static ContentCreatorMetadata StaticMetadata { get; } = CreateUnitTestMetadata();
+
+        private static ContentCreatorMetadata CreateUnitTestMetadata()
         {
-            Category = "Testing",
-            Tags = new List<ContentCreatorTag>
+            var commonParams = GetCommonMultiItemParametersStatic();
+            
+            var metadata = new ContentCreatorMetadata(
+                "SLMS",
+                "Unit Test",
+                "Manages and displays unit test information including test results")
             {
-                new ContentCreatorTag("UnitTest", "Displays detailed unit test information")
+                Category = "Testing",
+                Tags = new List<ContentCreatorTag>
                 {
-                    Category = "Unit Test Management",
-                    Description = "Displays unit tests with all details including purpose, acceptance criteria, file name, function name, and traceability. " +
-                        "Common filtering parameters (ItemID, ItemCategory, ItemStatus, ItemTitle, ItemProject, OlderThan, NewerThan, SortBy, SortOrder) are automatically available.",
-                    ExampleUsage = "@@SLMS:UnitTest()@@"
-                },
-                new ContentCreatorTag("UnitTest", "Displays a brief list of all unit tests")
-                {
-                    Category = "Unit Test Management",
-                    Description = "Displays a compact table view of all unit tests with summary information including file name, function name, and linked requirements.",
-                    Parameters = new List<ContentCreatorParameter>
+                    new ContentCreatorTag("UnitTest Detail", "Displays detailed unit test information where each unit test is shown individually")
                     {
-                        new ContentCreatorParameter("brief", 
-                            "Set to 'true' to display brief unit test list", 
-                            ParameterValueType.Boolean, required: false)
-                        {
-                            AllowedValues = new List<string> { "true", "false" },
-                            ExampleValue = "true"
-                        }
+                        Category = "Unit Test Management",
+                        Description = "Displays unit tests with all details including purpose, acceptance criteria, file name, function name, and traceability.",
+                        Parameters = new List<ContentCreatorParameter>(commonParams),
+                        ExampleUsage = "@@SLMS:UnitTest()@@"
                     },
-                    ExampleUsage = "@@SLMS:UnitTest(brief=true)@@"
-                },
-                new ContentCreatorTag("UnitTest", "Validates unit test results")
-                {
-                    Category = "Test Validation",
-                    Description = "Compares unit test results against the test plan and reports any discrepancies, missing results, or failures. " +
-                        "This requires test results to be loaded into RoboClerk through a test results plugin.",
-                    Parameters = new List<ContentCreatorParameter>
+                    new ContentCreatorTag("UnitTest Summary", "Displays a list of all unit tests in a single table, optionally with results")
                     {
-                        new ContentCreatorParameter("checkResults", 
-                            "Set to 'true' to validate unit test results against test plan. Test results must be loaded into RoboClerk.", 
-                            ParameterValueType.Boolean, required: false)
+                        Category = "Unit Test Management",
+                        Description = "Displays a compact table view of all unit tests with summary information including file name, function name, and linked requirements.",
+                        Parameters = new List<ContentCreatorParameter>(commonParams)
                         {
-                            AllowedValues = new List<string> { "true", "false" },
-                            ExampleValue = "true"
-                        }
-                    },
-                    ExampleUsage = "@@SLMS:UnitTest(checkResults=true)@@"
+                            new ContentCreatorParameter("checkResults",
+                                "Set to 'true' to validate unit test results against test plan and show results. Test results must be loaded into RoboClerk.",
+                                ParameterValueType.Boolean, required: false)
+                            {
+                                AllowedValues = new List<string> { "true", "false" },
+                                ExampleValue = "true"
+                            },
+                            new ContentCreatorParameter("brief",
+                                "Always should be true for this tag.",
+                                ParameterValueType.Boolean, required: true)
+                            {
+                                AllowedValues = new List<string> { "true" },
+                                ExampleValue = "true",
+                                DefaultValue = "true"
+                            }
+                        },
+                        ExampleUsage = "@@SLMS:UnitTest(brief=true,checkResults=true)@@"
+                    }
                 }
-            }
-        };
+            };
+            return metadata;
+        }
+
+        /// <summary>
+        /// Override GetMetadata to prevent base class from adding common parameters twice.
+        /// </summary>
+        public override ContentCreatorMetadata GetMetadata()
+        {
+            return GetContentCreatorMetadata();
+        }
 
         protected override ContentCreatorMetadata GetContentCreatorMetadata() => StaticMetadata;
 

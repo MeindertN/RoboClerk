@@ -18,24 +18,41 @@ namespace RoboClerk.ContentCreators
         /// <summary>
         /// Static metadata for the DocContent content creator
         /// </summary>
-        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
-            "SLMS",
-            "Documentation Content",
-            "Manages and displays documentation content items")
+        public static ContentCreatorMetadata StaticMetadata { get; } = CreateDocContentMetadata();
+
+        private static ContentCreatorMetadata CreateDocContentMetadata()
         {
-            Category = "Requirements & Traceability",
-            Tags = new List<ContentCreatorTag>
+            var parameters = new List<ContentCreatorParameter>();
+            parameters.AddRange(GetCommonMultiItemParametersStatic());
+            
+            var metadata = new ContentCreatorMetadata(
+                "SLMS",
+                "Documentation Content",
+                "Manages and displays documentation content items")
             {
-                new ContentCreatorTag("DocContent", "Displays documentation content items")
+                Category = "Requirements & Traceability",
+                Tags = new List<ContentCreatorTag>
                 {
-                    Category = "Documentation Management",
-                    Description = "Displays documentation content items with all details including content description, revision history, and traceability. " +
-                        "Documentation content items are typically used for sections, procedures, or reference material that needs to be tracked and traced. " +
-                        "Common filtering parameters (ItemID, ItemCategory, ItemStatus, ItemTitle, ItemProject, OlderThan, NewerThan, SortBy, SortOrder) are automatically available.",
-                    ExampleUsage = "@@SLMS:DocContent()@@"
+                    new ContentCreatorTag("DocContent", "Displays documentation content items")
+                    {
+                        Category = "Documentation Management",
+                        Description = "Displays documentation content items with all details including content description, revision history, and traceability. " +
+                            "Documentation content items are typically used for sections, procedures, or reference material that needs to be tracked and traced.",
+                        Parameters = parameters,
+                        ExampleUsage = "@@SLMS:DocContent()@@"
+                    }
                 }
-            }
-        };
+            };
+            return metadata;
+        }
+
+        /// <summary>
+        /// Override GetMetadata to prevent base class from adding common parameters twice.
+        /// </summary>
+        public override ContentCreatorMetadata GetMetadata()
+        {
+            return GetContentCreatorMetadata();
+        }
 
         protected override ContentCreatorMetadata GetContentCreatorMetadata() => StaticMetadata;
 

@@ -15,24 +15,41 @@ namespace RoboClerk.ContentCreators
         /// <summary>
         /// Static metadata for the Risk content creator
         /// </summary>
-        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
-            "SLMS",
-            "Risk",
-            "Manages and displays risk items including risk assessments and control measures")
+        public static ContentCreatorMetadata StaticMetadata { get; } = CreateRiskMetadata();
+
+        private static ContentCreatorMetadata CreateRiskMetadata()
         {
-            Category = "Requirements & Traceability",
-            Tags = new List<ContentCreatorTag>
+            var parameters = new List<ContentCreatorParameter>();
+            parameters.AddRange(GetCommonMultiItemParametersStatic());
+            
+            var metadata = new ContentCreatorMetadata(
+                "SLMS",
+                "Risk",
+                "Manages and displays risk items including risk assessments and control measures")
             {
-                new ContentCreatorTag("Risk", "Displays detailed risk information including severity, control measures, and mitigation")
+                Category = "Requirements & Traceability",
+                Tags = new List<ContentCreatorTag>
                 {
-                    Category = "Risk Management",
-                    Description = "Displays risk items with all details including risk description, severity assessment, probability, impact, " +
-                        "control measures, mitigation strategies, and residual risk. " +
-                        "Common filtering parameters (ItemID, ItemCategory, ItemStatus, ItemTitle, ItemProject, OlderThan, NewerThan, SortBy, SortOrder) are automatically available.",
-                    ExampleUsage = "@@SLMS:Risk()@@"
+                    new ContentCreatorTag("Risk", "Displays detailed risk information including severity, control measures, and mitigation")
+                    {
+                        Category = "Risk Management",
+                        Description = "Displays risk items with all details including risk description, severity assessment, probability, impact, " +
+                            "control measures, mitigation strategies, and residual risk.",
+                        Parameters = parameters,
+                        ExampleUsage = "@@SLMS:Risk()@@"
+                    }
                 }
-            }
-        };
+            };
+            return metadata;
+        }
+
+        /// <summary>
+        /// Override GetMetadata to prevent base class from adding common parameters twice.
+        /// </summary>
+        public override ContentCreatorMetadata GetMetadata()
+        {
+            return GetContentCreatorMetadata();
+        }
 
         protected override ContentCreatorMetadata GetContentCreatorMetadata() => StaticMetadata;
 

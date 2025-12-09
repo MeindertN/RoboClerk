@@ -16,52 +16,68 @@ namespace RoboClerk.ContentCreators
         /// <summary>
         /// Static metadata for the Anomaly content creator
         /// </summary>
-        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
-            "SLMS",
-            "Anomaly (Bug/Issue)",
-            "Manages and displays anomalies (bugs, defects, issues)")
+        public static ContentCreatorMetadata StaticMetadata { get; } = CreateAnomalyMetadata();
+
+        private static ContentCreatorMetadata CreateAnomalyMetadata()
         {
-            Category = "Testing",
-            Tags = new List<ContentCreatorTag>
+            var parameters = new List<ContentCreatorParameter>();
+            parameters.AddRange(GetCommonMultiItemParametersStatic());
+            
+            // Add anomaly-specific parameters
+            parameters.Add(new ContentCreatorParameter("IncludeClosed", 
+                "Set to 'true' to include closed/resolved anomalies in the output", 
+                ParameterValueType.Boolean, required: false, defaultValue: "false")
             {
-                new ContentCreatorTag("Anomaly", "Displays detailed anomaly/bug information")
+                AllowedValues = new List<string> { "true", "false" },
+                ExampleValue = "true"
+            });
+            parameters.Add(new ContentCreatorParameter("AnomalyState", 
+                "Filter anomalies by state (e.g., 'Open', 'Closed', 'In Progress')", 
+                ParameterValueType.String, required: false)
+            {
+                ExampleValue = "Open"
+            });
+            parameters.Add(new ContentCreatorParameter("AnomalyAssignee", 
+                "Filter anomalies by assignee", 
+                ParameterValueType.String, required: false)
+            {
+                ExampleValue = "John.Doe"
+            });
+            parameters.Add(new ContentCreatorParameter("AnomalySeverity", 
+                "Filter anomalies by severity level", 
+                ParameterValueType.String, required: false)
+            {
+                ExampleValue = "Critical"
+            });
+            
+            var metadata = new ContentCreatorMetadata(
+                "SLMS",
+                "Anomaly (Bug/Issue)",
+                "Manages and displays anomalies (bugs, defects, issues)")
+            {
+                Category = "Testing",
+                Tags = new List<ContentCreatorTag>
                 {
-                    Category = "Anomaly Management",
-                    Description = "Displays anomalies with all details including state, severity, assignee, justification, and detailed description. " +
-                        "By default, only open/active anomalies are shown unless IncludeClosed is set to true. " +
-                        "Common filtering parameters (ItemID, ItemCategory, ItemStatus, ItemTitle, ItemProject, OlderThan, NewerThan, SortBy, SortOrder) are automatically available.",
-                    Parameters = new List<ContentCreatorParameter>
+                    new ContentCreatorTag("Anomaly", "Displays detailed anomaly/bug information")
                     {
-                        new ContentCreatorParameter("IncludeClosed", 
-                            "Set to 'true' to include closed/resolved anomalies in the output", 
-                            ParameterValueType.Boolean, required: false, defaultValue: "false")
-                        {
-                            AllowedValues = new List<string> { "true", "false" },
-                            ExampleValue = "true"
-                        },
-                        new ContentCreatorParameter("AnomalyState", 
-                            "Filter anomalies by state (e.g., 'Open', 'Closed', 'In Progress')", 
-                            ParameterValueType.String, required: false)
-                        {
-                            ExampleValue = "Open"
-                        },
-                        new ContentCreatorParameter("AnomalyAssignee", 
-                            "Filter anomalies by assignee", 
-                            ParameterValueType.String, required: false)
-                        {
-                            ExampleValue = "John.Doe"
-                        },
-                        new ContentCreatorParameter("AnomalySeverity", 
-                            "Filter anomalies by severity level", 
-                            ParameterValueType.String, required: false)
-                        {
-                            ExampleValue = "Critical"
-                        }
-                    },
-                    ExampleUsage = "@@SLMS:Anomaly()@@"
+                        Category = "Anomaly Management",
+                        Description = "Displays anomalies with all details including state, severity, assignee, justification, and detailed description. " +
+                            "By default, only open/active anomalies are shown unless IncludeClosed is set to true.",
+                        Parameters = parameters,
+                        ExampleUsage = "@@SLMS:Anomaly()@@"
+                    }
                 }
-            }
-        };
+            };
+            return metadata;
+        }
+
+        /// <summary>
+        /// Override GetMetadata to prevent base class from adding common parameters twice.
+        /// </summary>
+        public override ContentCreatorMetadata GetMetadata()
+        {
+            return GetContentCreatorMetadata();
+        }
 
         protected override ContentCreatorMetadata GetContentCreatorMetadata() => StaticMetadata;
 
