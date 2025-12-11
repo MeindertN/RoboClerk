@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using RoboClerk.Core.Configuration;
 
 namespace RoboClerk.ContentCreators
 {
@@ -16,17 +17,17 @@ namespace RoboClerk.ContentCreators
             // No dependencies needed! Metadata is accessed statically.
         }
 
-        public List<ContentCreatorMetadata> GetAllContentCreatorMetadata()
+        public List<ContentCreatorMetadata> GetAllContentCreatorMetadata(IConfiguration? configuration = null)
         {
             logger.Debug("Gathering metadata from all registered content creators");
 
-            var allMetadata = ContentCreatorMetadataRegistry.GetAllMetadata().ToList();
+            var allMetadata = ContentCreatorMetadataRegistry.GetAllMetadata(configuration).ToList();
 
             logger.Info($"Collected metadata for {allMetadata.Count} content creators");
             return allMetadata;
         }
 
-        public ContentCreatorMetadata? GetContentCreatorMetadata(string source)
+        public ContentCreatorMetadata? GetContentCreatorMetadata(string source, IConfiguration? configuration = null)
         {
             if (string.IsNullOrWhiteSpace(source))
             {
@@ -36,7 +37,7 @@ namespace RoboClerk.ContentCreators
 
             logger.Debug($"Getting metadata for content creator source: {source}");
 
-            var metadata = ContentCreatorMetadataRegistry.GetMetadata(source);
+            var metadata = ContentCreatorMetadataRegistry.GetMetadata(source, configuration);
             
             if (metadata == null)
             {

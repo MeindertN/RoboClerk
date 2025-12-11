@@ -49,5 +49,12 @@ namespace RoboClerk.Server.Services
         /// <param name="includeConfiguredTemplates">Whether to include templates that are already configured as documents</param>
         /// <returns>Result containing available template files information</returns>
         Task<AvailableTemplateFilesResult> GetAvailableTemplateFilesAsync(string projectId, bool includeConfiguredTemplates = false);
+
+        /// <summary>
+        /// Gets the project configuration object
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <returns>The project configuration</returns>
+        RoboClerk.Core.Configuration.IConfiguration GetConfiguration(string projectId);
     }
 }

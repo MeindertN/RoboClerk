@@ -36,6 +36,19 @@ namespace RoboClerk.Server.Services
             this.dataSourcesFactory = dataSourcesFactory;
         }
 
+        /// <summary>
+        /// Gets the project configuration object
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <returns>The project configuration</returns>
+        public IConfiguration GetConfiguration(string projectId)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            return project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+        }
+
         //BELOW ARE ALL THE MAIN PROJECT MANAGEMENT METHODS
         public async Task<ProjectLoadResult> LoadProjectAsync(LoadProjectRequest request)
         {

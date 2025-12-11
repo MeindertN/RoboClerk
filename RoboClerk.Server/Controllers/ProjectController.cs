@@ -28,13 +28,29 @@ namespace RoboClerk.Server.Controllers
         /// Get metadata for all available content creators
         /// </summary>
         [HttpGet("content-creators/metadata")]
-        public ActionResult<List<ContentCreatorMetadata>> GetContentCreatorMetadata()
+        public ActionResult<List<ContentCreatorMetadata>> GetContentCreatorMetadata([FromQuery] string projectId)
         {
+            if (string.IsNullOrEmpty(projectId))
+            {
+                return BadRequest("Project ID is required.");
+            }
+
             try
             {
-                logger.Debug("Getting metadata for all content creators");
+                logger.Debug($"Getting metadata for all content creators. ProjectId: {projectId}");
                 
-                var metadata = metadataService.GetAllContentCreatorMetadata();
+                RoboClerk.Core.Configuration.IConfiguration configuration;
+                try
+                {
+                    configuration = projectManager.GetConfiguration(projectId);
+                }
+                catch (ArgumentException)
+                {
+                    logger.Warn($"Project {projectId} not found");
+                    return NotFound($"Project {projectId} not found or not loaded.");
+                }
+
+                var metadata = metadataService.GetAllContentCreatorMetadata(configuration);
                 
                 logger.Info($"Returning metadata for {metadata.Count} content creators");
                 return Ok(metadata);
@@ -42,33 +58,6 @@ namespace RoboClerk.Server.Controllers
             catch (Exception ex)
             {
                 logger.Error(ex, "Error getting content creator metadata");
-                return StatusCode(500, "Failed to get content creator metadata");
-            }
-        }
-
-        /// <summary>
-        /// Get metadata for a specific content creator by source
-        /// </summary>
-        [HttpGet("content-creators/metadata/{source}")]
-        public ActionResult<ContentCreatorMetadata> GetContentCreatorMetadataBySource(string source)
-        {
-            try
-            {
-                logger.Debug($"Getting metadata for content creator source: {source}");
-                
-                var metadata = metadataService.GetContentCreatorMetadata(source);
-                if (metadata == null)
-                {
-                    logger.Warn($"Content creator metadata not found for source: {source}");
-                    return NotFound($"Content creator with source '{source}' not found");
-                }
-                
-                logger.Info($"Returning metadata for content creator: {source}");
-                return Ok(metadata);
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"Error getting content creator metadata for source: {source}");
                 return StatusCode(500, "Failed to get content creator metadata");
             }
         }

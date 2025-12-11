@@ -35,5 +35,7 @@ namespace RoboClerk.Core.Configuration
             }
             return keyValues[key];
         }
+
+        public IEnumerable<string> Keys => keyValues.Keys;
     }
 }
