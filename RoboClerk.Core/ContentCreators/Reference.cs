@@ -35,6 +35,7 @@ namespace RoboClerk.ContentCreators
                             ParameterValueType.Boolean, required: false)
                         {
                             AllowedValues = new List<string> { "true", "false" },
+                            DefaultValue = "false",
                             ExampleValue = "true"
                         },
                         new ContentCreatorParameter("Title", 
@@ -42,6 +43,7 @@ namespace RoboClerk.ContentCreators
                             ParameterValueType.Boolean, required: false)
                         {
                             AllowedValues = new List<string> { "true", "false" },
+                            DefaultValue = "false",
                             ExampleValue = "true"
                         },
                         new ContentCreatorParameter("Abbr", 
@@ -49,6 +51,7 @@ namespace RoboClerk.ContentCreators
                             ParameterValueType.Boolean, required: false)
                         {
                             AllowedValues = new List<string> { "true", "false" },
+                            DefaultValue = "false",
                             ExampleValue = "true"
                         },
                         new ContentCreatorParameter("Template", 
@@ -56,6 +59,7 @@ namespace RoboClerk.ContentCreators
                             ParameterValueType.Boolean, required: false)
                         {
                             AllowedValues = new List<string> { "true", "false" },
+                            DefaultValue = "false",
                             ExampleValue = "false"
                         }
                     },
@@ -64,7 +68,72 @@ namespace RoboClerk.ContentCreators
             }
         };
 
-        public override ContentCreatorMetadata GetMetadata() => StaticMetadata;
+        /// <summary>
+        /// Gets metadata for the Reference content creator, optionally using configuration to populate tags
+        /// </summary>
+        public static ContentCreatorMetadata GetMetadata(IConfiguration? config = null)
+        {
+            var metadata = new ContentCreatorMetadata("Reference", "Document Reference", 
+                "Creates references to other RoboClerk documents")
+            {
+                Category = "Document Information",
+                Tags = new List<ContentCreatorTag>()
+            };
+
+            if (config != null && config.Documents != null)
+            {
+                foreach (var doc in config.Documents)
+                {
+                    metadata.Tags.Add(new ContentCreatorTag(doc.DocumentTitle, $"Creates a reference to {doc.DocumentTitle}")
+                    {
+                        Category = "Cross-References",
+                        Description = $"Creates a reference to the document '{doc.DocumentTitle}' ({doc.RoboClerkID}). " +
+                            "Returns document properties based on specified parameters. " +
+                            "If no parameters are specified, returns the document title.",
+                        Parameters = new List<ContentCreatorParameter>
+                        {
+                            new ContentCreatorParameter("ID", 
+                                "Include the document identifier in the reference", 
+                                ParameterValueType.Boolean, required: false)
+                            {
+                                AllowedValues = new List<string> { "true", "false" },
+                                DefaultValue = "false",
+                                ExampleValue = "true"
+                            },
+                            new ContentCreatorParameter("Title", 
+                                "Include the document title in the reference", 
+                                ParameterValueType.Boolean, required: false)
+                            {
+                                AllowedValues = new List<string> { "true", "false" },
+                                DefaultValue = "false",
+                                ExampleValue = "true"
+                            },
+                            new ContentCreatorParameter("Abbr", 
+                                "Include the document abbreviation in the reference", 
+                                ParameterValueType.Boolean, required: false)
+                            {
+                                AllowedValues = new List<string> { "true", "false" },
+                                DefaultValue = "false",
+                                ExampleValue = "true"
+                            },
+                            new ContentCreatorParameter("Template", 
+                                "Include the document template path in the reference", 
+                                ParameterValueType.Boolean, required: false)
+                            {
+                                AllowedValues = new List<string> { "true", "false" },
+                                DefaultValue = "false",
+                                ExampleValue = "false"
+                            }
+                        },
+                        ExampleUsage = $"@@Reference:{doc.RoboClerkID}(ID=true,Title=true,Abbr=true)@@"
+                    });
+                }
+            }
+
+            return metadata;
+        }
+
+        public override ContentCreatorMetadata GetMetadata() => GetMetadata(configuration);
 
         public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {

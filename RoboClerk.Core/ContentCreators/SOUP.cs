@@ -20,7 +20,7 @@ namespace RoboClerk.ContentCreators
 
         private static ContentCreatorMetadata CreateSOUPMetadata()
         {
-            var commonParams = GetCommonMultiItemParametersStatic();
+            var commonParams = GetCommonMultiItemParametersStatic(typeof(SOUPItem));
             
             var metadata = new ContentCreatorMetadata("SLMS", "SOUP (Software of Unknown Provenance)", 
                 "Manages and displays SOUP items including version checking and brief lists")
@@ -28,41 +28,34 @@ namespace RoboClerk.ContentCreators
                 Category = "Requirements & Traceability",
                 Tags = new List<ContentCreatorTag>
                 {
-                    new ContentCreatorTag("SOUP", "Displays detailed SOUP item information")
+                    new ContentCreatorTag("SOUP Detail", "Displays detailed SOUP item information")
                     {
                         Category = "SOUP Management",
                         Parameters = new List<ContentCreatorParameter>(commonParams),
                         ExampleUsage = "@@SLMS:SOUP()@@"
                     },
-                    new ContentCreatorTag("SOUP", "Displays a brief list of all SOUP items with names and versions")
+                    new ContentCreatorTag("SOUP Summary", "Displays a brief list of all SOUP items with names and versions")
                     {
                         Category = "SOUP Management",
                         Parameters = new List<ContentCreatorParameter>(commonParams)
                         {
                             new ContentCreatorParameter("brief", 
                                 "Set to 'true' to display brief SOUP list", 
+                                ParameterValueType.Boolean, required: true)
+                            {
+                                AllowedValues = new List<string> { "true" },
+                                ExampleValue = "true"
+                            },
+                            new ContentCreatorParameter("checkSOUP",
+                                "Set to 'true' to validate SOUP items against external dependencies",
                                 ParameterValueType.Boolean, required: false)
                             {
                                 AllowedValues = new List<string> { "true", "false" },
+                                DefaultValue = "false",
                                 ExampleValue = "true"
                             }
                         },
-                        ExampleUsage = "@@SLMS:SOUP(brief=true)@@"
-                    },
-                    new ContentCreatorTag("SOUP", "Validates SOUP items against external dependencies")
-                    {
-                        Category = "SOUP Validation",
-                        Parameters = new List<ContentCreatorParameter>(commonParams)
-                        {
-                            new ContentCreatorParameter("checkSOUP", 
-                                "Set to 'true' to validate SOUP items against external dependencies", 
-                                ParameterValueType.Boolean, required: false)
-                            {
-                                AllowedValues = new List<string> { "true", "false" },
-                                ExampleValue = "true"
-                            }
-                        },
-                        ExampleUsage = "@@SLMS:SOUP(checkSOUP=true)@@"
+                        ExampleUsage = "@@SLMS:SOUP(brief=true, checkSOUP=true)@@"
                     }
                 }
             };

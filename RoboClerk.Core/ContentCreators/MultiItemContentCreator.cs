@@ -60,16 +60,16 @@ namespace RoboClerk.ContentCreators
         /// </summary>
         protected virtual List<ContentCreatorParameter> GetCommonMultiItemParameters()
         {
-            return GetCommonMultiItemParametersStatic();
+            return GetCommonMultiItemParametersStatic(typeof(LinkedItem));
         }
 
         /// <summary>
         /// Static helper method that returns common multi-item parameters.
         /// Can be called from static metadata creation methods in derived classes.
         /// </summary>
-        protected static List<ContentCreatorParameter> GetCommonMultiItemParametersStatic()
+        protected static List<ContentCreatorParameter> GetCommonMultiItemParametersStatic(Type itemType)
         {
-            return new List<ContentCreatorParameter>
+            var parameters = new List<ContentCreatorParameter>
             {
                 new ContentCreatorParameter("ItemID", "Specific item identifier to filter", ParameterValueType.ItemID, required: false),
                 new ContentCreatorParameter("ItemCategory","Filter items by category", ParameterValueType.String, required: false) { ExampleValue = "Safety" },
@@ -85,6 +85,30 @@ namespace RoboClerk.ContentCreators
                     ExampleValue = "ASC"
                 }
             };
+
+            if (itemType != null)
+            {
+                var sortByParam = parameters.FirstOrDefault(p => p.Name == "SortBy");
+                if (sortByParam != null)
+                {
+                    sortByParam.AllowedValues = GetSortableProperties(itemType);
+                }
+            }
+
+            return parameters;
+        }
+
+        private static List<string> GetSortableProperties(Type itemType)
+        {
+            var properties = new List<string>();
+            foreach (var prop in itemType.GetProperties())
+            {
+                if (prop.PropertyType == typeof(string))
+                {
+                    properties.Add(prop.Name);
+                }
+            }
+            return properties.OrderBy(p => p).ToList();
         }
 
         /// <summary>

@@ -23,7 +23,7 @@ namespace RoboClerk.ContentCreators
         private static ContentCreatorMetadata CreateDocContentMetadata()
         {
             var parameters = new List<ContentCreatorParameter>();
-            parameters.AddRange(GetCommonMultiItemParametersStatic());
+            parameters.AddRange(GetCommonMultiItemParametersStatic(typeof(DocContentItem)));
             
             var metadata = new ContentCreatorMetadata(
                 "SLMS",
@@ -35,11 +35,11 @@ namespace RoboClerk.ContentCreators
                 {
                     new ContentCreatorTag("DocContent", "Displays documentation content items")
                     {
-                        Category = "Documentation Management",
-                        Description = "Displays documentation content items with all details including content description, revision history, and traceability. " +
-                            "Documentation content items are typically used for sections, procedures, or reference material that needs to be tracked and traced.",
+                        Category = "Documentation Content Management",
+                        Description = "Displays documentation content items. The text and markup contained in the documentation content item is inserted directly into the document. " +
+                            "Documentation content items are typically used for sections, procedures, warnings or reference material that needs to be tracked and traced.",
                         Parameters = parameters,
-                        ExampleUsage = "@@SLMS:DocContent()@@"
+                        ExampleUsage = "@@SLMS:DocContent(ItemID=12345)@@"
                     }
                 }
             };

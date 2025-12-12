@@ -41,7 +41,8 @@ namespace RoboClerk.Tests
         [Test]
         public void CreateDocumentCC()
         {
-            var sst = new ContentCreators.Document(traceAnalysis);
+            var config = Substitute.For<IConfiguration>();
+            var sst = new ContentCreators.Document(traceAnalysis, config);
         }
 
         [UnitTestAttribute(
@@ -51,7 +52,8 @@ namespace RoboClerk.Tests
         [Test]
         public void TestDocumentCC1()
         {
-            var sst = new ContentCreators.Document(traceAnalysis);
+            var config = Substitute.For<IConfiguration>();
+            var sst = new ContentCreators.Document(traceAnalysis, config);
             string tagString = "@@Document:title()@@";
             IRoboClerkTag tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             string result = sst.GetContent(tag,documentConfig);
@@ -94,7 +96,8 @@ namespace RoboClerk.Tests
         public void TestDocumentCC2()
         {
             documentConfig.AddEntityCount(te, 3);
-            var sst = new ContentCreators.Document(traceAnalysis);
+            var config = Substitute.For<IConfiguration>();
+            var sst = new ContentCreators.Document(traceAnalysis, config);
             string tagString = "@@Document:countentities(entity=TC)@@";
             RoboClerkTextTag tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             string result = sst.GetContent(tag, documentConfig);
@@ -120,7 +123,8 @@ namespace RoboClerk.Tests
         [Test]
         public void TestDocumentCC3()
         {
-            var sst = new ContentCreators.Document(traceAnalysis);
+            var config = Substitute.For<IConfiguration>();
+            var sst = new ContentCreators.Document(traceAnalysis, config);
             string tagString = "@@Document:countentities(entity=TC)@@";
             RoboClerkTextTag tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             string result = sst.GetContent(tag, documentConfig);
@@ -134,7 +138,8 @@ namespace RoboClerk.Tests
         [Test]
         public void TestDocumentCC4()
         {
-            var sst = new ContentCreators.Document(traceAnalysis);
+            var config = Substitute.For<IConfiguration>();
+            var sst = new ContentCreators.Document(traceAnalysis, config);
             string tagString = "@@Document:countentities(entity=TCC)@@";
             RoboClerkTextTag tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             Assert.Throws<Exception>(() => sst.GetContent(tag, documentConfig));
@@ -147,7 +152,8 @@ namespace RoboClerk.Tests
         [Test]
         public void TestDocumentCC5()
         {
-            var sst = new ContentCreators.Document(traceAnalysis);
+            var config = Substitute.For<IConfiguration>();
+            var sst = new ContentCreators.Document(traceAnalysis, config);
             string tagString = "@@Document:nonsense(entity=TCC)@@";
             RoboClerkTextTag tag = new RoboClerkTextTag(0, tagString.Length, tagString, true);
             Assert.Throws<Exception>(() => sst.GetContent(tag, documentConfig));

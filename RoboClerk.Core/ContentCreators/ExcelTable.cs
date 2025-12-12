@@ -2,6 +2,7 @@
 using RoboClerk.Core.Configuration;
 using RoboClerk.Core;
 using System.Text;
+using RoboClerk.Core.FileProviders;
 
 namespace RoboClerk.ContentCreators
 {
@@ -13,52 +14,89 @@ namespace RoboClerk.ContentCreators
         }
 
         /// <summary>
-        /// Static metadata for the ExcelTable content creator
+        /// Gets metadata for the ExcelTable content creator, optionally using configuration and file provider to populate allowed values
         /// </summary>
-        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
-            "FILE",
-            "Excel Table Import",
-            "Extracts and displays tables from Excel files in the template directory")
+        public static ContentCreatorMetadata GetMetadata(IConfiguration? config = null, IFileProviderPlugin? fileProvider = null)
         {
-            Category = "File Import",
-            Tags = new List<ContentCreatorTag>
+            var allowedValues = new List<string>();
+            string exampleValue = "requirements_table.xlsx";
+
+            if (config != null && fileProvider != null)
             {
-                new ContentCreatorTag("ExcelTable", "Imports a table from an Excel spreadsheet")
+                try
                 {
-                    Category = "Excel Import",
-                    Description = "Imports a specified range from an Excel file and renders it as a table in the document. " +
-                        "Supports cell formatting (bold, italic), hyperlinks, and automatic format conversion to AsciiDoc or HTML. " +
-                        "The Excel file must be located in the template directory.",
-                    Parameters = new List<ContentCreatorParameter>
+                    if (fileProvider.DirectoryExists(config.TemplateDir))
                     {
-                        new ContentCreatorParameter("fileName", 
-                            "Name of the Excel file in the template directory", 
-                            ParameterValueType.FilePath, required: true)
+                        var files = fileProvider.GetFiles(config.TemplateDir, "*.xlsx", SearchOption.TopDirectoryOnly);
+                        foreach (var file in files)
                         {
-                            ExampleValue = "requirements_table.xlsx",
-                            Description = "Excel file name (with .xlsx extension) located in the template directory"
-                        },
-                        new ContentCreatorParameter("range", 
-                            "Excel range to import (e.g., A1:D10)", 
-                            ParameterValueType.Range, required: true)
-                        {
-                            ExampleValue = "A1:D10",
-                            Description = "Excel range in A1 notation specifying which cells to import"
-                        },
-                        new ContentCreatorParameter("workSheet", 
-                            "Name of the worksheet to read from", 
-                            ParameterValueType.String, required: false, defaultValue: "Sheet1")
-                        {
-                            ExampleValue = "Sheet1",
-                            Description = "Worksheet name within the Excel file. Defaults to 'Sheet1' if not specified"
+                            allowedValues.Add(fileProvider.GetFileName(file));
                         }
-                    },
-                    ExampleUsage = "@@FILE:ExcelTable(fileName=data.xlsx,range=B2:C4,workSheet=Sheet1)@@"
+                        
+                        if (allowedValues.Count > 0)
+                        {
+                            exampleValue = allowedValues[0];
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore errors during metadata generation
                 }
             }
-        };
 
-        public override ContentCreatorMetadata GetMetadata() => StaticMetadata;
+            var metadata = new ContentCreatorMetadata(
+                "FILE",
+                "Excel Table Import",
+                "Extracts and displays tables from Excel files in the template directory")
+            {
+                Category = "File Import",
+                Tags = new List<ContentCreatorTag>
+                {
+                    new ContentCreatorTag("ExcelTable", "Imports a table from an Excel spreadsheet")
+                    {
+                        Category = "Excel Import",
+                        Description = "Imports a specified range from an Excel file and renders it as a table in the document. " +
+                            "Supports cell formatting (bold, italic), hyperlinks, and automatic format conversion to AsciiDoc or HTML. " +
+                            "The Excel file must be located in the template directory.",
+                        Parameters = new List<ContentCreatorParameter>
+                        {
+                            new ContentCreatorParameter("fileName", 
+                                "Name of the Excel file in the template directory", 
+                                ParameterValueType.FilePath, required: true)
+                            {
+                                ExampleValue = exampleValue,
+                                Description = "Excel file name (with .xlsx extension) located in the template directory",
+                                AllowedValues = allowedValues.Count > 0 ? allowedValues : null
+                            },
+                            new ContentCreatorParameter("range", 
+                                "Excel range to import (e.g., A1:D10)", 
+                                ParameterValueType.Range, required: true)
+                            {
+                                ExampleValue = "A1:D10",
+                                Description = "Excel range in A1 notation specifying which cells to import"
+                            },
+                            new ContentCreatorParameter("workSheet", 
+                                "Name of the worksheet to read from", 
+                                ParameterValueType.String, required: false, defaultValue: "Sheet1")
+                            {
+                                ExampleValue = "Sheet1",
+                                Description = "Worksheet name within the Excel file. Defaults to 'Sheet1' if not specified"
+                            }
+                        },
+                        ExampleUsage = $"@@FILE:ExcelTable(fileName={exampleValue},range=B2:C4,workSheet=Sheet1)@@"
+                    }
+                }
+            };
+            return metadata;
+        }
+
+        /// <summary>
+        /// Static metadata for the ExcelTable content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = GetMetadata();
+
+        public override ContentCreatorMetadata GetMetadata() => GetMetadata(configuration);
 
         public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {

@@ -33,7 +33,7 @@ namespace RoboClerk.ContentCreators
             var parameters = new List<ContentCreatorParameter>();
             
             // Add common multi-item parameters from base class
-            parameters.AddRange(GetCommonMultiItemParametersStatic());
+            parameters.AddRange(GetCommonMultiItemParametersStatic(typeof(RequirementItem)));
             
             // Add requirement-specific parameters
             parameters.Add(new ContentCreatorParameter("RequirementState", 

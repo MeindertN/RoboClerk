@@ -21,7 +21,7 @@ namespace RoboClerk.ContentCreators
 
         private static ContentCreatorMetadata CreateSoftwareSystemTestMetadata()
         {
-            var commonParams = GetCommonMultiItemParametersStatic();
+            var commonParams = GetCommonMultiItemParametersStatic(typeof(SoftwareSystemTestItem));
             
             var metadata = new ContentCreatorMetadata(
                 "SLMS",

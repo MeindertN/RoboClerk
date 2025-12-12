@@ -21,7 +21,7 @@ namespace RoboClerk.ContentCreators
         private static ContentCreatorMetadata CreateAnomalyMetadata()
         {
             var parameters = new List<ContentCreatorParameter>();
-            parameters.AddRange(GetCommonMultiItemParametersStatic());
+            parameters.AddRange(GetCommonMultiItemParametersStatic(typeof(AnomalyItem)));
             
             // Add anomaly-specific parameters
             parameters.Add(new ContentCreatorParameter("IncludeClosed", 

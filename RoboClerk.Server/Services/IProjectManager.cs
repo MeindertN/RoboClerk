@@ -1,4 +1,5 @@
 using RoboClerk.Server.Models;
+using RoboClerk.ContentCreators;
 
 namespace RoboClerk.Server.Services
 {
@@ -51,10 +52,11 @@ namespace RoboClerk.Server.Services
         Task<AvailableTemplateFilesResult> GetAvailableTemplateFilesAsync(string projectId, bool includeConfiguredTemplates = false);
 
         /// <summary>
-        /// Gets the project configuration object
+        /// Gets metadata for all available content creators for a specific project
         /// </summary>
         /// <param name="projectId">The project ID</param>
-        /// <returns>The project configuration</returns>
-        RoboClerk.Core.Configuration.IConfiguration GetConfiguration(string projectId);
+        /// <param name="refresh">Whether to refresh the metadata by reloading configuration</param>
+        /// <returns>List of content creator metadata</returns>
+        Task<List<ContentCreatorMetadata>> GetContentCreatorMetadataAsync(string projectId, bool refresh = false);
     }
 }

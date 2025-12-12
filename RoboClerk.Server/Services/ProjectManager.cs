@@ -37,16 +37,23 @@ namespace RoboClerk.Server.Services
         }
 
         /// <summary>
-        /// Gets the project configuration object
+        /// Gets metadata for all available content creators for a specific project
         /// </summary>
-        /// <param name="projectId">The project ID</param>
-        /// <returns>The project configuration</returns>
-        public IConfiguration GetConfiguration(string projectId)
+        public async Task<List<ContentCreatorMetadata>> GetContentCreatorMetadataAsync(string projectId, bool refresh = false)
         {
             if (!loadedProjects.TryGetValue(projectId, out var project))
                 throw new ArgumentException("SharePoint project not loaded");
 
-            return project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+            var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+            var fileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
+
+            if (refresh)
+            {
+                logger.Info($"Refreshing content creator metadata registry for project: {projectId}");
+                ContentCreatorMetadataRegistry.Refresh();
+            }
+
+            return ContentCreatorMetadataRegistry.GetAllMetadata(configuration, fileProvider).ToList();
         }
 
         //BELOW ARE ALL THE MAIN PROJECT MANAGEMENT METHODS

@@ -3,6 +3,7 @@ using RoboClerk.Core;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Text;
+using RoboClerk.Core.FileProviders;
 
 namespace RoboClerk.ContentCreators
 {
@@ -14,41 +15,88 @@ namespace RoboClerk.ContentCreators
         }
 
         /// <summary>
-        /// Static metadata for the TemplateSection content creator
+        /// Gets metadata for the TemplateSection content creator, optionally using configuration and file provider to populate allowed values
         /// </summary>
-        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
-            "FILE",
-            "Template Section",
-            "Inserts content from template files into the document")
+        public static ContentCreatorMetadata GetMetadata(IConfiguration? config = null, IFileProviderPlugin? fileProvider = null)
         {
-            Category = "File Import",
-            Tags = new List<ContentCreatorTag>
-            {
-                new ContentCreatorTag("TemplateSection", "Inserts the contents of a template file")
-                {
-                    Category = "Template Import",
-                    Description = "Inserts content from a file in the template directory. " +
-                        "Supports text files (.txt, .adoc, .html) for text-based output formats and DOCX files when output format is DOCX. " +
-                        "For DOCX files, the body content is extracted and inserted as OpenXML, preserving formatting, styles, and structure. " +
-                        "This is useful for including standard sections, boilerplate text, or reusable content across multiple documents.",
-                    Parameters = new List<ContentCreatorParameter>
-                    {
-                        new ContentCreatorParameter("fileName", 
-                            "Name of the template file to insert", 
-                            ParameterValueType.FilePath, required: true)
-                        {
-                            ExampleValue = "section_template.adoc",
-                            Description = "Template file name located in the template directory. " +
+            var allowedValues = new List<string>();
+            string exampleValue = "section_template.adoc";
+            string description = "Template file name located in the template directory. " +
                                 "File extension must match the output format (.adoc for AsciiDoc, .html for HTML, .docx for DOCX output). " +
-                                "DOCX files can only be inserted when the output format is DOCX."
+                                "DOCX files can only be inserted when the output format is DOCX.";
+
+            if (config != null && fileProvider != null)
+            {
+                try
+                {
+                    string outputFormat = config.OutputFormat?.ToUpperInvariant() ?? "TEXT";
+                    string extension = outputFormat switch
+                    {
+                        "DOCX" => "*.docx",
+                        "HTML" => "*.html",
+                        "ASCIIDOC" => "*.adoc",
+                        _ => "*.*"
+                    };
+
+                    if (fileProvider.DirectoryExists(config.TemplateDir))
+                    {
+                        var files = fileProvider.GetFiles(config.TemplateDir, extension, SearchOption.TopDirectoryOnly);
+                        foreach (var file in files)
+                        {
+                            allowedValues.Add(fileProvider.GetFileName(file));
                         }
-                    },
-                    ExampleUsage = "@@FILE:TemplateSection(fileName=introduction.adoc)@@"
+                        
+                        if (allowedValues.Count > 0)
+                        {
+                            exampleValue = allowedValues[0];
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore errors during metadata generation (e.g. if directory doesn't exist)
                 }
             }
-        };
 
-        public override ContentCreatorMetadata GetMetadata() => StaticMetadata;
+            var metadata = new ContentCreatorMetadata(
+                "FILE",
+                "Template Section",
+                "Inserts content from template files into the document")
+            {
+                Category = "File Import",
+                Tags = new List<ContentCreatorTag>
+                {
+                    new ContentCreatorTag("TemplateSection", "Inserts the contents of a template file")
+                    {
+                        Category = "Template Import",
+                        Description = "Inserts content from a file in the template directory. " +
+                            "Supports text files (.txt, .adoc, .html) for text-based output formats and DOCX files when output format is DOCX. " +
+                            "For DOCX files, the body content is extracted and inserted as OpenXML, preserving formatting, styles, and structure. " +
+                            "This is useful for including standard sections, boilerplate text, or reusable content across multiple documents.",
+                        Parameters = new List<ContentCreatorParameter>
+                        {
+                            new ContentCreatorParameter("fileName", 
+                                "Name of the template file to insert", 
+                                ParameterValueType.FilePath, required: true)
+                            {
+                                ExampleValue = exampleValue,
+                                Description = description,
+                                AllowedValues = allowedValues.Count > 0 ? allowedValues : null
+                            }
+                        },
+                        ExampleUsage = $"@@FILE:TemplateSection(fileName={exampleValue})@@"
+                    }
+                }
+            };
+            return metadata;
+        }
+
+        /// <summary>
+        /// Static metadata for the TemplateSection content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = GetMetadata();
+
+        public override ContentCreatorMetadata GetMetadata() => GetMetadata(configuration);
 
         public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
@@ -98,7 +146,7 @@ namespace RoboClerk.ContentCreators
                     
                     // Create a special marker to indicate this is OpenXML content
                     xmlBuilder.AppendLine("<!--OPENXML_CONTENT-->");
-                    
+
                     // Extract all body elements as XML
                     foreach (var element in document.MainDocumentPart.Document.Body.Elements())
                     {

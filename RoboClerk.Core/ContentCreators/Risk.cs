@@ -20,7 +20,7 @@ namespace RoboClerk.ContentCreators
         private static ContentCreatorMetadata CreateRiskMetadata()
         {
             var parameters = new List<ContentCreatorParameter>();
-            parameters.AddRange(GetCommonMultiItemParametersStatic());
+            parameters.AddRange(GetCommonMultiItemParametersStatic(typeof(RiskItem)));
             
             var metadata = new ContentCreatorMetadata(
                 "SLMS",

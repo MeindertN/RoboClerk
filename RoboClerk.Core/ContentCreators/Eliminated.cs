@@ -23,7 +23,7 @@ namespace RoboClerk.ContentCreators
         private static ContentCreatorMetadata CreateEliminatedMetadata()
         {
             var parameters = new List<ContentCreatorParameter>();
-            parameters.AddRange(GetCommonMultiItemParametersStatic());
+            parameters.AddRange(GetCommonMultiItemParametersStatic(typeof(EliminatedLinkedItem)));
             
             // Add eliminated-specific parameter
             parameters.Add(new ContentCreatorParameter("type", 

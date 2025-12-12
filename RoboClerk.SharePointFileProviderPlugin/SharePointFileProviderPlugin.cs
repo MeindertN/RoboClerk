@@ -130,7 +130,9 @@ namespace RoboClerk.SharePointFileProvider
             ValidatePath(path);
             try
             {
-                var item = GetDriveItemAsync(path).Result;
+                // Remove trailing slash if present, as Graph API might not handle it well for folder checks
+                var normalizedPath = path.TrimEnd('/');
+                var item = GetDriveItemAsync(normalizedPath).Result;
                 return item != null && item.Folder != null;
             }
             catch

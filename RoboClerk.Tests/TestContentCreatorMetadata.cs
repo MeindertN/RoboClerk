@@ -56,9 +56,10 @@ namespace RoboClerk.Tests
         public void TestDocumentContentCreatorMetadata()
         {
             var traceAnalysis = Substitute.For<ITraceabilityAnalysis>();
-            var document = new Document(traceAnalysis);
+            var config = Substitute.For<IConfiguration>();
+            var document = new Document(traceAnalysis, config);
             
-            var metadata = document.GetMetadata();
+            var metadata = Document.GetMetadata();
             
             Assert.That(metadata, Is.Not.Null);
             Assert.That(metadata.Source, Is.EqualTo("Document"));
@@ -122,7 +123,7 @@ namespace RoboClerk.Tests
             
             var excelTable = new ExcelTable(dataSources, traceAnalysis, config);
             
-            var metadata = excelTable.GetMetadata();
+            var metadata = ExcelTable.GetMetadata();
             
             Assert.That(metadata, Is.Not.Null);
             Assert.That(metadata.Source, Is.EqualTo("FILE"));

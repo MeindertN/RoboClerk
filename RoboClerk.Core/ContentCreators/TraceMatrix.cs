@@ -1,5 +1,7 @@
 ﻿using RoboClerk.Core.Configuration;
 using RoboClerk.Core;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RoboClerk.ContentCreators
 {
@@ -14,44 +16,76 @@ namespace RoboClerk.ContentCreators
         }
 
         /// <summary>
-        /// Static metadata for the generic TraceMatrix content creator
+        /// Gets metadata for the TraceMatrix content creator, optionally using configuration to populate allowed values
         /// </summary>
-        public static ContentCreatorMetadata StaticMetadata { get; } = new ContentCreatorMetadata(
-            "SLMS",
-            "Generic Traceability Matrix",
-            "Generates a traceability matrix for any truth source specified via the 'source' parameter")
+        public static ContentCreatorMetadata GetMetadata(IConfiguration? config = null)
         {
-            Category = "Requirements & Traceability",
-            Tags = new List<ContentCreatorTag>
+            var allowedValues = new List<string>();
+            string exampleValue = "System Requirement";
+
+            if (config != null)
             {
-                new ContentCreatorTag("TraceMatrix", "Displays traceability matrix for a specified source")
+                foreach (var traceConfig in config.TraceConfig)
                 {
-                    Category = "Traceability Analysis",
-                    Description = "Creates a comprehensive traceability matrix for any entity type by specifying the source parameter. " +
-                        "The matrix displays trace relationships between different entity types and identifies any trace issues such as missing, extra, or incorrect traces. " +
-                        "Can be filtered by project to focus on specific project items.",
-                    Parameters = new List<ContentCreatorParameter>
+                    var entity = config.TruthEntities.FirstOrDefault(e => e.ID.Equals(traceConfig.ID, System.StringComparison.OrdinalIgnoreCase));
+                    if (entity != null)
                     {
-                        new ContentCreatorParameter("source", 
-                            "The trace entity to use as the truth source (e.g., 'SystemRequirement', 'SoftwareRequirement', 'Risk')", 
-                            ParameterValueType.String, required: true)
-                        {
-                            ExampleValue = "SystemRequirement",
-                            Description = "Specifies which entity type to use as the basis for the traceability matrix"
-                        },
-                        new ContentCreatorParameter("ItemProject", 
-                            "Filter items by project identifier", 
-                            ParameterValueType.String, required: false)
-                        {
-                            ExampleValue = "MyProject",
-                            Description = "Only include items from the specified project in the matrix. " +
-                                "Filtering is case-insensitive and applies to both rows and trace relationships."
-                        }
-                    },
-                    ExampleUsage = "@@SLMS:TraceMatrix(source=SystemRequirement)@@"
+                        allowedValues.Add(entity.Name);
+                    }
+                }
+                
+                if (allowedValues.Count > 0)
+                {
+                    exampleValue = allowedValues[0];
                 }
             }
-        };
+
+            var metadata = new ContentCreatorMetadata(
+                "SLMS",
+                "Generic Traceability Matrix",
+                "Generates a traceability matrix for any truth source specified via the 'source' parameter")
+            {
+                Category = "Requirements & Traceability",
+                Tags = new List<ContentCreatorTag>
+                {
+                    new ContentCreatorTag("TraceMatrix", "Displays traceability matrix for a specified source")
+                    {
+                        Category = "Traceability Analysis",
+                        Description = "Creates a comprehensive traceability matrix for any entity type by specifying the source parameter. " +
+                            "The matrix displays trace relationships between different entity types and identifies any trace issues such as missing, extra, or incorrect traces. " +
+                            "Can be filtered by project to focus on specific project items.",
+                        Parameters = new List<ContentCreatorParameter>
+                        {
+                            new ContentCreatorParameter("source", 
+                                "The trace entity to use as the truth source (e.g., 'System Requirement', 'Software Requirement', 'Risk')", 
+                                ParameterValueType.String, required: true)
+                            {
+                                ExampleValue = exampleValue,
+                                Description = "Specifies which entity type to use as the basis for the traceability matrix",
+                                AllowedValues = allowedValues.Count > 0 ? allowedValues : null
+                            },
+                            new ContentCreatorParameter("ItemProject", 
+                                "Filter items by project identifier", 
+                                ParameterValueType.String, required: false)
+                            {
+                                ExampleValue = "MyProject",
+                                Description = "Only include items from the specified project in the matrix. " +
+                                    "Filtering is case-insensitive and applies to both rows and trace relationships."
+                            }
+                        },
+                        ExampleUsage = $"@@SLMS:TraceMatrix(source={exampleValue})@@"
+                    }
+                }
+            };
+            return metadata;
+        }
+
+        /// <summary>
+        /// Static metadata for the generic TraceMatrix content creator
+        /// </summary>
+        public static ContentCreatorMetadata StaticMetadata { get; } = GetMetadata();
+
+        public override ContentCreatorMetadata GetMetadata() => GetMetadata(configuration);
 
         public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
@@ -60,7 +94,7 @@ namespace RoboClerk.ContentCreators
             {
                 throw new System.Exception($"Unable to find trace source. Ensure that the trace source is specified in all the \"TraceMatrix\" calls in {doc.DocumentTitle}.");
             }
-            truthSource = analysis.GetTraceEntityForID(ts);
+            truthSource = analysis.GetTraceEntityForAnyProperty(ts);
 
             return base.GetContent(tag, doc);
         }

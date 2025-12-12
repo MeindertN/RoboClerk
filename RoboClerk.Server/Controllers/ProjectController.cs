@@ -10,17 +10,14 @@ namespace RoboClerk.Server.Controllers
     public class WordAddInController : ControllerBase
     {
         private readonly IProjectManager projectManager;
-        private readonly IContentCreatorMetadataService metadataService;
         private readonly ISharePointService sharePointService;
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public WordAddInController(
             IProjectManager projectManager, 
-            IContentCreatorMetadataService metadataService,
             ISharePointService sharePointService)
         {
             this.projectManager = projectManager;
-            this.metadataService = metadataService;
             this.sharePointService = sharePointService;
         }
 
@@ -28,7 +25,7 @@ namespace RoboClerk.Server.Controllers
         /// Get metadata for all available content creators
         /// </summary>
         [HttpGet("content-creators/metadata")]
-        public ActionResult<List<ContentCreatorMetadata>> GetContentCreatorMetadata([FromQuery] string projectId)
+        public async Task<ActionResult<List<ContentCreatorMetadata>>> GetContentCreatorMetadata([FromQuery] string projectId, [FromQuery] bool refresh = false)
         {
             if (string.IsNullOrEmpty(projectId))
             {
@@ -37,23 +34,17 @@ namespace RoboClerk.Server.Controllers
 
             try
             {
-                logger.Debug($"Getting metadata for all content creators. ProjectId: {projectId}");
+                logger.Debug($"Getting metadata for all content creators. ProjectId: {projectId}, Refresh: {refresh}");
                 
-                RoboClerk.Core.Configuration.IConfiguration configuration;
-                try
-                {
-                    configuration = projectManager.GetConfiguration(projectId);
-                }
-                catch (ArgumentException)
-                {
-                    logger.Warn($"Project {projectId} not found");
-                    return NotFound($"Project {projectId} not found or not loaded.");
-                }
-
-                var metadata = metadataService.GetAllContentCreatorMetadata(configuration);
+                var metadata = await projectManager.GetContentCreatorMetadataAsync(projectId, refresh);
                 
                 logger.Info($"Returning metadata for {metadata.Count} content creators");
                 return Ok(metadata);
+            }
+            catch (ArgumentException)
+            {
+                logger.Warn($"Project {projectId} not found");
+                return NotFound($"Project {projectId} not found or not loaded.");
             }
             catch (Exception ex)
             {
