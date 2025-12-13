@@ -23,9 +23,9 @@ namespace RoboClerk.Server.Services
         /// Updates the project configuration file with new values
         /// </summary>
         /// <param name="projectId">The project ID</param>
-        /// <param name="configUpdates">Dictionary of configuration keys and their new values</param>
+        /// <param name="configurationContent">The full configuration content as a string</param>
         /// <returns>Result indicating success or failure</returns>
-        Task<ConfigurationUpdateResult> UpdateProjectConfigurationAsync(string projectId, Dictionary<string, object> configUpdates);
+        Task<ConfigurationUpdateResult> UpdateProjectConfigurationAsync(string projectId, string configurationContent);
 
         /// <summary>
         /// Gets the raw project configuration content as TOML
@@ -38,13 +38,13 @@ namespace RoboClerk.Server.Services
         /// Validates proposed configuration changes without applying them
         /// </summary>
         /// <param name="projectId">The project ID</param>
-        /// <param name="configUpdates">Dictionary of configuration keys and their new values</param>
+        /// <param name="configurationContent">The full configuration content as a string</param>
         /// <returns>Validation result with any errors or warnings</returns>
-        Task<ConfigurationValidationResult> ValidateConfigurationUpdatesAsync(string projectId, Dictionary<string, object> configUpdates);
+        Task<ConfigurationValidationResult> ValidateConfigurationUpdatesAsync(string projectId, string configurationContent);
 
         // Template file management
         /// <summary>
-        /// Gets all DOCX template files in the template directory that are not configured as documents
+        /// Gets all DOCX template files in the template directory
         /// </summary>
         /// <param name="projectId">The project ID</param>
         /// <param name="includeConfiguredTemplates">Whether to include templates that are already configured as documents</param>
@@ -58,5 +58,13 @@ namespace RoboClerk.Server.Services
         /// <param name="refresh">Whether to refresh the metadata by reloading configuration</param>
         /// <returns>List of content creator metadata</returns>
         Task<List<ContentCreatorMetadata>> GetContentCreatorMetadataAsync(string projectId, bool refresh = false);
+
+        /// <summary>
+        /// Gets the content of a specific template file
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <param name="fileName">The name of the template file (must be in template directory)</param>
+        /// <returns>The file content as bytes</returns>
+        Task<byte[]> GetTemplateFileContentAsync(string projectId, string fileName);
     }
 }

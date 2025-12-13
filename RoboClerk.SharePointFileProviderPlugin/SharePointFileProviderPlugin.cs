@@ -543,7 +543,7 @@ namespace RoboClerk.SharePointFileProvider
         {
             try
             {
-                var normalizedPath = path.TrimStart('/');
+                var normalizedPath = path.TrimStart('/').TrimEnd('/');
                 return await graphClient.Drives[driveId].Root.ItemWithPath(normalizedPath).GetAsync();
             }
             catch (ServiceException ex) when (ex.ResponseStatusCode == (int)System.Net.HttpStatusCode.NotFound)
@@ -554,7 +554,7 @@ namespace RoboClerk.SharePointFileProvider
 
         private async Task<byte[]> GetFileContentAsync(string path)
         {
-            var normalizedPath = path.TrimStart('/');
+            var normalizedPath = path.TrimStart('/').TrimEnd('/');
             var content = await graphClient.Drives[driveId].Root.ItemWithPath(normalizedPath).Content.GetAsync();
             if (content == null)
             {
@@ -567,7 +567,7 @@ namespace RoboClerk.SharePointFileProvider
 
         public async Task UploadFileAsync(string path, byte[] content)
         {
-            var normalizedPath = path.TrimStart('/'); // MUST include a file name, e.g. "FolderA/FolderB/file.txt"
+            var normalizedPath = path.TrimStart('/').TrimEnd('/'); // MUST include a file name, e.g. "FolderA/FolderB/file.txt"
 
             try
             {
@@ -641,13 +641,13 @@ namespace RoboClerk.SharePointFileProvider
 
         private async Task DeleteItemAsync(string path)
         {
-            var normalizedPath = path.TrimStart('/');
+            var normalizedPath = path.TrimStart('/').TrimEnd('/');
             await graphClient.Drives[driveId].Root.ItemWithPath(normalizedPath).DeleteAsync();
         }
 
         private async Task<DriveItemCollectionResponse?> GetItemsInFolderAsync(string path)
         {
-            var normalizedPath = path.TrimStart('/');
+            var normalizedPath = path.TrimStart('/').TrimEnd('/');
             return await graphClient.Drives[driveId].Root.ItemWithPath(normalizedPath).Children.GetAsync();
         }
 

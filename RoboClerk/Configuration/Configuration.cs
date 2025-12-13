@@ -512,12 +512,12 @@ namespace RoboClerk.Configuration
         }
 
         /// <summary>
-        /// Loads the project configuration from a string content.
-        /// This is useful when the project config content is already available as a string.
+        /// Loads the project configuration directly from a string.
+        /// This should be called after WithRoboClerkConfig().
         /// </summary>
-        /// <param name="projectConfigContent">The project configuration content as a string</param>
+        /// <param name="projectConfigContent">The content of the project configuration file</param>
         /// <returns>This builder instance for chaining</returns>
-        public ConfigurationBuilder WithProjectConfigContent(string projectConfigContent)
+        public ConfigurationBuilder WithProjectConfig(string projectConfigContent)
         {
             if (!roboClerkConfigLoaded)
             {
@@ -527,7 +527,7 @@ namespace RoboClerk.Configuration
             try
             {
                 config.LoadProjectConfiguration(projectConfigContent);
-                logger.Debug("Project configuration loaded from content string");
+                logger.Debug("Project configuration loaded from string content");
             }
             catch (Exception ex)
             {
@@ -535,6 +535,17 @@ namespace RoboClerk.Configuration
             }
             
             return this;
+        }
+
+        /// <summary>
+        /// Loads the project configuration from a string content.
+        /// This is useful when the project config content is already available as a string.
+        /// </summary>
+        /// <param name="projectConfigContent">The project configuration content as a string</param>
+        /// <returns>This builder instance for chaining</returns>
+        public ConfigurationBuilder WithProjectConfigContent(string projectConfigContent)
+        {
+            return WithProjectConfig(projectConfigContent);
         }
 
         /// <summary>

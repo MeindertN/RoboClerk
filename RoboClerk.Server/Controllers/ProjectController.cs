@@ -325,28 +325,28 @@ namespace RoboClerk.Server.Controllers
         [HttpPut("project/{projectId}/configuration")]
         public async Task<ActionResult<ConfigurationUpdateResult>> UpdateProjectConfiguration(
             string projectId, 
-            [FromBody] Dictionary<string, object> configUpdates)
+            [FromBody] ConfigurationContentRequest request)
         {
             try
             {
-                logger.Info($"Updating configuration for project {projectId} with {configUpdates.Count} changes");
+                logger.Info($"Updating configuration for project {projectId}");
 
                 // Validate updates first
-                var validation = await projectManager.ValidateConfigurationUpdatesAsync(projectId, configUpdates);
+                var validation = await projectManager.ValidateConfigurationUpdatesAsync(projectId, request.Content);
                 if (!validation.IsValid)
                 {
                     logger.Warn($"Configuration validation failed: {string.Join(", ", validation.Errors)}");
                     return BadRequest(new { Errors = validation.Errors, Warnings = validation.Warnings });
                 }
 
-                var result = await projectManager.UpdateProjectConfigurationAsync(projectId, configUpdates);
+                var result = await projectManager.UpdateProjectConfigurationAsync(projectId, request.Content);
                 if (!result.Success)
                 {
                     logger.Warn($"Failed to update configuration: {result.Error}");
                     return BadRequest(result);
                 }
 
-                logger.Info($"Successfully updated {result.UpdatedKeys.Count} configuration keys. Reload required: {result.RequiresProjectReload}");
+                logger.Info($"Successfully updated configuration. Reload required: {result.RequiresProjectReload}");
                 return Ok(result);
             }
             catch (ArgumentException)
@@ -392,13 +392,13 @@ namespace RoboClerk.Server.Controllers
         [HttpPost("project/{projectId}/configuration/validate")]
         public async Task<ActionResult<ConfigurationValidationResult>> ValidateConfigurationUpdates(
             string projectId, 
-            [FromBody] Dictionary<string, object> configUpdates)
+            [FromBody] ConfigurationContentRequest request)
         {
             try
             {
                 logger.Debug($"Validating configuration changes for project {projectId}");
                 
-                var result = await projectManager.ValidateConfigurationUpdatesAsync(projectId, configUpdates);
+                var result = await projectManager.ValidateConfigurationUpdatesAsync(projectId, request.Content);
                 return Ok(result);
             }
             catch (ArgumentException)
@@ -414,10 +414,10 @@ namespace RoboClerk.Server.Controllers
         }
 
         /// <summary>
-        /// Get available template files for use with TemplateSection content creator
+        /// Get available template filenames for use with TemplateSection content creator
         /// </summary>
-        [HttpGet("project/{projectId}/template-files")]
-        public async Task<ActionResult<AvailableTemplateFilesResult>> GetAvailableTemplateFiles(
+        [HttpGet("project/{projectId}/template-filenames")]
+        public async Task<ActionResult<AvailableTemplateFilesResult>> GetAvailableTemplateFileNames(
             string projectId, 
             [FromQuery] bool includeConfigured = false)
         {
@@ -444,6 +444,43 @@ namespace RoboClerk.Server.Controllers
             {
                 logger.Error(ex, $"Error getting available template files for project {projectId}");
                 return StatusCode(500, "Failed to get available template files");
+            }
+        }
+
+        /// <summary>
+        /// Get a specific template file (binary)
+        /// </summary>
+        [HttpGet("project/{projectId}/template-file")]
+        public async Task<IActionResult> GetTemplateFile(string projectId, [FromQuery] string fileName)
+        {
+            if (string.IsNullOrEmpty(projectId))
+                return BadRequest("Project ID is required");
+
+            if (string.IsNullOrEmpty(fileName))
+                return BadRequest("Filename is required");
+
+            try
+            {
+                logger.Debug($"Getting template file content: {fileName} for project {projectId}");
+                
+                var content = await projectManager.GetTemplateFileContentAsync(projectId, fileName);
+                
+                return File(content, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
+            }
+            catch (ArgumentException ex)
+            {
+                logger.Warn($"Invalid request for template file: {ex.Message}");
+                return BadRequest(ex.Message);
+            }
+            catch (FileNotFoundException)
+            {
+                logger.Warn($"Template file not found: {fileName}");
+                return NotFound($"Template file not found: {fileName}");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error getting template file content for project {projectId}");
+                return StatusCode(500, "Failed to get template file content");
             }
         }
 

@@ -86,6 +86,12 @@ namespace RoboClerk.Server.Models
         public List<string> Warnings { get; init; } = new();
     }
 
+    public record ConfigurationContentRequest
+    {
+        [Required]
+        public string Content { get; init; } = string.Empty;
+    }
+
     // Template file management models
     public record TemplateFileInfo
     {

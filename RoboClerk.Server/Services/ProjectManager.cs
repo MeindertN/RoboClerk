@@ -56,6 +56,45 @@ namespace RoboClerk.Server.Services
             return ContentCreatorMetadataRegistry.GetAllMetadata(configuration, fileProvider).ToList();
         }
 
+        /// <summary>
+        /// Gets the content of a specific template file
+        /// </summary>
+        public async Task<byte[]> GetTemplateFileContentAsync(string projectId, string fileName)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            if (string.IsNullOrEmpty(fileName))
+                throw new ArgumentException("Filename cannot be empty");
+
+            if (!fileName.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Only .docx files are supported");
+
+            // Prevent directory traversal
+            if (fileName.Contains("..") || fileName.Contains("/") || fileName.Contains("\\"))
+                throw new ArgumentException("Invalid filename: directory traversal not allowed");
+
+            try
+            {
+                var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+                var fileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
+
+                var templatePath = fileProvider.Combine(configuration.TemplateDir, fileName);
+
+                if (!fileProvider.FileExists(templatePath))
+                {
+                    throw new FileNotFoundException($"Template file not found: {fileName}");
+                }
+
+                return await fileProvider.ReadAllBytesAsync(templatePath);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to get template file content: {fileName} for project: {projectId}");
+                throw;
+            }
+        }
+
         //BELOW ARE ALL THE MAIN PROJECT MANAGEMENT METHODS
         public async Task<ProjectLoadResult> LoadProjectAsync(LoadProjectRequest request)
         {
@@ -359,9 +398,9 @@ namespace RoboClerk.Server.Services
         /// Updates the project configuration file with new values
         /// </summary>
         /// <param name="projectId">The project ID</param>
-        /// <param name="configUpdates">Dictionary of configuration keys and their new values</param>
+        /// <param name="configurationContent">The full configuration content as a string</param>
         /// <returns>Result indicating success or failure</returns>
-        public async Task<ConfigurationUpdateResult> UpdateProjectConfigurationAsync(string projectId, Dictionary<string, object> configUpdates)
+        public async Task<ConfigurationUpdateResult> UpdateProjectConfigurationAsync(string projectId, string configurationContent)
         {
             if (!loadedProjects.TryGetValue(projectId, out var project))
                 throw new ArgumentException("SharePoint project not loaded");
@@ -373,49 +412,20 @@ namespace RoboClerk.Server.Services
                 var fileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
                 var projectConfigPath = fileProvider.Combine(project.ProjectPath, "RoboClerkConfig", "projectConfig.toml");
 
-                // Read current configuration
-                var currentContent = fileProvider.ReadAllText(projectConfigPath);
-                var toml = Tomlyn.Toml.Parse(currentContent).ToModel();
+                // Write updated configuration back to SharePoint
+                await fileProvider.WriteAllTextAsync(projectConfigPath, configurationContent);
 
-                var updatedKeys = new List<string>();
-                bool requiresReload = false;
+                logger.Info($"Updated configuration for project: {projectId}");
 
-                // Apply updates to the TOML structure
-                foreach (var update in configUpdates)
-                {
-                    if (ApplyConfigurationUpdate(toml, update.Key, update.Value))
-                    {
-                        updatedKeys.Add(update.Key);
-                        
-                        // Check if this change requires a project reload
-                        if (IsReloadRequiredForKey(update.Key))
-                        {
-                            requiresReload = true;
-                        }
-                    }
-                }
-
-                if (updatedKeys.Any())
-                {
-                    // Write updated configuration back to SharePoint
-                    var updatedContent = Tomlyn.Toml.FromModel(toml);
-                    fileProvider.WriteAllText(projectConfigPath, updatedContent);
-
-                    logger.Info($"Updated {updatedKeys.Count} configuration keys for project: {projectId}");
-
-                    // If reload is required, refresh the project
-                    if (requiresReload)
-                    {
-                        logger.Info($"Configuration changes require project reload for: {projectId}");
-                        await RefreshProjectDocumentsAsync(projectId, false);
-                    }
-                }
+                // Always reload for safety when replacing full config
+                logger.Info($"Configuration changes require project reload for: {projectId}");
+                await RefreshProjectDocumentsAsync(projectId, false);
 
                 return new ConfigurationUpdateResult
                 {
                     Success = true,
-                    UpdatedKeys = updatedKeys,
-                    RequiresProjectReload = requiresReload
+                    UpdatedKeys = new List<string> { "ALL" },
+                    RequiresProjectReload = true
                 };
             }
             catch (Exception ex)
@@ -449,19 +459,42 @@ namespace RoboClerk.Server.Services
         /// Validates proposed configuration changes without applying them
         /// </summary>
         /// <param name="projectId">The project ID</param>
-        /// <param name="configUpdates">Dictionary of configuration keys and their new values</param>
+        /// <param name="configurationContent">The full configuration content as a string</param>
         /// <returns>Validation result with any errors or warnings</returns>
-        public async Task<ConfigurationValidationResult> ValidateConfigurationUpdatesAsync(string projectId, Dictionary<string, object> configUpdates)
+        public async Task<ConfigurationValidationResult> ValidateConfigurationUpdatesAsync(string projectId, string configurationContent)
         {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
             var errors = new List<string>();
             var warnings = new List<string>();
 
-            // Validate each configuration update
-            foreach (var update in configUpdates)
+            try
             {
-                var validation = ValidateConfigurationKey(update.Key, update.Value);
-                errors.AddRange(validation.Errors);
-                warnings.AddRange(validation.Warnings);
+                // 1. Syntax check
+                var model = Toml.Parse(configurationContent).ToModel();
+
+                // 2. Semantic check (Load config)
+                // We need the base configuration to clone from
+                var baseConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
+                if (baseConfiguration is RoboClerk.Configuration.Configuration concreteConfig)
+                {
+                    // Try to build configuration using the string content directly
+                    var config = RoboClerk.Configuration.ConfigurationBuilder
+                        .FromExisting(concreteConfig.Clone())
+                        .WithProjectConfig(configurationContent)
+                        .Build();
+                        
+                    // If we get here, it's valid
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"Configuration validation failed: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    errors.Add($"Details: {ex.InnerException.Message}");
+                }
             }
 
             return new ConfigurationValidationResult
@@ -509,7 +542,13 @@ namespace RoboClerk.Server.Services
                         try
                         {
                             var fileName = fileProvider.GetFileName(filePath);
-                            var relativePath = fileProvider.GetRelativePath(templateDir, filePath);
+                            
+                            // Normalize paths to ensure consistent comparison for relative path calculation
+                            // This handles cases where paths might have different slash styles or extra slashes (e.g. sp:// vs sp:///)
+                            var normalizedTemplateDir = NormalizePath(templateDir);
+                            var normalizedFilePath = NormalizePath(filePath);
+                            
+                            var relativePath = fileProvider.GetRelativePath(normalizedTemplateDir, normalizedFilePath);
                             var isDocx = fileName.EndsWith(".docx", StringComparison.OrdinalIgnoreCase);
                             var isConfigured = configuredTemplates.Contains(fileName.ToLowerInvariant());
 
@@ -1341,7 +1380,7 @@ namespace RoboClerk.Server.Services
             });
 
             // Get plugin loader from main service provider
-            services.AddSingleton(serviceProvider.GetRequiredService<IPluginLoader>());
+            services.AddSingleton<IPluginLoader>(serviceProvider.GetRequiredService<IPluginLoader>());
 
             // Create project-specific ITraceabilityAnalysis
             services.AddSingleton<ITraceabilityAnalysis>(provider =>
