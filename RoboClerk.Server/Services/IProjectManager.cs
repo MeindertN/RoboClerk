@@ -66,5 +66,20 @@ namespace RoboClerk.Server.Services
         /// <param name="fileName">The name of the template file (must be in template directory)</param>
         /// <returns>The file content as bytes</returns>
         Task<byte[]> GetTemplateFileContentAsync(string projectId, string fileName);
+
+        /// <summary>
+        /// Gets the configuration values for a specific project
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <returns>Dictionary of configuration values</returns>
+        Task<Dictionary<string, string>> GetConfigurationValuesAsync(string projectId);
+
+        /// <summary>
+        /// Updates the configuration values for a specific project
+        /// </summary>
+        /// <param name="projectId">The project ID</param>
+        /// <param name="values">The new configuration values to update</param>
+        /// <returns>Result indicating success or failure</returns>
+        Task<ConfigurationUpdateResult> UpdateConfigurationValuesAsync(string projectId, Dictionary<string, string> values);
     }
 }

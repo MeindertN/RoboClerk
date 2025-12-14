@@ -36,6 +36,16 @@ namespace RoboClerk.Core.Configuration
             return keyValues[key];
         }
 
+        public void SetValue(string key, string value)
+        {
+            keyValues[key] = value;
+        }
+
+        public void Clear()
+        {
+            keyValues.Clear();
+        }
+
         public IEnumerable<string> Keys => keyValues.Keys;
     }
 }

@@ -15,8 +15,10 @@ using System.IO.Abstractions;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Linq;
 using Tomlyn;
 using Tomlyn.Model;
+using Tomlyn.Syntax;
 using IConfiguration = RoboClerk.Core.Configuration.IConfiguration;
 
 namespace RoboClerk.Server.Services
@@ -92,6 +94,114 @@ namespace RoboClerk.Server.Services
             {
                 logger.Error(ex, $"Failed to get template file content: {fileName} for project: {projectId}");
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Gets the configuration values for a specific project
+        /// </summary>
+        public async Task<Dictionary<string, string>> GetConfigurationValuesAsync(string projectId)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+            var configValues = configuration.ConfigVals;
+            
+            var result = new Dictionary<string, string>();
+            foreach (var key in configValues.Keys)
+            {
+                result[key] = configValues.GetValue(key);
+            }
+            
+            return result;
+        }
+
+        /// <summary>
+        /// Updates the configuration values for a specific project
+        /// </summary>
+        public async Task<ConfigurationUpdateResult> UpdateConfigurationValuesAsync(string projectId, Dictionary<string, string> values)
+        {
+            if (!loadedProjects.TryGetValue(projectId, out var project))
+                throw new ArgumentException("SharePoint project not loaded");
+
+            try
+            {
+                var configuration = project.ProjectServiceProvider.GetRequiredService<IConfiguration>();
+                var fileProvider = project.ProjectServiceProvider.GetRequiredService<IFileProviderPlugin>();
+                var projectConfigPath = fileProvider.Combine(project.ProjectPath, "RoboClerkConfig", "projectConfig.toml");
+
+                var configValues = configuration.ConfigVals;
+
+                var content = await GetProjectConfigurationContentAsync(projectId);
+                
+                // Use standard Model API as requested to avoid Syntax API issues
+                var model = Toml.ToModel(content);
+                
+                TomlTable configValuesTable;
+                if (model.ContainsKey("ConfigValues"))
+                {
+                    // ConfigValues should be a table
+                    if (model["ConfigValues"] is TomlTable table)
+                    {
+                        configValuesTable = table;
+                    }
+                    else
+                    {
+                        // Should not happen if valid config, but handle gracefully
+                        configValuesTable = new TomlTable();
+                        model["ConfigValues"] = configValuesTable;
+                    }
+                }
+                else
+                {
+                    configValuesTable = new TomlTable();
+                    model["ConfigValues"] = configValuesTable;
+                }
+
+                // Update in-memory configuration
+                configValues.Clear();
+
+                // Sync TOML table with new values
+                // 1. Remove keys that are no longer present
+                var keysToRemove = configValuesTable.Keys.Where(k => !values.ContainsKey(k)).ToList();
+                foreach (var key in keysToRemove)
+                {
+                    configValuesTable.Remove(key);
+                }
+
+                // 2. Add or update keys
+                foreach (var kvp in values)
+                {
+                    // Update in-memory configuration
+                    configValues.SetValue(kvp.Key, kvp.Value);
+
+                    // Update TOML model
+                    configValuesTable[kvp.Key] = kvp.Value;
+                }
+                
+                // Convert back to string
+                var newContent = Toml.FromModel(model);
+                
+                // Write updated configuration back to SharePoint
+                await fileProvider.WriteAllTextAsync(projectConfigPath, newContent);
+
+                logger.Info($"Updated configuration values for project: {projectId}");
+                return new ConfigurationUpdateResult
+                {
+                    Success = true,
+                    UpdatedKeys = values.Keys.ToList(),
+                    RequiresProjectReload = false
+                };
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to update configuration values for: {projectId}");
+                return new ConfigurationUpdateResult 
+                { 
+                    Success = false, 
+                    Error = $"Failed to update configuration values: {ex.Message}" 
+                };
             }
         }
 
@@ -650,7 +760,7 @@ namespace RoboClerk.Server.Services
         /// updated document list from the configuration.
         /// </summary>
         /// <param name="projectId">The project ID</param>
-        /// <param name="processTags">Whether to actually process the tags in the documents</param>"
+        /// <param name="processTags">Whether to actually process the tags in the documents</param>
         /// <returns>RefreshResult indicating success or failure</returns>
         public async Task<RefreshResult> RefreshProjectDocumentsAsync(string projectId, bool processTags)
         {

@@ -166,7 +166,7 @@ namespace RoboClerk.Server.Controllers
         /// Refresh a project to discover all available templates and RoboClerk content controls
         /// Can take a long time when all content controls are processed
         /// </summary>
-        [HttpGet("project/{projectId}/refresh")]
+        [HttpPost("project/{projectId}/refresh")]
         public async Task<ActionResult<RefreshResult>> RefreshProject(string projectId, [FromQuery] bool processTags = false)
         {
             try
@@ -383,6 +383,65 @@ namespace RoboClerk.Server.Controllers
             {
                 logger.Error(ex, $"Error getting configuration content for project {projectId}");
                 return StatusCode(500, "Failed to get configuration content");
+            }
+        }
+
+        /// <summary>
+        /// Get configuration values for a project
+        /// </summary>
+        [HttpGet("project/{projectId}/configuration/values")]
+        public async Task<ActionResult<Dictionary<string, string>>> GetConfigurationValues(string projectId)
+        {
+            try
+            {
+                logger.Debug($"Getting configuration values for project {projectId}");
+                
+                var values = await projectManager.GetConfigurationValuesAsync(projectId);
+                return Ok(values);
+            }
+            catch (ArgumentException)
+            {
+                logger.Warn($"Project {projectId} not found or not loaded");
+                return NotFound("SharePoint project not loaded. Please load the project first.");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error getting configuration values for project {projectId}");
+                return StatusCode(500, "Failed to get configuration values");
+            }
+        }
+
+        /// <summary>
+        /// Update configuration values for a project
+        /// </summary>
+        [HttpPut("project/{projectId}/configuration/values")]
+        public async Task<ActionResult<ConfigurationUpdateResult>> UpdateConfigurationValues(
+            string projectId, 
+            [FromBody] Dictionary<string, string> values)
+        {
+            try
+            {
+                logger.Info($"Updating configuration values for project {projectId}");
+
+                var result = await projectManager.UpdateConfigurationValuesAsync(projectId, values);
+                if (!result.Success)
+                {
+                    logger.Warn($"Failed to update configuration values: {result.Error}");
+                    return BadRequest(result);
+                }
+
+                logger.Info($"Successfully updated configuration values. Reload required: {result.RequiresProjectReload}");
+                return Ok(result);
+            }
+            catch (ArgumentException)
+            {
+                logger.Warn($"Project {projectId} not found or not loaded");
+                return NotFound("SharePoint project not loaded. Please load the project first.");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error updating configuration values for project {projectId}");
+                return StatusCode(500, "Failed to update configuration values");
             }
         }
 
