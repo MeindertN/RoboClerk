@@ -62,50 +62,6 @@ namespace RoboClerk.Core.DocxSupport
         }
 
         /// <summary>
-        /// Creates a temporary content element for OpenXML generation without affecting the actual document
-        /// </summary>
-        private OpenXmlElement? CreateTemporaryContentElement()
-        {
-            var actualContentElement = GetContentElement();
-            if (actualContentElement == null)
-                return null;
-
-            // Clone the entire content control structure to preserve formatting and properties
-            // Use deep clone (true) to copy all child elements and their structure
-            var clonedContentControl = (SdtElement)contentControl.CloneNode(true);
-            
-            // Get the content element from the cloned structure
-            var clonedContentElement = clonedContentControl.GetFirstChild<SdtContentBlock>()
-                ?? clonedContentControl.GetFirstChild<SdtContentRun>()
-                ?? (OpenXmlElement?)clonedContentControl.GetFirstChild<SdtContentCell>();
-            
-            if (clonedContentElement == null)
-                return null;
-                
-            // Clear any existing content but keep the structure/formatting
-            clonedContentElement.RemoveAllChildren();
-            
-            return clonedContentElement;
-        }
-
-        /// <summary>
-        /// Extracts raw OpenXML from a content element
-        /// </summary>
-        private static string ExtractRawOpenXml(OpenXmlElement contentElement)
-        {
-            if (contentElement == null || !contentElement.HasChildren)
-                return string.Empty;
-
-            var xmlBuilder = new System.Text.StringBuilder();
-            foreach (var child in contentElement.ChildElements)
-            {
-                xmlBuilder.AppendLine(child.OuterXml);
-            }
-            
-            return xmlBuilder.ToString().Trim();
-        }
-
-        /// <summary>
         /// Captures the original formatting from the content control before modification
         /// </summary>
         private OriginalFormatting CaptureOriginalFormatting(OpenXmlElement root)

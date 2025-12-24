@@ -63,7 +63,7 @@ namespace RoboClerk.ContentCreators
                 Category = "AI & Automation",
                 Tags = new List<ContentCreatorTag>
                 {
-                    new ContentCreatorTag("AIFeedback", "Generates AI feedback for a specific item")
+                    new ContentCreatorTag("AIFeedback", "Generates AI feedback for a specific item", "AIContentCreator")
                     {
                         Category = "AI Analysis",
                         Description = "Uses the configured AI plugin (e.g., OpenAI, Azure OpenAI) to analyze a documentation item and provide intelligent feedback. " +

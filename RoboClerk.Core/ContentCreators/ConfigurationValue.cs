@@ -26,7 +26,7 @@ namespace RoboClerk.ContentCreators
             {
                 foreach (var key in config.ConfigVals.Keys)
                 {
-                    metadata.Tags.Add(new ContentCreatorTag(key, $"Retrieves the value of configuration key '{key}'")
+                    metadata.Tags.Add(new ContentCreatorTag(key, $"Retrieves the value of configuration key '{key}'", "ConfigurationValue")
                     {
                         Category = "Configuration Access",
                         Description = $"Returns the value of the '{key}' configuration key from the RoboClerk configuration file.",

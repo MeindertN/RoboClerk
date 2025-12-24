@@ -22,6 +22,20 @@ namespace RoboClerk.ContentCreators
             var parameters = new List<ContentCreatorParameter>();
             parameters.AddRange(GetCommonMultiItemParametersStatic(typeof(RiskItem)));
             
+            // Add Risk specific parameters
+            parameters.Add(new ContentCreatorParameter("RiskPrimaryHazard", "Filter by primary hazard", ParameterValueType.String, required: false));
+            parameters.Add(new ContentCreatorParameter("RiskFailureMode", "Filter by failure mode", ParameterValueType.String, required: false));
+            parameters.Add(new ContentCreatorParameter("RiskCauseOfFailure", "Filter by cause of failure", ParameterValueType.String, required: false));
+            parameters.Add(new ContentCreatorParameter("RiskMethodOfDetection", "Filter by method of detection", ParameterValueType.String, required: false));
+            parameters.Add(new ContentCreatorParameter("RiskOccurenceScore", "Filter by occurrence score", ParameterValueType.Integer, required: false));
+            parameters.Add(new ContentCreatorParameter("RiskSeverityScore", "Filter by severity score", ParameterValueType.Integer, required: false));
+            parameters.Add(new ContentCreatorParameter("RiskDetectabilityScore", "Filter by detectability score", ParameterValueType.Integer, required: false));
+            parameters.Add(new ContentCreatorParameter("RiskControlMeasure", "Filter by control measure", ParameterValueType.String, required: false));
+            parameters.Add(new ContentCreatorParameter("RiskControlMeasureType", "Filter by control measure type", ParameterValueType.String, required: false));
+            parameters.Add(new ContentCreatorParameter("RiskControlImplementation", "Filter by control implementation", ParameterValueType.String, required: false));
+            parameters.Add(new ContentCreatorParameter("RiskModifiedOccScore", "Filter by modified occurrence score", ParameterValueType.Integer, required: false));
+            parameters.Add(new ContentCreatorParameter("RiskModifiedDetScore", "Filter by modified detectability score", ParameterValueType.Integer, required: false));
+
             var metadata = new ContentCreatorMetadata(
                 "SLMS",
                 "Risk",
@@ -30,7 +44,7 @@ namespace RoboClerk.ContentCreators
                 Category = "Requirements & Traceability",
                 Tags = new List<ContentCreatorTag>
                 {
-                    new ContentCreatorTag("Risk", "Displays detailed risk information including severity, control measures, and mitigation")
+                    new ContentCreatorTag("Risk", "Displays detailed risk information including severity, control measures, and mitigation", "Risk")
                     {
                         Category = "Risk Management",
                         Description = "Displays risk items with all details including risk description, severity assessment, probability, impact, " +

@@ -41,6 +41,26 @@ namespace RoboClerk
         }
 
         /// <summary>
+        /// Indicates if the current item is the first item in the list of items being rendered.
+        /// </summary>
+        public bool IsFirst { get; set; }
+
+        /// <summary>
+        /// Indicates if the current item is the last item in the list of items being rendered.
+        /// </summary>
+        public bool IsLast { get; set; }
+
+        /// <summary>
+        /// The index of the current item in the list of items being rendered (0-based).
+        /// </summary>
+        public int Index { get; set; }
+
+        /// <summary>
+        /// The total number of items being rendered.
+        /// </summary>
+        public int Count { get; set; }
+
+        /// <summary>
         /// The RoboClerk tag that triggered the template rendering. Provides access to tag parameters.
         /// </summary>
         public IRoboClerkTag Tag

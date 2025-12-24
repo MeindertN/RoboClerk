@@ -44,38 +44,38 @@ namespace RoboClerk.ContentCreators
                 Category = "Document Information",
                 Tags = new List<ContentCreatorTag>
                 {
-                    new ContentCreatorTag("Title", "Returns the document title")
+                    new ContentCreatorTag("Title", "Returns the document title", "Document")
                     {
                         ExampleUsage = "@@Document:Title()@@",
                         Category = "Basic Properties"
                     },
-                    new ContentCreatorTag("Abbreviation", "Returns the document abbreviation")
+                    new ContentCreatorTag("Abbreviation", "Returns the document abbreviation", "Document")
                     {
                         ExampleUsage = "@@Document:Abbreviation()@@",
                         Category = "Basic Properties"
                     },
-                    new ContentCreatorTag("Identifier", "Returns the document identifier")
+                    new ContentCreatorTag("Identifier", "Returns the document identifier", "Document")
                     {
                         ExampleUsage = "@@Document:Identifier()@@",
                         Category = "Basic Properties"
                     },
-                    new ContentCreatorTag("Template", "Returns the document template path")
+                    new ContentCreatorTag("Template", "Returns the document template path", "Document")
                     {
                         ExampleUsage = "@@Document:Template()@@",
                         Category = "Basic Properties"
                     },
-                    new ContentCreatorTag("RoboClerkID", "Returns the RoboClerk document ID")
+                    new ContentCreatorTag("RoboClerkID", "Returns the RoboClerk document ID", "Document")
                     {
                         ExampleUsage = "@@Document:RoboClerkID()@@",
                         Category = "Basic Properties"
                     },
-                    new ContentCreatorTag("GenDateTime", "Returns the current date and time of document generation")
+                    new ContentCreatorTag("GenDateTime", "Returns the current date and time of document generation", "Document")
                     {
                         ExampleUsage = "@@Document:GenDateTime()@@",
                         Category = "Basic Properties"
                     },
                     new ContentCreatorTag("CountEntities", 
-                        "Returns the count of entities of a specific type in the document, or resets the counter")
+                        "Returns the count of entities of a specific type in the document, or resets the counter", "Document")
                     {
                         Category = "Entity Counting",
                         Parameters = new List<ContentCreatorParameter>

@@ -17,18 +17,27 @@ string RenderTestSteps()
     foreach (var step in item.TestCaseSteps)
     {
         string action = step.Action.Replace("\n", "").Replace("\r", "");
+        if (string.IsNullOrWhiteSpace(action))
+        {
+            action = "{{BGC:#D9D9D9}}";
+        }
         string expected = step.ExpectedResult.Replace("\n", "").Replace("\r", "");
 
-        string actualResultCell = "<td></td>";
-        string statusCell = "<td></td>";
+        string actualResultCell = "";
+        string statusCell = "";
 
         if (!string.IsNullOrWhiteSpace(expected))
         {
-            actualResultCell = "<td></td>";
-            statusCell = "<td>Pass / Fail</td>";
+            statusCell = "Pass / Fail";
+        }
+        else
+        {
+            expected = "{{BGC:#D9D9D9}}";
+            actualResultCell = "{{BGC:#D9D9D9}}";
+            statusCell = "{{BGC:#D9D9D9}}";
         }
 
-        sb.AppendLine("<tr><td>" + stepNum + "</td><td>" + action + "</td><td>" + expected + "</td>" + actualResultCell + statusCell + "</tr>");
+        sb.AppendLine($"<tr><td>{stepNum}</td><td colspan=\"2\">{action}</td><td>{expected}</td><td>{actualResultCell}</td><td>{statusCell}</td></tr>");
 
         stepNum++;
     }
@@ -37,32 +46,32 @@ string RenderTestSteps()
 }
 ]
 
-<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse; margin-bottom: 20px;">
+<table summary="Style:RoboClerk Standard;SpaceAfter:0;SpaceBefore:0;FontName:Calibri;FontSize:11;TableSpacing:5" style="width: 100%;">
     <!-- Metadata Section -->
     <tr>
-        <th style="text-align:left;"><strong>[csx:te.Name] ID:</strong></th>
-        <td colspan="4">[csx:GetItemLinkString(item)]</td>
+        <td width="15%" colspan="2" style="text-align:left;"><strong>[csx:te.Name] ID:</strong></td>
+        <td width="85%" colspan="4">[csx:GetItemLinkString(item)]</td>
     </tr>
     <tr>
-        <th style="text-align:left;"><strong>[csx:te.Name] Revision:</strong></th>
-        <td colspan="4">[csx:item.ItemRevision]</td>
+        <td width="15%" colspan="2" style="text-align:left;"><strong>[csx:te.Name] Revision:</strong></td>
+        <td width="85%" colspan="4">[csx:item.ItemRevision]</td>
     </tr>
     <tr>
-        <th style="text-align:left;"><strong>Parent ID:</strong></th>
-        <td colspan="4">[csx:pl]</td>
+        <td width="15%" colspan="2" style="text-align:left;"><strong>Parent ID:</strong></td>
+        <td width="85%" colspan="4">[csx:pl]</td>
     </tr>
     <tr>
-        <th style="text-align:left;"><strong>Title:</strong></th>
-        <td colspan="4">[csx:item.ItemTitle]</td>
+        <td width="15%" colspan="2" style="text-align:left;"><strong>Title:</strong></td>
+        <td width="85%" colspan="4">[csx:item.ItemTitle]</td>
     </tr>
 
     <!-- Header Row for Test Steps -->
     <tr>
-        <th>Step</th>
-        <th>Action</th>
-        <th>Expected Result</th>
-        <th>Actual Result</th>
-        <th>Test Status</th>
+        <td width="5%"><strong>Step</strong></td>
+        <td width="35%" colspan="2"><strong>Action</strong></td>
+        <td width="35%"><strong>Expected Result<strong></td>
+        <td width="20%"><strong>Actual Result</strong></td>
+        <td width="5%"><strong>Test Status<strong></td>
     </tr>
 
     <!-- Dynamic Test Step Rows -->
@@ -70,8 +79,8 @@ string RenderTestSteps()
 
     <!-- Final Signature Row -->
     <tr>
-        <td style="vertical-align: top; height: 40px;" colspan="1"><strong>Initial:</strong></td>
-        <td style="vertical-align: top; height: 40px;" colspan="2"><strong>Date:</strong></td>
-        <td style="vertical-align: top; height: 40px;" colspan="2"><strong>Asset ID:</strong></td>
+        <td width="34%" style="vertical-align: top; height: 40px;" colspan="2"><strong>Initial:</strong></td>
+        <td width="33%" style="vertical-align: top; height: 40px;" colspan="2"><strong>Date:</strong></td>
+        <td width="33%" style="vertical-align: top; height: 40px;" colspan="2"><strong>Asset ID:</strong></td>
     </tr>
 </table>

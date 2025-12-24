@@ -15,17 +15,17 @@ string CreateHeaderRow()
 {
 	System.Text.StringBuilder header = new System.Text.StringBuilder();
 	header.Append("<tr>");
-	header.Append("<th>File Name</th>");
-	header.Append("<th>Function Name</th>");
-	header.Append($"<th>{te.Name} ID</th>");
-	header.Append($"<th>{te.Name} Purpose</th>");
-	header.Append("<th>Acceptance Criteria</th>");
-	header.Append($"<th>Linked {softwareRequirementName}s</th>");
-	header.Append($"<th>Linked {softwareSystemTestName}s</th>");
+	header.Append("<td>File Name</td>");
+	header.Append("<td>Function Name</td>");
+	header.Append($"<td>{te.Name} ID</td>");
+	header.Append($"<td>{te.Name} Purpose</td>");
+	header.Append("<td>Acceptance Criteria</td>");
+	header.Append($"<td>Linked {softwareRequirementName}s</td>");
+	header.Append($"<td>Linked {softwareSystemTestName}s</td>");
 	if (showResults)
 	{
-		header.Append("<th>Result</th>");
-		header.Append("<th>Timestamp</th>");
+		header.Append("<td>Result</td>");
+		header.Append("<td>Timestamp</td>");
 	}
 	header.Append("</tr>");
 	return header.ToString();

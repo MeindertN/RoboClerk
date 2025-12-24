@@ -25,7 +25,7 @@ namespace RoboClerk.ContentCreators
             Category = "Requirements & Traceability",
             Tags = new List<ContentCreatorTag>
             {
-                new ContentCreatorTag("Trace", "Creates a clickable link to an item and records the trace relationship")
+                new ContentCreatorTag("Trace", "Creates a clickable link to an item and records the trace relationship", "Trace")
                 {
                     Category = "Traceability Management",
                     Description = "Creates a link to a specific item by ID and records the traceability relationship. " +

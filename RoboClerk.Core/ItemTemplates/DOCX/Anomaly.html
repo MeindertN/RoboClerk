@@ -9,37 +9,37 @@ AnomalyItem item = (AnomalyItem)Item;
 AddTrace(item.ItemID);
 ]
 
-<table border="1" cellspacing="0" cellpadding="4" style="margin-bottom: 20px;">
+<table summary="Style:RoboClerk Standard;SpaceAfter:0;SpaceBefore:0;FontName:Calibri;FontSize:11;TableSpacing:5" style="width: 100%;">
     <tr>
-        <th>[csx:te.Name] ID:</th>
-        <td>[csx:GetItemLinkString(item)]</td>
+        <td style="width: 19%;">[csx:te.Name] ID:</td>
+        <td style="width: 81%;">[csx:GetItemLinkString(item)]</td>
     </tr>
     <tr>
-        <th>[csx:te.Name] Revision:</th>
+        <td>[csx:te.Name] Revision:</td>
         <td>[csx:GetValOrDef(item.ItemRevision,"N/A")]</td>
     </tr>
     <tr>
-        <th>State:</th>
+        <td>State:</td>
         <td>[csx:GetValOrDef(item.AnomalyState,"N/A")]</td>
     </tr>
     <tr>
-        <th>Assigned To:</th>
+        <td>Assigned To:</td>
         <td>[csx:GetValOrDef(item.AnomalyAssignee,"NOT ASSIGNED")]</td>
     </tr>
     <tr>
-        <th>Title:</th>
+        <td>Title:</td>
         <td>[csx:GetValOrDef(item.ItemTitle,"MISSING")]</td>
     </tr>
     <tr>
-        <th>Severity:</th>
+        <td>Severity:</td>
         <td>[csx:GetValOrDef(item.AnomalySeverity,"N/A")]</td>
     </tr>
     <tr>
-        <th>Description:</th>
+        <td>Description:</td>
         <td>[csx:GetValOrDef(item.AnomalyDetailedDescription,"MISSING")]</td>
     </tr>
     <tr>
-        <th>Justification:</th>
+        <td>Justification:</td>
         <td>[csx:GetValOrDef(item.AnomalyJustification,"N/A")]</td>
     </tr>
 </table>

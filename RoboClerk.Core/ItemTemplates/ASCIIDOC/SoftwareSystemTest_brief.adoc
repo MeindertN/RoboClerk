@@ -3,6 +3,7 @@
 // pre-calculate fields for later use etc.
 using RoboClerk;
 using System.Linq;
+using System;
 
 TraceEntity te = SourceTraceEntity;
 
@@ -37,10 +38,42 @@ string CreateRows()
 
 		if (showResults)
 		{
-			var resultItems = GetLinkedItems(st, ItemLinkType.Result);
-			var testResult = resultItems.FirstOrDefault() as TestResult;
-			string actualResult = testResult != null ? testResult.ResultStatus.ToString() : "*NO RESULT*";
-			string timestamp = testResult != null ? testResult.ExecutionTime.ToString(@"yyyy-MM-ddTHH:mm:ss") : "N/A";
+			string actualResult = "*NO RESULT*";
+			string timestamp = "N/A";
+			if (st.TestCaseToUnitTest)
+			{
+				var unitTests = GetLinkedItems(st, ItemLinkType.UnitTest);
+				bool passed = unitTests.Any();
+				bool resultsFound = false;
+				DateTime maxTime = DateTime.MinValue;
+
+				foreach( var test in unitTests )
+				{
+					var resultItems = GetLinkedItems(test, ItemLinkType.Result).OfType<TestResult>();
+					var testResult = resultItems.OrderByDescending(r => r.ExecutionTime).FirstOrDefault();
+					if (testResult != null)
+					{
+						resultsFound = true;
+						if (testResult.ExecutionTime > maxTime)
+						{
+							maxTime = testResult.ExecutionTime;
+						}
+					}
+					passed = passed && (testResult != null && testResult.ResultStatus == TestResultStatus.PASS);
+				}
+				if (resultsFound && unitTests.Any())
+				{
+					actualResult = passed ? "PASS" : "FAIL";
+					timestamp = maxTime != DateTime.MinValue ? maxTime.ToString(@"yyyy-MM-ddTHH:mm:ss") : "N/A";
+				}
+			}
+			else
+			{
+				var resultItems = GetLinkedItems(st, ItemLinkType.Result).OfType<TestResult>();
+				var testResult = resultItems.OrderByDescending(r => r.ExecutionTime).FirstOrDefault();
+				actualResult = testResult != null ? testResult.ResultStatus.ToString() : "*NO RESULT*";
+				timestamp = testResult != null ? testResult.ExecutionTime.ToString(@"yyyy-MM-ddTHH:mm:ss") : "N/A";
+			}
 			sb.Append($"| {GetItemLinkString(st)} | {st.ItemTitle} | {(reqs.Length==0?"Missing":reqs.ToString())} | {actualResult} | {timestamp} \n\n");
 		}
 		else

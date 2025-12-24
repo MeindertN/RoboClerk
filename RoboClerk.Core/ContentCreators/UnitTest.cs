@@ -22,6 +22,12 @@ namespace RoboClerk.ContentCreators
         {
             var commonParams = GetCommonMultiItemParametersStatic(typeof(UnitTestItem));
             
+            // Add UnitTest specific parameters
+            commonParams.Add(new ContentCreatorParameter("UnitTestState", "Filter by unit test state", ParameterValueType.String, required: false));
+            commonParams.Add(new ContentCreatorParameter("UnitTestFileLocation", "Filter by file location", ParameterValueType.String, required: false));
+            commonParams.Add(new ContentCreatorParameter("UnitTestFileName", "Filter by file name", ParameterValueType.String, required: false));
+            commonParams.Add(new ContentCreatorParameter("UnitTestFunctionName", "Filter by function name", ParameterValueType.String, required: false));
+
             var metadata = new ContentCreatorMetadata(
                 "SLMS",
                 "Unit Test",
@@ -30,14 +36,14 @@ namespace RoboClerk.ContentCreators
                 Category = "Testing",
                 Tags = new List<ContentCreatorTag>
                 {
-                    new ContentCreatorTag("UnitTest Detail", "Displays detailed unit test information where each unit test is shown individually")
+                    new ContentCreatorTag("UnitTest Detail", "Displays detailed unit test information where each unit test is shown individually", "UnitTest")
                     {
                         Category = "Unit Test Management",
                         Description = "Displays unit tests with all details including purpose, acceptance criteria, file name, function name, and traceability.",
                         Parameters = new List<ContentCreatorParameter>(commonParams),
                         ExampleUsage = "@@SLMS:UnitTest()@@"
                     },
-                    new ContentCreatorTag("UnitTest Summary", "Displays a list of all unit tests in a single table, optionally with results")
+                    new ContentCreatorTag("UnitTest Summary", "Displays a list of all unit tests in a single table, optionally with results", "UnitTest")
                     {
                         Category = "Unit Test Management",
                         Description = "Displays a compact table view of all unit tests with summary information including file name, function name, and linked requirements.",
@@ -226,9 +232,15 @@ namespace RoboClerk.ContentCreators
                     renderer = ItemTemplateRenderer.FromString(file, fileIdentifier);
                 }
                 StringBuilder output = new StringBuilder();
+                int count = items.Count;
+                int index = 0;
                 foreach (var item in items)
                 {
                     dataShare.Item = item;
+                    dataShare.Index = index;
+                    dataShare.Count = count;
+                    dataShare.IsFirst = (index == 0);
+                    dataShare.IsLast = (index == count - 1);
                     try
                     {
                         var result = renderer.RenderItemTemplate(dataShare);
@@ -239,6 +251,7 @@ namespace RoboClerk.ContentCreators
                         logger.Error($"A compilation error occurred while compiling UnitTest.adoc script: {e.Message}");
                         throw;
                     }
+                    index++;
                 }
                 ProcessTraces(docTE, dataShare);
                 return output.ToString();

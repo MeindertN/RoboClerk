@@ -55,7 +55,7 @@ namespace RoboClerk.ContentCreators
                 Category = "Requirements & Traceability",
                 Tags = new List<ContentCreatorTag>
                 {
-                    new ContentCreatorTag($"{requirementType}Requirement", $"Displays detailed {requirementType.ToLower()} requirement information")
+                    new ContentCreatorTag($"{requirementType}Requirement", $"Displays detailed {requirementType.ToLower()} requirement information", $"{requirementType}Requirement")
                     {
                         Category = "Requirement Management",
                         Description = $"Displays {requirementType.ToLower()} requirements with all details including description, status, and traceability.",
@@ -107,6 +107,8 @@ namespace RoboClerk.ContentCreators
                 renderer = ItemTemplateRenderer.FromString(fileContent, fileIdentifier);
             }
             
+            int count = items.Count;
+            int index = 0;
             foreach (var item in items)
             {
                 RequirementItem? reqItem = item as RequirementItem;
@@ -118,11 +120,16 @@ namespace RoboClerk.ContentCreators
                 //this will insert a tag in the description indicating where AI comments need to be included if an AI plugin is selected
                 reqItem.RequirementDescription = TagFieldWithAIComment(reqItem.ItemID, reqItem.RequirementDescription);
                 dataShare.Item = reqItem;
+                dataShare.Index = index;
+                dataShare.Count = count;
+                dataShare.IsFirst = (index == 0);
+                dataShare.IsLast = (index == count - 1);
                 
                 string result = renderer.RenderItemTemplate(dataShare);
                 AddAITagsToContent(output, result, te.ID, reqItem.ItemID);
                 //remove the tag to restore the original description
                 reqItem.RequirementDescription = oldDescription;
+                index++;
             }
             
             ProcessTraces(docTE, dataShare);

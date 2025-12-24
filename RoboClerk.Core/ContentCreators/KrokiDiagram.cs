@@ -37,7 +37,7 @@ namespace RoboClerk.ContentCreators
             Category = "Diagrams & Visualization",
             Tags = new List<ContentCreatorTag>
             {
-                new ContentCreatorTag("KrokiDiagram", "Generates a diagram from embedded diagram source code")
+                new ContentCreatorTag("KrokiDiagram", "Generates a diagram from embedded diagram source code", "KrokiDiagram")
                 {
                     Category = "Diagram Generation",
                     Description = "Sends diagram source code to the Kroki web service (https://kroki.io) and embeds the resulting image in the document. " +
@@ -63,15 +63,36 @@ namespace RoboClerk.ContentCreators
                             ExampleValue = "png",
                             Description = "Image format for the generated diagram. PNG is recommended for compatibility."
                         },
+                        new ContentCreatorParameter("xDim", 
+                            "Width of the image", 
+                            ParameterValueType.String, required: false)
+                        {
+                            ExampleValue = "600",
+                            Description = "Width of the image in pixels (or other units if specified)."
+                        },
+                        new ContentCreatorParameter("yDim", 
+                            "Height of the image", 
+                            ParameterValueType.String, required: false)
+                        {
+                            ExampleValue = "400",
+                            Description = "Height of the image in pixels (or other units if specified)."
+                        },
                         new ContentCreatorParameter("caption", 
                             "Caption text to display with the diagram", 
                             ParameterValueType.String, required: false)
                         {
                             ExampleValue = "System Architecture Diagram",
                             Description = "Optional caption displayed below/alongside the diagram"
+                        },
+                        new ContentCreatorParameter("payload", 
+                            "Raw diagram source code", 
+                            ParameterValueType.MultiLineString, required: false, encoding: ParameterEncoding.Base64)
+                        {
+                            ExampleValue = "@startuml\nAlice -> Bob: Hello\n@enduml",
+                            Description = "If provided, this raw diagram source code is used instead of the tag contents."
                         }
                     },
-                    ExampleUsage = "@@Web:KrokiDiagram(type=plantuml,format=png,caption=Example Diagram)\n@startuml\nAlice -> Bob: Hello\n@enduml\n@@"
+                    ExampleUsage = "@@Web:KrokiDiagram(type=plantuml,format=png,caption=Example Diagram,xDim=500)\n@startuml\nAlice -> Bob: Hello\n@enduml\n@@"
                 }
             }
         };
@@ -129,12 +150,24 @@ namespace RoboClerk.ContentCreators
             //we are hardcoding the kroki URL for now
             string krokiURL = "https://kroki.io";
 
-            //take the tag contents and convert them to base64
-            string base64 = EncodeToKroki(tag.Contents);
+            string krokiPayload = tag.GetParameterOrDefault("payload", string.Empty);
+            if (string.IsNullOrEmpty(krokiPayload))
+            {
+                krokiPayload = tag.Contents;
+            }
+            else
+            {
+                krokiPayload = Encoding.UTF8.GetString(Convert.FromBase64String(krokiPayload));
+            }
+
+            //take the tag contents and convert them to Kroki encoding
+            string base64 = EncodeToKroki(krokiPayload);
 
             string diagramType = tag.GetParameterOrDefault("type", "plantuml");
             string imageFormat = tag.GetParameterOrDefault("format", "png");
             string imageCaption = tag.GetParameterOrDefault("caption", string.Empty);
+            string xDim = tag.GetParameterOrDefault("xDim", string.Empty);
+            string yDim = tag.GetParameterOrDefault("yDim", string.Empty);
             logger.Debug($"Retrieving an image from the kroki server \"{krokiURL}\". Diagram type: {diagramType}. Image format: {imageFormat}. With the following caption: \"{imageCaption}\".");
             
             try
@@ -142,6 +175,31 @@ namespace RoboClerk.ContentCreators
                 //download the image and save it to the media directory with timeout
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
                 byte[] imagebytes = DownloadImageAsync($"{krokiURL}/{diagramType}/{imageFormat}/{base64}", cts.Token).Result;
+                string imagetag = string.Empty;
+                if (configuration.OutputFormat.ToUpper() == "HTML" || configuration.OutputFormat.ToUpper() == "DOCX")
+                {
+                    string mimeType = "image/png";
+                    if (imageFormat.Equals("svg", StringComparison.OrdinalIgnoreCase))
+                    {
+                        mimeType = "image/svg+xml";
+                    }
+                    else if (!imageFormat.Equals("png", StringComparison.OrdinalIgnoreCase))
+                    {
+                        mimeType = $"image/{imageFormat.ToLower()}";
+                    }
+
+                    string base64Image = Convert.ToBase64String(imagebytes);
+                    string sizeAttrs = string.Empty;
+                    if (!string.IsNullOrEmpty(xDim)) sizeAttrs += $" width=\"{xDim}\"";
+                    if (!string.IsNullOrEmpty(yDim)) sizeAttrs += $" height=\"{yDim}\"";
+
+                    imagetag = $"<img src=\"data:{mimeType};base64,{base64Image}\" alt=\"{imageCaption}\"{sizeAttrs} />";
+                    if (imageCaption != string.Empty)
+                    {
+                        imagetag = $"{imagetag}\n<figcaption>{imageCaption}</figcaption>";
+                    }
+                    return imagetag;
+                }
 
                 //determine the file path for the output
                 string toplineDir = fileSystem.GetFileName(configuration.MediaDir);
@@ -150,28 +208,24 @@ namespace RoboClerk.ContentCreators
                 string filePath = $"{targetDir}/{fileName}";
                 fileSystem.WriteAllBytes(filePath, imagebytes);
 
-                if (configuration.OutputFormat.ToUpper() == "HTML" || configuration.OutputFormat.ToUpper() == "DOCX" )
+                string attributes = imageCaption;
+                if (!string.IsNullOrEmpty(xDim))
                 {
-                    string imagetag = $"<img src=\"{toplineDir}/{fileName}\" alt=\"{imageCaption}\" />";
-                    if( imageCaption != string.Empty)
-                    {
-                        imagetag = $"{imagetag}\n<figcaption>{imageCaption}</figcaption>";
-                    }
-                    return imagetag;
+                    if (!string.IsNullOrEmpty(attributes)) attributes += ",";
+                    attributes += $"width={xDim}";
                 }
-                else if(configuration.OutputFormat.ToUpper() == "ASCIIDOC")
+                if (!string.IsNullOrEmpty(yDim))
                 {
-                    string imagetag = $"image::{toplineDir}/{fileName}[{imageCaption}]";
-                    if (imageCaption != string.Empty)
-                    {
-                        imagetag = $".{imageCaption}\n{imagetag}";
-                    }
-                    return imagetag;
+                    if (!string.IsNullOrEmpty(attributes)) attributes += ",";
+                    attributes += $"height={yDim}";
                 }
-                else
+
+                imagetag = $"image::{toplineDir}/{fileName}[{attributes}]";
+                if (imageCaption != string.Empty)
                 {
-                    throw new Exception($"Unknown output format {configuration.OutputFormat}.");
+                    imagetag = $".{imageCaption}\n{imagetag}";
                 }
+                return imagetag;
             }
             catch (Exception ex)
             {

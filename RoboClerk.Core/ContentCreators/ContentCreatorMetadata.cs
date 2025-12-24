@@ -1,10 +1,24 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace RoboClerk.ContentCreators
 {
     /// <summary>
+    /// Describes the encoding of a parameter value
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum ParameterEncoding
+    {
+        /// <summary>No encoding (plain text)</summary>
+        None,
+        /// <summary>Base64 encoded value</summary>
+        Base64
+    }
+
+    /// <summary>
     /// Describes the type of a parameter value
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum ParameterValueType
     {
         /// <summary>String value</summary>
@@ -24,7 +38,9 @@ namespace RoboClerk.ContentCreators
         /// <summary>File path/name</summary>
         FilePath,
         /// <summary>Range specification</summary>
-        Range
+        Range,
+        /// <summary>Multiline string value</summary>
+        MultiLineString
     }
 
     /// <summary>
@@ -46,6 +62,11 @@ namespace RoboClerk.ContentCreators
         /// Type of value this parameter accepts
         /// </summary>
         public ParameterValueType ValueType { get; set; }
+
+        /// <summary>
+        /// Encoding of the parameter value
+        /// </summary>
+        public ParameterEncoding Encoding { get; set; } = ParameterEncoding.None;
 
         /// <summary>
         /// Whether this parameter is required
@@ -71,13 +92,14 @@ namespace RoboClerk.ContentCreators
         {
         }
 
-        public ContentCreatorParameter(string name, string description, ParameterValueType valueType, bool required = false, string? defaultValue = null)
+        public ContentCreatorParameter(string name, string description, ParameterValueType valueType, bool required = false, string? defaultValue = null, ParameterEncoding encoding = ParameterEncoding.None)
         {
             Name = name;
             Description = description;
             ValueType = valueType;
             Required = required;
             DefaultValue = defaultValue;
+            Encoding = encoding;
         }
     }
 
@@ -90,6 +112,11 @@ namespace RoboClerk.ContentCreators
         /// Tag identifier (the part after the colon in @@Source:TagID@@)
         /// </summary>
         public string TagID { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The name of the content creator associated with this tag
+        /// </summary>
+        public string ContentCreatorName { get; set; } = string.Empty;
 
         /// <summary>
         /// Human-readable description of what this tag does
@@ -115,10 +142,11 @@ namespace RoboClerk.ContentCreators
         {
         }
 
-        public ContentCreatorTag(string tagID, string description)
+        public ContentCreatorTag(string tagID, string description, string contentCreatorName = "")
         {
             TagID = tagID;
             Description = description;
+            ContentCreatorName = contentCreatorName;
         }
     }
 

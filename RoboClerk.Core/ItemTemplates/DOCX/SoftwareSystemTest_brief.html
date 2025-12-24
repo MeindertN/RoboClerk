@@ -3,6 +3,7 @@
 // pre-calculate fields for later use etc.
 using RoboClerk;
 using System.Linq;
+using System;
 
 TraceEntity te = SourceTraceEntity;
 
@@ -14,13 +15,13 @@ string CreateHeaderRow()
 {
 	System.Text.StringBuilder header = new System.Text.StringBuilder();
 	header.Append("<tr>");
-	header.Append($"<th>{te.Name} ID</th>");
-	header.Append($"<th>{te.Name} Description</th>");
-	header.Append($"<th>Linked {softwareRequirementName}s</th>");
+	header.Append($"<td>{te.Name} ID</td>");
+	header.Append($"<td>{te.Name} Description</td>");
+	header.Append($"<td>Linked {softwareRequirementName}s</td>");
 	if (showResults)
 	{
-		header.Append("<th>Actual Result</th>");
-		header.Append("<th>Timestamp</th>");
+		header.Append("<td>Actual Result</td>");
+		header.Append("<td>Timestamp</td>");
 	}
 	header.Append("</tr>");
 	return header.ToString();
@@ -50,10 +51,42 @@ string CreateRows()
 		
 		if (showResults)
 		{
-			var resultItems = GetLinkedItems(st, ItemLinkType.Result);
-			var testResult = resultItems.FirstOrDefault() as TestResult;
-			string actualResult = testResult != null ? testResult.ResultStatus.ToString() : "<strong>NO RESULT</strong>";
-			string timestamp = testResult != null ? testResult.ExecutionTime.ToString(@"yyyy-MM-ddTHH:mm:ss") : "N/A";
+			string actualResult = "<strong>NO RESULT</strong>";
+			string timestamp = "N/A";
+			if (st.TestCaseToUnitTest)
+			{
+				var unitTests = GetLinkedItems(st, ItemLinkType.UnitTest);
+				bool passed = unitTests.Any();
+				bool resultsFound = false;
+				DateTime maxTime = DateTime.MinValue;
+
+				foreach( var test in unitTests )
+				{
+					var resultItems = GetLinkedItems(test, ItemLinkType.Result).OfType<TestResult>();
+					var testResult = resultItems.OrderByDescending(r => r.ExecutionTime).FirstOrDefault();
+					if (testResult != null)
+					{
+						resultsFound = true;
+						if (testResult.ExecutionTime > maxTime)
+						{
+							maxTime = testResult.ExecutionTime;
+						}
+					}
+					passed = passed && (testResult != null && testResult.ResultStatus == TestResultStatus.PASS);
+				}
+				if (resultsFound && unitTests.Any())
+				{
+					actualResult = passed ? "PASS" : "FAIL";
+					timestamp = maxTime != DateTime.MinValue ? maxTime.ToString(@"yyyy-MM-ddTHH:mm:ss") : "N/A";
+				}
+			}
+			else
+			{
+				var resultItems = GetLinkedItems(st, ItemLinkType.Result).OfType<TestResult>();
+				var testResult = resultItems.OrderByDescending(r => r.ExecutionTime).FirstOrDefault();
+				actualResult = testResult != null ? testResult.ResultStatus.ToString() : "<strong>NO RESULT</strong>";
+				timestamp = testResult != null ? testResult.ExecutionTime.ToString(@"yyyy-MM-ddTHH:mm:ss") : "N/A";
+			}
 			sb.Append($"<td>{actualResult}</td>");
 			sb.Append($"<td>{timestamp}</td>");
 		}
@@ -64,7 +97,7 @@ string CreateRows()
 }
 ]
 
-<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse; margin-bottom: 20px;">
+<table summary="Style:RoboClerk Table;SpaceAfter:0;SpaceBefore:0;FontName:Calibri;FontSize:11;TableSpacing:5" style="width: 100%;">
 	<thead>
 		[csx:CreateHeaderRow()]
 	</thead>

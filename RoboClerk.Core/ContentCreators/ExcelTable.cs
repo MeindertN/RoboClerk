@@ -53,7 +53,7 @@ namespace RoboClerk.ContentCreators
                 Category = "File Import",
                 Tags = new List<ContentCreatorTag>
                 {
-                    new ContentCreatorTag("ExcelTable", "Imports a table from an Excel spreadsheet")
+                    new ContentCreatorTag("ExcelTable", "Imports a table from an Excel spreadsheet", "ExcelTable")
                     {
                         Category = "Excel Import",
                         Description = "Imports a specified range from an Excel file and renders it as a table in the document. " +

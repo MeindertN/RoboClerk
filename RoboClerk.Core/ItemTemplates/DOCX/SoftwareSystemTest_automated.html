@@ -21,21 +21,19 @@ string RenderTestStepRows()
                 .Where(l => l.LinkType == ItemLinkType.UnitTest)
                 .Select(l => l.TargetID)
         );
-        sb.AppendLine("<tr><td colspan=\"5\">This functionality is fully exercised in the following unit test(s): " + ids + "</td></tr>");
+        sb.AppendLine("<tr><td colspan=\"4\">This functionality is fully exercised in the following unit test(s): " + ids + "</td></tr>");
     }
     else
     {
-        sb.AppendLine("<tr><th>Step</th><th>Action</th><th>Expected Result</th><th>Actual Result</th><th>Test Status</th></tr>");
+        sb.AppendLine("<tr align=\"left\"><td width=\"5%\"><strong>Step</strong></td><td width=\"48%\" colspan=\"2\"><strong>Action</strong></td><td width=\"47%\"><strong>Expected Result</strong></td></tr>");
 
         int stepNumber = 1;
         foreach (var step in item.TestCaseSteps)
         {
             string action = step.Action.Replace("\n", "").Replace("\r", "");
             string result = step.ExpectedResult.Replace("\n", "").Replace("\r", "");
-            string actualResult = "";
-            string testStatus = string.IsNullOrWhiteSpace(result) ? "" : "Pass / Fail";
-
-            sb.AppendLine("<tr><td>" + stepNumber + "</td><td>" + action + "</td><td>" + result + "</td><td>" + actualResult + "</td><td>" + testStatus + "</td></tr>");
+            string shading = string.IsNullOrEmpty(result)?"{{BGC:#D9D9D9}}":"";
+            sb.AppendLine($"<tr align=\"left\"><td>{stepNumber}</td><td colspan=\"2\">{action}</td><td>{shading}{result}</td></tr>");
 
             stepNumber++;
         }
@@ -45,22 +43,22 @@ string RenderTestStepRows()
 }
 ]
 
-<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse; margin-bottom: 20px;">
-    <tr>
-        <th style="text-align:left;"><strong>[csx:te.Name] ID:</strong></th>
-        <td colspan="4">[csx:GetItemLinkString(item)]</td>
+<table summary="Style:RoboClerk Standard;SpaceAfter:0;SpaceBefore:0;FontName:Calibri;FontSize:11;TableSpacing:5" style="width: 100%;">
+    <tr align="left">
+        <td width="20%" colspan="2"><strong>[csx:te.Name] ID:</strong></td>
+        <td colspan="2">[csx:GetItemLinkString(item)]</td>
     </tr>
-    <tr>
-        <th style="text-align:left;"><strong>[csx:te.Name] Revision:</strong></th>
-        <td colspan="4">[csx:item.ItemRevision]</td>
+    <tr align="left">
+        <td width="20%" colspan="2"><strong>[csx:te.Name] Revision:</strong></td>
+        <td colspan="2">[csx:item.ItemRevision]</td>
     </tr>
-    <tr>
-        <th style="text-align:left;"><strong>Parent ID:</strong></th>
-        <td colspan="4">[csx:pl]</td>
+    <tr align="left">
+        <td width="20%" colspan="2"><strong>Parent ID:</strong></td>
+        <td colspan="2">[csx:pl]</td>
     </tr>
-    <tr>
-        <th style="text-align:left;"><strong>Title:</strong></th>
-        <td colspan="4">[csx:item.ItemTitle]</td>
+    <tr align="left">
+        <td width="20%" colspan="2"><strong>Title:</strong></td>
+        <td colspan="2">[csx:item.ItemTitle]</td>
     </tr>
 
     [csx:RenderTestStepRows()]

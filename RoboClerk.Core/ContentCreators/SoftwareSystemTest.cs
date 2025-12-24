@@ -23,6 +23,12 @@ namespace RoboClerk.ContentCreators
         {
             var commonParams = GetCommonMultiItemParametersStatic(typeof(SoftwareSystemTestItem));
             
+            // Add SoftwareSystemTest specific parameters
+            commonParams.Add(new ContentCreatorParameter("TestCaseState", "Filter by test case state", ParameterValueType.String, required: false));
+            commonParams.Add(new ContentCreatorParameter("TestCaseDescription", "Filter by test case description", ParameterValueType.String, required: false));
+            commonParams.Add(new ContentCreatorParameter("TestCaseAutomated", "Filter by automation status", ParameterValueType.Boolean, required: false) { AllowedValues = new List<string> { "true", "false" } });
+            commonParams.Add(new ContentCreatorParameter("TestCaseToUnitTest", "Filter by unit test link status", ParameterValueType.Boolean, required: false) { AllowedValues = new List<string> { "true", "false" } });
+
             var metadata = new ContentCreatorMetadata(
                 "SLMS",
                 "Software System Test",
@@ -31,14 +37,14 @@ namespace RoboClerk.ContentCreators
                 Category = "Testing",
                 Tags = new List<ContentCreatorTag>
                 {
-                    new ContentCreatorTag("SoftwareSystemTest Detail", "Displays detailed software system test case information")
+                    new ContentCreatorTag("SoftwareSystemTest Detail", "Displays detailed software system test case information", "SoftwareSystemTest")
                     {
                         Category = "Test Management",
                         Description = "Displays software system test cases with all details including test steps, automation status, and traceability.",
                         Parameters = new List<ContentCreatorParameter>(commonParams),
                         ExampleUsage = "@@SLMS:SoftwareSystemTest()@@"
                     },
-                    new ContentCreatorTag("SoftwareSystemTest Summary", "Displays a list of all software system test cases in a single table, optionally with results")
+                    new ContentCreatorTag("SoftwareSystemTest Summary", "Displays a list of all software system test cases in a single table, optionally with results", "SoftwareSystemTest")
                     {
                         Category = "Test Management",
                         Description = "Displays a compact table view of all software system test cases with summary information. Can include results if configured",
@@ -46,6 +52,14 @@ namespace RoboClerk.ContentCreators
                         {
                             new ContentCreatorParameter("checkResults",
                                 "Set to 'true' to validate automated test results against test plan. This requires the results to be loaded into RoboClerk.",
+                                ParameterValueType.Boolean, required: true)
+                            {
+                                AllowedValues = new List<string> { "true", "false" },
+                                ExampleValue = "false",
+                                DefaultValue = "false"
+                            },
+                            new ContentCreatorParameter("showResults",
+                                "Set to 'true' to show any matched results loaded into RoboClerk in the summary table. This requires the results to be loaded into RoboClerk.",
                                 ParameterValueType.Boolean, required: true)
                             {
                                 AllowedValues = new List<string> { "true", "false" },
@@ -252,9 +266,15 @@ namespace RoboClerk.ContentCreators
                     rendererManual = ItemTemplateRenderer.FromString(manualFile, manualFileIdentifier);
                 }
                 
+                int count = items.Count;
+                int index = 0;
                 foreach (var item in items)
                 {
                     dataShare.Item = item;
+                    dataShare.Index = index;
+                    dataShare.Count = count;
+                    dataShare.IsFirst = (index == 0);
+                    dataShare.IsLast = (index == count - 1);
                     SoftwareSystemTestItem tc = (SoftwareSystemTestItem)item;
                     var result = string.Empty;
                     if (tc.TestCaseAutomated)
@@ -288,6 +308,7 @@ namespace RoboClerk.ContentCreators
                         }
                     }
                     output.Append(result);
+                    index++;
                 }
                 ProcessTraces(docTE, dataShare);
             }

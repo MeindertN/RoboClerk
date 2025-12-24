@@ -58,7 +58,7 @@ namespace RoboClerk.ContentCreators
                 Category = "Testing",
                 Tags = new List<ContentCreatorTag>
                 {
-                    new ContentCreatorTag("Anomaly", "Displays detailed anomaly/bug information")
+                    new ContentCreatorTag("Anomaly", "Displays detailed anomaly/bug information", "Anomaly")
                     {
                         Category = "Anomaly Management",
                         Description = "Displays anomalies with all details including state, severity, assignee, justification, and detailed description. " +
@@ -101,24 +101,37 @@ namespace RoboClerk.ContentCreators
             }
             
             bool anomalyRendered = false;
+            var itemsToRender = new List<LinkedItem>();
             foreach (var item in items)
             {
                 if (tag.GetParameterOrDefault("IncludeClosed", "FALSE").ToUpper() == "TRUE" ||
                      ((AnomalyItem)item).AnomalyState.ToUpper() != "CLOSED")
                 {
-                    dataShare.Item = item;
-                    try
-                    {
-                        anomalyRendered = true;
-                        var result = renderer.RenderItemTemplate(dataShare);
-                        output.Append(result);
-                    }
-                    catch (CompilationErrorException e)
-                    {
-                        logger.Error($"A compilation error occurred while compiling Anomaly.adoc script: {e.Message}");
-                        throw;
-                    }
+                    itemsToRender.Add(item);
                 }
+            }
+
+            int count = itemsToRender.Count;
+            int index = 0;
+            foreach (var item in itemsToRender)
+            {
+                dataShare.Item = item;
+                dataShare.Index = index;
+                dataShare.Count = count;
+                dataShare.IsFirst = (index == 0);
+                dataShare.IsLast = (index == count - 1);
+                try
+                {
+                    anomalyRendered = true;
+                    var result = renderer.RenderItemTemplate(dataShare);
+                    output.Append(result);
+                }
+                catch (CompilationErrorException e)
+                {
+                    logger.Error($"A compilation error occurred while compiling Anomaly.adoc script: {e.Message}");
+                    throw;
+                }
+                index++;
             }
             // if we do custom selection just for one item type, we need to handle the case when our selection 
             // process results in no selections.

@@ -33,7 +33,7 @@ namespace RoboClerk.ContentCreators
                 Category = "Requirements & Traceability",
                 Tags = new List<ContentCreatorTag>
                 {
-                    new ContentCreatorTag("DocContent", "Displays documentation content items")
+                    new ContentCreatorTag("DocContent", "Displays documentation content items", "DocContent")
                     {
                         Category = "Documentation Content Management",
                         Description = "Displays documentation content items. The text and markup contained in the documentation content item is inserted directly into the document. " +
@@ -75,9 +75,15 @@ namespace RoboClerk.ContentCreators
                 renderer = ItemTemplateRenderer.FromString(file, fileIdentifier);
             }
             
+            int count = items.Count;
+            int index = 0;
             foreach (var item in items)
             {
                 dataShare.Item = item;
+                dataShare.Index = index;
+                dataShare.Count = count;
+                dataShare.IsFirst = (index == 0);
+                dataShare.IsLast = (index == count - 1);
                 try
                 {
                     var result = renderer.RenderItemTemplate(dataShare);
@@ -88,6 +94,7 @@ namespace RoboClerk.ContentCreators
                     logger.Error($"A compilation error occurred while compiling DocContent.adoc script: {e.Message}");
                     throw;
                 }
+                index++;
             }
             ProcessTraces(docTE, dataShare);
             return output.ToString();

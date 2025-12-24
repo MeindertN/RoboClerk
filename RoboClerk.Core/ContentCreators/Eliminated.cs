@@ -49,6 +49,11 @@ namespace RoboClerk.ContentCreators
                     "or specify a specific type like 'SYSTEM' for system requirements, 'SOFTWARE' for software requirements, " +
                     "'TESTCASE' for test cases, 'UNITTEST' for unit tests, 'RISK' for risks, etc."
             });
+            parameters.Add(new ContentCreatorParameter("EliminationReason", "Filter by elimination reason", ParameterValueType.String, required: false));
+            parameters.Add(new ContentCreatorParameter("EliminationType", "Filter by elimination type", ParameterValueType.String, required: false) 
+            { 
+                AllowedValues = new List<string> { "FilteredOut", "LinkedItemMissing", "IgnoredLinkTarget" } 
+            });
             
             var metadata = new ContentCreatorMetadata(
                 "SLMS",
@@ -58,7 +63,7 @@ namespace RoboClerk.ContentCreators
                 Category = "Requirements & Traceability",
                 Tags = new List<ContentCreatorTag>
                 {
-                    new ContentCreatorTag("Eliminated", "Displays eliminated items with rationale for their removal")
+                    new ContentCreatorTag("Eliminated", "Displays eliminated items with rationale for their removal", "Eliminated")
                     {
                         Category = "Eliminated Items Management",
                         Description = "Displays items that have been eliminated from the project scope, including the rationale for their elimination. " +

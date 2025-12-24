@@ -36,7 +36,7 @@ namespace RoboClerk.ContentCreators
                 Category = "Requirements & Traceability",
                 Tags = new List<ContentCreatorTag>
                 {
-                    new ContentCreatorTag($"{matrixType.Replace(" ", "")}TraceabilityMatrix", $"Displays {matrixType.ToLower()} traceability matrix and trace issues")
+                    new ContentCreatorTag($"{matrixType.Replace(" ", "")}TraceabilityMatrix", $"Displays {matrixType.ToLower()} traceability matrix and trace issues", $"{matrixType.Replace(" ", "")}TraceabilityMatrix")
                     {
                         Category = "Traceability Analysis",
                         Description = $"Creates a comprehensive traceability matrix for {matrixType.ToLower()} showing all relationships and traces. " +

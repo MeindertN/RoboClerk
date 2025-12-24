@@ -14,19 +14,19 @@ namespace RoboClerk.ContentCreators
             Category = "Document Formatting",
             Tags = new List<ContentCreatorTag>
             {
-                new ContentCreatorTag("TOC", "Inserts a table of contents marker")
+                new ContentCreatorTag("TOC", "Inserts a table of contents marker", "PostLayout")
                 {
                     Category = "Layout Control",
                     Description = "Inserts a marker that post-processing tools will replace with a table of contents",
                     ExampleUsage = "@@Post:TOC()@@"
                 },
-                new ContentCreatorTag("PageBreak", "Inserts a page break marker")
+                new ContentCreatorTag("PageBreak", "Inserts a page break marker", "PostLayout")
                 {
                     Category = "Layout Control",
                     Description = "Inserts a marker that post-processing tools will convert to a page break",
                     ExampleUsage = "@@Post:PageBreak()@@"
                 },
-                new ContentCreatorTag("RemoveParagraph", "Marks a paragraph for removal")
+                new ContentCreatorTag("RemoveParagraph", "Marks a paragraph for removal", "PostLayout")
                 {
                     Category = "Layout Control",
                     Description = "Inserts a marker that post-processing tools will use to remove the containing paragraph",

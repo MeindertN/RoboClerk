@@ -84,7 +84,7 @@ namespace RoboClerk.ContentCreators
             {
                 foreach (var doc in config.Documents)
                 {
-                    metadata.Tags.Add(new ContentCreatorTag(doc.DocumentTitle, $"Creates a reference to {doc.DocumentTitle}")
+                    metadata.Tags.Add(new ContentCreatorTag(doc.DocumentTitle, $"Creates a reference to {doc.DocumentTitle}", "Reference")
                     {
                         Category = "Cross-References",
                         Description = $"Creates a reference to the document '{doc.DocumentTitle}' ({doc.RoboClerkID}). " +

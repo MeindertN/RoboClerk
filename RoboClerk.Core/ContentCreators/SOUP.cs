@@ -22,19 +22,30 @@ namespace RoboClerk.ContentCreators
         {
             var commonParams = GetCommonMultiItemParametersStatic(typeof(SOUPItem));
             
+            // Add SOUP specific parameters
+            commonParams.Add(new ContentCreatorParameter("SOUPName", "Filter by SOUP name", ParameterValueType.String, required: false));
+            commonParams.Add(new ContentCreatorParameter("SOUPVersion", "Filter by SOUP version", ParameterValueType.String, required: false));
+            commonParams.Add(new ContentCreatorParameter("SOUPLinkedLib", "Filter by linked library status", ParameterValueType.Boolean, required: false) { AllowedValues = new List<string> { "true", "false" } });
+            commonParams.Add(new ContentCreatorParameter("SOUPEnduserTraining", "Filter by end user training", ParameterValueType.String, required: false));
+            commonParams.Add(new ContentCreatorParameter("SOUPLicense", "Filter by license", ParameterValueType.String, required: false));
+            commonParams.Add(new ContentCreatorParameter("SOUPInstalledByUser", "Filter by installed by user status", ParameterValueType.Boolean, required: false) { AllowedValues = new List<string> { "true", "false" } });
+            commonParams.Add(new ContentCreatorParameter("SOUPPerformanceCritical", "Filter by performance critical status", ParameterValueType.Boolean, required: false) { AllowedValues = new List<string> { "true", "false" } });
+            commonParams.Add(new ContentCreatorParameter("SOUPCybersecurityCritical", "Filter by cybersecurity critical status", ParameterValueType.Boolean, required: false) { AllowedValues = new List<string> { "true", "false" } });
+            commonParams.Add(new ContentCreatorParameter("SOUPManufacturer", "Filter by manufacturer", ParameterValueType.String, required: false));
+
             var metadata = new ContentCreatorMetadata("SLMS", "SOUP (Software of Unknown Provenance)", 
                 "Manages and displays SOUP items including version checking and brief lists")
             {
                 Category = "Requirements & Traceability",
                 Tags = new List<ContentCreatorTag>
                 {
-                    new ContentCreatorTag("SOUP Detail", "Displays detailed SOUP item information")
+                    new ContentCreatorTag("SOUP Detail", "Displays detailed SOUP item information", "SOUP")
                     {
                         Category = "SOUP Management",
                         Parameters = new List<ContentCreatorParameter>(commonParams),
                         ExampleUsage = "@@SLMS:SOUP()@@"
                     },
-                    new ContentCreatorTag("SOUP Summary", "Displays a brief list of all SOUP items with names and versions")
+                    new ContentCreatorTag("SOUP Summary", "Displays a brief list of all SOUP items with names and versions", "SOUP")
                     {
                         Category = "SOUP Management",
                         Parameters = new List<ContentCreatorParameter>(commonParams)
@@ -226,9 +237,15 @@ namespace RoboClerk.ContentCreators
                     renderer = ItemTemplateRenderer.FromString(file, fileIdentifier);
                 }
                 StringBuilder output = new StringBuilder();
+                int count = items.Count;
+                int index = 0;
                 foreach (var item in items)
                 {
                     dataShare.Item = item;
+                    dataShare.Index = index;
+                    dataShare.Count = count;
+                    dataShare.IsFirst = (index == 0);
+                    dataShare.IsLast = (index == count - 1);
                     try
                     {
                         var result = renderer.RenderItemTemplate(dataShare);
@@ -239,6 +256,7 @@ namespace RoboClerk.ContentCreators
                         logger.Error($"A compilation error occurred while compiling SOUP.adoc script: {e.Message}");
                         throw;
                     }
+                    index++;
                 }
                 ProcessTraces(docTE, dataShare);
                 return output.ToString();

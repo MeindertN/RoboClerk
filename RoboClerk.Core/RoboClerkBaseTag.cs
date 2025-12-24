@@ -72,15 +72,30 @@ namespace RoboClerk.Core
                 return; // there are no parameters
             }
             string param = parameterString.Substring(paramStart + 1, paramEnd - paramStart - 1);
-            var items = param.Split(',');
+            
+            // Use regex to split on commas, but respect quoted strings
+            var regex = new Regex(@",(?=(?:[^""]*""[^""]*"")*[^""]*$)");
+            var items = regex.Split(param);
+            
             if (items.Length > 0)
             {
                 foreach (var item in items)
                 {
-                    var paramParts = item.Split('=');
+                    var paramParts = item.Split(new[] { '=' }, 2);
                     if (paramParts.Length == 2)
                     {
-                        parameters[paramParts[0].Trim().ToUpper()] = paramParts[1].Trim();
+                        string key = paramParts[0].Trim().ToUpper();
+                        string value = paramParts[1].Trim();
+                        
+                        // Remove surrounding quotes if present
+                        if (value.StartsWith("\"") && value.EndsWith("\"") && value.Length >= 2)
+                        {
+                            value = value.Substring(1, value.Length - 2);
+                            // Handle escaped quotes within the value
+                            value = value.Replace("\\\"", "\"");
+                        }
+                        
+                        parameters[key] = value;
                     }
                 }
             }
@@ -107,21 +122,17 @@ namespace RoboClerk.Core
             //verify the parameter string
             if (temp.IndexOf(')') - temp.IndexOf('(') > 1)
             {
-                if (temp.Count(f => (f == '=')) - temp.Count(f => (f == ',')) != 1)
-                {
-                    throw new TagInvalidException(tagContents, "Parameter section in RoboClerk tag not formatted correctly");
-                }
                 //isolate the parameter string and check each individual element
                 string contents = temp.Split('(')[1].Split(')')[0];
-                string[] elements = contents.Split(',');
+                
+                // Use regex to split on commas, but respect quoted strings
+                var regex = new Regex(@",(?=(?:[^""]*""[^""]*"")*[^""]*$)");
+                var elements = regex.Split(contents);
+                
                 foreach (var element in elements)
                 {
-                    if (element.Count(f => (f == '=')) != 1)
-                    {
-                        throw new TagInvalidException(tagContents, "Malformed element in parameter section of RoboClerk tag");
-                    }
-                    string[] variables = element.Split('=', StringSplitOptions.RemoveEmptyEntries);
-                    if (variables.Length != 2)
+                    int eqIndex = element.IndexOf('=');
+                    if (eqIndex <= 0)
                     {
                         throw new TagInvalidException(tagContents, "Malformed element in parameter section of RoboClerk tag");
                     }
