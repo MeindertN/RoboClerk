@@ -261,11 +261,6 @@ namespace RoboClerk.ContentCreators
                 }
             }
             
-            if (!traceIssuesFound)
-            {
-                traceIssues.Add($"No {truthSource.Name} level trace problems detected!");
-            }
-
             // Generate format-specific output
             if (configuration.OutputFormat.ToUpper() == "HTML" || configuration.OutputFormat.ToUpper() == "DOCX")
             {
@@ -302,10 +297,13 @@ namespace RoboClerk.ContentCreators
             matrix.AppendLine();
 
             // Add trace issues
-            matrix.AppendLine("\nTrace issues:\n");
-            foreach (var issue in traceIssues)
+            if (traceIssues.Count > 0)
             {
-                matrix.AppendLine($". {issue}");
+                matrix.AppendLine("\nTrace issues:\n");
+                foreach (var issue in traceIssues)
+                {
+                    matrix.AppendLine($". {issue}");
+                }
             }
             
             return matrix.ToString();
@@ -315,13 +313,13 @@ namespace RoboClerk.ContentCreators
         {
             StringBuilder matrix = new StringBuilder();
             matrix.AppendLine("<div>");
-            matrix.AppendLine("    <table border=\"1\" cellspacing=\"0\" cellpadding=\"4\">");
+            matrix.AppendLine("    <table summary=\"Style:RoboClerk Table;SpaceAfter:0;SpaceBefore:0;FontName:Calibri;FontSize:11;TableSpacing:5;\" border=\"1\" cellspacing=\"0\" cellpadding=\"4\" style=\"width: 100%;\">");
             
             // Add headers
             matrix.AppendLine("        <tr>");
             foreach (var header in headers)
             {
-                matrix.AppendLine($"            <th>{header}</th>");
+                matrix.AppendLine($"            <td>{header}</td>");
             }
             matrix.AppendLine("        </tr>");
 
@@ -340,16 +338,23 @@ namespace RoboClerk.ContentCreators
             matrix.AppendLine();
 
             // Add trace issues
-            matrix.AppendLine("<div>");
-            matrix.AppendLine("    <h3>Trace issues:</h3>");
-            matrix.AppendLine("    <ul>");
-            foreach (var issue in traceIssues)
+            if (traceIssues.Count > 0)
             {
-                matrix.AppendLine($"        <li>{issue}</li>");
+                //matrix.AppendLine("<p style=\"font-family:Calibri; font-size:12pt; margin:0;\">&nbsp;</p>");
+                matrix.AppendLine("<div>");
+                matrix.AppendLine("<table summary=\"SpaceAfter:0;SpaceBefore:0\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"border-collapse:collapse;width=100%\">");
+                matrix.AppendLine("<tr><td colspan=\"2\"><p style=\"font-family:Calibri; font-size:12pt; margin:0;\">&nbsp;</p><strong>Trace issues:</strong></td></tr>");
+                foreach (var issue in traceIssues)
+                {
+                    matrix.AppendLine("<tr>");
+                    // Bullet Cell
+                    matrix.AppendLine("<td valign=\"top\" width=\"30\" style=\"width:25pt; padding:0; padding-bottom:4pt; font-family:Arial;text-align: center;\">&#8226;</td>");
+                    // Content Cell
+                    matrix.AppendLine($"<td valign=\"top\" style=\"padding:0; padding-bottom:4pt; font-family:Calibri; font-size:11pt;\">{issue}</td>");
+                    matrix.AppendLine("</tr>");
+                }
+                matrix.AppendLine("</table></div>");
             }
-            matrix.AppendLine("    </ul>");
-            matrix.AppendLine("</div>");
-            
             return matrix.ToString();
         }
     }
