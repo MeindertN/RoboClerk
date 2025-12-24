@@ -56,6 +56,14 @@ namespace RoboClerk.ContentCreators
                                 AllowedValues = new List<string> { "true", "false" },
                                 ExampleValue = "true"
                             },
+                            new ContentCreatorParameter("showResults",
+                                "Set to 'true' to show any matched results loaded into RoboClerk in the summary table. This requires the results to be loaded into RoboClerk.",
+                                ParameterValueType.Boolean, required: true)
+                            {
+                                AllowedValues = new List<string> { "true", "false" },
+                                ExampleValue = "false",
+                                DefaultValue = "false"
+                            },
                             new ContentCreatorParameter("brief",
                                 "Always should be true for this tag.",
                                 ParameterValueType.Boolean, required: true)

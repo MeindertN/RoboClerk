@@ -3,6 +3,7 @@
 // pre-calculate fields for later use etc.
 using RoboClerk;
 using System.Linq;
+using System;
 
 TraceEntity te = SourceTraceEntity;
 
@@ -61,8 +62,8 @@ string CreateRows()
 			tests.Append("N/A");
 		if (showResults)
 		{
-			var resultItems = GetLinkedItems(st, ItemLinkType.Result);
-			var testResult = resultItems.FirstOrDefault() as TestResult;
+			var resultItems = GetLinkedItems(st, ItemLinkType.Result).OfType<TestResult>();
+			var testResult = resultItems.OrderByDescending(r => r.ExecutionTime).FirstOrDefault();
 			string actualResult = testResult != null ? testResult.ResultStatus.ToString() : "*NO RESULT*";
 			string timestamp = testResult != null ? testResult.ExecutionTime.ToString(@"yyyy-MM-ddTHH:mm:ss") : "N/A";
 			sb.Append($"| {st.UnitTestFileName} | {st.UnitTestFunctionName} | {GetItemLinkString(st)} | {st.UnitTestPurpose} | {st.UnitTestAcceptanceCriteria} | {reqs.ToString()} | {tests.ToString()} | {actualResult} | {timestamp} \n\n");

@@ -3,6 +3,7 @@
 // pre-calculate fields for later use etc.
 using RoboClerk;
 using System.Linq;
+using System;
 
 TraceEntity te = SourceTraceEntity;
 
@@ -15,17 +16,17 @@ string CreateHeaderRow()
 {
 	System.Text.StringBuilder header = new System.Text.StringBuilder();
 	header.Append("<tr>");
-	header.Append("<td>File Name</td>");
-	header.Append("<td>Function Name</td>");
-	header.Append($"<td>{te.Name} ID</td>");
-	header.Append($"<td>{te.Name} Purpose</td>");
-	header.Append("<td>Acceptance Criteria</td>");
-	header.Append($"<td>Linked {softwareRequirementName}s</td>");
-	header.Append($"<td>Linked {softwareSystemTestName}s</td>");
+	header.Append($"<td style=\"width: {(showResults?"8":"12")}%;\">File Name</td>");
+	header.Append($"<td style=\"width: {(showResults?"8":"12")}%;\">Function Name</td>");
+	header.Append($"<td style=\"width: {(showResults?"12":"15")}%;\">{te.Name} ID</td>");
+	header.Append($"<td style=\"width: {(showResults?"15":"21")}%;\">{te.Name} Purpose</td>");
+	header.Append($"<td style=\"width: {(showResults?"12":"20")}%;\">Acceptance Criteria</td>");
+	header.Append($"<td style=\"width: {(showResults?"8":"10")}%;\">Linked {softwareRequirementName}s</td>");
+	header.Append($"<td style=\"width: {(showResults?"8":"10")}%;\">Linked {softwareSystemTestName}s</td>");
 	if (showResults)
 	{
-		header.Append("<td>Result</td>");
-		header.Append("<td>Timestamp</td>");
+		header.Append($"<td style=\"width: 8%;\">Result</td>");
+		header.Append($"<td style=\"width: 8%;\">Timestamp</td>");
 	}
 	header.Append("</tr>");
 	return header.ToString();
@@ -74,17 +75,17 @@ string CreateRows()
 
 		sb.Append("<tr>");
 		sb.Append($"<td>{ut.UnitTestFileName}</td>");
-		sb.Append($"<td>{ut.UnitTestFunctionName}</td>");
-		sb.Append($"<td>{GetItemLinkString(ut)}</td>");
-		sb.Append($"<td>{ut.UnitTestPurpose}</td>");
-		sb.Append($"<td>{ut.UnitTestAcceptanceCriteria}</td>");
+		sb.Append($"<td">{ut.UnitTestFunctionName}</td>");
+		sb.Append($"<td">{GetItemLinkString(ut)}</td>");
+		sb.Append($"<td">{ut.UnitTestPurpose}</td>");
+		sb.Append($"<td">{ut.UnitTestAcceptanceCriteria}</td>");
 		sb.Append($"<td>{reqs.ToString()}</td>");
-		sb.Append($"<td>{tests.ToString()}</td>");
+		sb.Append($"<td">{tests.ToString()}</td>");
 
 		if (showResults)
 		{
-			var resultItems = GetLinkedItems(ut, ItemLinkType.Result);
-			var testResult = resultItems.FirstOrDefault() as TestResult;
+			var resultItems = GetLinkedItems(ut, ItemLinkType.Result).OfType<TestResult>();
+			var testResult = resultItems.OrderByDescending(r => r.ExecutionTime).FirstOrDefault();
 			string actualResult = testResult != null ? testResult.ResultStatus.ToString() : "<strong>NO RESULT</strong>";
 			string timestamp = testResult != null ? testResult.ExecutionTime.ToString(@"yyyy-MM-ddTHH:mm:ss") : "N/A";
 			sb.Append($"<td>{actualResult}</td>");
@@ -95,13 +96,21 @@ string CreateRows()
 	}
 	return sb.ToString();
 }
+
+string GetColWidths()
+{
+	if (showResults)
+	{
+		return "8,8,12,15,12,8,8,8,8";
+	}
+	else
+	{
+		return "12,12,15,21,20,10,10";
+	}
+}
 ]
 
-<table border="1" cellspacing="0" cellpadding="4" style="border-collapse: collapse; margin-bottom: 20px;">
-	<thead>
-		[csx:CreateHeaderRow()]
-	</thead>
-	<tbody>
-		[csx:CreateRows()]
-	</tbody>
+<table summary="Style:RoboClerk Table;SpaceAfter:0;SpaceBefore:0;FontName:Calibri;FontSize:8;TableSpacing:5;ColWidths:[csx:GetColWidths()]" style="width: 100%;">
+[csx:CreateHeaderRow()]
+[csx:CreateRows()]
 </table>
