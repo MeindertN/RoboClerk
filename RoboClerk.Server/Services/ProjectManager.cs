@@ -437,12 +437,21 @@ namespace RoboClerk.Server.Services
                     logger.Info($"Content control {tagRequest.ContentControlId} found in document, using existing tag");
                 }
 
+                // Update the tag definition with the latest parameters from the request
+                // This ensures that if the user changed parameters in the add-in, they are reflected here
+                // regardless of whether the tag came from the document or the virtual cache
+                docxTag.UpdateTagDefinition(tagRequest.RoboClerkTag);
+
                 // Get content using the content creator
                 var contentCreator = contentCreatorFactory.CreateContentCreator(docxTag.Source, docxTag.ContentCreatorID);
                 var content = contentCreator.GetContent(docxTag, docConfig);
 
                 // Update the tag content - the GeneratedOpenXml property will handle conversion on-demand
                 docxTag.Contents = content;
+
+                // Process nested tags recursively to resolve any embedded tags
+                ProcessNestedTagsRecursively(docxTag, contentCreatorFactory);
+                content = docxTag.Contents;
 
                 if (string.IsNullOrEmpty(content))
                 {
@@ -1263,6 +1272,7 @@ namespace RoboClerk.Server.Services
                 if (contentChanged)
                 {
                     tag.Contents = RoboClerkTextParser.ReInsertRoboClerkTags(currentContent, nestedTags.Cast<RoboClerkTextTag>().ToList()); 
+                    currentContent = tag.Contents;
                 }
 
                 // Exit if no changes or max nested levels reached

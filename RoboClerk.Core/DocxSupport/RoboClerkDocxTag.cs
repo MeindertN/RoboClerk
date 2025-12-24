@@ -44,6 +44,17 @@ namespace RoboClerk.Core.DocxSupport
         }
 
         /// <summary>
+        /// Updates the tag definition (source, content creator, parameters) from a new tag string.
+        /// This is used when the tag definition changes dynamically, e.g. from the Word add-in.
+        /// </summary>
+        /// <param name="tagContents">The new tag string (e.g. "[REF:SystemRequirement(ID=123)]")</param>
+        public void UpdateTagDefinition(string tagContents)
+        {
+            parameters.Clear();
+            ParseCompleteTag(tagContents);
+        }
+
+        /// <summary>
         /// Converts the current text content to OpenXML and updates the content control.
         /// This should be called just before saving the document.
         /// </summary>
