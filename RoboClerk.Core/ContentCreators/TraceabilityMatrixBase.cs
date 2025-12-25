@@ -80,7 +80,7 @@ namespace RoboClerk.ContentCreators
             string result = item.ItemID;
             if (item.HasLink)
             {
-                if (format == "HTML")
+                if (format == "HTML" || format == "DOCX")
                 {
                     result = $"<a href=\"{item.Link}\">{item.ItemID}</a>";
                 }
@@ -182,7 +182,7 @@ namespace RoboClerk.ContentCreators
 
             // Collect trace issues (format-agnostic logic)
             var traceIssues = new List<string>();
-            bool traceIssuesFound = false;
+
             
             //now visualize the trace issues, first the truth
             var truthTraceIssues = analysis.GetTraceIssuesForTruth(truthSource);
@@ -192,7 +192,7 @@ namespace RoboClerk.ContentCreators
                 // Only include trace issues for items that match the project filter
                 if (ShouldIncludeItem(item, projectFilter))
                 {
-                    traceIssuesFound = true;
+
                     traceIssues.Add($"{truthSource.Name} {GetLinkString(item)} is potentially missing a corresponding {issue.Target.Name}.");
                 }
             }
@@ -215,7 +215,6 @@ namespace RoboClerk.ContentCreators
                     // Only include trace issues for items that match the project filter
                     if (ShouldIncludeItem(item, projectFilter))
                     {
-                        traceIssuesFound = true;
                         string sourceTitle = issue.Source.Name;
                         string targetTitle = issue.Target.Name;
                         string sourceID = issue.SourceID;

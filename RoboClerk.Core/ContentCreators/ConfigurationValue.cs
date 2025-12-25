@@ -30,7 +30,17 @@ namespace RoboClerk.ContentCreators
                     {
                         Category = "Configuration Access",
                         Description = $"Returns the value of the '{key}' configuration key from the RoboClerk configuration file.",
-                        ExampleUsage = $"@@Config:{key}@@"
+                        Parameters = new List<ContentCreatorParameter>()
+                        {
+                            new ContentCreatorParameter("key",
+                                "Set to the key of the config value to retrieve.",
+                                ParameterValueType.String, required: true)
+                            {
+                                AllowedValues = new List<string> { key },
+                                ExampleValue = key
+                            }
+                        },
+                        ExampleUsage = $"@@Config:ConfigurationValue(key={key})@@"
                     });
                 }
             }
@@ -47,7 +57,12 @@ namespace RoboClerk.ContentCreators
 
         public override string GetContent(IRoboClerkTag tag, DocumentConfig doc)
         {
-            return data.GetConfigValue(tag.ContentCreatorID);
+            if (!tag.HasParameter("key"))
+            {
+                //for backwards compatibility, if no key is specified, use the ContentCreatorID as the key
+                return data.GetConfigValue(tag.ContentCreatorID);
+            }
+            return data.GetConfigValue(tag.GetParameterOrDefault("key"));
         }
     }
 }

@@ -307,7 +307,7 @@ namespace RoboClerk.Server.Services
                 
                 foreach (var docxDocument in docxDocuments)
                 {
-                    projectContext.LoadedDocuments[docxDocument.RoboClerkID] = ProcessTemplate(projectServiceProvider,docxDocument);
+                    projectContext.LoadedDocuments[docxDocument.RoboClerkID] = ProcessTemplate(projectServiceProvider,docxDocument, true);
                 }
 
                 return new ProjectLoadResult
@@ -538,7 +538,7 @@ namespace RoboClerk.Server.Services
 
                 // Always reload for safety when replacing full config
                 logger.Info($"Configuration changes require project reload for: {projectId}");
-                await RefreshProjectDocumentsAsync(projectId, false);
+                await RefreshProjectDocumentsAsync(projectId, true);
 
                 return new ConfigurationUpdateResult
                 {
@@ -941,7 +941,7 @@ namespace RoboClerk.Server.Services
                 }
 
                 // Process the document fresh
-                var processedDocument = ProcessTemplate(project.ProjectServiceProvider, docConfig);
+                var processedDocument = ProcessTemplate(project.ProjectServiceProvider, docConfig, true);
                 project.LoadedDocuments[documentId] = processedDocument;
 
                 // Update the project's last updated timestamp
