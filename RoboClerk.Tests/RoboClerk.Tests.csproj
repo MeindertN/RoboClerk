@@ -34,6 +34,7 @@
     <ProjectReference Include="..\RoboClerk\RoboClerk.csproj" />
     <ProjectReference Include="..\RoboClerk.TestResultsFilePlugin\RoboClerk.TestResultsFilePlugin.csproj" />
     <ProjectReference Include="..\RoboClerk.TestDescriptionImportPlugin\RoboClerk.TestDescriptionFilePlugin.csproj" />
+    <ProjectReference Include="..\RoboClerk.Server\RoboClerk.Server.csproj" />
   </ItemGroup>
 	<!-- Copy runtime files from all referenced plugins -->
 	<Target Name="CopyRuntimeFiles" AfterTargets="Build">
