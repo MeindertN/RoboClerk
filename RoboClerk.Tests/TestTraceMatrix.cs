@@ -31,6 +31,9 @@ namespace RoboClerk.Tests
             var te = new TraceEntity("SystemRequirement", "Requirement", "SYS", TraceEntityType.Truth);
             var teSWR = new TraceEntity("SoftwareRequirement", "Specification", "SWR", TraceEntityType.Truth);
             var teDoc = new TraceEntity("SystemRequirementsSpec", "System Requirements Specification", "SRS", TraceEntityType.Document);
+            traceAnalysis.GetTraceEntityForAnyProperty("SystemRequirement").Returns(te);
+            traceAnalysis.GetTraceEntityForAnyProperty("SoftwareRequirement").Returns(teSWR);
+            traceAnalysis.GetTraceEntityForAnyProperty("SystemRequirementsSpec").Returns(teDoc);
             traceAnalysis.GetTraceEntityForID("SystemRequirement").Returns(te);
             traceAnalysis.GetTraceEntityForID("SoftwareRequirement").Returns(teSWR);
             traceAnalysis.GetTraceEntityForID("SystemRequirementsSpec").Returns(teDoc);
@@ -88,7 +91,7 @@ namespace RoboClerk.Tests
             var trace = new TraceMatrix(dataSources, traceAnalysis, config);
             var tag = new RoboClerkTextTag(0, 46, "@@SLMS:TraceMatrix(source=SystemRequirement)@@", true);
             string result = trace.GetContent(tag, documentConfig);
-            string expectedValue = "|====\n| Requirements | Specifications | SRS \n| SYS1 | SYS1_SWR1, SYS1_SWR2 | Trace Present \n| SYS2 | SYS2_SWR3 | Trace Present \n|====\n\n\nTrace issues:\n\n. No Requirement level trace problems detected!\n";
+            string expectedValue = "|====\n| Requirements | Specifications | SRS \n| SYS1 | SYS1_SWR1, SYS1_SWR2 | Trace Present \n| SYS2 | SYS2_SWR3 | Trace Present \n|====\n\n";
 
             Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedValue));
         }
@@ -145,7 +148,7 @@ namespace RoboClerk.Tests
             var te = traceAnalysis.GetTraceEntityForID("SoftwareRequirement");
             matrix[te][1].Clear();
             string result = trace.GetContent(tag, documentConfig);
-            string expectedValue = "|====\n| Requirements | Specifications | SRS \n| SYS1 | SYS1_SWR1, SYS1_SWR2 | Trace Present \n| SYS2 | N/A | Trace Present \n|====\n\n\nTrace issues:\n\n. No Requirement level trace problems detected!\n";
+            string expectedValue = "|====\n| Requirements | Specifications | SRS \n| SYS1 | SYS1_SWR1, SYS1_SWR2 | Trace Present \n| SYS2 | N/A | Trace Present \n|====\n\n";
 
             Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedValue));
         }
@@ -163,7 +166,7 @@ namespace RoboClerk.Tests
             matrix[te][0].Clear();
             matrix[te][0].Add(null);
             string result = trace.GetContent(tag, documentConfig);
-            string expectedValue = "|====\n| Requirements | Specifications | SRS \n| SYS1 | MISSING | Trace Present \n| SYS2 | SYS2_SWR3 | Trace Present \n|====\n\n\nTrace issues:\n\n. No Requirement level trace problems detected!\n";
+            string expectedValue = "|====\n| Requirements | Specifications | SRS \n| SYS1 | MISSING | Trace Present \n| SYS2 | SYS2_SWR3 | Trace Present \n|====\n\n";
 
             Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedValue));
         }

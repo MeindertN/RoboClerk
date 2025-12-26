@@ -323,7 +323,7 @@ D";
             sb.Append("@@@\n");
 
             var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
-            Assert.That(ex.Message, Is.EqualTo("Parameter section in RoboClerk tag not formatted correctly at (16:1). Tag contents: SLMS:testfunc(test==4)"));
+            Assert.That(ex.Message, Is.EqualTo("RoboClerk tag parameters should have only a single = sign between key and value at (16:1). Tag contents: SLMS:testfunc(test==4)"));
         }
 
         [Test]
@@ -335,7 +335,7 @@ D";
             sb.Append("@@@\n");
 
             var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
-            Assert.That(ex.Message, Is.EqualTo("Malformed element in parameter section of RoboClerk tag at (16:1). Tag contents: SLMS:testfunc(test==4,testing)"));
+            Assert.That(ex.Message, Is.EqualTo("RoboClerk tag parameters should have only a single = sign between key and value at (16:1). Tag contents: SLMS:testfunc(test==4,testing)"));
         }
 
         [Test]
@@ -347,7 +347,19 @@ D";
             sb.Append("@@@\n");
 
             var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
-            Assert.That(ex.Message, Is.EqualTo("Malformed element in parameter section of RoboClerk tag at (16:1). Tag contents: SLMS:testfunc(test=4,testing=)"));
+            Assert.That(ex.Message, Is.EqualTo("RoboClerk tag parameters must have a value at (16:1). Tag contents: SLMS:testfunc(test=4,testing=)"));
+        }
+
+        [Test]
+        public void Parameters_Invalid_Format_Block_VERIFIES_Block_RoboClerk_Tag_Verifies_Parameter_Validity4()
+        {
+            StringBuilder sb = new StringBuilder(validText);
+            sb.Append("\n@@@SLMS:testfunc(test=   )\n");
+            sb.Append("\n");
+            sb.Append("@@@\n");
+
+            var ex = Assert.Throws<TagInvalidException>(() => RoboClerkTextParser.ExtractRoboClerkTags(sb.ToString()));
+            Assert.That(ex.Message, Is.EqualTo("RoboClerk tag parameters must have a value at (16:1). Tag contents: SLMS:testfunc(test=   )"));
         }
 
         [Test]

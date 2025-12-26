@@ -136,6 +136,14 @@ namespace RoboClerk.Core
                     {
                         throw new TagInvalidException(tagContents, "Malformed element in parameter section of RoboClerk tag");
                     }
+                    if (element.Length > eqIndex + 1 && element[eqIndex + 1] == '=')
+                    {
+                        throw new TagInvalidException(tagContents, "RoboClerk tag parameters should have only a single = sign between key and value");
+                    }
+                    if (eqIndex == element.Length - 1)
+                    {
+                        throw new TagInvalidException(tagContents, "RoboClerk tag parameters must have a value");
+                    }
                 }
             }
         }
