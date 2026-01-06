@@ -258,5 +258,87 @@ namespace RoboClerk.Tests
             var sdt = CreateTestContentControl("InvalidFormat");
             Assert.Throws<TagInvalidException>(() => new RoboClerkDocxTag(sdt, config));
         }
+
+        [UnitTestAttribute(
+            Identifier = "f3a8d98f-ff09-467b-a666-a6c5314af79f",
+            Purpose = "UpdateTagDefinition updates the tag properties correctly",
+            PostCondition = "Tag properties are updated from the new definition")]
+        [Test]
+        public void UpdateTagDefinition_UpdatesProperties()
+        {
+            var sdt = CreateTestContentControl("Config:SoftwareName()");
+            var tag = new RoboClerkDocxTag(sdt, config);
+
+            tag.UpdateTagDefinition("Trace:SWR(id=123)");
+
+            Assert.That(tag.Source, Is.EqualTo(DataSource.Trace));
+            Assert.That(tag.ContentCreatorID, Is.EqualTo("SWR"));
+            Assert.That(tag.GetParameterOrDefault("id"), Is.EqualTo("123"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "525889e6-d01e-45e9-bece-82799b335c69",
+            Purpose = "ConvertContentToOpenXml handles plain text content",
+            PostCondition = "Content control is updated with plain text")]
+        [Test]
+        public void ConvertContentToOpenXml_PlainText()
+        {
+            var sdt = CreateTestContentControl("Config:SoftwareName()", "Old Content");
+            var tag = new RoboClerkDocxTag(sdt, config);
+            tag.UpdateContent("New Plain Text Content");
+
+            tag.ConvertContentToOpenXml();
+
+            var content = sdt.Descendants<Text>().Select(t => t.Text).Aggregate((a, b) => a + b);
+            Assert.That(content, Is.EqualTo("New Plain Text Content"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "dc864b2e-36d3-4790-935d-226803e44213",
+            Purpose = "ConvertContentToOpenXml handles OpenXML content",
+            PostCondition = "Content control is updated with OpenXML content")]
+        [Test]
+        public void ConvertContentToOpenXml_OpenXmlContent()
+        {
+            var sdt = CreateTestContentControl("Config:SoftwareName()", "Old Content");
+            var tag = new RoboClerkDocxTag(sdt, config);
+            var openXmlContent = "<!--OPENXML_CONTENT--><w:p xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:r><w:t>OpenXML Content</w:t></w:r></w:p>";
+            tag.UpdateContent(openXmlContent);
+
+            tag.ConvertContentToOpenXml();
+
+            var content = sdt.Descendants<Text>().Select(t => t.Text).Aggregate((a, b) => a + b);
+            Assert.That(content, Is.EqualTo("OpenXML Content"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "d375f6ce-9fe8-4c8c-86b6-890fe4e65e64",
+            Purpose = "ConvertContentToOpenXml preserves original formatting",
+            PostCondition = "Original formatting is preserved in the new content")]
+        [Test]
+        public void ConvertContentToOpenXml_PreservesFormatting()
+        {
+            var sdt = CreateTestContentControl("Config:SoftwareName()", "Old Content");
+            
+            // Add some formatting to the original content
+            var run = sdt.Descendants<Run>().First();
+            run.RunProperties = new RunProperties(new Bold());
+            var paragraph = sdt.Descendants<Paragraph>().First();
+            paragraph.ParagraphProperties = new ParagraphProperties(new Justification { Val = JustificationValues.Center });
+
+            var tag = new RoboClerkDocxTag(sdt, config);
+            tag.UpdateContent("New Content");
+
+            tag.ConvertContentToOpenXml();
+
+            var newRun = sdt.Descendants<Run>().First();
+            Assert.That(newRun.RunProperties.HasChildren, Is.True);
+            Assert.That(newRun.RunProperties.Descendants<Bold>().Any(), Is.True);
+
+            var newParagraph = sdt.Descendants<Paragraph>().First();
+            Assert.That(newParagraph.ParagraphProperties.HasChildren, Is.True);
+            Assert.That(newParagraph.ParagraphProperties.Descendants<Justification>().Any(), Is.True);
+            Assert.That(newParagraph.ParagraphProperties.Descendants<Justification>().First().Val.Value, Is.EqualTo(JustificationValues.Center));
+        }
     }
 }

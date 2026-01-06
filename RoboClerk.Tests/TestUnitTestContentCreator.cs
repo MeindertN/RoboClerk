@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace RoboClerk.Tests
 {
@@ -745,6 +746,62 @@ namespace RoboClerk.Tests
             Assert.That(pos20 < pos10, "Test20.cs should come before Test10.cs in descending order");
             Assert.That(pos10 < pos2, "Test10.cs should come before Test2.cs in descending order");
             Assert.That(pos2 < pos1, "Test2.cs should come before Test1.cs in descending order");
+        }
+
+        [UnitTestAttribute(
+        Identifier = "edda23d6-4ce5-4322-8904-f8da8ec1b64c",
+        Purpose = "GenerateHTMLCheckResults generates correct HTML output for check results",
+        PostCondition = "HTML output contains expected elements")]
+        [Test]
+        public void TestGenerateHTMLCheckResults()
+        {
+            config.OutputFormat.Returns("HTML");
+            var sst = new UnitTest(dataSources, traceAnalysis, config);
+            var tag = new RoboClerkTextTag(0, 34, "@@SLMS:UnitTest(CheckResults=true)@@", true);
+            
+            // Case 1: No errors
+            results.Clear();
+            results.Add(new TestResult("tcid1", TestType.UNIT, TestResultStatus.PASS, "test1", "msg", DateTime.Now));
+            results.Add(new TestResult("tcid2", TestType.UNIT, TestResultStatus.PASS, "test2", "msg", DateTime.Now));
+            
+            string content = sst.GetContent(tag, documentConfig);
+            Assert.That(content, Does.Contain("<div>"));
+            Assert.That(content, Does.Contain("<p>All unit tests from the test plan were successfully executed and passed.</p>"));
+            
+            // Case 2: With errors
+            results.Clear();
+            results.Add(new TestResult("tcid1", TestType.UNIT, TestResultStatus.FAIL, "test1", "msg", DateTime.Now));
+            
+            content = sst.GetContent(tag, documentConfig);
+            Assert.That(content, Does.Contain("<h3>RoboClerk detected problems with the unit testing:</h3>"));
+            Assert.That(content, Does.Contain("<ul>"));
+            Assert.That(content, Does.Contain("<li>Unit test with ID \"tcid1\" has failed.</li>"));
+        }
+
+        [UnitTestAttribute(
+        Identifier = "4e78e8af-2f5b-45e5-8f19-09ab986278d1",
+        Purpose = "CreateUnitTestMetadata returns correct metadata",
+        PostCondition = "Metadata contains expected tags and parameters")]
+        [Test]
+        public void TestCreateUnitTestMetadata()
+        {
+            var sst = new UnitTest(dataSources, traceAnalysis, config);
+            var metadata = sst.GetMetadata();
+            
+            Assert.That(metadata.Name, Is.EqualTo("Unit Test"));
+            Assert.That(metadata.Tags, Has.Count.EqualTo(2));
+            
+            var detailTag = metadata.Tags.FirstOrDefault(t => t.TagID == "UnitTest Detail");
+            Assert.That(detailTag, Is.Not.Null);
+            Assert.That(detailTag.Parameters.Any(p => p.Name == "UnitTestState"), Is.True);
+            Assert.That(detailTag.Parameters.Any(p => p.Name == "UnitTestFileLocation"), Is.True);
+            Assert.That(detailTag.Parameters.Any(p => p.Name == "UnitTestFileName"), Is.True);
+            Assert.That(detailTag.Parameters.Any(p => p.Name == "UnitTestFunctionName"), Is.True);
+
+            var summaryTag = metadata.Tags.FirstOrDefault(t => t.TagID == "UnitTest Summary");
+            Assert.That(summaryTag, Is.Not.Null);
+            Assert.That(summaryTag.Parameters.Any(p => p.Name == "checkResults"), Is.True);
+            Assert.That(summaryTag.Parameters.Any(p => p.Name == "showResults"), Is.True);
         }
     }
 }

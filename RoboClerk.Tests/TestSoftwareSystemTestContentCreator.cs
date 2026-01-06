@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace RoboClerk.Tests
@@ -343,6 +344,57 @@ namespace RoboClerk.Tests
             // Verify the exception message contains the expected information
             Assert.That(ex.Message, Does.Contain("Cannot kick manual test case tcid3 to unit test"));
             Assert.That(ex.Message, Does.Contain("Change test type to automated"));
+        }
+
+        [UnitTestAttribute(
+        Identifier = "0e165bed-f978-479b-9277-05a9dc95590a",
+        Purpose = "GetMetadata returns correct metadata",
+        PostCondition = "Metadata contains expected tags and parameters")]
+        [Test]
+        public void SoftwareSystemTestMetadata()
+        {
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
+            var metadata = sst.GetMetadata();
+            Assert.That(metadata.Name, Is.EqualTo("Software System Test"));
+            Assert.That(metadata.Tags, Has.Count.EqualTo(2));
+            
+            var detailTag = metadata.Tags.FirstOrDefault(t => t.TagID == "SoftwareSystemTest Detail");
+            Assert.That(detailTag, Is.Not.Null);
+            Assert.That(detailTag.Parameters.Any(p => p.Name == "TestCaseState"), Is.True);
+            Assert.That(detailTag.Parameters.Any(p => p.Name == "TestCaseAutomated"), Is.True);
+
+            var summaryTag = metadata.Tags.FirstOrDefault(t => t.TagID == "SoftwareSystemTest Summary");
+            Assert.That(summaryTag, Is.Not.Null);
+            Assert.That(summaryTag.Parameters.Any(p => p.Name == "checkResults"), Is.True);
+        }
+
+        [UnitTestAttribute(
+        Identifier = "e0b54f30-f849-4b8f-baab-782eba3f3acc",
+        Purpose = "CheckResults handles unit test links correctly",
+        PostCondition = "Unit test results are correctly matched")]
+        [Test]
+        public void SoftwareSystemRenderTestUnitTestLink()
+        {
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
+            var tag = new RoboClerkTextTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
+            
+            testcaseItems.Clear();
+            results.Clear();
+
+            var item = new SoftwareSystemTestItem { ItemID = "TC1", TestCaseAutomated = true, TestCaseToUnitTest = true };
+            item.AddLinkedItem(new ItemLink("UT1", ItemLinkType.UnitTest));
+            testcaseItems.Add(item);
+            
+            var testResult = new TestResult("UT1", TestType.UNIT, TestResultStatus.PASS);
+            results.Add(testResult);
+
+            // Ensure dataSources returns the updated lists
+            dataSources.GetAllTestResults().Returns(results);
+            // Note: dataSources.GetItems(te).Returns(testcaseItems) was set in Setup and testcaseItems is the same list instance
+
+            string content = sst.GetContent(tag, documentConfig);
+            
+            Assert.That(content, Does.Contain("All automated tests from the test plan were successfully executed and passed"));
         }
     }
 }

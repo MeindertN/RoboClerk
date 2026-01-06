@@ -270,6 +270,7 @@ namespace RoboClerk
                            serviceCollection.AddSingleton<IPluginLoader, PluginLoader>();
                            serviceCollection.AddSingleton<ITraceabilityAnalysis, TraceabilityAnalysis>();
                            serviceCollection.AddSingleton<IRoboClerkCore, RoboClerkTextCore>();
+                           serviceCollection.AddTransient<IWebResources, WebResources>();
 
                            // Build service provider first so we can access services for configuration
                            var tempServiceProvider = serviceCollection.BuildServiceProvider();

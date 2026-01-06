@@ -280,7 +280,7 @@ namespace RoboClerk
             if (lastUpdated.HasValue) info.LastUpdated = lastUpdated.Value;
         }
 
-        private string RunGitCommand(string arguments) 
+        protected virtual string RunGitCommand(string arguments) 
         {
             var stdOutBuffer = new StringBuilder();
             var stdErrBuffer = new StringBuilder();

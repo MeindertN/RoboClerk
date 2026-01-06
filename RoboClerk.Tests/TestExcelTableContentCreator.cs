@@ -11,6 +11,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace RoboClerk.Tests
 {
@@ -96,6 +97,43 @@ namespace RoboClerk.Tests
             dataSources.GetFileStreamFromTemplateDir(@"unknown.xlsx").Returns(x => throw new Exception("Can't find file"));
 
             Assert.Throws<Exception>(()=>et.GetContent(tag, documentConfig));
+        }
+
+        [UnitTestAttribute(
+        Identifier = "6dfa2b6a-0340-4465-81e5-b43ab386ed8b",
+        Purpose = "Excel Table content creator is created, a tag is provided and output format is HTML",
+        PostCondition = "Appropriate HTML table is returned")]
+        [Test]
+        public void TestExcelTableCC_HTML()
+        {
+            config.OutputFormat.Returns("HTML");
+            var et = new ExcelTable(dataSources, traceAnalysis, config);
+            var tag = new RoboClerkTextTag(0, 75, "@@FILE:exceltable(fileName=test.xlsx,range=B2:C4,workSheet=testworksheet)@@", true);
+
+            string result = et.GetContent(tag, documentConfig);
+            string expectedResult = "<div>\n    <table border=\"1\" cellspacing=\"0\" cellpadding=\"4\">\n        <tr>\n            <td><strong>testvalueb2</strong></td>            <td><em>testvaluec3</em></td>\n        </tr>\n        <tr>\n            <td></td>            <td></td>\n        </tr>\n        <tr>\n            <td>testvalueb4</td>            <td><a href=\"http://localhost/\">testvaluec4</a></td>\n        </tr>\n    </table>\n</div>\n";
+
+            Assert.That(Regex.Replace(result, @"\r\n", "\n"), Is.EqualTo(expectedResult));
+        }
+
+        [UnitTestAttribute(
+        Identifier = "bb301766-2c31-45c7-9579-a01e64bfc5d8",
+        Purpose = "Excel Table content creator metadata is correct",
+        PostCondition = "Metadata is returned with expected values")]
+        [Test]
+        public void TestExcelTableMetadata()
+        {
+            var et = new ExcelTable(dataSources, traceAnalysis, config);
+            var metadata = ((ContentCreatorBase)et).GetMetadata();
+
+            Assert.That(metadata.Name, Is.EqualTo("Excel Table Import"));
+            Assert.That(metadata.Source, Is.EqualTo("FILE"));
+            Assert.That(metadata.Tags, Has.Count.EqualTo(1));
+            Assert.That(metadata.Tags[0].TagID, Is.EqualTo("ExcelTable"));
+            Assert.That(metadata.Tags[0].Parameters, Has.Count.EqualTo(3));
+            Assert.That(metadata.Tags[0].Parameters.Any(p => p.Name == "fileName"));
+            Assert.That(metadata.Tags[0].Parameters.Any(p => p.Name == "range"));
+            Assert.That(metadata.Tags[0].Parameters.Any(p => p.Name == "workSheet"));
         }
 
     }

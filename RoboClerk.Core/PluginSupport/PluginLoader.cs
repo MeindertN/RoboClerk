@@ -55,17 +55,24 @@ namespace RoboClerk
         }
     }
 
+    // 1. Extract interface for assembly loading
+    public interface IPluginAssemblyLoader
+    {
+        IEnumerable<Assembly> LoadFromDirectory(string pluginDir);
+    }
+
     public class PluginLoader : IPluginLoader
     {
         private readonly IFileSystem _fileSystem;
         private readonly IFileProviderPlugin _pluginFileProvider;
-        private readonly PluginAssemblyLoader _assemblyLoader;
+        private readonly IPluginAssemblyLoader _assemblyLoader;
 
-        public PluginLoader(IFileSystem fileSystem, IFileProviderPlugin pluginFileProvider)
+        // 2. Inject the interface (optional parameter allows backward compatibility/default behavior)
+        public PluginLoader(IFileSystem fileSystem, IFileProviderPlugin pluginFileProvider, IPluginAssemblyLoader? assemblyLoader = null)
         {
             _fileSystem = fileSystem;
             _pluginFileProvider = pluginFileProvider;
-            _assemblyLoader = new PluginAssemblyLoader(_fileSystem);
+            _assemblyLoader = assemblyLoader ?? new PluginAssemblyLoader(_fileSystem);
         }
 
         // -------------------------
@@ -178,7 +185,8 @@ namespace RoboClerk
     }
 
     // --- helper for loading raw assemblies ---
-    public class PluginAssemblyLoader
+    // 3. Implement the interface
+    public class PluginAssemblyLoader : IPluginAssemblyLoader
     {
         private readonly IFileSystem _fs;
 

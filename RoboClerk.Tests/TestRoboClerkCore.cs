@@ -52,6 +52,7 @@ namespace RoboClerk.Tests
             serviceCollection.AddSingleton<IConfiguration>(x => config );
             serviceCollection.AddSingleton<ITraceabilityAnalysis>(x => traceAnalysis);
             serviceCollection.AddSingleton<IDataSources>(x => dataSources);
+            serviceCollection.AddTransient<IWebResources>(x => Substitute.For<IWebResources>());
             RegisterContentCreators(serviceCollection);
             var serviceProvider = serviceCollection.BuildServiceProvider();
             contentCreatorFactory = new ContentCreatorFactory(serviceProvider, traceAnalysis);

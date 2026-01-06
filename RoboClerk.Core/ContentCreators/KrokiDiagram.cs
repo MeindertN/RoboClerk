@@ -12,18 +12,58 @@ using System.Threading.Tasks;
 
 namespace RoboClerk.ContentCreators
 {
-    internal class KrokiDiagram : ContentCreatorBase
+    public interface IWebResources
+    {
+        Task<byte[]> DownloadImageAsync(string url, CancellationToken cancellationToken = default);
+    }
+
+    public class WebResources : IWebResources
     {
         private static readonly HttpClient _httpClient = new HttpClient()
         {
             Timeout = TimeSpan.FromSeconds(30) // Set a reasonable timeout
         };
-        private readonly IFileProviderPlugin fileSystem;
+        private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public KrokiDiagram(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf, IFileProviderPlugin fs)
+        public async Task<byte[]> DownloadImageAsync(string url, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                throw new ArgumentException("URL must not be empty", nameof(url));
+
+            try
+            {
+                logger.Debug($"Attempting to download image from URL: {url}");
+                // Fetch the image bytes with timeout handling
+                return await _httpClient.GetByteArrayAsync(url, cancellationToken);
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.Error($"HTTP request failed when downloading from Kroki: {ex.Message}");
+                throw new Exception($"Failed to download diagram from Kroki service. The service may be temporarily unavailable. Error: {ex.Message}", ex);
+            }
+            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException || cancellationToken.IsCancellationRequested)
+            {
+                logger.Error($"Request to Kroki service timed out after 30 seconds: {ex.Message}");
+                throw new Exception("Request to Kroki service timed out. The service may be temporarily unavailable or experiencing high load.", ex);
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"Unexpected error when downloading from Kroki: {ex.Message}");
+                throw new Exception($"Unexpected error occurred while downloading diagram from Kroki service: {ex.Message}", ex);
+            }
+        }
+    }
+
+    internal class KrokiDiagram : ContentCreatorBase
+    {
+        private readonly IFileProviderPlugin fileSystem;
+        private readonly IWebResources webResources;
+
+        public KrokiDiagram(IDataSources data, ITraceabilityAnalysis analysis, IConfiguration conf, IFileProviderPlugin fs, IWebResources webRes)
             : base(data, analysis, conf)
         {
             fileSystem = fs;
+            webResources = webRes;
         }
 
         /// <summary>
@@ -99,34 +139,6 @@ namespace RoboClerk.ContentCreators
 
         public override ContentCreatorMetadata GetMetadata() => StaticMetadata;
 
-        public static async Task<byte[]> DownloadImageAsync(string url, CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrWhiteSpace(url))
-                throw new ArgumentException("URL must not be empty", nameof(url));
-
-            try
-            {
-                logger.Debug($"Attempting to download image from URL: {url}");
-                // Fetch the image bytes with timeout handling
-                return await _httpClient.GetByteArrayAsync(url, cancellationToken);
-            }
-            catch (HttpRequestException ex)
-            {
-                logger.Error($"HTTP request failed when downloading from Kroki: {ex.Message}");
-                throw new Exception($"Failed to download diagram from Kroki service. The service may be temporarily unavailable. Error: {ex.Message}", ex);
-            }
-            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException || cancellationToken.IsCancellationRequested)
-            {
-                logger.Error($"Request to Kroki service timed out after 30 seconds: {ex.Message}");
-                throw new Exception("Request to Kroki service timed out. The service may be temporarily unavailable or experiencing high load.", ex);
-            }
-            catch (Exception ex)
-            {
-                logger.Error($"Unexpected error when downloading from Kroki: {ex.Message}");
-                throw new Exception($"Unexpected error occurred while downloading diagram from Kroki service: {ex.Message}", ex);
-            }
-        }
-
         private string EncodeToKroki(string diagramSource)
         {
             // 1) UTF-8 bytes
@@ -174,7 +186,7 @@ namespace RoboClerk.ContentCreators
             {
                 //download the image and save it to the media directory with timeout
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-                byte[] imagebytes = DownloadImageAsync($"{krokiURL}/{diagramType}/{imageFormat}/{base64}", cts.Token).Result;
+                byte[] imagebytes = webResources.DownloadImageAsync($"{krokiURL}/{diagramType}/{imageFormat}/{base64}", cts.Token).Result;
                 string imagetag = string.Empty;
                 if (configuration.OutputFormat.ToUpper() == "HTML" || configuration.OutputFormat.ToUpper() == "DOCX")
                 {
