@@ -75,12 +75,12 @@ string CreateRows()
 
 		sb.Append("<tr>");
 		sb.Append($"<td>{ut.UnitTestFileName}</td>");
-		sb.Append($"<td">{ut.UnitTestFunctionName}</td>");
-		sb.Append($"<td">{GetItemLinkString(ut)}</td>");
-		sb.Append($"<td">{ut.UnitTestPurpose}</td>");
-		sb.Append($"<td">{ut.UnitTestAcceptanceCriteria}</td>");
+		sb.Append($"<td>{ut.UnitTestFunctionName}</td>");
+		sb.Append($"<td>{GetItemLinkString(ut)}</td>");
+		sb.Append($"<td>{ut.UnitTestPurpose}</td>");
+		sb.Append($"<td>{ut.UnitTestAcceptanceCriteria}</td>");
 		sb.Append($"<td>{reqs.ToString()}</td>");
-		sb.Append($"<td">{tests.ToString()}</td>");
+		sb.Append($"<td>{tests.ToString()}</td>");
 
 		if (showResults)
 		{

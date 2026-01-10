@@ -258,28 +258,48 @@ namespace RoboClerk.Core.DocxSupport
                     return;
                 }
 
-                // Parse the XML content directly using OpenXML
-                var lines = cleanedContent.Split(NewlineSplit, StringSplitOptions.RemoveEmptyEntries);
-                
-                foreach (var line in lines)
+                // Parse the entire XML content as a single block - don't split by lines
+                // as XML elements like tables can span multiple lines
+                try
                 {
-                    if (string.IsNullOrWhiteSpace(line))
-                        continue;
-                        
-                    try
+                    // Create a temporary document to help parse the XML
+                    var tempDoc = new Document();
+                    tempDoc.InnerXml = $"<w:body xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">{cleanedContent}</w:body>";
+                    
+                    // Clone and add each child element from the temporary body
+                    if (tempDoc.Body != null)
                     {
-                        // Parse each OpenXML element and add it to the content element
-                        var parsedElement = ParseOpenXmlElement(line.Trim());
-                        if (parsedElement != null)
+                        foreach (var child in tempDoc.Body.ChildElements.ToList())
                         {
-                            contentElement.AppendChild(parsedElement);
+                            contentElement.AppendChild(child.CloneNode(true));
                         }
                     }
-                    catch (Exception ex)
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn($"Failed to parse OpenXML content as a block, trying line-by-line: {ex.Message}");
+                    
+                    // Fallback: try line-by-line parsing for simpler content
+                    var lines = cleanedContent.Split(NewlineSplit, StringSplitOptions.RemoveEmptyEntries);
+                    
+                    foreach (var line in lines)
                     {
-                        logger.Warn($"Failed to parse OpenXML line, treating as text: {ex.Message}");
-                        // Fallback: treat as text in a paragraph
-                        AppendEmpty(contentElement, new OriginalFormatting());
+                        if (string.IsNullOrWhiteSpace(line))
+                            continue;
+                            
+                        try
+                        {
+                            var parsedElement = ParseOpenXmlElement(line.Trim());
+                            if (parsedElement != null)
+                            {
+                                contentElement.AppendChild(parsedElement);
+                            }
+                        }
+                        catch (Exception lineEx)
+                        {
+                            logger.Warn($"Failed to parse OpenXML line, treating as text: {lineEx.Message}");
+                            AppendEmpty(contentElement, new OriginalFormatting());
+                        }
                     }
                 }
             }
@@ -325,7 +345,7 @@ namespace RoboClerk.Core.DocxSupport
                     else if (xmlString.Contains("<w:tbl ") || xmlString.StartsWith("<w:tbl>"))
                     {
                         var table = new Table();
-                        table.InnerXml = xmlString;
+                        table.InnerXml = $"<w:tbl xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">{xmlString}</w:tbl>";
                         return table;
                     }
                     else if (xmlString.Contains("<w:r ") || xmlString.StartsWith("<w:r>"))
@@ -355,38 +375,43 @@ namespace RoboClerk.Core.DocxSupport
             {
                 // Get the main document part from the content control
                 var mainPart = GetMainDocumentPart();
-                if (mainPart != null)
+                if (mainPart == null)
                 {
-                    HtmlToOpenXml.HtmlConverter converter;
-                    
-                    // Configure BaseImageUrl if configuration is available
-                    if (configuration?.OutputDir != null)
+                    // No document context available - fall back to plain text
+                    logger.Debug("MainDocumentPart not available, falling back to plain text");
+                    ConvertTextToOpenXml(htmlContent, contentElement);
+                    return;
+                }
+                
+                HtmlToOpenXml.HtmlConverter converter;
+                
+                // Configure BaseImageUrl if configuration is available
+                if (configuration?.OutputDir != null)
+                {
+                    // Convert the output directory to a proper file URI
+                    var outputDirUri = new Uri(configuration.OutputDir.Replace('\\', '/'), UriKind.RelativeOrAbsolute);
+                    if (!outputDirUri.IsAbsoluteUri)
                     {
-                        // Convert the output directory to a proper file URI
-                        var outputDirUri = new Uri(configuration.OutputDir.Replace('\\', '/'), UriKind.RelativeOrAbsolute);
-                        if (!outputDirUri.IsAbsoluteUri)
-                        {
-                            // If it's a relative path, make it absolute
-                            outputDirUri = new Uri(Path.GetFullPath(configuration.OutputDir));
-                        }
-                        
-                        var webRequest = new HtmlToOpenXml.IO.DefaultWebRequest()
-                        {
-                            BaseImageUrl = outputDirUri
-                        };
-                        converter = new HtmlToOpenXml.HtmlConverter(mainPart, webRequest);
-                    }
-                    else
-                    {
-                        converter = new HtmlToOpenXml.HtmlConverter(mainPart);
-                    }
+                        // If it's a relative path, make it absolute
+                        outputDirUri = new Uri(Path.GetFullPath(configuration.OutputDir));
+                      }
                     
-                    var paragraphs = converter.Parse(htmlContent);
+                    var webRequest = new HtmlToOpenXml.IO.DefaultWebRequest()
+                    {
+                        BaseImageUrl = outputDirUri
+                    };
+                    converter = new HtmlToOpenXml.HtmlConverter(mainPart, webRequest);
+                }
+                else
+                {
+                    converter = new HtmlToOpenXml.HtmlConverter(mainPart);
+                }
+                
+                var paragraphs = converter.Parse(htmlContent);
 
-                    foreach (var paragraph in paragraphs)
-                    {
-                        contentElement.AppendChild(paragraph);
-                    }
+                foreach (var paragraph in paragraphs)
+                {
+                    contentElement.AppendChild(paragraph);
                 }
             }
             catch (Exception ex)

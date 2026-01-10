@@ -51,31 +51,58 @@ namespace RoboClerk.Tests.Server
             mockConfiguration.DataSourcePlugins.Returns(new List<string>());
             mockConfiguration.CheckpointConfig.Returns(new CheckpointConfig());
 
-            // Setup real configuration for LoadProject tests
+            // Setup real configuration for LoadProject tests with minimal RoboClerk config loaded
             baseConfig = new RoboClerk.Configuration.Configuration();
             var configType = typeof(RoboClerk.Configuration.Configuration);
+            
+            // Set up basic required fields that RoboClerk config would normally set
             configType.GetField("pluginDirs", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(baseConfig, new List<string> { "plugins" });
             configType.GetField("dataSourcePlugins", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(baseConfig, new List<string>());
+            configType.GetField("logLevel", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(baseConfig, "INFO");
+            configType.GetField("outputFormat", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(baseConfig, "DOCX");
+            configType.GetField("pluginConfigDir", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(baseConfig, "plugins");
+            configType.GetField("fileProviderPlugin", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(baseConfig, "SharePointFileProviderPlugin");
 
             // Setup mock SharePoint provider
             mockSharePointProvider = Substitute.For<IFileProviderPlugin>();
             mockSharePointProvider.GetPathPrefix().Returns("sp://");
-            
+
             // Basic file provider mocks logic from Suite
             mockSharePointProvider.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns(x => 
             {
-                var p1 = x.ArgAt<string>(0).TrimEnd('/');
-                var p2 = x.ArgAt<string>(1).TrimStart('/');
+                var p1 = x.ArgAt<string>(0)?.TrimEnd('/') ?? "";
+                var p2 = x.ArgAt<string>(1)?.TrimStart('/') ?? "";
                 return $"{p1}/{p2}";
             });
-            mockSharePointProvider.Combine(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(x => 
+            mockSharePointProvider.Combine(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
+                .Returns(x => 
+                {
+                    var p1 = x.ArgAt<string>(0)?.TrimEnd('/') ?? "";
+                    var p2 = x.ArgAt<string>(1)?.Trim('/') ?? "";
+                    var p3 = x.ArgAt<string>(2)?.TrimStart('/') ?? "";
+                    return $"{p1}/{p2}/{p3}";
+                });
+            // Handle params string[] overload for Combine
+            mockSharePointProvider.Combine(Arg.Any<string[]>()).Returns(x =>
             {
-                 var p1 = x.ArgAt<string>(0).TrimEnd('/');
-                 var p2 = x.ArgAt<string>(1).TrimStart('/');
-                 var p3 = x.ArgAt<string>(2).TrimStart('/');
-                 return $"{p1}/{p2}/{p3}";
+                var paths = x.ArgAt<string[]>(0);
+                if (paths == null || paths.Length == 0)
+                    return string.Empty;
+                
+                var result = paths[0]?.TrimEnd('/') ?? "";
+                for (int i = 1; i < paths.Length; i++)
+                {
+                    var part = paths[i]?.Trim('/') ?? "";
+                    if (!string.IsNullOrEmpty(part))
+                        result = $"{result}/{part}";
+                }
+                return result;
             });
             mockSharePointProvider.GetFileName(Arg.Any<string>()).Returns(x => Path.GetFileName(x.ArgAt<string>(0)));
             mockSharePointProvider.GetDirectoryName(Arg.Any<string>()).Returns(x => Path.GetDirectoryName(x.ArgAt<string>(0))?.Replace('\\', '/'));
@@ -88,11 +115,7 @@ namespace RoboClerk.Tests.Server
                 Arg.Any<Action<IServiceCollection>>())
                 .Returns(mockSharePointProvider);
 
-            // Create service provider with BOTH mock (for non-load tests validation if needed) and real config components support
-            // The ProjectManager expects IConfiguration. For positive tests, we need baseConfig. 
-            // For negative tests that just check logic before loading, mockConfiguration was used. 
-            // Ideally we use baseConfig for all, as it implements IConfiguration.
-            
+            // Create service provider with real config components support
             var services = new ServiceCollection();
             services.AddSingleton<IConfiguration>(baseConfig); // Use real config object
             services.AddSingleton(mockPluginLoader);
@@ -124,27 +147,95 @@ namespace RoboClerk.Tests.Server
 ProjectName = ""TestProject""
 ProjectRoot = ""sp://testsite/project""
 TemplateDirectory = ""sp://testsite/project/Templates""
+PluginConfigurationDir = ""sp://testsite/project/Plugins""
+MediaDirectory = """"
 OutputDirectory = ""sp://testsite/project/Output""
 DataSourcePlugin = []
+AISystemPlugin = """"
 
-[Truth]
-    [Truth.SystemRequirement]
-    name = ""System Requirement""
-    abbreviation = ""SR""
 
-[Document]
-    [Document.Doc1]
-    identifier = ""Doc1""
-    title = ""Test Document""
-    abbreviation = ""TD""
-    template = ""template.docx""
+[Truth.SystemRequirement]
+name = ""System Requirement""
+abbreviation = ""SR""
+
+[Truth.SoftwareRequirement]
+name = ""Software Requirement""
+abbreviation = ""SWR""
+
+[Truth.DocumentationRequirement]
+	name = ""Documentation""
+	abbreviation = ""DOC""
+
+[Truth.SoftwareSystemTest]
+	name = ""Test Case""
+	abbreviation = ""TC""
+
+[Truth.UnitTest]
+	name = ""Unit Test""
+	abbreviation = ""UT""
+
+[Truth.Risk]
+	name = ""Risk""
+	abbreviation = ""RSK""
+
+[Truth.Anomaly]
+	name = ""Bug""
+	abbreviation = ""BG""
+
+[Truth.SOUP]
+	name = ""SOUP""
+	abbreviation = ""SOUP""
+
+[Truth.DocContent]
+	name = ""DocContent""
+	abbreviation = ""DCT""
+
+[Document.Doc1]
+identifier = ""Doc1""
+title = ""Test Document""
+abbreviation = ""TD""
+template = ""template.docx""
 
 [TraceConfig]
     [TraceConfig.SystemRequirement]
-    forward = []
-    backward = []
+        SoftwareRequirement.forward = [""ALL""]
+        SoftwareRequirement.backward = [""ALL""]
+        SoftwareRequirement.forwardLink = ""Child""
+        SoftwareRequirement.backwardLink = ""Parent""
 
-[CheckpointConfig]
+[CheckpointConfiguration]
+CheckpointFile = """"
+
+UpdatedSystemRequirementIDs = []
+
+UpdatedSoftwareRequirementIDs = []
+
+UpdatedSoftwareSystemTestIDs = []
+    
+UpdatedUnitTestIDs = []
+    
+UpdatedRiskIDs = []
+
+UpdatedAnomalyIDs = []
+
+UpdatedSOUPIDs = []
+
+UpdatedDocumentationRequirementIDs = []
+
+UpdatedDocContentIDs = []
+
+[AIFeedback]
+
+ProvideTemplateContentFeedback = ""False""
+
+TruthItemsAIFeedback = [""SoftwareRequirement""]
+
+[ConfigValues]
+
+CompanyName = ""Acme Inc.""
+SoftwareName = ""RoboClerk""
+SoftwareVersion = ""0.1""
+ProjectIdentifier = ""007""
 ";
         }
 
@@ -153,10 +244,23 @@ DataSourcePlugin = []
             var configContent = GetValidProjectConfig();
             var docxContent = CreateValidDocx();
 
+            // Mock ReadAllText to return config content for ANY path that looks like a config file
             mockSharePointProvider.ReadAllText(Arg.Any<string>()).Returns(configContent);
+            
+            // Mock ReadAllBytes for template files (synchronous version used by ProcessTemplate)
             mockSharePointProvider.ReadAllBytes(Arg.Any<string>()).Returns(docxContent);
+            
+            // Also mock the async version for completeness
+            mockSharePointProvider.ReadAllBytesAsync(Arg.Any<string>()).Returns(Task.FromResult(docxContent));
+            
+            // Mock WriteAllTextAsync for configuration update tests
+            mockSharePointProvider.WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(Task.CompletedTask);
+            
             mockSharePointProvider.GetFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>())
                 .Returns(new[] { $"{projectPath}/Templates/template.docx" });
+            mockSharePointProvider.Combine(Arg.Any<string>(), "RoboClerkConfig", "projectConfig.toml")
+                .Returns($"{projectPath}/RoboClerkConfig/projectConfig.toml");
 
             var request = new LoadProjectRequest
             {
@@ -601,7 +705,7 @@ DataSourcePlugin = []
             await LoadTestProject();
             var values = await projectManager.GetConfigurationValuesAsync(projectId);
             Assert.That(values, Is.Not.Null);
-            Assert.That(values.ContainsKey("ProjectName"), Is.True);
+            Assert.That(values.ContainsKey("SoftwareName"), Is.True);
         }
 
         [UnitTestAttribute(
@@ -635,7 +739,7 @@ DataSourcePlugin = []
         public async Task UpdateProjectConfigurationAsync_ValidConfig_ReturnsSuccess()
         {
             await LoadTestProject();
-            string newConfig = GetValidProjectConfig().Replace("Test Project", "Updated Project");
+            string newConfig = GetValidProjectConfig().Replace("TestProject", "Updated Project");
 
             var result = await projectManager.UpdateProjectConfigurationAsync(projectId, newConfig);
 
@@ -657,7 +761,7 @@ DataSourcePlugin = []
         {
             await LoadTestProject();
             var content = await projectManager.GetProjectConfigurationContentAsync(projectId);
-            Assert.That(content, Does.Contain("Test Project"));
+            Assert.That(content, Does.Contain("TestProject"));
         }
 
         [UnitTestAttribute(
@@ -718,6 +822,11 @@ DataSourcePlugin = []
         public async Task RefreshDocumentAsync_ValidDocId_ReturnsSuccess()
         {
             await LoadTestProject();
+            
+            // Ensure ReadAllBytes is mocked for template reloading during refresh
+            var docxContent = CreateValidDocx();
+            mockSharePointProvider.ReadAllBytes(Arg.Any<string>()).Returns(docxContent);
+            
             var result = await projectManager.RefreshDocumentAsync(projectId, "Doc1");
             Assert.That(result.Success, Is.True);
         }
@@ -742,6 +851,10 @@ DataSourcePlugin = []
         public async Task GetTagContentWithContentControlAsync_VirtualTag_ReturnsContent()
         {
             await LoadTestProject();
+            
+            // Ensure ReadAllBytes is mocked for template loading if document needs to be processed
+            var docxContent = CreateValidDocx();
+            mockSharePointProvider.ReadAllBytes(Arg.Any<string>()).Returns(docxContent);
             
             var request = new RoboClerkContentControlTagRequest
             {

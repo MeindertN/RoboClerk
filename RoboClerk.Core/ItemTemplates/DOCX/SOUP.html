@@ -29,14 +29,12 @@ AddTrace(item.ItemID);
         <td>Is [csx:te.Name] Critical for Cyber Security:</td>
         <td>[csx:item.SOUPCybersecurityCriticalText]</td>
     </tr>
-    [csx:item.SOUPPerformanceCritical ? "
-    <tr><td>Result Anomaly List Examination:</td><td>" + item.SOUPAnomalyListDescription + "</td></tr>" : ""]
+    [csx:item.SOUPPerformanceCritical ? "<tr><td>Result Anomaly List Examination:</td><td>" + item.SOUPAnomalyListDescription + "</td></tr>" : ""]
     <tr>
         <td>Is [csx:te.Name] Installed by End-User:</td>
         <td>[csx:item.SOUPInstalledByUserText]</td>
     </tr>
-    [csx:item.SOUPInstalledByUser ? "
-    <tr><td>Required End-User Training:</td><td>" + item.SOUPEnduserTraining + "</td></tr>" : ""]
+    [csx:item.SOUPInstalledByUser ? "<tr><td>Required End-User Training:</td><td>" + item.SOUPEnduserTraining + "</td></tr>" : ""]
     <tr>
         <td>Detailed Description:</td>
         <td>[csx:item.SOUPDetailedDescription]</td>
