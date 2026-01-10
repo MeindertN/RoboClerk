@@ -396,5 +396,52 @@ namespace RoboClerk.Tests
             
             Assert.That(content, Does.Contain("All automated tests from the test plan were successfully executed and passed"));
         }
+
+        [UnitTestAttribute(
+        Identifier = "04c6309b-d675-4cbd-8fce-b18089aa3192",
+        Purpose = "Software System Test content creator is provided with a tag that does a comparison between known results and test cases, producing HTML output.",
+        PostCondition = "Appropriate HTML response is produced")]
+        [Test]
+        public void SoftwareSystemRenderTestCheckResultsHTML()
+        {
+            // Update config to return HTML
+            config.OutputFormat.Returns("HTML");
+            var sst = new SoftwareSystemTest(dataSources, traceAnalysis, config);
+            var tag = new RoboClerkTextTag(0, 28, "@@SLMS:TC(CheckResults=true)@@", true);
+
+            // Case 1: Success
+            // Ensure we have a matching passing result
+            results.Clear();
+            testcaseItems.Clear();
+
+            var item = new SoftwareSystemTestItem { ItemID = "TC1", TestCaseAutomated = true };
+            testcaseItems.Add(item);
+            results.Add(new TestResult("TC1", TestType.SYSTEM, TestResultStatus.PASS));
+
+            // dataSources.GetItems(te) already returns testcaseItems list reference from Setup, 
+            // but let's make sure getAllTestResults returns our results list
+            dataSources.GetAllTestResults().Returns(results);
+
+            string content = sst.GetContent(tag, documentConfig);
+
+            // HTML Success check
+            Assert.That(content, Does.Contain("<div>"));
+            Assert.That(content, Does.Contain("<p>All automated tests from the test plan were successfully executed and passed.</p>"));
+            Assert.That(content, Does.Contain("</div>"));
+
+            // Case 2: Failure
+            // Add a failure
+            results[0] = new TestResult("TC1", TestType.SYSTEM, TestResultStatus.FAIL, "failed", "bad", DateTime.Now);
+
+            content = sst.GetContent(tag, documentConfig);
+
+            // HTML Failure check
+            Assert.That(content, Does.Contain("<div>"));
+            Assert.That(content, Does.Contain("<h3>RoboClerk detected problems with the automated testing:</h3>"));
+            Assert.That(content, Does.Contain("<ul>"));
+            Assert.That(content, Does.Contain("<li>Test with ID \"TC1\" has failed.</li>"));
+            Assert.That(content, Does.Contain("</ul>"));
+            Assert.That(content, Does.Contain("</div>"));
+        }
     }
 }

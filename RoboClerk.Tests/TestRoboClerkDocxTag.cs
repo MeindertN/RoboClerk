@@ -340,5 +340,155 @@ namespace RoboClerk.Tests
             Assert.That(newParagraph.ParagraphProperties.Descendants<Justification>().Any(), Is.True);
             Assert.That(newParagraph.ParagraphProperties.Descendants<Justification>().First().Val.Value, Is.EqualTo(JustificationValues.Center));
         }
+
+        #region ConvertHtmlToOpenXml and ParseOpenXmlElement Tests
+
+        [UnitTestAttribute(
+            Identifier = "2a0d27d3-afdc-4552-9459-3e8746d90f31",
+            Purpose = "ConvertContentToOpenXml handles basic HTML content",
+            PostCondition = "HTML content is converted to OpenXML and inserted into content control")]
+        [Test]
+        public void ConvertContentToOpenXml_BasicHtml()
+        {
+            using var ms = new MemoryStream();
+            using var doc = WordprocessingDocument.Create(ms, WordprocessingDocumentType.Document);
+            var mainPart = doc.AddMainDocumentPart();
+            mainPart.Document = new Document(new Body());
+
+            var sdt = new SdtBlock(
+                new SdtProperties(
+                    new SdtId { Val = 12345678 },
+                    new Tag { Val = "Config:SoftwareName()" }
+                ),
+                new SdtContentBlock(
+                    new Paragraph(new Run(new Text("Old Content")))
+                )
+            );
+            mainPart.Document.Body.AppendChild(sdt);
+
+            var tag = new RoboClerkDocxTag(sdt, config);
+            tag.UpdateContent("<p>Simple HTML paragraph</p>");
+
+            tag.ConvertContentToOpenXml();
+
+            var paragraphs = sdt.Descendants<Paragraph>().ToList();
+            Assert.That(paragraphs.Count, Is.GreaterThan(0));
+            var allText = string.Join("", sdt.Descendants<Text>().Select(t => t.Text));
+            Assert.That(allText, Does.Contain("Simple HTML paragraph"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "5831e5c7-5326-4b59-8aa2-4ba6a8e42b59",
+            Purpose = "ConvertContentToOpenXml handles HTML with bold and italic formatting",
+            PostCondition = "HTML formatting tags are converted to corresponding OpenXML run properties")]
+        [Test]
+        public void ConvertContentToOpenXml_HtmlWithFormatting()
+        {
+            using var ms = new MemoryStream();
+            using var doc = WordprocessingDocument.Create(ms, WordprocessingDocumentType.Document);
+            var mainPart = doc.AddMainDocumentPart();
+            mainPart.Document = new Document(new Body());
+
+            var sdt = new SdtBlock(
+                new SdtProperties(
+                    new SdtId { Val = 12345678 },
+                    new Tag { Val = "Config:SoftwareName()" }
+                ),
+                new SdtContentBlock(
+                    new Paragraph(new Run(new Text("Old")))
+                )
+            );
+            mainPart.Document.Body.AppendChild(sdt);
+
+            var tag = new RoboClerkDocxTag(sdt, config);
+            tag.UpdateContent("<p><strong>Bold</strong> and <em>Italic</em></p>");
+
+            tag.ConvertContentToOpenXml();
+
+            var allText = string.Join("", sdt.Descendants<Text>().Select(t => t.Text));
+            Assert.That(allText, Does.Contain("Bold"));
+            Assert.That(allText, Does.Contain("Italic"));
+
+            var runs = sdt.Descendants<Run>().ToList();
+            Assert.That(runs.Any(r => r.RunProperties?.GetFirstChild<Bold>() != null), Is.True);
+            Assert.That(runs.Any(r => r.RunProperties?.GetFirstChild<Italic>() != null), Is.True);
+        }
+
+        [UnitTestAttribute(
+            Identifier = "6c6c8996-3aa4-4a33-a1d9-c3826944b3d2",
+            Purpose = "ConvertContentToOpenXml handles HTML list",
+            PostCondition = "HTML list is converted to OpenXML paragraphs")]
+        [Test]
+        public void ConvertContentToOpenXml_HtmlList()
+        {
+            using var ms = new MemoryStream();
+            using var doc = WordprocessingDocument.Create(ms, WordprocessingDocumentType.Document);
+            var mainPart = doc.AddMainDocumentPart();
+            mainPart.Document = new Document(new Body());
+
+            var sdt = new SdtBlock(
+                new SdtProperties(
+                    new SdtId { Val = 12345678 },
+                    new Tag { Val = "Config:SoftwareName()" }
+                ),
+                new SdtContentBlock(
+                    new Paragraph(new Run(new Text("Old")))
+                )
+            );
+            mainPart.Document.Body.AppendChild(sdt);
+
+            var tag = new RoboClerkDocxTag(sdt, config);
+            tag.UpdateContent("<ul><li>Item 1</li><li>Item 2</li></ul>");
+
+            tag.ConvertContentToOpenXml();
+
+            var allText = string.Join(" ", sdt.Descendants<Text>().Select(t => t.Text));
+            Assert.That(allText, Does.Contain("Item 1"));
+            Assert.That(allText, Does.Contain("Item 2"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "8d885e8c-c7c9-4c46-8bf3-ad6479c747dd",
+            Purpose = "ConvertContentToOpenXml falls back to plain text on invalid HTML",
+            PostCondition = "Invalid HTML is treated as plain text")]
+        [Test]
+        public void ConvertContentToOpenXml_InvalidHtmlFallback()
+        {
+            var sdt = CreateTestContentControl("Config:SoftwareName()", "Old");
+            var tag = new RoboClerkDocxTag(sdt, config);
+            
+            tag.UpdateContent("<p>Some HTML</p>");
+            tag.ConvertContentToOpenXml();
+
+            var allText = string.Join("", sdt.Descendants<Text>().Select(t => t.Text));
+            Assert.That(allText, Does.Contain("<p>Some HTML</p>"));
+        }
+
+        [UnitTestAttribute(
+            Identifier = "8667d0e0-2b83-4e73-b3c6-4c976c14c4f7",
+            Purpose = "ConvertContentToOpenXml handles OpenXML content with table element",
+            PostCondition = "OpenXML table is parsed and inserted correctly")]
+        [Test]
+        public void ConvertContentToOpenXml_OpenXmlTable()
+        {
+            var sdt = CreateTestContentControl("Config:SoftwareName()", "Old");
+            var tag = new RoboClerkDocxTag(sdt, config);
+            
+            var openXmlContent = @"<!--OPENXML_CONTENT-->
+<w:tbl xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+    <w:tr><w:tc><w:p><w:r><w:t>Cell1</w:t></w:r></w:p></w:tc></w:tr>
+</w:tbl>";
+            tag.UpdateContent(openXmlContent);
+
+            tag.ConvertContentToOpenXml();
+
+            var tables = sdt.Descendants<Table>().ToList();
+            Assert.That(tables.Count, Is.EqualTo(1));
+            
+            var allText = string.Join(" ", sdt.Descendants<Text>().Select(t => t.Text));
+            Assert.That(allText, Does.Contain("Cell1"));
+        }
+
+        #endregion
     }
 }
