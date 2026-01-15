@@ -1,0 +1,77 @@
+# ==============================================================================
+# RoboClerk.Server Docker Compose Configuration
+# ==============================================================================
+# 
+# Usage:
+#   Development: docker-compose up
+#   Production:  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+#
+# Environment variables can be provided via:
+#   1. .env file in the same directory
+#   2. Shell environment variables
+#   3. docker-compose command line: docker-compose up -e SP_CLIENT_ID=xxx
+#
+# ==============================================================================
+
+services:
+  roboclerk-server:
+    build:
+      context: .
+      dockerfile: RoboClerk.Server/Dockerfile
+    container_name: roboclerk-server
+    ports:
+      - "8080:8080"
+    environment:
+      # ASP.NET Core settings
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - Logging__LogLevel__Default=${LOG_LEVEL:-Information}
+      
+      # SharePoint credentials - MUST be provided via environment or .env file
+      # NEVER commit these values to source control!
+      - SP_CLIENT_ID=${SP_CLIENT_ID}
+      - SP_TENANT_ID=${SP_TENANT_ID}
+    volumes:
+      # Mount configuration directory (read-only for security)
+      - ./config:/app/config:ro
+      
+      # Mount logs directory for persistence
+      - roboclerk-logs:/app/logs
+      
+      # Mount plugins directory if custom plugins are needed
+      - ./plugins:/app/plugins:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    # Resource limits - adjust based on your workload
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Named volumes for data persistence
+volumes:
+  roboclerk-logs:
+    driver: local
+
+# Network configuration (optional - uses default bridge if not specified)
+networks:
+  default:
+    name: roboclerk-network

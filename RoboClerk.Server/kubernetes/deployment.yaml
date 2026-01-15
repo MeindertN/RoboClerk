@@ -1,0 +1,182 @@
+# ==============================================================================
+# RoboClerk Server Kubernetes Deployment
+# ==============================================================================
+#
+# Usage:
+#   1. Create the namespace: kubectl create namespace roboclerk
+#   2. Create the secret:    kubectl create secret generic sharepoint-credentials \
+#                              --from-literal=client-id=YOUR_CLIENT_ID \
+#                              --from-literal=tenant-id=YOUR_TENANT_ID \
+#                              -n roboclerk
+#   3. Apply the deployment: kubectl apply -f deployment.yaml -n roboclerk
+#
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: roboclerk-server
+  labels:
+    app: roboclerk-server
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: roboclerk-server
+  template:
+    metadata:
+      labels:
+        app: roboclerk-server
+        version: v1
+      annotations:
+        # Force rolling update when config changes
+        checksum/config: "{{ include (print $.Template.BasePath \"/configmap.yaml\") . | sha256sum }}"
+    spec:
+      # Security context for the pod
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      
+      containers:
+      - name: roboclerk-server
+        image: ghcr.io/meindertn/roboclerk-server:latest
+        imagePullPolicy: Always
+        
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        
+        # Environment variables
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ASPNETCORE_URLS
+          value: "http://+:8080"
+        
+        # SharePoint credentials from secret
+        - name: SP_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: sharepoint-credentials
+              key: client-id
+        - name: SP_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: sharepoint-credentials
+              key: tenant-id
+        
+        # Resource limits and requests
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        
+        # Probes for health checking
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        startupProbe:
+          httpGet:
+            path: /health/startup
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 30
+        
+        # Volume mounts
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        
+        # Security context for container
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              - ALL
+      
+      # Volumes
+      volumes:
+      - name: logs
+        emptyDir: {}
+      - name: config
+        configMap:
+          name: roboclerk-config
+          optional: true
+      
+      # Restart policy
+      restartPolicy: Always
+      
+      # Graceful shutdown
+      terminationGracePeriodSeconds: 30
+
+---
+# Service to expose the deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: roboclerk-server
+  labels:
+    app: roboclerk-server
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: roboclerk-server
+
+---
+# Horizontal Pod Autoscaler (optional)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: roboclerk-server-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: roboclerk-server
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

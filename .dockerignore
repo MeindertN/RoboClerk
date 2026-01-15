@@ -1,0 +1,65 @@
+# ==============================================================================
+# Docker Ignore File for RoboClerk.Server
+# ==============================================================================
+# Excludes files and directories that should not be copied into the Docker build context
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+**/publish/
+
+# IDE and editor files
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln.docstates
+.idea/
+*.swp
+
+# Test results and coverage
+**/TestResults/
+**/coverage/
+*.trx
+
+# NuGet packages (restored during build)
+**/packages/
+
+# Documentation
+*.md
+LICENSE
+docs/
+
+# Docker files (don't need to copy these into build context)
+**/Dockerfile*
+**/docker-compose*
+**/.dockerignore
+
+# Environment files (sensitive data)
+.env
+.env.*
+!.env.template
+
+# Temporary files
+**/tmp/
+**/temp/
+**/*.tmp
+**/*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Demo and scaffolding (not needed for server)
+**/Demo/
+**/scaffolding/
+
+# Test projects (not needed in production image)
+# Uncomment if you want to exclude test projects from build
+# RoboClerk.Tests/

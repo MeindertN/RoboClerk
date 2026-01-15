@@ -50,13 +50,26 @@
     <Content Include="Configuration\RoboClerk.Server.toml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Configuration\RoboClerk.Server.Production.toml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Configuration\README.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="nlog.docker.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Dockerfile" />
+    <None Include="DOCKER.md" />
+    <None Include="kubernetes\deployment.yaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Docs\" />
+    <Folder Include="kubernetes\" />
   </ItemGroup>
 
 	<Target Name="CreateDirectory" BeforeTargets="Start" AfterTargets="Build">

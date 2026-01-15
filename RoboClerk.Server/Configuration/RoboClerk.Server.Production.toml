@@ -1,0 +1,89 @@
+# ==============================================================================
+# RoboClerk Server Production Configuration
+# ==============================================================================
+#
+# This is a template for production deployment.
+# Copy to RoboClerk.Server.toml and adjust values as needed.
+#
+# IMPORTANT: Do NOT commit sensitive values (ClientId, TenantId) to source control!
+# Use environment variables for secrets in production.
+#
+# ==============================================================================
+
+# Server hosting configuration
+[Server]
+# HTTP port - in containers, typically 8080 (non-privileged)
+HttpPort = 8080
+
+# HTTPS port - usually handled by reverse proxy/load balancer in production
+HttpsPort = 8443
+
+# Bind to all interfaces in containers
+HostAddress = "0.0.0.0"
+
+# HTTPS is typically terminated at the load balancer/reverse proxy
+UseHttpsRedirection = false
+
+# Environment setting
+Environment = "Production"
+
+# API configuration
+[API]
+# Base path prefix (if behind a reverse proxy with path prefix)
+BasePath = ""
+
+# Disable Swagger in production for security
+EnableSwaggerInProduction = false
+
+# Swagger UI route prefix
+SwaggerRoutePrefix = "swagger"
+
+# Maximum request body size (30MB for large document uploads)
+MaxRequestBodySize = 31457280
+
+# Request timeout in seconds (5 minutes for long operations)
+RequestTimeoutSeconds = 300
+
+# CORS (Cross-Origin Resource Sharing) configuration
+[CORS]
+# Enable CORS for Word Add-in
+EnableCORS = true
+
+# IMPORTANT: In production, restrict to your specific domains!
+# Example: "https://your-word-addin.azurewebsites.net,https://localhost:3000"
+AllowedOrigins = "*"
+
+# Restrict methods as needed
+AllowedMethods = "GET,POST,PUT,DELETE,OPTIONS"
+
+# Allow all headers for Word Add-in compatibility
+AllowedHeaders = "*"
+
+# Set to true if your add-in needs to send credentials
+AllowCredentials = false
+
+# Logging configuration
+[Logging]
+# Production log level - use INFO or WARN to reduce noise
+ServerLogLevel = "INFO"
+
+# SharePoint integration settings
+[SharePoint]
+# IMPORTANT: These should be provided via environment variables in production!
+# Leave empty here and set SP_CLIENT_ID and SP_TENANT_ID environment variables
+
+# SharePoint App Client ID (Application ID from Azure AD)
+ClientId = ""
+
+# Azure AD Tenant ID
+TenantId = ""
+
+# Timeout for SharePoint operations (2 minutes)
+OperationTimeoutSeconds = 120
+
+# Retry configuration for transient failures
+RetryCount = 3
+RetryDelayMilliseconds = 1000
+
+# Cache authentication tokens for performance
+CacheAuthTokens = true

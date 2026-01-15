@@ -205,7 +205,10 @@ namespace RoboClerk.Server.Configuration
         private ServerConfiguration ApplyCommandLineOverrides(ServerConfiguration config, Dictionary<string, string>? commandLineOptions)
         {
             if (commandLineOptions == null || !commandLineOptions.Any())
-                return config;
+            {
+                // Even without command line options, apply environment variable overrides
+                return ApplyEnvironmentVariableOverrides(config);
+            }
 
             logger.Info($"Applying {commandLineOptions.Count} command line configuration overrides");
 
@@ -219,6 +222,62 @@ namespace RoboClerk.Server.Configuration
                 {
                     logger.Warn(ex, $"Failed to apply command line override for '{option.Key}' = '{option.Value}'");
                 }
+            }
+
+            // Apply environment variable overrides after command line (highest priority)
+            return ApplyEnvironmentVariableOverrides(config);
+        }
+
+        /// <summary>
+        /// Apply environment variable overrides for sensitive settings.
+        /// Environment variables take highest priority for secrets management.
+        /// </summary>
+        private ServerConfiguration ApplyEnvironmentVariableOverrides(ServerConfiguration config)
+        {
+            // SharePoint credentials - these should typically be set via environment variables in production
+            var spClientId = Environment.GetEnvironmentVariable("SP_CLIENT_ID");
+            if (!string.IsNullOrEmpty(spClientId))
+            {
+                config.SharePoint.ClientId = spClientId;
+                logger.Info("SharePoint ClientId loaded from environment variable SP_CLIENT_ID");
+            }
+
+            var spTenantId = Environment.GetEnvironmentVariable("SP_TENANT_ID");
+            if (!string.IsNullOrEmpty(spTenantId))
+            {
+                config.SharePoint.TenantId = spTenantId;
+                logger.Info("SharePoint TenantId loaded from environment variable SP_TENANT_ID");
+            }
+
+            // Server settings from environment
+            var httpPort = Environment.GetEnvironmentVariable("ROBOCLERK_HTTP_PORT");
+            if (!string.IsNullOrEmpty(httpPort) && int.TryParse(httpPort, out var port))
+            {
+                config.Server.HttpPort = port;
+                logger.Info($"HTTP port set from environment variable: {port}");
+            }
+
+            var hostAddress = Environment.GetEnvironmentVariable("ROBOCLERK_HOST_ADDRESS");
+            if (!string.IsNullOrEmpty(hostAddress))
+            {
+                config.Server.HostAddress = hostAddress;
+                logger.Info($"Host address set from environment variable: {hostAddress}");
+            }
+
+            // Logging level from environment
+            var logLevel = Environment.GetEnvironmentVariable("ROBOCLERK_LOG_LEVEL");
+            if (!string.IsNullOrEmpty(logLevel))
+            {
+                config.Logging.ServerLogLevel = logLevel;
+                logger.Info($"Log level set from environment variable: {logLevel}");
+            }
+
+            // CORS settings from environment (useful for dynamic configuration)
+            var corsOrigins = Environment.GetEnvironmentVariable("ROBOCLERK_CORS_ORIGINS");
+            if (!string.IsNullOrEmpty(corsOrigins))
+            {
+                config.CORS.AllowedOrigins = corsOrigins;
+                logger.Info($"CORS origins set from environment variable");
             }
 
             return config;

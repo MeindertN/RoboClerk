@@ -50,6 +50,9 @@ try
 
     var app = builder.Build();
 
+    // Configure graceful shutdown
+    ConfigureGracefulShutdown(app, logger);
+
     // Configure the HTTP request pipeline
     ConfigurePipeline(app, serverConfig);
 
@@ -215,6 +218,41 @@ static void ConfigurePipeline(WebApplication app, ServerConfiguration serverConf
 
     app.UseAuthorization();
     app.MapControllers();
+}
+
+static void ConfigureGracefulShutdown(WebApplication app, NLog.Logger logger)
+{
+    var lifetime = app.Lifetime;
+    
+    lifetime.ApplicationStarted.Register(() =>
+    {
+        logger.Info("RoboClerk Server has started successfully");
+    });
+
+    lifetime.ApplicationStopping.Register(() =>
+    {
+        logger.Info("RoboClerk Server is shutting down...");
+        
+        // Get project manager to cleanup loaded projects
+        try
+        {
+            var projectManager = app.Services.GetService<RoboClerk.Server.Services.IProjectManager>();
+            if (projectManager != null)
+            {
+                logger.Info("Cleaning up loaded projects...");
+                // ProjectManager should handle cleanup in its Dispose/destructor
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.Warn(ex, "Error during shutdown cleanup");
+        }
+    });
+
+    lifetime.ApplicationStopped.Register(() =>
+    {
+        logger.Info("RoboClerk Server has stopped");
+    });
 }
 
 static List<string> BuildServerUrls(ServerConfiguration serverConfig)
