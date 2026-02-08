@@ -1,0 +1,72 @@
+# ==============================================================================
+# RoboClerk.Server Docker Compose - Debug Version with Debugger Support
+# ==============================================================================
+#
+# Enables remote debugging from Visual Studio or VS Code.
+#
+# Usage:
+#   1. Build and start: docker-compose -f docker-compose.debug.yml up -d --build
+#   2. Attach debugger (see instructions below)
+#
+# ==============================================================================
+# VISUAL STUDIO DEBUGGING:
+#   1. Debug menu > Attach to Process (Ctrl+Alt+P)
+#   2. Connection type: Docker (Linux Container)
+#   3. Connection target: roboclerk-server-debug
+#   4. Select "dotnet" process
+#   5. Click Attach
+#
+# VS CODE DEBUGGING:
+#   Install the Docker extension, then add to .vscode/launch.json:
+#   {
+#     "name": "Docker .NET Attach",
+#     "type": "docker",
+#     "request": "attach",
+#     "platform": "netCore",
+#     "containerName": "roboclerk-server-debug",
+#     "sourceFileMap": { "/src": "${workspaceFolder}" }
+#   }
+# ==============================================================================
+
+services:
+  roboclerk-server:
+    build:
+      context: .
+      dockerfile: RoboClerk.Server/Dockerfile.debug
+    container_name: roboclerk-server-debug
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      # SharePoint credentials
+      - SP_CLIENT_ID=${SP_CLIENT_ID:-}
+      - SP_TENANT_ID=${SP_TENANT_ID:-}
+      - SP_CLIENT_SECRET=${SP_CLIENT_SECRET:-}
+      # Git repository authentication (for source code analysis from remote repos)
+      # Set these if you need to clone private repositories
+      - GIT_GITHUB_TOKEN=${GIT_GITHUB_TOKEN:-}
+      - GIT_GITLAB_TOKEN=${GIT_GITLAB_TOKEN:-}
+      - GIT_AZURE_DEVOPS_PAT=${GIT_AZURE_DEVOPS_PAT:-}
+      - GIT_BITBUCKET_TOKEN=${GIT_BITBUCKET_TOKEN:-}
+      - GIT_CLONE_TIMEOUT=${GIT_CLONE_TIMEOUT:-300}
+      # Logging
+      - ROBOCLERK_LOG_LEVEL=DEBUG
+      # Disable tiered compilation for better debugging
+      - COMPlus_TieredCompilation=0
+    volumes:
+      - roboclerk-logs:/app/logs
+    # Keep container running for debugging
+    stdin_open: true
+    tty: true
+    # Run as root for vsdbg access (debug only!)
+    user: root
+    # Security: Allow ptrace for debugging
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+
+volumes:
+  roboclerk-logs:
+    driver: local

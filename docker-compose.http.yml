@@ -1,0 +1,60 @@
+# ==============================================================================
+# RoboClerk.Server Docker Compose - HTTP Only (Internal Network)
+# ==============================================================================
+#
+# Simple HTTP-only deployment for trusted internal networks.
+# No TLS/HTTPS - use this when your network is trusted or when you have
+# a corporate proxy/load balancer that handles TLS termination.
+#
+# Usage:
+#   1. Copy .env.template to .env and set credentials
+#   2. Run: docker-compose -f docker-compose.http.yml up -d
+#   3. Access: http://localhost:8080 or http://<server-ip>:8080
+#
+# ==============================================================================
+
+services:
+  roboclerk-server:
+    build:
+      context: .
+      dockerfile: RoboClerk.Server/Dockerfile
+    container_name: roboclerk-server
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      # SharePoint credentials
+      - SP_CLIENT_ID=${SP_CLIENT_ID:-}
+      - SP_TENANT_ID=${SP_TENANT_ID:-}
+      - SP_CLIENT_SECRET=${SP_CLIENT_SECRET:-}
+      # Git repository authentication (for source code analysis from remote repos)
+      - GIT_GITHUB_TOKEN=${GIT_GITHUB_TOKEN:-}
+      - GIT_GITLAB_TOKEN=${GIT_GITLAB_TOKEN:-}
+      - GIT_AZURE_DEVOPS_PAT=${GIT_AZURE_DEVOPS_PAT:-}
+      - GIT_BITBUCKET_TOKEN=${GIT_BITBUCKET_TOKEN:-}
+      - GIT_CLONE_TIMEOUT=${GIT_CLONE_TIMEOUT:-300}
+      # Logging and CORS
+      - ROBOCLERK_LOG_LEVEL=${ROBOCLERK_LOG_LEVEL:-INFO}
+      - ROBOCLERK_CORS_ORIGINS=${ROBOCLERK_CORS_ORIGINS:-*}
+    volumes:
+      - roboclerk-logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+volumes:
+  roboclerk-logs:
+    driver: local

@@ -1,0 +1,58 @@
+# ==============================================================================
+# Caddyfile for RoboClerk Server - Local Development
+# ==============================================================================
+#
+# This configuration provides:
+#   - Self-signed HTTPS certificate for localhost
+#   - Reverse proxy to RoboClerk Server
+#   - No certificate validation required
+#
+# Usage:
+#   1. Rename or copy this file to 'Caddyfile'
+#   2. Run: docker-compose -f docker-compose.https.yml up -d
+#   3. Access: https://localhost
+#   4. Accept the self-signed certificate warning in your browser
+#
+# ==============================================================================
+
+# Global options
+{
+    # Use internal CA for self-signed certs (no Let's Encrypt)
+    local_certs
+    
+    # Skip ACME challenges
+    skip_install_trust
+}
+
+# Localhost configuration
+localhost, 127.0.0.1 {
+    tls internal
+    # Reverse proxy to RoboClerk Server
+    reverse_proxy roboclerk-server:8080 {
+        # Health check for upstream
+        health_uri /health/live
+        health_interval 30s
+        health_timeout 5s
+    }
+    
+    # Enable compression
+    encode gzip
+    
+    # Basic security headers (relaxed for development)
+    header {
+        X-Content-Type-Options "nosniff"
+        -Server
+    }
+    
+    # Console logging for development
+    log {
+        output stdout
+        format console
+    }
+}
+
+# Also listen on a custom domain for testing (add to hosts file)
+# roboclerk.local {
+#     reverse_proxy roboclerk-server:8080
+#     tls internal
+# }

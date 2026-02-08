@@ -39,8 +39,8 @@ namespace RoboClerk.Configuration
         private string projectName = string.Empty;
         private string projectID = string.Empty; //assigned by the server to indicate the sharepoint project this config belongs to
 
-        //The information supplied on the commandline
-        internal Dictionary<string, string> commandLineOptions = new Dictionary<string, string>();
+        //The information supplied on the commandline or environment variables that override config file values
+        internal Dictionary<string, string> configOverrideOptions = new Dictionary<string, string>();
 
         internal bool projectConfigLoaded = false;
 
@@ -73,7 +73,7 @@ namespace RoboClerk.Configuration
             cloned.fileProviderPlugin = fileProviderPlugin;
 
             // Clone command line options
-            cloned.commandLineOptions = new Dictionary<string, string>(commandLineOptions);
+            cloned.configOverrideOptions = new Dictionary<string, string>(configOverrideOptions);
             
             // Clone project configuration if loaded
             if (projectConfigLoaded)
@@ -116,23 +116,23 @@ namespace RoboClerk.Configuration
             set => projectID = value;
         }
 
-        public string GetCommandLineOption(string name)
+        public string GetConfigOverrideValue(string name)
         {
-            if (commandLineOptions.ContainsKey(name))
+            if (configOverrideOptions.ContainsKey(name))
             {
-                return commandLineOptions[name];
+                return configOverrideOptions[name];
             }
             throw new KeyNotFoundException($"Command line option '{name}' not found.");
         }
 
-        public bool HasCommandLineOption(string name)
+        public bool IsConfigOverridden(string name)
         {
-            return commandLineOptions.ContainsKey(name);
+            return configOverrideOptions.ContainsKey(name);
         }
 
-        public void AddOrUpdateCommandLineOption(string name, string value)
+        public void AddOrUpdateConfigOverride(string name, string value)
         {
-            commandLineOptions[name] = value;
+            configOverrideOptions[name] = value;
             logger.Debug($"Command line option '{name}' set to '{value}'");
         }
 
@@ -255,28 +255,28 @@ namespace RoboClerk.Configuration
             {
                 pluginDirs.Add((string)obj);
             }
-            pluginConfigDir = CommandLineOptionOrDefault("PluginConfigurationDir", (string)toml["PluginConfigurationDir"]);
-            clearOutput = CommandLineOptionOrDefault("ClearOutputDir", (string)toml["ClearOutputDir"]).ToUpper() == "TRUE";
-            logLevel = CommandLineOptionOrDefault("LogLevel", (string)toml["LogLevel"]);
-            outputFormat = CommandLineOptionOrDefault("OutputFormat", (string)toml["OutputFormat"]);
-            fileProviderPlugin = CommandLineOptionOrDefault("FileProviderPlugin", (string)toml["FileProviderPlugin"]);
+            pluginConfigDir = ConfigOverrideOrDefault("PluginConfigurationDir", (string)toml["PluginConfigurationDir"]);
+            clearOutput = ConfigOverrideOrDefault("ClearOutputDir", (string)toml["ClearOutputDir"]).ToUpper() == "TRUE";
+            logLevel = ConfigOverrideOrDefault("LogLevel", (string)toml["LogLevel"]);
+            outputFormat = ConfigOverrideOrDefault("OutputFormat", (string)toml["OutputFormat"]);
+            fileProviderPlugin = ConfigOverrideOrDefault("FileProviderPlugin", (string)toml["FileProviderPlugin"]);
         }
 
         private void ReadProjectConfigFile(string projectConfig)
         {
             var toml = Toml.Parse(projectConfig).ToModel();
-            templateDir = CommandLineOptionOrDefault("TemplateDirectory", (string)toml["TemplateDirectory"]);
-            outputDir = CommandLineOptionOrDefault("OutputDirectory", (string)toml["OutputDirectory"]);
-            projectRoot = CommandLineOptionOrDefault("ProjectRoot", (string)toml["ProjectRoot"]);
-            aiPlugin = CommandLineOptionOrDefault("AISystemPlugin", (string)toml["AISystemPlugin"]);
-            projectName = CommandLineOptionOrDefault("ProjectName", (string)toml["ProjectName"]);
+            templateDir = ConfigOverrideOrDefault("TemplateDirectory", (string)toml["TemplateDirectory"]);
+            outputDir = ConfigOverrideOrDefault("OutputDirectory", (string)toml["OutputDirectory"]);
+            projectRoot = ConfigOverrideOrDefault("ProjectRoot", (string)toml["ProjectRoot"]);
+            aiPlugin = ConfigOverrideOrDefault("AISystemPlugin", (string)toml["AISystemPlugin"]);
+            projectName = ConfigOverrideOrDefault("ProjectName", (string)toml["ProjectName"]);
             foreach (var obj in (TomlArray)toml["DataSourcePlugin"])
             {
                 dataSourcePlugins.Add((string)obj);
             }
             if (toml.ContainsKey("MediaDirectory"))
             {
-                mediaDir = CommandLineOptionOrDefault("MediaDirectory", (string)toml["MediaDirectory"]);
+                mediaDir = ConfigOverrideOrDefault("MediaDirectory", (string)toml["MediaDirectory"]);
             }
             else
             {
@@ -397,11 +397,11 @@ namespace RoboClerk.Configuration
             }
         }
 
-        public string CommandLineOptionOrDefault(string name, string defaultValue)
+        public string ConfigOverrideOrDefault(string name, string defaultValue)
         {
-            if (commandLineOptions.ContainsKey(name))
+            if (configOverrideOptions.TryGetValue(name, out string value))
             {
-                return commandLineOptions[name];
+                return value;
             }
             return defaultValue;
         }
@@ -458,7 +458,7 @@ namespace RoboClerk.Configuration
                 throw new InvalidOperationException("RoboClerk configuration already loaded");
             }
 
-            config.commandLineOptions = commandLineOptions ?? new Dictionary<string, string>();
+            config.configOverrideOptions = commandLineOptions ?? new Dictionary<string, string>();
             
             try
             {

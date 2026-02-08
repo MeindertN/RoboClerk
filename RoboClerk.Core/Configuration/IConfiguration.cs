@@ -23,9 +23,9 @@ namespace RoboClerk.Core.Configuration
         List<TraceConfig> TraceConfig { get; }
         ConfigurationValues ConfigVals { get; }
         CheckpointConfig CheckpointConfig { get; }
-        string GetCommandLineOption(string name);
-        bool HasCommandLineOption(string name);
-        public void AddOrUpdateCommandLineOption(string name, string value);
-        string CommandLineOptionOrDefault(string name, string defaultValue);
+        string GetConfigOverrideValue(string name);
+        bool IsConfigOverridden(string name);
+        public void AddOrUpdateConfigOverride(string name, string value);
+        string ConfigOverrideOrDefault(string name, string defaultValue);
     }
 }

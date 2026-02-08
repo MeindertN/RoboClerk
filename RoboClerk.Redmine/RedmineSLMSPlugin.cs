@@ -80,15 +80,15 @@ namespace RoboClerk.Redmine
             try
             {
                 TomlTable config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-                apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", GetObjectForKey<string>(config, "RedmineAPIEndpoint", true));
-                apiKey = configuration.CommandLineOptionOrDefault("RedmineAPIKey", GetObjectForKey<string>(config, "RedmineAPIKey", true));
+                apiEndpoint = configuration.ConfigOverrideOrDefault("RedmineAPIEndpoint", GetObjectForKey<string>(config, "RedmineAPIEndpoint", true));
+                apiKey = configuration.ConfigOverrideOrDefault("RedmineAPIKey", GetObjectForKey<string>(config, "RedmineAPIKey", true));
                 var subPrj = GetObjectForKey<TomlArray>(config, "RedmineProjects", true);
                 foreach (var o in subPrj)
                 {
                     projectNames.Add((string)o);
                 }
-                baseURL = configuration.CommandLineOptionOrDefault("RedmineBaseURL", GetObjectForKey<string>(config, "RedmineBaseURL", false));
-                convertTextile = configuration.CommandLineOptionOrDefault("ConvertTextile", GetObjectForKey<bool>(config, "ConvertTextile", false)?"TRUE":"FALSE").ToUpper() == "TRUE";
+                baseURL = configuration.ConfigOverrideOrDefault("RedmineBaseURL", GetObjectForKey<string>(config, "RedmineBaseURL", false));
+                convertTextile = configuration.ConfigOverrideOrDefault("ConvertTextile", GetObjectForKey<bool>(config, "ConvertTextile", false)?"TRUE":"FALSE").ToUpper() == "TRUE";
                 if(convertTextile) 
                 {
                     outputFormat = configuration.OutputFormat.ToUpper();
@@ -132,7 +132,7 @@ namespace RoboClerk.Redmine
             services.AddTransient<IRedmineClient>(provider => {
                 var configuration = provider.GetRequiredService<IConfiguration>();
                 TomlTable config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-                string apiEndpoint = configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", GetObjectForKey<string>(config, "RedmineAPIEndpoint", true)
+                string apiEndpoint = configuration.ConfigOverrideOrDefault("RedmineAPIEndpoint", GetObjectForKey<string>(config, "RedmineAPIEndpoint", true)
                 );
                 return new RestSharpRedmineClient(apiEndpoint);
             });

@@ -62,7 +62,7 @@ class TestClass {
             configuration = Substitute.For<IConfiguration>();
             configuration.PluginConfigDir.Returns(TestingHelpers.ConvertFilePath(@"c:\test\"));
             configuration.ProjectRoot.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\"));
-            configuration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
+            configuration.ConfigOverrideOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
         }
 
@@ -179,7 +179,7 @@ class TestClass {
             var testConfiguration = Substitute.For<IConfiguration>();
             testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFilePath(@"c:\test\"));
             testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\"));
-            testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
+            testConfiguration.ConfigOverrideOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
             var temp = new UnitTestFNPlugin(new LocalFileSystemPlugin(testFileSystem));
@@ -293,7 +293,7 @@ public class TestClass {
             var testConfiguration = Substitute.For<IConfiguration>();
             testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFilePath(@"c:\test\"));
             testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\"));
-            testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
+            testConfiguration.ConfigOverrideOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
             var temp = new UnitTestFNPlugin(new LocalFileSystemPlugin(testFileSystem));
@@ -362,7 +362,7 @@ def standalone_test_function_VERIFIES_standalone_functions_work():
             var testConfiguration = Substitute.For<IConfiguration>();
             testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFilePath(@"c:\test\"));
             testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\"));
-            testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
+            testConfiguration.ConfigOverrideOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
             var temp = new UnitTestFNPlugin(new LocalFileSystemPlugin(testFileSystem));
@@ -436,7 +436,7 @@ function standalone_ts_function_VERIFIES_standalone_ts_functions_work(): void {
             var testConfiguration = Substitute.For<IConfiguration>();
             testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFilePath(@"c:\test\"));
             testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\"));
-            testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
+            testConfiguration.ConfigOverrideOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
             var temp = new UnitTestFNPlugin(new LocalFileSystemPlugin(testFileSystem));
@@ -510,7 +510,7 @@ function standalone_js_function_VERIFIES_standalone_js_functions_work() {
             var testConfiguration = Substitute.For<IConfiguration>();
             testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFilePath(@"c:\test\"));
             testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\"));
-            testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
+            testConfiguration.ConfigOverrideOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
             var temp = new UnitTestFNPlugin(new LocalFileSystemPlugin(testFileSystem));
@@ -571,7 +571,7 @@ class TestClass {
             var testConfiguration = Substitute.For<IConfiguration>();
             testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFilePath(@"c:\test\"));
             testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\"));
-            testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
+            testConfiguration.ConfigOverrideOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
             var temp = new UnitTestFNPlugin(new LocalFileSystemPlugin(testFileSystem));
@@ -636,7 +636,7 @@ class TestClass {
             var testConfiguration = Substitute.For<IConfiguration>();
             testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFilePath(@"c:\test\"));
             testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\"));
-            testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
+            testConfiguration.ConfigOverrideOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
             var temp = new UnitTestFNPlugin(new LocalFileSystemPlugin(testFileSystem));
@@ -696,7 +696,7 @@ def another__python__test__VERIFIES__python__separator__handling():
             var testConfiguration = Substitute.For<IConfiguration>();
             testConfiguration.PluginConfigDir.Returns(TestingHelpers.ConvertFilePath(@"c:\test\"));
             testConfiguration.ProjectRoot.Returns(TestingHelpers.ConvertFilePath(@"c:\temp\"));
-            testConfiguration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
+            testConfiguration.ConfigOverrideOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
 
             var temp = new UnitTestFNPlugin(new LocalFileSystemPlugin(testFileSystem));

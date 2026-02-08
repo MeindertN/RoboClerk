@@ -1,0 +1,121 @@
+﻿# ==============================================================================
+# Caddyfile for RoboClerk Server - Corporate/Internal Network
+# ==============================================================================
+#
+# This configuration is for internal corporate networks where:
+#   - No public domain name is available
+#   - Server is accessed by IP address or internal hostname
+#   - Self-signed or internal CA certificates are acceptable
+#
+# Usage Options:
+#   1. Access by IP address: https://192.168.1.100
+#   2. Access by hostname: https://roboclerk-server (add to DNS or hosts file)
+#   3. Access by localhost: https://localhost
+#
+# Clients will need to:
+#   - Accept the self-signed certificate warning, OR
+#   - Trust the Caddy root CA (see instructions below)
+#
+# ==============================================================================
+
+# Global options for internal CA
+{
+    # Use Caddy's internal CA for self-signed certificates
+    # This avoids Let's Encrypt (which requires public domain + internet access)
+    local_certs
+    
+    # Optional: Skip installing the CA to system trust store
+    # skip_install_trust
+    
+    # Disable ACME (Let's Encrypt) challenges
+    # auto_https disable_certs
+}
+
+# ==============================================================================
+# Option 1: Listen on all interfaces (IP address access)
+# ==============================================================================
+# Access via: https://<server-ip-address>
+# Example: https://192.168.1.100
+
+localhost:443, 127.0.0.1:443 {
+    tls internal
+    
+    reverse_proxy roboclerk-server:8080 {
+        health_uri /health/live
+        health_interval 30s
+        health_timeout 5s
+        
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        # header_up X-Forwarded-For {remote_host}
+        # header_up X-Forwarded-Proto {scheme}
+    }
+    
+    encode gzip zstd
+    
+    header {
+        # Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        -Server
+    }
+    
+    log {
+        output stdout
+        format console
+    }
+}
+
+# HTTP redirect to HTTPS
+:80 {
+    redir https://{host}{uri} permanent
+}
+
+# ==============================================================================
+# Option 2: Specific hostname (uncomment and modify)
+# ==============================================================================
+# Add the hostname to your DNS server or clients' hosts files:
+#   Windows: C:\Windows\System32\drivers\etc\hosts
+#   Linux/Mac: /etc/hosts
+# Example entry: 192.168.1.100 roboclerk-server roboclerk.internal
+#
+# roboclerk-server, roboclerk.internal {
+#     tls internal
+#     reverse_proxy roboclerk-server:8080
+#     encode gzip
+# }
+
+# ==============================================================================
+# Option 3: Specific IP address (uncomment and modify)
+# ==============================================================================
+# Replace with your server's actual IP address
+#
+# 192.168.1.100 {
+#     tls internal
+#     reverse_proxy roboclerk-server:8080
+#     encode gzip
+# }
+
+# ==============================================================================
+# Trusting the Caddy Root CA (Optional)
+# ==============================================================================
+# To avoid certificate warnings, you can trust Caddy's root CA:
+#
+# 1. Extract the root CA from the running container:
+#    docker cp roboclerk-caddy:/data/caddy/pki/authorities/local/root.crt ./caddy-root.crt
+#
+# 2. Import to Windows:
+#    - Double-click caddy-root.crt
+#    - Click "Install Certificate"
+#    - Choose "Local Machine" → "Trusted Root Certification Authorities"
+#
+# 3. Import to macOS:
+#    sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain caddy-root.crt
+#
+# 4. Import to Linux (Ubuntu/Debian):
+#    sudo cp caddy-root.crt /usr/local/share/ca-certificates/
+#    sudo update-ca-certificates
+#
+# 5. For Word Add-in (Office):
+#    The certificate needs to be trusted at the OS level (steps above)
+# ==============================================================================

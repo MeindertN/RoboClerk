@@ -30,7 +30,7 @@ namespace RoboClerk.OpenAI
         {
             base.InitializePlugin(configuration);
             var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-            string openAIKey = configuration.CommandLineOptionOrDefault("OpenAIKey", GetObjectForKey<string>(config, "OpenAIKey", true));
+            string openAIKey = configuration.ConfigOverrideOrDefault("OpenAIKey", GetObjectForKey<string>(config, "OpenAIKey", true));
             openAIClient = new OpenAIClient(openAIKey);
         }
 

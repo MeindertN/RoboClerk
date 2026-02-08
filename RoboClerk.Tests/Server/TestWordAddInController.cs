@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RoboClerk.Server.Controllers;
 using RoboClerk.Server.Services;
 using RoboClerk.Server.Models;
+using RoboClerk.Server.Configuration;
 using RoboClerk.ContentCreators;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,7 @@ namespace RoboClerk.Tests.Server
     {
         private IProjectManager mockProjectManager;
         private ISharePointService mockSharePointService;
+        private ServerConfiguration serverConfiguration;
         private WordAddInController controller;
         private DefaultHttpContext mockHttpContext;
         private IConfiguration mockConfiguration;
@@ -30,8 +32,9 @@ namespace RoboClerk.Tests.Server
             mockProjectManager = Substitute.For<IProjectManager>();
             mockSharePointService = Substitute.For<ISharePointService>();
             mockConfiguration = Substitute.For<IConfiguration>();
+            serverConfiguration = new ServerConfiguration();
 
-            controller = new WordAddInController(mockProjectManager, mockSharePointService);
+            controller = new WordAddInController(mockProjectManager, mockSharePointService, serverConfiguration);
 
             // Mock HttpContext for methods that need it
             mockHttpContext = new DefaultHttpContext();
@@ -179,8 +182,8 @@ namespace RoboClerk.Tests.Server
                 SiteUrl = "https://site" 
             };
             
-            mockConfiguration.HasCommandLineOption("SPClientSecret").Returns(true);
-            mockConfiguration.GetCommandLineOption("SPClientSecret").Returns("secret");
+            mockConfiguration.IsConfigOverridden("SPClientSecret").Returns(true);
+            mockConfiguration.GetConfigOverrideValue("SPClientSecret").Returns("secret");
             
             mockSharePointService.ExtractProjectInfoFromDocumentUrlAsync(request.DocumentUrl, "secret").Returns(spInfo);
             
@@ -213,8 +216,8 @@ namespace RoboClerk.Tests.Server
             var request = new LoadProjectRequest { DocumentUrl = "https://sharepoint.com/doc.docx" };
             var spInfo = new SharePointProjectInfo { Success = false, Error = "Failed" };
             
-            mockConfiguration.HasCommandLineOption("SPClientSecret").Returns(true);
-            mockConfiguration.GetCommandLineOption("SPClientSecret").Returns("secret");
+            mockConfiguration.IsConfigOverridden("SPClientSecret").Returns(true);
+            mockConfiguration.GetConfigOverrideValue("SPClientSecret").Returns("secret");
             
             mockSharePointService.ExtractProjectInfoFromDocumentUrlAsync(request.DocumentUrl, "secret").Returns(spInfo);
 

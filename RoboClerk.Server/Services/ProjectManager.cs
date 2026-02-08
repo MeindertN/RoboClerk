@@ -266,8 +266,8 @@ namespace RoboClerk.Server.Services
                         .FromExisting(concreteConfig.Clone())
                         .WithProjectConfig(sharePointFileProvider, projectConfigPath)
                         .Build();
-                    configuration.AddOrUpdateCommandLineOption("SPDriveId", request.SPDriveId);
-                    configuration.AddOrUpdateCommandLineOption("SPSiteUrl", request.SPSiteUrl);
+                    configuration.AddOrUpdateConfigOverride("SPDriveId", request.SPDriveId);
+                    configuration.AddOrUpdateConfigOverride("SPSiteUrl", request.SPSiteUrl);
                     configuration.ProjectID = projectId;  //necesary to uniquely identify the project the config belongs to
                 }
                 catch (Exception ex)
@@ -803,13 +803,13 @@ namespace RoboClerk.Server.Services
                     .Build();
 
                 // Preserve command line options and project ID from current config
-                if (currentConfig.HasCommandLineOption("SPDriveId"))
+                if (currentConfig.IsConfigOverridden("SPDriveId"))
                 {
-                    updatedConfiguration.AddOrUpdateCommandLineOption("SPDriveId", currentConfig.GetCommandLineOption("SPDriveId"));
+                    updatedConfiguration.AddOrUpdateConfigOverride("SPDriveId", currentConfig.GetConfigOverrideValue("SPDriveId"));
                 }
-                if (currentConfig.HasCommandLineOption("SPSiteUrl"))
+                if (currentConfig.IsConfigOverridden("SPSiteUrl"))
                 {
-                    updatedConfiguration.AddOrUpdateCommandLineOption("SPSiteUrl", currentConfig.GetCommandLineOption("SPSiteUrl"));
+                    updatedConfiguration.AddOrUpdateConfigOverride("SPSiteUrl", currentConfig.GetConfigOverrideValue("SPSiteUrl"));
                 }
                 updatedConfiguration.ProjectID = currentConfig.ProjectID;
 
@@ -1404,10 +1404,10 @@ namespace RoboClerk.Server.Services
                     return null;
                 }
                 tempConfig = tempConfig.Clone();  //make sure we're not modifying the global config
-                tempConfig.AddOrUpdateCommandLineOption("SPDriveId", request.SPDriveId);
+                tempConfig.AddOrUpdateConfigOverride("SPDriveId", request.SPDriveId);
                 if (!string.IsNullOrEmpty(request.SPSiteUrl))
                 {
-                    tempConfig.AddOrUpdateCommandLineOption("SPSiteUrl", request.SPSiteUrl);
+                    tempConfig.AddOrUpdateConfigOverride("SPSiteUrl", request.SPSiteUrl);
                 }
 
                 // Load the SharePoint file provider plugin

@@ -77,7 +77,7 @@ class TestClass {
             configuration = Substitute.For<IConfiguration>();
             configuration.PluginConfigDir.Returns(TestingHelpers.ConvertFilePath(@"c:/test/"));
             configuration.ProjectRoot.Returns(TestingHelpers.ConvertFilePath(@"c:/temp/"));
-            configuration.CommandLineOptionOrDefault(Arg.Any<string>(), Arg.Any<string>())
+            configuration.ConfigOverrideOrDefault(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(callInfo => callInfo.ArgAt<string>(1));
         }
 

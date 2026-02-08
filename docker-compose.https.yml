@@ -1,0 +1,111 @@
+# ==============================================================================
+# RoboClerk.Server Docker Compose with HTTPS via Caddy
+# ==============================================================================
+#
+# This configuration uses Caddy as a reverse proxy with automatic Let's Encrypt
+# certificate management.
+#
+# Prerequisites:
+#   1. A domain name pointing to your server's public IP
+#   2. Ports 80 and 443 open and accessible from the internet
+#   3. Update the Caddyfile with your actual domain name
+#
+# Usage:
+#   1. Copy .env.template to .env and fill in the values
+#   2. Edit Caddyfile and replace 'roboclerk.yourdomain.com' with your domain
+#   3. Run: docker-compose -f docker-compose.https.yml up -d
+#
+# For development with self-signed certs, see Caddyfile.dev
+#
+# ==============================================================================
+
+services:
+  roboclerk-server:
+    build:
+      context: .
+      dockerfile: RoboClerk.Server/Dockerfile
+    container_name: roboclerk-server
+    # Only expose to internal network, not to host
+    expose:
+      - "8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      # SharePoint credentials - set in .env file
+      - SP_CLIENT_ID=${SP_CLIENT_ID:-}
+      - SP_TENANT_ID=${SP_TENANT_ID:-}
+      - SP_CLIENT_SECRET=${SP_CLIENT_SECRET:-}
+      # Git repository authentication (for source code analysis from remote repos)
+      - GIT_GITHUB_TOKEN=${GIT_GITHUB_TOKEN:-}
+      - GIT_GITLAB_TOKEN=${GIT_GITLAB_TOKEN:-}
+      - GIT_AZURE_DEVOPS_PAT=${GIT_AZURE_DEVOPS_PAT:-}
+      - GIT_BITBUCKET_TOKEN=${GIT_BITBUCKET_TOKEN:-}
+      - GIT_CLONE_TIMEOUT=${GIT_CLONE_TIMEOUT:-300}
+      # Optional overrides
+      - ROBOCLERK_LOG_LEVEL=${ROBOCLERK_LOG_LEVEL:-INFO}
+      - ROBOCLERK_CORS_ORIGINS=${ROBOCLERK_CORS_ORIGINS:-*}
+    volumes:
+      # Persistent logs
+      - roboclerk-logs:/app/logs
+      # Optional: Mount custom configuration
+      # - ./config:/app/config:ro
+      # Optional: Mount custom plugins
+      # - ./plugins:/app/plugins:ro
+    restart: unless-stopped
+    networks:
+      - roboclerk-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: roboclerk-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Caddy configuration
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Persistent storage for certificates
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      roboclerk-server:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - roboclerk-network
+    # Resource limits for Caddy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 32M
+
+volumes:
+  roboclerk-logs:
+    driver: local
+  caddy-data:
+    driver: local
+  caddy-config:
+    driver: local
+
+networks:
+  roboclerk-network:
+    name: roboclerk-network

@@ -116,10 +116,10 @@ namespace RoboClerk.Redmine.Tests
 
         private void SetupMockConfiguration()
         {
-            configuration.CommandLineOptionOrDefault("RedmineAPIEndpoint", Arg.Any<string>()).Returns("http://localhost:3001/");
-            configuration.CommandLineOptionOrDefault("RedmineAPIKey", Arg.Any<string>()).Returns("test_api_key");
-            configuration.CommandLineOptionOrDefault("RedmineBaseURL", Arg.Any<string>()).Returns("http://localhost:3001/issues/");
-            configuration.CommandLineOptionOrDefault("ConvertTextile", Arg.Any<string>()).Returns("FALSE");
+            configuration.ConfigOverrideOrDefault("RedmineAPIEndpoint", Arg.Any<string>()).Returns("http://localhost:3001/");
+            configuration.ConfigOverrideOrDefault("RedmineAPIKey", Arg.Any<string>()).Returns("test_api_key");
+            configuration.ConfigOverrideOrDefault("RedmineBaseURL", Arg.Any<string>()).Returns("http://localhost:3001/issues/");
+            configuration.ConfigOverrideOrDefault("ConvertTextile", Arg.Any<string>()).Returns("FALSE");
         }
 
         private void SetupMockRedmineResponses()

@@ -43,7 +43,7 @@ namespace RoboClerk
                 // Validate that all configurations have required parameters
                 foreach (var testConfig in TestConfigurations)
                 {
-                    var functionMask = configuration.CommandLineOptionOrDefault("FunctionMask", testConfig.GetValue<string>("FunctionMask"));
+                    var functionMask = configuration.ConfigOverrideOrDefault("FunctionMask", testConfig.GetValue<string>("FunctionMask"));
                     if (string.IsNullOrEmpty(functionMask))
                     {
                         throw new Exception($"FunctionMask is required for test configuration '{testConfig.Project}'. Please ensure FunctionMask is specified in the TestConfiguration.");
@@ -52,7 +52,7 @@ namespace RoboClerk
                     var functionMaskElements = ParseFunctionMask(functionMask);
                     ValidateFunctionMaskElements(functionMaskElements);
                     
-                    var sectionSeparator = configuration.CommandLineOptionOrDefault("SectionSeparator", testConfig.GetValue<string>("SectionSeparator"));
+                    var sectionSeparator = configuration.ConfigOverrideOrDefault("SectionSeparator", testConfig.GetValue<string>("SectionSeparator"));
                     if (string.IsNullOrEmpty(sectionSeparator))
                     {
                         throw new Exception($"SectionSeparator is required for test configuration '{testConfig.Project}'. Please ensure SectionSeparator is specified in the TestConfiguration.");
@@ -63,7 +63,7 @@ namespace RoboClerk
                 var primaryConfig = TestConfigurations[0];
                 
                 // Try to get plugin-specific fields from command line first, then from configuration
-                selectedLanguage = configuration.CommandLineOptionOrDefault("Language", primaryConfig.GetValue<string>("Language", "csharp"));
+                selectedLanguage = configuration.ConfigOverrideOrDefault("Language", primaryConfig.GetValue<string>("Language", "csharp"));
 
                 ScanDirectoriesForSourceFiles();
 

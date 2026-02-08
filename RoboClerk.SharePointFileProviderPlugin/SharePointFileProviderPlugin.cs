@@ -46,11 +46,11 @@ namespace RoboClerk.SharePointFileProvider
             try
             {
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-                siteUrl = configuration.CommandLineOptionOrDefault("SPSiteUrl",GetObjectForKey<string>(config, "SPSiteUrl", true));
-                clientId = configuration.CommandLineOptionOrDefault("SPClientId",GetObjectForKey<string>(config, "SPClientId", true));
-                clientSecret = configuration.CommandLineOptionOrDefault("SPClientSecret",GetObjectForKey<string>(config, "SPClientSecret", true));
-                tenantId = configuration.CommandLineOptionOrDefault("SPTenantId",GetObjectForKey<string>(config, "SPTenantId", true));
-                driveId = configuration.CommandLineOptionOrDefault("SPDriveId",GetObjectForKey<string>(config, "SPDriveId", true));
+                siteUrl = configuration.ConfigOverrideOrDefault("SPSiteUrl",GetObjectForKey<string>(config, "SPSiteUrl", true));
+                clientId = configuration.ConfigOverrideOrDefault("SPClientId",GetObjectForKey<string>(config, "SPClientId", true));
+                clientSecret = configuration.ConfigOverrideOrDefault("SPClientSecret",GetObjectForKey<string>(config, "SPClientSecret", true));
+                tenantId = configuration.ConfigOverrideOrDefault("SPTenantId",GetObjectForKey<string>(config, "SPTenantId", true));
+                driveId = configuration.ConfigOverrideOrDefault("SPDriveId",GetObjectForKey<string>(config, "SPDriveId", true));
 
                 // Initialize Graph client with OAuth2 authentication
                 var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);

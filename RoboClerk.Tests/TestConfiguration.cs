@@ -272,7 +272,7 @@ CompanyName = ""Acme Inc.""
                 .WithRoboClerkConfig(fileProviderPlugin, TestingHelpers.ConvertFilePath(@"C:\temp\roboConf.toml"), cmdOptions)
                 .WithProjectConfig(fileProviderPlugin, TestingHelpers.ConvertFilePath(@"C:\temp\roboProjectConf.toml"))
                 .Build();
-            Assert.That(conf.CommandLineOptionOrDefault("CheckpointFile", "error"), Is.EqualTo("testvalue"));
+            Assert.That(conf.ConfigOverrideOrDefault("CheckpointFile", "error"), Is.EqualTo("testvalue"));
         }
     }
 }

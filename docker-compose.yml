@@ -28,8 +28,17 @@ services:
       
       # SharePoint credentials - MUST be provided via environment or .env file
       # NEVER commit these values to source control!
-      - SP_CLIENT_ID=${SP_CLIENT_ID}
-      - SP_TENANT_ID=${SP_TENANT_ID}
+      - SP_CLIENT_ID=${SP_CLIENT_ID:-}
+      - SP_TENANT_ID=${SP_TENANT_ID:-}
+      - SP_CLIENT_SECRET=${SP_CLIENT_SECRET:-}
+      
+      # Git repository authentication (for source code analysis from remote repos)
+      # Set these if you need to clone private repositories
+      - GIT_GITHUB_TOKEN=${GIT_GITHUB_TOKEN:-}
+      - GIT_GITLAB_TOKEN=${GIT_GITLAB_TOKEN:-}
+      - GIT_AZURE_DEVOPS_PAT=${GIT_AZURE_DEVOPS_PAT:-}
+      - GIT_BITBUCKET_TOKEN=${GIT_BITBUCKET_TOKEN:-}
+      - GIT_CLONE_TIMEOUT=${GIT_CLONE_TIMEOUT:-300}
     volumes:
       # Mount configuration directory (read-only for security)
       - ./config:/app/config:ro

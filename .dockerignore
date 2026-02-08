@@ -31,15 +31,13 @@
 # NuGet packages (restored during build)
 **/packages/
 
-# Documentation
-*.md
+# Documentation (except README files in Server project)
 LICENSE
 docs/
 
-# Docker files (don't need to copy these into build context)
-**/Dockerfile*
-**/docker-compose*
-**/.dockerignore
+# Docker compose files (not needed inside container)
+docker-compose*.yml
+Caddyfile*
 
 # Environment files (sensitive data)
 .env
@@ -58,6 +56,7 @@ Thumbs.db
 
 # Demo and scaffolding (not needed for server)
 **/Demo/
+**/scaffolding/
 **/scaffolding/
 
 # Test projects (not needed in production image)

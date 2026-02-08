@@ -1,14 +1,12 @@
 # ==============================================================================
-# RoboClerk.Server Dockerfile
-# Multi-stage build for optimized production image
+# RoboClerk.Server Dockerfile - Debug Version
+# Includes vsdbg for remote debugging from Visual Studio
 # ==============================================================================
 
 # Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy solution file and ALL project files for proper dependency resolution
-# The post-build event in RoboClerk.csproj runs "dotnet list package" which scans the entire solution
 COPY ["RoboClerk.sln", "./"]
 COPY ["RoboClerk/RoboClerk.csproj", "RoboClerk/"]
 COPY ["RoboClerk.Core/RoboClerk.Core.csproj", "RoboClerk.Core/"]
@@ -24,85 +22,71 @@ COPY ["RoboClerk.DependenciesFile/RoboClerk.DependenciesFile.csproj", "RoboClerk
 COPY ["RoboClerk.TestDescriptionImportPlugin/RoboClerk.TestDescriptionFilePlugin.csproj", "RoboClerk.TestDescriptionImportPlugin/"]
 COPY ["RoboClerk.TestResultsFilePlugin/RoboClerk.TestResultsFilePlugin.csproj", "RoboClerk.TestResultsFilePlugin/"]
 
-# Restore the entire solution to ensure all projects have assets files
-# This is required because the post-build event runs "dotnet list package" on the solution
 RUN dotnet restore "RoboClerk.sln"
 
-# Copy all source code
 COPY . .
 
-# Build and publish the server project
+# Build in Debug configuration for debugging symbols
 WORKDIR "/src/RoboClerk.Server"
-RUN dotnet publish -c Release -o /app/publish --no-restore
+RUN dotnet publish -c Debug -o /app/publish --no-restore
 
 # Publish all plugins to /app/plugins (flat directory - required by PluginLoader)
 WORKDIR "/src/RoboClerk.SharePointFileProviderPlugin"
-RUN dotnet publish -c Release -o /app/plugins --no-restore
+RUN dotnet publish -c Debug -o /app/plugins --no-restore
 
 WORKDIR "/src/RoboClerk.Redmine"
-RUN dotnet publish -c Release -o /app/plugins --no-restore
+RUN dotnet publish -c Debug -o /app/plugins --no-restore
 
 WORKDIR "/src/RoboClerk.AzureDevOps"
-RUN dotnet publish -c Release -o /app/plugins --no-restore
+RUN dotnet publish -c Debug -o /app/plugins --no-restore
 
 WORKDIR "/src/RoboClerk.OpenAI"
-RUN dotnet publish -c Release -o /app/plugins --no-restore
+RUN dotnet publish -c Debug -o /app/plugins --no-restore
 
 WORKDIR "/src/RoboClerk.AnnotatedUnitTests"
-RUN dotnet publish -c Release -o /app/plugins --no-restore
+RUN dotnet publish -c Debug -o /app/plugins --no-restore
 
 WORKDIR "/src/RoboClerk.UnitTestFN"
-RUN dotnet publish -c Release -o /app/plugins --no-restore
+RUN dotnet publish -c Debug -o /app/plugins --no-restore
 
 WORKDIR "/src/RoboClerk.DependenciesFile"
-RUN dotnet publish -c Release -o /app/plugins --no-restore
+RUN dotnet publish -c Debug -o /app/plugins --no-restore
 
 WORKDIR "/src/RoboClerk.TestDescriptionImportPlugin"
-RUN dotnet publish -c Release -o /app/plugins --no-restore
+RUN dotnet publish -c Debug -o /app/plugins --no-restore
 
 WORKDIR "/src/RoboClerk.TestResultsFilePlugin"
-RUN dotnet publish -c Release -o /app/plugins --no-restore
+RUN dotnet publish -c Debug -o /app/plugins --no-restore
 
 # ==============================================================================
-# Runtime stage - using Alpine for smaller image size
+# Runtime stage - using full SDK for debugging (not Alpine)
 # ==============================================================================
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS runtime
 
-# Install required dependencies
-# - icu-libs: Required for globalization support
-# - wget: Required for health check
-RUN apk add --no-cache icu-libs wget
+# Install vsdbg (Visual Studio Debugger)
+RUN apt-get update && apt-get install -y unzip curl procps \
+    && curl -sSL https://aka.ms/getvsdbgsh | /bin/sh /dev/stdin -v latest -l /vsdbg \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Set environment variables
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     ASPNETCORE_URLS=http://+:8080 \
-    ASPNETCORE_ENVIRONMENT=Production \
-    # Ensure native libraries can be found
-    LD_LIBRARY_PATH=/app/runtimes/linux-musl-x64/native
+    ASPNETCORE_ENVIRONMENT=Development
 
-# Copy published output from build stage
+# Copy published output
 COPY --from=build /app/publish .
-
-# Copy plugins
 COPY --from=build /app/plugins ./plugins/
 
-# Create directories for configuration, logs, and additional plugins
-RUN mkdir -p /app/logs /app/config /app/RoboClerk_input/RoboClerkConfig /app/RoboClerk_input/PluginConfig
+# Create directories
+RUN mkdir -p /app/logs /app/logs/archive /app/config /app/RoboClerk_input/RoboClerkConfig /app/RoboClerk_input/PluginConfig
 
-# Copy Docker-specific RoboClerk configuration from build stage
-# Note: This file must exist at RoboClerk.Server/Configuration/RoboClerk.Docker.toml
+# Copy configurations
 COPY --from=build /src/RoboClerk.Server/Configuration/RoboClerk.Docker.toml /app/RoboClerk_input/RoboClerkConfig/RoboClerk.toml
-
-# Copy Docker-specific server configuration (with HTTPS disabled - Caddy handles TLS)
 COPY --from=build /src/RoboClerk.Server/Configuration/RoboClerk.Server.Docker.toml /app/RoboClerk.Server.toml
-
-# Copy Docker-specific NLog configuration for file logging
 COPY --from=build /src/RoboClerk.Server/nlog.docker.config /app/nlog.config
 
-# Copy all plugin configuration files to PluginConfig directory
-# These provide default templates - values can be overridden via environment variables or command line options
+# Copy plugin configurations
 COPY --from=build /src/RoboClerk.SharePointFileProviderPlugin/Configuration/SharePointFileProviderPlugin.toml /app/RoboClerk_input/PluginConfig/
 COPY --from=build /src/RoboClerk.Redmine/Configuration/RedmineSLMSPlugin.toml /app/RoboClerk_input/PluginConfig/
 COPY --from=build /src/RoboClerk.AzureDevOps/Configuration/AzureDevOpsSLMSPlugin.toml /app/RoboClerk_input/PluginConfig/
@@ -113,25 +97,6 @@ COPY --from=build /src/RoboClerk.TestDescriptionImportPlugin/Configuration/TestD
 COPY --from=build /src/RoboClerk.TestResultsFilePlugin/Configuration/TestResultsFilePlugin.toml /app/RoboClerk_input/PluginConfig/
 COPY --from=build /src/RoboClerk.UnitTestFN/Configuration/UnitTestFNPlugin.toml /app/RoboClerk_input/PluginConfig/
 
-# Create logs archive directory
-RUN mkdir -p /app/logs/archive
-
-# Set proper permissions
-RUN chmod -R 755 /app
-
-# Expose the HTTP port
 EXPOSE 8080
 
-# Health check - uses wget since curl is not in alpine by default
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health/live || exit 1
-
-# Create non-root user for security
-RUN adduser -D -u 1000 roboclerk && \
-    chown -R roboclerk:roboclerk /app
-
-# Switch to non-root user
-USER roboclerk
-
-# Entry point
 ENTRYPOINT ["dotnet", "RoboClerk.Server.dll"]

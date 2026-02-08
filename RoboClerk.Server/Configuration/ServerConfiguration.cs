@@ -16,9 +16,11 @@ namespace RoboClerk.Server.Configuration
         public SecuritySettings Security { get; set; } = new();
         public FileSystemSettings FileSystem { get; set; } = new();
         public SharePointSettings SharePoint { get; set; } = new();
+        public GitSettings Git { get; set; } = new();
         public HealthCheckSettings HealthCheck { get; set; } = new();
         public MonitoringSettings Monitoring { get; set; } = new();
     }
+
 
     public class ServerSettings
     {
@@ -124,6 +126,12 @@ namespace RoboClerk.Server.Configuration
         /// </summary>
         public string TenantId { get; set; } = string.Empty;
         
+        /// <summary>
+        /// SharePoint App Client Secret for authentication
+        /// This should typically be set via environment variable SP_CLIENT_SECRET in production
+        /// </summary>
+        public string ClientSecret { get; set; } = string.Empty;
+        
         [Range(1, 600)]
         public int OperationTimeoutSeconds { get; set; } = 120;
         
@@ -151,5 +159,50 @@ namespace RoboClerk.Server.Configuration
         
         [Range(1, 60)]
         public int MemoryCheckIntervalMinutes { get; set; } = 5;
+    }
+
+    public class GitSettings
+    {
+        /// <summary>
+        /// GitHub Personal Access Token or OAuth token
+        /// </summary>
+        public string GitHubToken { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// GitLab Personal Access Token
+        /// </summary>
+        public string GitLabToken { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Azure DevOps Personal Access Token
+        /// </summary>
+        public string AzureDevOpsPat { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Bitbucket App Password or Token
+        /// </summary>
+        public string BitbucketToken { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Default timeout for clone operations in seconds
+        /// </summary>
+        [Range(30, 3600)]
+        public int CloneTimeoutSeconds { get; set; } = 300;
+        
+        /// <summary>
+        /// Maximum repository size to clone in MB (0 = unlimited)
+        /// </summary>
+        [Range(0, 10000)]
+        public int MaxRepoSizeMB { get; set; } = 500;
+        
+        /// <summary>
+        /// Custom temporary directory for cloned repositories (empty = system default)
+        /// </summary>
+        public string TempCloneDirectory { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Enable shallow clone by default for better performance
+        /// </summary>
+        public bool DefaultShallowClone { get; set; } = true;
     }
 }

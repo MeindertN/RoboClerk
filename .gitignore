@@ -257,3 +257,4 @@ _Pvt_Extensions
 /RoboClerk.Server/Models/VirtualContentControlManagement.md
 /RoboClerk.Server/Examples/TemplateFilesManagementExample.md
 /RoboClerk.Server/Examples/ConfigurationManagementExample.md
+/.env

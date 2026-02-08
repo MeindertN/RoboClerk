@@ -50,6 +50,7 @@ namespace RoboClerk.Server.Configuration
                 ParseSecuritySection(tomlModel, config.Security);
                 ParseFileSystemSection(tomlModel, config.FileSystem);
                 ParseSharePointSection(tomlModel, config.SharePoint);
+                ParseGitSection(tomlModel, config.Git);
                 ParseHealthCheckSection(tomlModel, config.HealthCheck);
                 ParseMonitoringSection(tomlModel, config.Monitoring);
 
@@ -165,6 +166,21 @@ namespace RoboClerk.Server.Configuration
             }
         }
 
+        private void ParseGitSection(TomlTable tomlModel, GitSettings settings)
+        {
+            if (tomlModel.TryGetValue("Git", out var gitObj) && gitObj is TomlTable gitTable)
+            {
+                settings.GitHubToken = GetValue(gitTable, "GitHubToken", settings.GitHubToken);
+                settings.GitLabToken = GetValue(gitTable, "GitLabToken", settings.GitLabToken);
+                settings.AzureDevOpsPat = GetValue(gitTable, "AzureDevOpsPat", settings.AzureDevOpsPat);
+                settings.BitbucketToken = GetValue(gitTable, "BitbucketToken", settings.BitbucketToken);
+                settings.CloneTimeoutSeconds = GetValue(gitTable, "CloneTimeoutSeconds", settings.CloneTimeoutSeconds);
+                settings.MaxRepoSizeMB = GetValue(gitTable, "MaxRepoSizeMB", settings.MaxRepoSizeMB);
+                settings.TempCloneDirectory = GetValue(gitTable, "TempCloneDirectory", settings.TempCloneDirectory);
+                settings.DefaultShallowClone = GetValue(gitTable, "DefaultShallowClone", settings.DefaultShallowClone);
+            }
+        }
+
         private void ParseHealthCheckSection(TomlTable tomlModel, HealthCheckSettings settings)
         {
             if (tomlModel.TryGetValue("HealthCheck", out var hcObj) && hcObj is TomlTable hcTable)
@@ -247,6 +263,49 @@ namespace RoboClerk.Server.Configuration
             {
                 config.SharePoint.TenantId = spTenantId;
                 logger.Info("SharePoint TenantId loaded from environment variable SP_TENANT_ID");
+            }
+
+            var spClientSecret = Environment.GetEnvironmentVariable("SP_CLIENT_SECRET");
+            if (!string.IsNullOrEmpty(spClientSecret))
+            {
+                config.SharePoint.ClientSecret = spClientSecret;
+                logger.Info("SharePoint ClientSecret loaded from environment variable SP_CLIENT_SECRET");
+            }
+
+            // Git credentials from environment variables
+            var gitHubToken = Environment.GetEnvironmentVariable("GIT_GITHUB_TOKEN");
+            if (!string.IsNullOrEmpty(gitHubToken))
+            {
+                config.Git.GitHubToken = gitHubToken;
+                logger.Info("Git GitHub token loaded from environment variable GIT_GITHUB_TOKEN");
+            }
+
+            var gitLabToken = Environment.GetEnvironmentVariable("GIT_GITLAB_TOKEN");
+            if (!string.IsNullOrEmpty(gitLabToken))
+            {
+                config.Git.GitLabToken = gitLabToken;
+                logger.Info("Git GitLab token loaded from environment variable GIT_GITLAB_TOKEN");
+            }
+
+            var azureDevOpsPat = Environment.GetEnvironmentVariable("GIT_AZURE_DEVOPS_PAT");
+            if (!string.IsNullOrEmpty(azureDevOpsPat))
+            {
+                config.Git.AzureDevOpsPat = azureDevOpsPat;
+                logger.Info("Git Azure DevOps PAT loaded from environment variable GIT_AZURE_DEVOPS_PAT");
+            }
+
+            var bitbucketToken = Environment.GetEnvironmentVariable("GIT_BITBUCKET_TOKEN");
+            if (!string.IsNullOrEmpty(bitbucketToken))
+            {
+                config.Git.BitbucketToken = bitbucketToken;
+                logger.Info("Git Bitbucket token loaded from environment variable GIT_BITBUCKET_TOKEN");
+            }
+
+            var gitCloneTimeout = Environment.GetEnvironmentVariable("GIT_CLONE_TIMEOUT");
+            if (!string.IsNullOrEmpty(gitCloneTimeout) && int.TryParse(gitCloneTimeout, out var timeout))
+            {
+                config.Git.CloneTimeoutSeconds = timeout;
+                logger.Info($"Git clone timeout set from environment variable: {timeout}");
             }
 
             // Server settings from environment

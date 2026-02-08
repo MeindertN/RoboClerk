@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using RoboClerk.Server.Models;
 using RoboClerk.Server.Services;
+using RoboClerk.Server.Configuration;
 using RoboClerk.ContentCreators;
 
 namespace RoboClerk.Server.Controllers
@@ -11,14 +12,17 @@ namespace RoboClerk.Server.Controllers
     {
         private readonly IProjectManager projectManager;
         private readonly ISharePointService sharePointService;
+        private readonly ServerConfiguration serverConfiguration;
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public WordAddInController(
             IProjectManager projectManager, 
-            ISharePointService sharePointService)
+            ISharePointService sharePointService,
+            ServerConfiguration serverConfiguration)
         {
             this.projectManager = projectManager;
             this.sharePointService = sharePointService;
+            this.serverConfiguration = serverConfiguration;
         }
 
         /// <summary>
@@ -73,22 +77,16 @@ namespace RoboClerk.Server.Controllers
                 {
                     logger.Info($"Extracting project information from document URL");
                     
-                    // Get SPClientSecret from configuration options (passed via -o SPClientSecret=xxx)
-                    var configuration = HttpContext.RequestServices.GetRequiredService<RoboClerk.Core.Configuration.IConfiguration>();
-                    string? clientSecret = null;
-                    
-                    if (configuration.HasCommandLineOption("SPClientSecret"))
-                    {
-                        clientSecret = configuration.GetCommandLineOption("SPClientSecret");
-                    }
+                    // Get SPClientSecret from server configuration (already loaded from environment variable or config file)
+                    var clientSecret = serverConfiguration.SharePoint.ClientSecret;
                     
                     if (string.IsNullOrEmpty(clientSecret))
                     {
-                        logger.Error("SPClientSecret not provided in command line options");
+                        logger.Error("SPClientSecret not provided");
                         return BadRequest(new ProjectLoadResult
                         {
                             Success = false,
-                            Error = "SharePoint client secret (SPClientSecret) must be provided via command line option -o SPClientSecret=<value>"
+                            Error = "SharePoint client secret must be provided via command line option (-o SPClientSecret=<value>) or environment variable (SP_CLIENT_SECRET)"
                         });
                     }
                     

@@ -21,6 +21,52 @@ Project = "RoboClerk" # The name of the project to associate the tests with. Can
 # AnnotationName = "pytest.mark.unit" 
 # Project = "PythonProject" 
 
+# ==============================================================================
+# Git Repository Source Example
+# ==============================================================================
+# Instead of using TestDirectory for a local path, you can clone source code
+# directly from a Git repository. This is useful when:
+# - Running RoboClerk in Docker/CI where source code isn't locally available
+# - Analyzing tests from external repositories
+# - Pinning analysis to a specific branch, tag, or commit
+#
+# Note: You must specify EITHER TestDirectory OR GitSource, not both.
+#
+# [[TestConfigurations]]
+# Language = "csharp"
+# SubDirs = true
+# FileMasks = ["Test*.cs", "*Tests.cs"]
+# AnnotationName = "UnitTestAttribute"
+# Project = "ExternalLibrary"
+# 
+# [TestConfigurations.GitSource]
+# # Required: The repository URL (HTTPS format recommended for token auth)
+# RepositoryUrl = "https://github.com/company/external-library.git"
+# 
+# # Optional: Specify what to checkout (in order of precedence: CommitSha > Tag > Branch)
+# # If none specified, the default branch is used
+# Branch = "main"                    # Branch name
+# # Tag = "v1.2.3"                   # Or a specific tag
+# # CommitSha = "abc123def456"       # Or a specific commit SHA (full or short)
+# 
+# # Optional: Path within the repository to scan (empty = entire repo)
+# SourcePath = "tests/unit"
+# 
+# # Authentication (required for private repositories)
+# # Supported methods: "none" (public repos), "token", "basic"
+# AuthMethod = "token"
+# 
+# # The credential key - matches the environment variable name from docker-compose
+# # This is looked up from:
+# # 1. Environment variables (highest priority)
+# # 2. Server configuration (for RoboClerk Server)
+# # Supported keys: GIT_GITHUB_TOKEN, GIT_GITLAB_TOKEN, GIT_AZURE_DEVOPS_PAT, GIT_BITBUCKET_TOKEN
+# CredentialKey = "GIT_GITHUB_TOKEN"
+# 
+# # Optional: Performance settings
+# ShallowClone = true               # Use shallow clone (depth=1) for faster cloning
+# TimeoutSeconds = 300              # Clone timeout in seconds
+
 # Map annotation/decorator named args to RoboClerk fields
 [Purpose]
   Keyword  = "Purpose"

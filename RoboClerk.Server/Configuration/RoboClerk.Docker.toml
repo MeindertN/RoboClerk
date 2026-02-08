@@ -1,0 +1,25 @@
+# ==============================================================================
+# RoboClerk Configuration for Docker Server
+# ==============================================================================
+# This configuration is used by RoboClerk Server when running in a Docker container.
+# It provides the base plugin configuration. Project-specific settings are loaded
+# dynamically when a SharePoint project is loaded via the API.
+# ==============================================================================
+
+# Use SharePoint file provider for accessing project files
+FileProviderPlugin = "SharePointFileProviderPlugin"
+
+# Plugin directories - in Docker, plugins are at /app/plugins
+PluginDirs = [ "/app/plugins" ]
+
+# Plugin configuration directory
+PluginConfigurationDir = "/app/RoboClerk_input/PluginConfig"
+
+# Don't clear output directory (server manages this)
+ClearOutputDir = "False"
+
+# Logging level (DEBUG, INFO or WARN)
+LogLevel = "INFO"
+
+# Output format for document generation
+OutputFormat = "DOCX"

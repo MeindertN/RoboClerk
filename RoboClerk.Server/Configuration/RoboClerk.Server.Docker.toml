@@ -1,0 +1,62 @@
+# ==============================================================================
+# RoboClerk Server Configuration for Docker
+# ==============================================================================
+# This configuration is optimized for Docker deployments where HTTPS is handled
+# by a reverse proxy (Caddy, nginx, etc.)
+# ==============================================================================
+
+# Server hosting configuration
+[Server]
+# HTTP port - container listens on 8080
+HttpPort = 8080
+
+# HTTPS port - not used in container (Caddy handles HTTPS)
+HttpsPort = 8443
+
+# Bind to all interfaces
+HostAddress = "0.0.0.0"
+
+# DISABLE HTTPS redirection - Caddy handles HTTPS
+UseHttpsRedirection = false
+
+# Environment setting
+Environment = "Production"
+
+# API configuration
+[API]
+# Base path prefix
+BasePath = ""
+
+# Disable Swagger in production
+EnableSwaggerInProduction = false
+
+# Swagger UI route prefix
+SwaggerRoutePrefix = "swagger"
+
+# Maximum request body size (30MB)
+MaxRequestBodySize = 31457280
+
+# Request timeout (5 minutes)
+RequestTimeoutSeconds = 300
+
+# CORS configuration
+[CORS]
+EnableCORS = true
+AllowedOrigins = "*"
+AllowedMethods = "*"
+AllowedHeaders = "*"
+AllowCredentials = false
+
+# Logging configuration
+[Logging]
+ServerLogLevel = "INFO"
+
+# SharePoint settings - populated from environment variables
+[SharePoint]
+# These are set via SP_CLIENT_ID and SP_TENANT_ID environment variables
+ClientId = ""
+TenantId = ""
+OperationTimeoutSeconds = 120
+RetryCount = 3
+RetryDelayMilliseconds = 1000
+CacheAuthTokens = true

@@ -14,8 +14,12 @@ using IConfiguration = RoboClerk.Core.Configuration.IConfiguration;
 using ServerCommandlineOptions = RoboClerk.Server.CommandlineOptions;
 
 
-var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
-logger.Debug("Starting RoboClerk Server");
+// Setup NLog - check for nlog.config file first (Docker), then fall back to appsettings
+var nlogConfigPath = Path.Combine(AppContext.BaseDirectory, "nlog.config");
+var logger = File.Exists(nlogConfigPath) 
+    ? LogManager.Setup().LoadConfigurationFromFile(nlogConfigPath).GetCurrentClassLogger()
+    : LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+logger.Debug($"Starting RoboClerk Server (NLog config: {(File.Exists(nlogConfigPath) ? nlogConfigPath : "appsettings")})");
 
 try
 {
@@ -317,7 +321,7 @@ static void RegisterRoboClerkServices(IServiceCollection services, string[] args
                 var serviceProvider = services.BuildServiceProvider();
                 var serverConfig = serviceProvider.GetRequiredService<ServerConfiguration>();
                 
-                // Add SharePoint ClientID and TenantID from server config to RoboClerk command-line options
+                // Add SharePoint ClientID, TenantID, and ClientSecret from server config to RoboClerk command-line options
                 // These can be overridden by actual command-line options if provided
                 if (!commandlineOptions.ContainsKey("SPClientId") && !string.IsNullOrEmpty(serverConfig.SharePoint.ClientId))
                 {
@@ -327,6 +331,10 @@ static void RegisterRoboClerkServices(IServiceCollection services, string[] args
                 {
                     commandlineOptions["SPTenantId"] = serverConfig.SharePoint.TenantId;
                 }
+                if (!commandlineOptions.ContainsKey("SPClientSecret") && !string.IsNullOrEmpty(serverConfig.SharePoint.ClientSecret))
+                {
+                    commandlineOptions["SPClientSecret"] = serverConfig.SharePoint.ClientSecret;
+                }
                 
                 try
                 {
@@ -335,7 +343,7 @@ static void RegisterRoboClerkServices(IServiceCollection services, string[] args
                             .Build();
                     var logger = NLog.LogManager.GetCurrentClassLogger();
                     logger.Warn($"RoboClerk Version: {Assembly.GetExecutingAssembly().GetName().Version}");
-                    logger.Info($"RoboClerk configuration loaded with SPClientID and SPTenantID from server configuration");
+                    logger.Info($"RoboClerk configuration loaded with SharePoint credentials from server configuration");
 
                     // Core RoboClerk services
                     services.AddTransient<IFileProviderPlugin>(x => new LocalFileSystemPlugin(new FileSystem()));

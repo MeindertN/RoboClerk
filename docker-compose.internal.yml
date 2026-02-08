@@ -1,0 +1,96 @@
+# ==============================================================================
+# RoboClerk.Server Docker Compose - Internal/Corporate Network with HTTPS
+# ==============================================================================
+#
+# For corporate networks without a public domain name.
+# Uses self-signed certificates via Caddy's internal CA.
+#
+# Usage:
+#   1. Copy .env.template to .env and set credentials
+#   2. Run: docker-compose -f docker-compose.internal.yml up -d
+#   3. Access: https://<server-ip> or https://localhost
+#   4. Accept the certificate warning (or trust the CA - see Caddyfile.internal)
+#
+# ==============================================================================
+
+services:
+  roboclerk-server:
+    build:
+      context: .
+      dockerfile: RoboClerk.Server/Dockerfile
+    container_name: roboclerk-server
+    # Expose 8080 to both internal network and host for debugging
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      # SharePoint credentials
+      - SP_CLIENT_ID=${SP_CLIENT_ID:-}
+      - SP_TENANT_ID=${SP_TENANT_ID:-}
+      - SP_CLIENT_SECRET=${SP_CLIENT_SECRET:-}
+      # Git repository authentication (for source code analysis from remote repos)
+      - GIT_GITHUB_TOKEN=${GIT_GITHUB_TOKEN:-}
+      - GIT_GITLAB_TOKEN=${GIT_GITLAB_TOKEN:-}
+      - GIT_AZURE_DEVOPS_PAT=${GIT_AZURE_DEVOPS_PAT:-}
+      - GIT_BITBUCKET_TOKEN=${GIT_BITBUCKET_TOKEN:-}
+      - GIT_CLONE_TIMEOUT=${GIT_CLONE_TIMEOUT:-300}
+      # Logging and CORS
+      - ROBOCLERK_LOG_LEVEL=${ROBOCLERK_LOG_LEVEL:-INFO}
+      - ROBOCLERK_CORS_ORIGINS=${ROBOCLERK_CORS_ORIGINS:-*}
+    volumes:
+      - roboclerk-logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - roboclerk-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: roboclerk-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Use the internal network Caddyfile
+      - ./Caddyfile.internal:/etc/caddy/Caddyfile:ro
+      # Persistent storage for certificates (important for CA consistency)
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - roboclerk-server
+    restart: unless-stopped
+    networks:
+      - roboclerk-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+
+volumes:
+  roboclerk-logs:
+    driver: local
+  caddy-data:
+    driver: local
+  caddy-config:
+    driver: local
+
+networks:
+  roboclerk-network:
+    name: roboclerk-network

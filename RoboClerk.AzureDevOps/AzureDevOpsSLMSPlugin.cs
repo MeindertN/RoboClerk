@@ -39,10 +39,10 @@ namespace RoboClerk.AzureDevOps
             try
             {
                 var config = GetConfigurationTable(configuration.PluginConfigDir, $"{name}.toml");
-                organizationName = configuration.CommandLineOptionOrDefault("OrganizationName", (string)config["OrganizationName"]);
-                projectName = configuration.CommandLineOptionOrDefault("ProjectName", (string)config["ProjectName"]);
+                organizationName = configuration.ConfigOverrideOrDefault("OrganizationName", (string)config["OrganizationName"]);
+                projectName = configuration.ConfigOverrideOrDefault("ProjectName", (string)config["ProjectName"]);
                 witClient = AzureDevOpsUtilities.GetWorkItemTrackingHttpClient(organizationName,
-                    configuration.CommandLineOptionOrDefault("AccessToken", (string)config["AccessToken"]));
+                    configuration.ConfigOverrideOrDefault("AccessToken", (string)config["AccessToken"]));
             }
             catch (Exception e)
             {
